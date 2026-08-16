@@ -1,0 +1,1163 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MagnaVERSE — before and after the redesign</title>
+<meta name="description" content="The live MagnaVERSE build against the redesigned prototypes, one defect at a time.">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ============================ tokens ============================ */
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10);
+  --good:#15803D; --good-dim:rgba(21,128,61,.10);
+  --warn:#B45309; --warn-dim:rgba(180,83,9,.10);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10);
+  --shade:rgba(16,22,30,.55);
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788;
+    --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16);
+    --good:#3FCF95; --good-dim:rgba(63,207,149,.14);
+    --warn:#E0A33C; --warn-dim:rgba(224,163,60,.14);
+    --crit:#F97066; --crit-dim:rgba(249,112,102,.14);
+    --shade:rgba(0,0,0,.72);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+  --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788;
+  --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16);
+  --good:#3FCF95; --good-dim:rgba(63,207,149,.14);
+  --warn:#E0A33C; --warn-dim:rgba(224,163,60,.14);
+  --crit:#F97066; --crit-dim:rgba(249,112,102,.14);
+  --shade:rgba(0,0,0,.72);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10);
+  --good:#15803D; --good-dim:rgba(21,128,61,.10);
+  --warn:#B45309; --warn-dim:rgba(180,83,9,.10);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10);
+  --shade:rgba(16,22,30,.55);
+}
+
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px;width:100%}
+.skip{position:absolute;left:-9999px;top:0;background:var(--surface);color:var(--tx);
+  padding:10px 16px;border:1px solid var(--line-2);border-radius:8px;z-index:60}
+.skip:focus{left:16px;top:12px}
+
+/* ============================ the mark ============================ */
+.mark{width:30px;height:auto;flex:none;display:block}
+.mark path{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion:no-preference){
+  .mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+
+/* ============================ top bar ============================ */
+.top{position:sticky;top:0;z-index:30;background:var(--bg);
+  border-bottom:1px solid var(--line)}
+@supports (backdrop-filter:blur(1px)){
+  .top{background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px)}
+}
+.top .wrap{display:flex;align-items:center;gap:12px;min-height:60px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14.5px;letter-spacing:-.01em}
+.brand .vs{color:var(--tx-3);font-weight:450}
+.brand .div{color:var(--tx-3);font-weight:400;margin-left:2px}
+.tbtn{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:44px;min-width:44px;padding:0 14px;border-radius:99px;border:1px solid var(--line-2);
+  background:var(--surface-2);color:var(--tx-2);font:inherit;font-size:12.5px;cursor:pointer}
+.tbtn:hover{color:var(--tx);border-color:var(--accent)}
+.tbtn svg{width:15px;height:15px;flex:none}
+
+/* ============================ hero ============================ */
+.hero{padding:52px 0 38px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:16px}
+h1{font-size:clamp(27px,4.6vw,42px);line-height:1.1;font-weight:680;letter-spacing:-.025em;
+  text-wrap:balance;max-width:22ch}
+.lede{margin-top:16px;font-size:clamp(15px,1.6vw,17px);line-height:1.62;color:var(--tx-2);max-width:64ch}
+.lede b{color:var(--tx);font-weight:620}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:28px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--surface-2);min-width:0}
+.stat b{display:block;font-size:25px;font-weight:680;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.15}
+.stat span{font-size:11.8px;color:var(--tx-3);display:block;margin-top:3px;line-height:1.4}
+.stat.bad b{color:var(--crit)} .stat.ok b{color:var(--good)}
+
+/* ============================ blockers strip ============================ */
+.blockers{padding:0 0 46px}
+.bk-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+h2{font-size:clamp(18px,2.4vw,22px);font-weight:670;letter-spacing:-.018em}
+.bk-head .n{font-family:var(--mono);font-size:11px;color:var(--tx-3);letter-spacing:.1em}
+.sub{font-size:14px;color:var(--tx-2);max-width:70ch;line-height:1.6}
+.bk{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:18px}
+.bkc{border:1px solid var(--line);border-left:3px solid var(--crit);border-radius:12px;
+  background:var(--surface);padding:14px 16px;min-width:0}
+.bkc .id{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;color:var(--crit);font-weight:600}
+.bkc h3{font-size:14.5px;font-weight:640;margin:5px 0 6px;letter-spacing:-.01em}
+.bkc p{font-size:12.8px;line-height:1.55;color:var(--tx-2)}
+
+/* ============================ pairs ============================ */
+.pairs{padding-bottom:20px}
+.pair{border-top:1px solid var(--line);padding:38px 0 42px;--mh:320px}
+.pair:first-of-type{border-top:0}
+.ph{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.pn{font-family:var(--mono);font-size:11.5px;color:var(--tx-3);padding-top:6px;flex:none;
+  letter-spacing:.06em}
+.pt{font-size:clamp(17px,2.2vw,21px);font-weight:665;letter-spacing:-.018em;flex:1 1 240px;min-width:0;
+  line-height:1.3;padding-top:1px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:2px}
+.chip{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 9px;border-radius:99px;border:1px solid var(--line-2);color:var(--tx-3);white-space:nowrap}
+.chip.sev-block{color:var(--crit);border-color:var(--crit);background:var(--crit-dim);font-weight:600}
+.chip.sev-crit{color:var(--crit);border-color:var(--crit);background:var(--crit-dim)}
+.chip.sev-high{color:var(--warn);border-color:var(--warn);background:var(--warn-dim)}
+.chip.sev-med{color:var(--tx-2)}
+.chip.ref{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+
+/* view switch */
+.switch{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line-2);border-radius:99px;
+  background:var(--surface-2);margin:14px 0 16px}
+.switch button{min-height:38px;padding:0 14px;border:0;border-radius:99px;background:transparent;
+  color:var(--tx-3);font:inherit;font-size:12.5px;font-weight:550;cursor:pointer;white-space:nowrap}
+.switch button:hover{color:var(--tx)}
+.switch button[aria-pressed="true"]{background:var(--surface);color:var(--tx);
+  box-shadow:0 1px 2px rgba(0,0,0,.10)}
+:root[data-theme="dark"] .switch button[aria-pressed="true"],
+.switch button[aria-pressed="true"]{border:0}
+@media (prefers-color-scheme:dark){.switch button[aria-pressed="true"]{background:var(--surface-3)}}
+:root[data-theme="dark"] .switch button[aria-pressed="true"]{background:var(--surface-3)}
+:root[data-theme="light"] .switch button[aria-pressed="true"]{background:var(--surface)}
+
+.cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.pair[data-show="before"] .shot.after,
+.pair[data-show="after"] .shot.before{display:none}
+.pair[data-show="before"] .cmp,
+.pair[data-show="after"] .cmp{grid-template-columns:minmax(0,1fr)}
+.pair[data-show="before"] .media,
+.pair[data-show="after"] .media{--mh-x:1.25}
+
+.shot{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden;min-width:0}
+.shot.before{border-color:color-mix(in srgb,var(--crit) 32%,var(--line))}
+.shot.after{border-color:color-mix(in srgb,var(--good) 32%,var(--line))}
+@supports not (color:color-mix(in srgb,red,blue)){
+  .shot.before{border-color:var(--line-2)} .shot.after{border-color:var(--line-2)}
+}
+.slab{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+.shot.before .slab{color:var(--crit);background:var(--crit-dim)}
+.shot.after .slab{color:var(--good);background:var(--good-dim)}
+.slab .src{margin-left:auto;color:var(--tx-3);letter-spacing:.05em;text-transform:none;
+  font-size:10.5px;text-align:right}
+/* height comes from the image's own ratio (width/height attributes), capped by --mh —
+   so a thin strip stays a thin strip and a tall panel never runs away. No load-time jump. */
+.media{display:block;width:100%;padding:0;border:0;background:var(--surface-2);
+  cursor:zoom-in;overflow:hidden;line-height:0}
+.media img{display:block;width:100%;height:auto;
+  max-height:calc(var(--mh) * var(--mh-x,1));object-fit:contain}
+.media:hover{background:var(--surface-3)}
+.cap{padding:11px 14px 13px;font-size:12.6px;line-height:1.55;color:var(--tx-2);
+  border-top:1px solid var(--line)}
+
+/* audit-finding stand-in where no live screenshot exists */
+.noshot{display:flex;flex-direction:column;justify-content:center;gap:10px;
+  min-height:min(calc(var(--mh) * var(--mh-x,1)),300px);padding:24px 22px;
+  background:var(--surface-2);border-bottom:1px solid var(--line)}
+.noshot .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tx-3)}
+.noshot q{display:block;font-size:clamp(14px,1.7vw,16.5px);line-height:1.5;color:var(--tx);
+  quotes:"\201C" "\201D";font-weight:520}
+.noshot .who{font-size:12px;color:var(--tx-3)}
+
+/* prose under each pair */
+.say{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.say div{min-width:0}
+.say h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:7px}
+.say .w h4{color:var(--crit)} .say .c h4{color:var(--good)}
+.say p{font-size:13.6px;line-height:1.62;color:var(--tx-2)}
+.say code{font-family:var(--mono);font-size:12.2px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--tx);
+  overflow-wrap:anywhere}
+.why{margin-top:16px;border-left:3px solid var(--accent);background:var(--accent-dim);
+  border-radius:0 10px 10px 0;padding:12px 16px;font-size:13.6px;line-height:1.6;color:var(--tx-2)}
+.why b{color:var(--tx);font-weight:620}
+
+/* ============================ closing ============================ */
+.close{border-top:1px solid var(--line);padding:46px 0 20px}
+.protos{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:20px}
+.proto{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:13px;
+  background:var(--surface);padding:15px 16px;transition:border-color .15s,transform .15s;min-width:0}
+.proto:hover{border-color:var(--accent);transform:translateY(-2px)}
+.proto .r1{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.proto b{font-size:15px;font-weight:650;letter-spacing:-.01em}
+.proto .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 7px;border-radius:99px;border:1px solid var(--line-2);color:var(--tx-3)}
+.proto p{font-size:12.8px;line-height:1.55;color:var(--tx-2)}
+.proto .f{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-family:var(--mono);
+  font-size:11px;color:var(--tx-3);overflow-wrap:anywhere}
+.wide{display:flex;align-items:center;gap:14px;margin-top:14px;border:1px solid var(--line);
+  border-radius:13px;background:var(--surface);padding:16px 18px;text-decoration:none;color:inherit;
+  flex-wrap:wrap;transition:border-color .15s}
+.wide:hover{border-color:var(--accent)}
+.wide .t b{display:block;font-size:15px;font-weight:650;margin-bottom:3px}
+.wide .t span{font-size:12.8px;color:var(--tx-2);line-height:1.5}
+.wide .go{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--accent);white-space:nowrap}
+
+footer{border-top:1px solid var(--line);padding:26px 0 46px;font-size:12.4px;color:var(--tx-3);
+  line-height:1.65}
+footer .fb{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+footer .fb .mark{width:24px}
+footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
+
+/* ============================ lightbox ============================ */
+#lb{position:fixed;inset:0;width:100%;height:100%;max-width:100%;max-height:100%;border:0;padding:0;
+  background:transparent;color:var(--tx);overflow:hidden}
+#lb::backdrop{background:var(--shade)}
+#lb[open]{display:flex;flex-direction:column}
+.lb-in{display:flex;flex-direction:column;height:100%;background:var(--bg)}
+.lb-top{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);
+  background:var(--surface);flex:none}
+.lb-top .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--tx-3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-x{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:44px;min-width:44px;padding:0 14px;border-radius:99px;border:1px solid var(--line-2);
+  background:var(--surface-2);color:var(--tx);font:inherit;font-size:13px;cursor:pointer;flex:none}
+.lb-x:hover{border-color:var(--accent)}
+.lb-body{flex:1 1 auto;overflow:auto;display:flex;align-items:center;justify-content:center;
+  padding:14px;background:var(--bg-2)}
+.lb-body img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;
+  border-radius:8px;border:1px solid var(--line)}
+.lb-cap{flex:none;padding:12px 16px 16px;border-top:1px solid var(--line);background:var(--surface);
+  font-size:13px;line-height:1.55;color:var(--tx-2)}
+
+/* ============================ responsive ============================ */
+@media (max-width:860px){
+  .cmp,.say{grid-template-columns:minmax(0,1fr)}
+  .pair[data-show]{--mh-x:1}
+  .media img{max-height:none}
+  .noshot{height:auto;min-height:170px}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .hero{padding:34px 0 26px}
+  .pair{padding:30px 0 34px}
+  .switch{width:100%;justify-content:stretch}
+  .switch button{flex:1 1 0;padding:0 6px}
+  .slab{flex-wrap:wrap;gap:4px 8px}
+  .slab .src{margin-left:0;width:100%;text-align:left}
+  .lb-body{padding:8px}
+}
+@media (min-width:1600px){
+  .wrap{max-width:1320px}
+}
+@media print{
+  .top,.switch,.tbtn{display:none}
+  .pair{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#pairs">Skip to the comparisons</a>
+
+<header class="top">
+  <div class="wrap">
+    <span class="brand">
+      <svg class="mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/>
+            <stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Magna<span class="vs">VERSE</span><span class="div">&nbsp;· Before / After</span>
+    </span>
+    <button class="tbtn" id="themeBtn" type="button" aria-live="polite">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span id="themeLbl">System</span>
+    </button>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">app.stag.magna.ai · build 1.0.491 · audited 16 Aug 2026</p>
+    <h1>The answers were never the problem.</h1>
+    <p class="lede">
+      A hands-on walkthrough of the live build, then a second review against Magna's own annotated
+      screenshots. Both passes reached the same conclusion: <b>the model's output is good and the
+      surface around it is not.</b> The construction-risk answer was specific, sourced and well
+      structured — and then the app rendered LaTeX as raw source, drew a flowchart in keyboard
+      characters, and gave a user no way to copy any of it. Every pair below is one defect in the
+      live build against the same moment in the redesigned prototypes.
+    </p>
+    <div class="stats">
+      <div class="stat bad"><b>4</b><span>launch-blocking rendering defects (R1–R4)</span></div>
+      <div class="stat bad"><b>11</b><span>shell fixes asked for in review (S1–S11)</span></div>
+      <div class="stat"><b>23</b><span>issues in the first pass — 5 critical, 7 high, 11 medium</span></div>
+      <div class="stat bad"><b>13/26</b><span>navigation destinations greyed out</span></div>
+      <div class="stat ok"><b>0</b><span>changes needed to answer quality</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="blockers">
+  <div class="wrap">
+    <div class="bk-head">
+      <span class="n">§2b</span>
+      <h2>The four that block launch</h2>
+    </div>
+    <p class="sub">
+      The first audit tested the shell with prose questions, so it missed this entirely. The moment
+      someone asks a maths, code or diagram question, the answer renderer fails — not degrades,
+      fails. These four make whole categories of seat unable to use the product at all.
+    </p>
+    <div class="bk">
+      <div class="bkc">
+        <span class="id">R1 · LATEX</span>
+        <h3>Mathematics is never parsed</h3>
+        <p>An integral-calculus question returns about 25 consecutive lines of literal source. Every
+           technical seat — finance, engineering, planning — is unusable until this ships.</p>
+      </div>
+      <div class="bkc">
+        <span class="id">R2 · DIAGRAMS</span>
+        <h3>Flowcharts degrade to ASCII</h3>
+        <p>The model offers "a visual flowchart and a text version", then draws both in box-drawing
+           characters. There is no Mermaid or SVG renderer behind it.</p>
+      </div>
+      <div class="bkc">
+        <span class="id">R3 · CODE</span>
+        <h3>Code blocks have no affordances</h3>
+        <p>A bare dark rectangle. No language label, no filename, no wrap toggle — and no copy
+           button, the most-pressed control in every chat product on earth.</p>
+      </div>
+      <div class="bkc">
+        <span class="id">R4 · COPY</span>
+        <h3>Nothing copies a whole answer</h3>
+        <p>Getting a response out of MagnaVERSE and into a board pack means dragging a manual
+           selection across a scrolling region, and losing the formatting on the way.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pairs" id="pairs">
+  <div class="wrap">
+
+    <!-- ============ 1 ============ -->
+    <article class="pair" data-show="both" style="--mh:380px">
+      <div class="ph">
+        <span class="pn">01</span>
+        <h2 class="pt">A global header nobody could name</h2>
+        <span class="chips"><span class="chip ref">S1</span><span class="chip sev-high">High</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the global header pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — the MagnaVERSE global header on the live build. Seven controls, five of them unlabelled icons.">
+            <img src="assets/before/01-header.png" width="1600" height="77" loading="lazy"
+                 alt="The live MagnaVERSE header bar: the Magna logo at the left, a 'Search across everything ⌘K' field in the middle, then 'Sovereignty: Private' as a dropdown followed by four unlabelled icons — a bank, a bell, an info circle and a gear.">
+          </button>
+          <figcaption class="cap">The bar spans every screen. The bank icon is the usage dashboard.
+            The bell is notifications <em>and</em> a picker for the 3D companion. The info icon opens a
+            seven-step tour whose own copy calls it "this Compass button".</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — the Familiar prototype. No app-wide bar; only the thread's own model and tier sit above the transcript.">
+            <img src="assets/after/01-no-header.jpg" width="2160" height="1350" loading="lazy"
+                 alt="The redesigned chat view: a permanent conversation sidebar on the left with dated history, and above the transcript only a slim thread bar carrying the model name 'Kimi K2 Instruct · 1T MoE' and a green 'Private' tier pill. No global header bar anywhere.">
+          </button>
+          <figcaption class="cap">No global header at all. Brand, search, history, theme and account
+            live in the sidebar; the slim bar above the transcript carries only what belongs to
+            <em>this</em> thread — its model and its sovereignty tier.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>A permanent app-wide bar holding seven unrelated controls, five of them unlabelled
+             glyphs with no tooltips. Two of the four sovereignty tiers in its dropdown are dead
+             ("coming soon"). Neither ChatGPT nor Claude ships an app-wide header, and the audit
+             found nothing in this one that could not live in the sidebar or in context.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>Deleted. Everything global moved into the sidebar where it is labelled and always in the
+             same place; everything per-thread moved into a slim thread bar. The command palette
+             keeps its <code>⌘K</code> hint instead of hiding behind a bare magnifier.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> the header was consuming the top of every screen to show
+        controls nobody could name, and hiding the app's best feature — the command palette — behind
+        an unlabelled icon. Removing it costs a week and gives the answer the whole window.</p>
+    </article>
+
+    <!-- ============ 2 ============ -->
+    <article class="pair" data-show="both" style="--mh:380px">
+      <div class="ph">
+        <span class="pn">02</span>
+        <h2 class="pt">One orphaned Share icon, and no way to copy</h2>
+        <span class="chips"><span class="chip ref">S2 · R4</span><span class="chip sev-block">Launch blocker</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the message actions pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — a single unlabelled Share glyph stranded on its own line beneath the message.">
+            <img src="assets/before/02-share-button.png" width="1600" height="111" loading="lazy"
+                 alt="A MagnaVERSE assistant message reading 'Hello! I'm MagnaVerse, your personal AI assistant built by Magna for Magna. How can I help you today?' with a single small unlabelled share icon sitting alone on the line below it.">
+          </button>
+          <figcaption class="cap">The only action on the message, unlabelled, on its own line. No
+            copy, no regenerate, no edit — and the message footer fights the transcript's scroll
+            container as you read.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-6 · Horizon</span></figcaption>
+          <button class="media" type="button" data-cap="After — the Horizon prototype: one anchored action row per message, every action named.">
+            <img src="assets/after/02-action-row.png" width="960" height="572" loading="lazy"
+                 alt="The bottom of a redesigned assistant message card, ending in a divider and a single labelled action row: 'Copy full message', 'Retry', 'Export' and 'Share', each with its own icon.">
+          </button>
+          <figcaption class="cap">One anchored action row per message — Copy full message, Retry,
+            Export, Share — each with a written label, each at least 44&nbsp;px on touch, pinned to
+            the bottom of the message card.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>Three unlabelled icons appear on some messages — Share, a recalled-memory readout that
+             prints the raw key <code>memories:context/interest-learning-coding</code> with a
+             relevance score, and a book. There is no copy button anywhere, and nothing at all that
+             copies a whole answer.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>A single consistent row on every assistant message. Copy and Export do real work;
+             the raw memory key and the relevance score are gone from the end-user surface. The
+             transcript scrolls inside its own region, so the row stays where you expect it.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> every answer this product generates has to leave it —
+        into a board pack, an email, a ticket, a change order. Today that journey starts with
+        dragging a selection across a moving scroll region and losing the formatting. This is the
+        cheapest of the four launch blockers to fix and the one users hit most often.</p>
+    </article>
+
+    <!-- ============ 3 ============ -->
+    <article class="pair" data-show="both" style="--mh:380px">
+      <div class="ph">
+        <span class="pn">03</span>
+        <h2 class="pt">A 3D robot standing on the send button</h2>
+        <span class="chips"><span class="chip ref">C1 · S5</span><span class="chip sev-crit">Critical</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the composer pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — the 3D robot companion, rendered on top of the composer's model selector and send control.">
+            <img src="assets/before/03-robot-mascot.png" width="406" height="368" loading="lazy"
+                 alt="A glossy black 3D humanoid robot figure rendered over the dark MagnaVERSE interface, standing in front of the composer controls at the bottom right of the screen.">
+          </button>
+          <figcaption class="cap">The companion sits on top of the composer. In the walkthrough, a
+            click aimed at the model picker opened the notifications panel instead — the robot was in
+            the way.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-4 · Ready</span></figcaption>
+          <button class="media" type="button" data-cap="After — the Ready prototype's composer: one clear row, nothing over the send button.">
+            <img src="assets/after/03-composer.png" width="1744" height="468" loading="lazy"
+                 alt="The redesigned composer: a wide input reading 'Ask anything, or describe what you want done… Type / for skills and MCP servers', a row of controls beneath it — Attach, Company knowledge, Skills and MCP, Kimi K2 Instruct, Private — and a clear blue send button at the far right with nothing overlapping it.">
+          </button>
+          <figcaption class="cap">One clear row: attach, knowledge, skills and MCP, model, tier — and
+            a send button nothing covers. The hint line underneath states the keyboard shortcuts and
+            where inference runs.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>The 3D companion is rendered over the composer's model selector and send control. The
+             bell menu offers ten alternatives — Fox, Wolf, Husky, Shiba Inu, Alpaca, Horse, Cow,
+             Bull, Deer, Stag — and a "hide companion" item, none of which changes the fact that the
+             default state occludes the primary action of the product.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>Removed from all six prototypes. Nothing floats over the composer. Where the app needs a
+             mascot moment, the animated Magna mark does it — as the thinking indicator, with honest
+             status text that changes as the turn progresses.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> this is the first thing a demo audience notices, and it
+        is a one-line fix. Until it is gone, every live demonstration of MagnaVERSE opens with a
+        misclick.</p>
+    </article>
+
+    <!-- ============ 4 ============ -->
+    <article class="pair" data-show="both" style="--mh:360px">
+      <div class="ph">
+        <span class="pn">04</span>
+        <h2 class="pt">Developer telemetry above every answer</h2>
+        <span class="chips"><span class="chip ref">S9 · C4 · H3</span><span class="chip sev-high">High</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the reasoning trace pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — the step tracker, expanded by default above every answer, ending in a developer string.">
+            <img src="assets/before/04-step-tracker.png" width="1600" height="350" loading="lazy"
+                 alt="The live step tracker expanded above an answer: pills reading 'Planning', 'Searching', 'Generating', 'Done' with '1 step · 6.0s' at the right, a row labelled 'model — 6.0s', a 'FINAL RETURN — Done — model — 6.0s' row, and the italic line 'Final step completed without captured I/O.'">
+          </button>
+          <figcaption class="cap">Expanded on every message. <code>FINAL RETURN</code> and "Final step
+            completed without captured I/O." are internal strings; elsewhere the same panel shows
+            Langfuse session IDs and <code>$0.0000</code> costs.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — the collapsed one-line reasoning chip, with the answer starting immediately beneath it.">
+            <img src="assets/after/04-reasoning-line.png" width="1520" height="424" loading="lazy"
+                 alt="A redesigned assistant message: a header reading 'MagnaVERSE · Kimi K2 Instruct', then a single quiet collapsed line with a disclosure arrow reading 'Thought for 6s · 3 tools · searched 2 documents', and immediately below it the answer beginning 'Short answer: at 45 days the exposure on C2 is SAR 5.32 million…'">
+          </button>
+          <figcaption class="cap">One quiet line, expandable. Behind it: which tool ran against which
+            system, in plain language. No session IDs, no <code>FINAL RETURN</code>, no cost figures
+            on a delivery seat's screen.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>Roughly 200&nbsp;px of trace sits expanded above every answer, pushing the answer below
+             the fold — the audit had to scroll to read every single response. The trace panel is a
+             deliberate product surface, but what it shows is staging exhaust: raw step names, a
+             monthly budget of $5,000 and per-request costs visible to every seat.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>Collapsed to a single line that says something true and useful — how long it thought,
+             how many tools it ran, how many documents it searched. Expanding it gives a
+             plain-language breakdown. The Langfuse internals stay in the observability tool where
+             they belong.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> the answer is what people came for; it should be the
+        first thing on screen. And a product that prints "Final step completed without captured I/O."
+        at a customer reads as unfinished, whatever the answer underneath it is worth.</p>
+    </article>
+
+    <!-- ============ 5 ============ -->
+    <article class="pair" data-show="both" style="--mh:400px">
+      <div class="ph">
+        <span class="pn">05</span>
+        <h2 class="pt">"Latest Kimi" is not a model name</h2>
+        <span class="chips"><span class="chip ref">S6 · M5</span><span class="chip sev-high">High</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the model names pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — the live model menu: four entries, no version, no size, no guidance.">
+            <img src="assets/before/05-model-names.png" width="1600" height="350" loading="lazy"
+                 alt="The live MagnaVERSE model dropdown, headed 'MODEL', listing 'Latest DeepSeek', 'Latest Kimi' (highlighted with a star), 'Latest Qwen' and 'Nvidia Nemotron-120B', each labelled only 'private' at the right — rendered over the Riyadh skyline wallpaper.">
+          </button>
+          <figcaption class="cap">Four entries, each tagged "private" and nothing else. No weights,
+            no version, no context length, and no indication of which to pick for what.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — the model picker with full identity and a one-line 'use this when' for each model.">
+            <img src="assets/after/05-model-names.png" width="1526" height="674" loading="lazy"
+                 alt="The redesigned model picker headed 'MODEL FOR THIS THREAD': 'Kimi K2 Instruct' with a '1T MoE' spec badge and 'private' tag, described as the default and best all-round reasoning; 'DeepSeek V3.1 · 671B MoE' for code and SQL; 'Qwen 3 · 235B' for Arabic and English; 'NVIDIA Nemotron · 120B' for fastest first token. A footer reads that all four run on Magna's own GPUs, cluster Riyadh DC-1, 8×H200.">
+          </button>
+          <figcaption class="cap">Full identity, the parameter count, and one line on what each is
+            actually good for — plus a footer naming the cluster all four run on.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>"Latest Kimi" carries no weights, no version and no size. A buyer evaluating a sovereign
+             stack cannot tell what they are being offered, and a user cannot tell why they would
+             switch. The one differentiating fact — that these run on Magna's own hardware — is
+             compressed into the word "private" repeated four times.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p><code>Kimi K2 Instruct · 1T MoE</code>, <code>DeepSeek V3.1 · 671B MoE</code>,
+             <code>Qwen 3 · 235B</code>, <code>NVIDIA Nemotron · 120B</code> — each with a
+             one-line "use this when", and a footer stating the cluster and the GPU count.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> sovereignty is the reason to buy MagnaVERSE. The model
+        list is exactly where that claim is either substantiated with specifics or waved at. Right
+        now it is waved at.</p>
+    </article>
+
+    <!-- ============ 6 ============ -->
+    <article class="pair" data-show="both" style="--mh:540px">
+      <div class="ph">
+        <span class="pn">06</span>
+        <h2 class="pt">Code you cannot copy</h2>
+        <span class="chips"><span class="chip ref">R3</span><span class="chip sev-block">Launch blocker</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the code block pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — a bare code rectangle: no language, no filename, no copy button, prose running straight into it over a photograph.">
+            <img src="assets/before/06-code-block.jpg" width="1600" height="858" loading="lazy"
+                 alt="A live MagnaVERSE answer containing a Python snippet in a plain dark rectangle with no header bar and no buttons of any kind. Below it, explanatory prose about input(), float() and print() runs directly on top of the Riyadh skyline wallpaper.">
+          </button>
+          <figcaption class="cap">A bare rectangle. No language label, no filename, no wrap toggle,
+            no line numbers — and no copy button. Underneath, prose and inline code run together over
+            a photograph of the Riyadh skyline.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — a framed code block with a language and filename header and working Copy, Wrap and Download.">
+            <img src="assets/after/06-code-block.png" width="1504" height="1160" loading="lazy"
+                 alt="A redesigned code block framed with a header bar reading 'SQL  po_exposure.sql' at the left and three labelled buttons at the right — Copy, Wrap and Download. Inside, syntax-highlighted SQL against a solid dark surface, on a clean background with no photograph behind it.">
+          </button>
+          <figcaption class="cap">Framed, with a language and filename header
+            (<code>SQL · po_exposure.sql</code>) and working Copy, Wrap and Download. Syntax
+            coloured, on a solid surface, scrolling inside its own container.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>Nothing identifies the language, nothing names the file, nothing wraps long lines, and
+             nothing copies the block. Body text renders over the default skyline wallpaper at 50%
+             overlay, so contrast fails in the lower third of the viewport — there are eight sliders
+             to tune the photograph and no plain-background option.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>Every code block carries a header and real controls, on a token-driven solid surface.
+             The wallpaper is gone entirely; theme switching is pure CSS custom properties, so it is
+             instant instead of stalling on a raster reload.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> an engineering seat cannot use a chat product they cannot
+        copy code out of. This is table stakes in every competing tool, and its absence is the single
+        clearest signal that the answer surface has not been finished.</p>
+    </article>
+
+    <!-- ============ 7 ============ -->
+    <article class="pair" data-show="both" style="--mh:640px">
+      <div class="ph">
+        <span class="pn">07</span>
+        <h2 class="pt">A "visual flowchart" drawn in keyboard characters</h2>
+        <span class="chips"><span class="chip ref">R2</span><span class="chip sev-block">Launch blocker</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the diagram pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — the Apple Pay flow, drawn in box-drawing characters, over the skyline wallpaper.">
+            <img src="assets/before/07-ascii-flowchart.jpg" width="1600" height="858" loading="lazy"
+                 alt="A live MagnaVERSE answer that opens 'Here is how Apple Pay works, step by step. I'll sketch both a visual flowchart and a text version.' followed by a heading 'Text Flow Diagram' and a flowchart built entirely from box-drawing characters — boxes labelled USER taps iPhone, MERCHANT NFC TERMINAL and MERCHANT SERVER / PAYMENT GATEWAY, joined by pipe characters and triangular arrowheads, over the Riyadh skyline photograph.">
+          </button>
+          <figcaption class="cap">The model announced it would sketch "both a visual flowchart and a
+            text version" — then drew both in <code>┌───┐</code>, <code>│</code> and
+            <code>▼</code>. It reflows into nonsense at any other window width.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-2 · Considered</span></figcaption>
+          <button class="media" type="button" data-cap="After — the same class of answer as real inline SVG, in the Considered prototype's artifact panel.">
+            <img src="assets/after/07-svg-diagram.png" width="1200" height="1708" loading="lazy"
+                 alt="The redesigned artifact panel titled 'mitigation-flow.mmd — Diagram · Mermaid flowchart · 8 nodes' with Copy, download and close buttons, chips for three artifacts, and Preview / Code tabs. The Preview shows a real SVG flowchart: 'Q3 committed spend — SAP S/4HANA · 1,284 PO lines' flowing into a decision diamond 'Sole-source lines > 30 on one vendor?' with yes and no branches to 'Escalate to committee' and 'Monitor monthly', then parallel boxes 'Split award 60/40' and 'Qualify 2 alternates', down to 'Re-baseline P6' and 'Re-run HHI monitor'. A footer reads 'mermaid · flowchart TD — rendered to SVG, scales with the panel' with Copy source and Export SVG buttons.">
+          </button>
+          <figcaption class="cap">Real inline SVG — shapes, arrowheads, edge labels, a decision
+            diamond — rendered from the model's Mermaid, with Copy source and Export SVG, scaling
+            with the panel at any width.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>There is no Mermaid or SVG renderer, so the "visual" version is byte-for-byte the same
+             as the text version. It cannot be exported, cannot be dropped into a deck, and breaks
+             the moment the window is resized or the answer is copied into anything proportional.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>Diagrams render as SVG and open in a panel beside the chat with Preview and Code tabs.
+             Copy source hands back the Mermaid; Export SVG hands back a vector file that goes
+             straight into a slide.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> process, approval-chain and architecture questions are a
+        large share of what an operational brain gets asked. Today every one of them comes back as
+        ASCII art that cannot leave the window.</p>
+    </article>
+
+    <!-- ============ 8 ============ -->
+    <article class="pair" data-show="both" style="--mh:520px">
+      <div class="ph">
+        <span class="pn">08</span>
+        <h2 class="pt">Twenty-five lines of raw LaTeX</h2>
+        <span class="chips"><span class="chip ref">R1</span><span class="chip sev-block">Launch blocker</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the mathematics pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Before only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">live · build 1.0.491</span></figcaption>
+          <button class="media" type="button" data-cap="Before — an integral calculus answer returned entirely as literal LaTeX source.">
+            <img src="assets/before/08-raw-latex.jpg" width="1600" height="858" loading="lazy"
+                 alt="A live MagnaVERSE answer headed 'Here are integral calculus practice questions, organized by topic and difficulty' followed by roughly twenty-five consecutive lines of unrendered LaTeX source such as '$\int x^3 , dx$', '$\int \frac{1}{x^2} , dx$' and '$\int \frac{x}{\sqrt{x^2 + 4}} , dx$', over the Riyadh skyline photograph.">
+          </button>
+          <figcaption class="cap">The model emitted correct LaTeX; the app has no renderer, so the
+            user reads the source. A secondary defect is visible in the delimiters — a bare
+            <code>,</code> where <code>\,</code> was intended.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — rendered notation: a display equation with its symbols defined underneath and the numbers carried through to a result.">
+            <img src="assets/after/08-rendered-math.png" width="1504" height="870" loading="lazy"
+                 alt="A redesigned answer with a framed display-maths block marked 'KATEX · DISPLAY'. It renders a real integral with limits, a stacked fraction and raised exponents, then evaluates it to 'SAR 5,316,100'. Underneath, each symbol is defined in a legend: package value, LD rate, standby cost per idled crew, crews idled, utilisation recovered and steel escalation.">
+          </button>
+          <figcaption class="cap">Notation — real integral signs, stacked fractions, raised
+            exponents — inline and in display blocks, with every symbol defined underneath and the
+            numbers carried through to an answer someone can defend.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>No math renderer at all. Every quantitative answer arrives as source. The delimiters are
+             malformed too — <code>$\int x^3 , dx$</code> uses a bare comma where <code>\,</code> was
+             intended — so shipping a renderer alone will not fix it; the prompt template needs
+             correcting in the same change.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>Maths renders as notation, inline and in display blocks, hand-built in HTML and CSS with
+             no external dependency. The block scrolls inside its own container on a phone rather
+             than forcing the page sideways.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> this is the defect that most narrows who can buy. Any
+        seat that asks a quantitative question — commercial, finance, planning, engineering — gets an
+        unusable answer today, and there is no workaround available to the user.</p>
+    </article>
+
+    <!-- ============ 9 ============ -->
+    <article class="pair" data-show="both" style="--mh:420px">
+      <div class="ph">
+        <span class="pn">09</span>
+        <h2 class="pt">Sovereignty, stated before you sign in</h2>
+        <span class="chips"><span class="chip ref">H6</span><span class="chip sev-med">Medium</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the sign-in pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Finding only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">audit §2 · H6</span></figcaption>
+          <div class="noshot">
+            <span class="k">No screenshot — audit finding</span>
+            <q>Sovereignty is under-sold and under-protected. The differentiator renders as a
+               dropdown with one-line abstractions. Nothing tells you, per answer, where it ran.</q>
+            <span class="who">MagnaVERSE UX audit, §2 · H6 · High</span>
+          </div>
+          <figcaption class="cap">Two of the four tiers in that dropdown are dead — Personal and
+            In-Country are both marked "coming soon" — so the control that carries the whole
+            proposition is half non-functional.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-3 · Provable</span></figcaption>
+          <button class="media" type="button" data-cap="After — the Provable prototype's sign-in, with a live pre-flight panel and each external identity provider labelled.">
+            <img src="assets/after/09-login.jpg" width="2160" height="1350" loading="lazy"
+                 alt="The Provable prototype's sign-in screen. The left column is a sign-in card with demo credentials filled in; Google and Apple sign-in are each annotated 'leaves KSA' in amber while Magna SSO is marked 'on-prem'. The right column shows a pre-flight panel with five passing checks — resolving magna-ksa-prod, cluster DC-1 8×H200 healthy, TLS 1.3 certificate pinned, egress to public internet blocked, audit log append-only writable — and beneath it a live preview of a real session.">
+          </button>
+          <figcaption class="cap">The tenancy, the region and the cluster are named in the top bar
+            before authentication. Five pre-flight checks run in view, and each external identity
+            provider is labelled with what it costs you — <em>leaves KSA</em>.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>Nothing in the live app tells a user where their answer ran, and nothing warns them when
+             a thread containing internal documents moves to the Public tier. For a sovereign
+             deployment, "did this come from our data, and did it stay in the Kingdom?" is the
+             question that matters most, and the product does not answer it.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>The claim is made concrete at every step: named cluster and region before sign-in, a
+             pre-flight that shows public egress blocked, tiers that explain their trade-off, a
+             guardrail that names the exact at-risk files before switching to Public, and a
+             per-answer residency receipt.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> Magna is not selling a chat product; it is selling a chat
+        product that runs in Riyadh. Every screen that fails to say so is a screen where the
+        competitor's cheaper hosted model looks identical.</p>
+    </article>
+
+    <!-- ============ 10 ============ -->
+    <article class="pair" data-show="both" style="--mh:480px">
+      <div class="ph">
+        <span class="pn">10</span>
+        <h2 class="pt">Connecting a mail server, in four steps</h2>
+        <span class="chips"><span class="chip ref">S10</span><span class="chip sev-high">High</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the MCP connect pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Finding only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">audit §2b · S10</span></figcaption>
+          <div class="noshot">
+            <span class="k">No screenshot — audit finding</span>
+            <q>No discoverable way to use MCP servers.</q>
+            <span class="who">Magna client review, §2b · S10</span>
+          </div>
+          <figcaption class="cap">Tools sit behind an unlabelled sliders icon in the composer, three
+            levels down, and there is no wizard, no permission model shown to the user, and no
+            statement of where a connected system's data is processed.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — step 3 of the Magna Mail connect wizard: per-tool grants, off by default, with the residency stated.">
+            <img src="assets/after/10-mcp-connect.jpg" width="2160" height="1350" loading="lazy"
+                 alt="The 'Connect Magna Mail' wizard modal at step 3 of 4. The stepper shows Choose and Configure completed and Permissions current. Four permission rows with toggles: 'Read mail' on, 'Send mail as you' tagged outbound and off by default, 'Read contacts' off and 'Read calendar' off, each with a plain-English explanation. Below, a panel headed 'Where your mail is processed' states the mailbox is indexed on the Magna cluster in Riyadh DC-1, 0 bytes leave your network, retention index only 90 days.">
+          </button>
+          <figcaption class="cap">Choose, Configure, Permissions, Done. Every tool is a separate
+            grant, outbound ones are off by default, and the residency of the connected system is
+            stated on the same screen where you approve it.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>MCP is one of the platform's genuine strengths and it is effectively undiscoverable. The
+             one surface that exposes it — an 18-item skills checkbox list — shows internal names
+             like <code>heartbeat</code> and <code>jira-ticket-definer</code>, with every skill on by
+             default. Users are asked to make a decision they have no way to evaluate.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>A catalogue with a four-step wizard, plus typing <code>/</code> in the composer to open
+             a filterable menu of 18 skills and 4 MCP servers, each with a plain-language
+             description. Arrow keys navigate, Enter inserts, Escape returns focus to the composer.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> connectors are what turn a chat window into an
+        operational brain. Every system a customer does not connect is a use case they never
+        experience, and today the path to connecting one is invisible.</p>
+    </article>
+
+    <!-- ============ 11 ============ -->
+    <article class="pair" data-show="both" style="--mh:420px">
+      <div class="ph">
+        <span class="pn">11</span>
+        <h2 class="pt">Skills described in the user's language</h2>
+        <span class="chips"><span class="chip ref">M4 · C4</span><span class="chip sev-high">High</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the skills catalogue pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Finding only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">audit §2 · M4 · C4</span></figcaption>
+          <div class="noshot">
+            <span class="k">No screenshot — audit finding</span>
+            <q>The 18-skill checkbox list exposes internal names with truncated descriptions, and
+               every skill is on by default. Users are being asked to make a decision they cannot
+               evaluate.</q>
+            <span class="who">MagnaVERSE UX audit, §2 · M4 · Medium</span>
+          </div>
+          <figcaption class="cap">Two entries in that list are staging artefacts that reached
+            production: a skill reading <code>elon-musk-perspective-en (failed to parse SKILL…)</code>
+            and a <code>salesforce-uat-api</code> pointing at a sandbox URL.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-1 · Familiar</span></figcaption>
+          <button class="media" type="button" data-cap="After — the skills catalogue: plain names, an example prompt each, the connections each one needs, and nothing on by default.">
+            <img src="assets/after/11-skills.jpg" width="2160" height="1350" loading="lazy"
+                 alt="The redesigned Connections page on the Skills tab. A 'How skills work' explainer runs across the top in three numbered steps. Below, a search field, filters for All, Procurement, Reporting, HSE, Engineering and Admin, and a line reading '4 on · 12 available to your role · 18 published in this workspace. Nothing is on by default that touches a system you have not connected.' Then cards recommended for a delivery lead — Contract clause finder, Vendor risk score and Board pack narrative — each with its internal id, a plain description, the connections it needs, an example prompt in italics, an off toggle and a 'Try it' button.">
+          </button>
+          <figcaption class="cap">Human names above the internal id, an example prompt on every card,
+            the connections each skill needs, role-based recommendations — and nothing switched on by
+            default that touches a system you have not connected.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>Eighteen checkboxes labelled with repository slugs and cut-off descriptions, all
+             pre-enabled. The list mixes working skills with a broken one and a sandbox API — which
+             is a governance problem as much as a usability one, since a user has no way to tell
+             which is which.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>A catalogue rather than a settings list: what each skill does, what it needs, what to
+             say to invoke it, and whether it is ready to use or waiting on a connection. Broken and
+             UAT entries do not belong in a production workspace at all.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> the skills are the value on top of the model, and today
+        they are presented as engineering configuration. Naming them in the user's language turns an
+        18-row settings screen into a list of things the customer can already do.</p>
+    </article>
+
+    <!-- ============ 12 ============ -->
+    <article class="pair" data-show="both" style="--mh:640px">
+      <div class="ph">
+        <span class="pn">12</span>
+        <h2 class="pt">It works on a phone</h2>
+        <span class="chips"><span class="chip ref">Addendum §2</span><span class="chip sev-high">High</span></span>
+      </div>
+      <div class="switch" role="group" aria-label="Which images to show for the mobile pair">
+        <button type="button" data-v="both" aria-pressed="true">Both</button>
+        <button type="button" data-v="before" aria-pressed="false">Finding only</button>
+        <button type="button" data-v="after" aria-pressed="false">After only</button>
+      </div>
+      <div class="cmp">
+        <figure class="shot before">
+          <figcaption class="slab">Before<span class="src">client brief · addendum §2</span></figcaption>
+          <div class="noshot">
+            <span class="k">No screenshot — client statement</span>
+            <q>The live MagnaVERSE app is not responsive at all.</q>
+            <span class="who">Magna client brief, addendum §2</span>
+          </div>
+          <figcaption class="cap">A fixed desktop layout with a global header, a floating 3D
+            companion and a wallpaper. There is no phone experience to screenshot.</figcaption>
+        </figure>
+        <figure class="shot after">
+          <figcaption class="slab">After<span class="src">app-4 · Ready · 375&nbsp;px</span></figcaption>
+          <button class="media" type="button" data-cap="After — the Ready prototype at 375 px: hamburger drawer, one-column cards, 44 px tap targets, no horizontal overflow.">
+            <img src="assets/after/12-mobile.png" width="750" height="1624" loading="lazy"
+                 alt="The Ready prototype at 375 pixels wide. A slim bar carries a hamburger button, the Magna mark, the title 'Launchpad', a search icon and a plus button. Below, a 'Finish setting up 2 of 6' checklist card at full width with a progress bar and six generously spaced rows, then the greeting 'Good afternoon, Ahmad. What are we working on?' and status chips wrapping onto three lines — Private · Riyadh DC-1 · 8×H200, 6 systems connected, 5 skills on, 2 tasks ran overnight, Mail not connected.">
+          </button>
+          <figcaption class="cap">375&nbsp;px. The sidebar becomes an off-canvas drawer behind a
+            hamburger, card grids collapse to one column, tap targets are at least 44&nbsp;px, the
+            composer stays sticky above the keyboard.</figcaption>
+        </figure>
+      </div>
+      <div class="say">
+        <div class="w"><h4>What was wrong</h4>
+          <p>The live build assumes a desktop. On a phone it is unusable — which matters for a
+             product whose users are on sites, in vehicles and in meetings rather than at a desk for
+             most of their working day.</p></div>
+        <div class="c"><h4>What changed</h4>
+          <p>All six prototypes were built and checked at 320, 375, 414, 768, 1024 and 1440&nbsp;px
+             with no horizontal page overflow at any width. Tables, code blocks, diagrams and maths
+             scroll inside their own containers rather than moving the page. Keyboard-shortcut hints
+             hide on touch widths.</p></div>
+      </div>
+      <p class="why"><b>Why it matters:</b> a delivery lead checking a slipped purchase order does it
+        from a site office on a phone, not from a desk. Today they cannot.</p>
+    </article>
+
+  </div>
+</section>
+
+<section class="close">
+  <div class="wrap">
+    <div class="bk-head"><span class="n">§4</span><h2>The six prototypes</h2></div>
+    <p class="sub">
+      Six complete, interactive, single-file builds — light and dark, working keyboard and mouse,
+      every fix above already in. They are six different products, not six skins: the point is to
+      choose a direction. All data is local and invented; nothing is transmitted anywhere.
+    </p>
+    <div class="protos">
+      <a class="proto" href="apps/app-1-chatgpt.html">
+        <span class="r1"><b>Familiar</b><span class="tag">app 1</span></span>
+        <p>The ChatGPT idiom — neutral, low-chrome, zero learning curve. The model picker at the top
+           of the transcript is what replaces the deleted global header.</p>
+        <span class="f">apps/app-1-chatgpt.html</span>
+      </a>
+      <a class="proto" href="apps/app-2-claude.html">
+        <span class="r1"><b>Considered</b><span class="tag">app 2</span></span>
+        <p>Warm paper light mode, editorial rhythm. Documents, diagrams and code open in a split
+           artifact panel beside the chat, with Preview and Code tabs.</p>
+        <span class="f">apps/app-2-claude.html</span>
+      </a>
+      <a class="proto" href="apps/app-3-sovereign.html">
+        <span class="r1"><b>Provable</b><span class="tag">app 3</span></span>
+        <p>Sovereignty as the primary UI. Click any answer and its residency receipt loads — node,
+           egress bytes, PII masking, retention, signed hash.</p>
+        <span class="f">apps/app-3-sovereign.html</span>
+      </a>
+      <a class="proto" href="apps/app-4-launchpad.html">
+        <span class="r1"><b>Ready</b><span class="tag">app 4</span></span>
+        <p>The home screen is the product. Intent cards draft an editable brief instead of firing a
+           question the user never wrote.</p>
+        <span class="f">apps/app-4-launchpad.html</span>
+      </a>
+      <a class="proto" href="apps/app-5-twin.html">
+        <span class="r1"><b>Grounded</b><span class="tag">app 5</span></span>
+        <p>Provenance first. The 16-source Agentic Twin graph moves from a 12&nbsp;px screen-edge tab
+           into a context rail with a live coverage meter.</p>
+        <span class="f">apps/app-5-twin.html</span>
+      </a>
+      <a class="proto" href="apps/app-6-horizon.html">
+        <span class="r1"><b>Horizon</b><span class="tag">app 6</span></span>
+        <p>A wide operational canvas. Answers, artifacts and diagrams sit side by side, each message
+           ending in the same anchored action row.</p>
+        <span class="f">apps/app-6-horizon.html</span>
+      </a>
+    </div>
+    <a class="wide" href="functionality-map.html">
+      <span class="t"><b>The functionality map</b>
+        <span>Every screen, control and state across the six builds, and which audit finding each
+              one answers.</span></span>
+      <span class="go">functionality-map.html →</span>
+    </a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fb">
+      <svg class="mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/>
+            <stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <b>MagnaVERSE — before and after</b>
+    </div>
+    <p>Before images are Magna's own screenshots of <strong>app.stag.magna.ai</strong>, build
+       1.0.491, captured 16 August 2026. After images were captured from the prototypes in this
+       repository at 1440×900, and at 375&nbsp;px for the mobile pair. Findings reference
+       <strong>MagnaVERSEUXAudit.md</strong> §2 and §2b.</p>
+  </div>
+</footer>
+
+<dialog id="lb" aria-labelledby="lbTitle">
+  <div class="lb-in">
+    <div class="lb-top">
+      <span class="lbl" id="lbTitle">Full size</span>
+      <button class="lb-x" type="button" id="lbClose">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        Close
+      </button>
+    </div>
+    <div class="lb-body" id="lbBody"><img id="lbImg" src="" alt=""></div>
+    <p class="lb-cap" id="lbCap"></p>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- theme: system -> light -> dark, persisted ---------------- */
+  var order = ["system","light","dark"];
+  var label = { system:"System", light:"Light", dark:"Dark" };
+  var btn = document.getElementById("themeBtn");
+  var out = document.getElementById("themeLbl");
+  var cur;
+  try { cur = localStorage.getItem("mv-theme"); } catch(e){}
+  if (order.indexOf(cur) === -1) cur = "system";
+  function apply(t){
+    if (t === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", t);
+    out.textContent = label[t];
+    btn.setAttribute("aria-label", "Colour theme: " + label[t] + ". Activate to change.");
+    cur = t;
+    try { localStorage.setItem("mv-theme", t); } catch(e){}
+  }
+  apply(cur);
+  btn.addEventListener("click", function(){
+    apply(order[(order.indexOf(cur) + 1) % order.length]);
+  });
+
+  /* ---------------- per-pair Both / Before / After switch ---------------- */
+  Array.prototype.forEach.call(document.querySelectorAll(".pair .switch"), function(group){
+    var pair = group.closest(".pair");
+    var btns = Array.prototype.slice.call(group.querySelectorAll("button"));
+    group.addEventListener("click", function(ev){
+      var b = ev.target.closest("button");
+      if (!b || btns.indexOf(b) === -1) return;
+      pair.setAttribute("data-show", b.getAttribute("data-v"));
+      btns.forEach(function(o){ o.setAttribute("aria-pressed", String(o === b)); });
+    });
+  });
+
+  /* ---------------- lightbox ---------------- */
+  var lb    = document.getElementById("lb");
+  var lbImg = document.getElementById("lbImg");
+  var lbCap = document.getElementById("lbCap");
+  var lbTtl = document.getElementById("lbTitle");
+  var lbX   = document.getElementById("lbClose");
+  var opener = null;
+  var canModal = typeof lb.showModal === "function";
+
+  function open(mediaBtn){
+    var img = mediaBtn.querySelector("img");
+    if (!img) return;
+    opener = mediaBtn;
+    lbImg.src = img.currentSrc || img.src;
+    lbImg.alt = img.alt;
+    lbCap.textContent = mediaBtn.getAttribute("data-cap") || img.alt;
+    var fig = mediaBtn.closest(".shot");
+    var slab = fig ? fig.querySelector(".slab") : null;
+    lbTtl.textContent = slab ? slab.textContent.replace(/\s+/g, " ").trim() : "Full size";
+    if (canModal) lb.showModal(); else lb.setAttribute("open", "");
+    lbX.focus();
+  }
+  function close(){
+    if (canModal && lb.open) lb.close(); else lb.removeAttribute("open");
+  }
+  lb.addEventListener("close", function(){
+    lbImg.removeAttribute("src");
+    if (opener) { opener.focus(); opener = null; }
+  });
+
+  document.addEventListener("click", function(ev){
+    var m = ev.target.closest ? ev.target.closest("button.media") : null;
+    if (m) { ev.preventDefault(); open(m); }
+  });
+  lbX.addEventListener("click", close);
+  /* click outside the image closes; Escape is handled natively by <dialog> too */
+  document.getElementById("lbBody").addEventListener("click", function(ev){
+    if (ev.target.id !== "lbImg") close();
+  });
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape" && (lb.open || lb.hasAttribute("open"))) { ev.preventDefault(); close(); }
+  });
+})();
+</script>
+</body></html>

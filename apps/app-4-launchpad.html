@@ -1164,7 +1164,7 @@ textarea.input{resize:vertical;min-height:96px;line-height:1.55}
 .menu{position:fixed;z-index:80;min-width:min(200px,calc(100vw - 24px));
   max-width:min(340px,calc(100vw - 24px));border:1px solid var(--line-2);
   background:var(--surface);border-radius:12px;box-shadow:var(--shadow-2);padding:5px;
-  max-height:70vh;overflow-y:auto;scrollbar-width:thin}
+  max-height:70vh;max-height:70dvh;overflow-y:auto;scrollbar-width:thin}
 .menu-l{padding:7px 9px 4px;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
   color:var(--tx-3);font-weight:700}
 .menu-i{display:flex;align-items:flex-start;gap:9px;width:100%;padding:7px 9px;border-radius:var(--r-sm);
@@ -1218,7 +1218,7 @@ textarea.input{resize:vertical;min-height:96px;line-height:1.55}
 .scrim.drawer{z-index:85}
 .palette{position:fixed;z-index:90;left:50%;top:11vh;transform:translateX(-50%);width:min(660px,calc(100vw - 32px));
   border:1px solid var(--line-2);background:var(--surface);border-radius:16px;box-shadow:var(--shadow-2);
-  display:none;flex-direction:column;max-height:74vh;overflow:hidden}
+  display:none;flex-direction:column;max-height:74vh;max-height:74dvh;overflow:hidden}
 .palette.open{display:flex}
 .pal-in{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line);flex:none}
 .pal-in input{flex:1;border:0;background:transparent;font-size:15.5px;outline:none}
@@ -1502,7 +1502,7 @@ textarea.input{resize:vertical;min-height:96px;line-height:1.55}
   .m-cats::-webkit-scrollbar{display:none}
   .m-cat{white-space:nowrap;flex:none}
   .m-pane{padding:18px 16px 30px}
-  .palette{max-height:82vh}
+  .palette{max-height:82vh;max-height:82dvh}
   /* every remaining control cleared to 44px (V4 §4) */
   .btn{min-height:44px}
   .cbtn{min-height:44px;padding:0 12px}
@@ -3294,11 +3294,11 @@ const APPLE_MARK =
   "</svg>";
 function providerButtons() {
   return '<div class="provstack">' +
-    '<button type="button" class="provbtn gbtn" data-prov="google">' + GOOGLE_G +
+    '<button type="button" class="provbtn gbtn" data-prov="google" aria-label="Sign in with Google">' + GOOGLE_G +
       '<span class="plabel">Sign in with Google</span></button>' +
-    '<button type="button" class="provbtn abtn" data-prov="apple">' + APPLE_MARK +
+    '<button type="button" class="provbtn abtn" data-prov="apple" aria-label="Sign in with Apple">' + APPLE_MARK +
       '<span class="plabel">Sign in with Apple</span></button>' +
-    '<button type="button" class="btn block" data-prov="sso">' +
+    '<button type="button" class="btn block" data-prov="sso" aria-label="Continue with Magna SSO">' +
       '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2.5"/>' +
       '<path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span class="plabel">Continue with Magna SSO</span></button>' +
     "</div>" +
@@ -3450,6 +3450,7 @@ function providerSignIn(btn) {
   $$("#authRoot .provbtn, #authRoot .btn.block").forEach(b => { if (b !== btn) b.disabled = true; });
   btn.innerHTML = magnaMark(uid("pv"), true, "mg-thinking") +
     '<span class="plabel">Authorising with ' + esc(label) + "…</span>";
+  btn.setAttribute("aria-label", "Authorising with " + label);
   authT = setTimeout(() => {
     state.session = { name: "Ahmad Farahat", email: "ahmad.farahat@magna.ai", org: "Magna · Riyadh",
       via: label };
@@ -3565,7 +3566,8 @@ const DEMO_SCENES = [
     ] }
 ];
 
-const demo = { i: 0, step: 0, steps: [], playing: false, started: false, gen: 0, timers: [], reduced: false };
+const demo = { i: 0, step: 0, steps: [], playing: false, started: false, gen: 0, timers: [],
+  reduced: false, wasPlaying: false };
 function demoTimer(fn, ms) {
   const g = demo.gen;
   const id = setTimeout(() => { if (g !== demo.gen) return; fn(); }, ms);
@@ -3576,7 +3578,7 @@ function demoClearTimers() { demo.timers.forEach(clearTimeout); demo.timers = []
 /* teardown — leaving the login must not leave a single interval running */
 function stopDemo() {
   demo.gen++; demoClearTimers();
-  demo.steps = []; demo.step = 0; demo.started = false; demo.playing = false;
+  demo.steps = []; demo.step = 0; demo.started = false; demo.playing = false; demo.wasPlaying = false;
 }
 
 function demoPanelHTML() {
@@ -3752,6 +3754,10 @@ function mountDemo() {
   if (demoIsMobile()) return;                          /* waits for the disclosure */
   demo.playing = true;                                 /* control reads Pause from the first frame */
   syncDemoCtl();
+  /* paint the empty prompt line at once so the panel never looks broken
+     while the first scenario is still a few hundred ms away */
+  const body = $("#demoBody");
+  if (body) body.innerHTML = '<div class="dm-user"><span class="bub" id="dmQ"><span class="dm-caret"></span></span></div>';
   requestAnimationFrame(() => demoTimer(() => startDemo(0), 320));
 }
 

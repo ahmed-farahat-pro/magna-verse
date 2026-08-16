@@ -216,6 +216,8 @@ h1 em{font-style:normal; color:var(--accent)}
 @media (max-width:999px){ .vw{height:min(460px,54vh); min-height:340px} }
 @media (max-width:600px){ .vw{height:min(410px,50vh); min-height:320px; border-radius:var(--r-m)} }
 .vw.frozen *{animation-play-state:paused!important}
+/* if playback is frozen mid-cycle no mark may be caught undrawn */
+.vw.frozen .magna-mark path{stroke-dashoffset:0!important; opacity:1!important}
 
 .vw-bar{
   display:flex; align-items:center; gap:10px; flex:none;

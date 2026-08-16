@@ -1,0 +1,1589 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MagnaVERSE — How to add a skill, connect an MCP server, add an agent, and call them</title>
+<meta name="description" content="A plain-language guide: what skills, MCP servers and agents are, how to add each one, and how to call them once they exist.">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ══════════════════════════ tokens ══════════════════════════ */
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18); --line-3:rgba(16,22,30,.28);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-bd:rgba(37,99,235,.32); --on-accent:#FFFFFF;
+  --ok:#15803D;   --ok-dim:rgba(21,128,61,.10);   --ok-bd:rgba(21,128,61,.30);
+  --warn:#B45309; --warn-dim:rgba(180,83,9,.11);  --warn-bd:rgba(180,83,9,.30);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10); --crit-bd:rgba(180,35,24,.30);
+  --skill:#6941C6; --skill-dim:rgba(105,65,198,.10); --skill-bd:rgba(105,65,198,.28);
+  --mcp:#0E7490;   --mcp-dim:rgba(14,116,144,.10);  --mcp-bd:rgba(14,116,144,.28);
+  --agent:#B45309; --agent-dim:rgba(180,83,9,.10);  --agent-bd:rgba(180,83,9,.28);
+  --shadow:0 1px 2px rgba(16,22,30,.05),0 8px 24px rgba(16,22,30,.06);
+  --shadow-2:0 18px 48px rgba(16,22,30,.16);
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14); --line-3:rgba(255,255,255,.24);
+    --tx:#E9EEF5; --tx-2:#9BA6B8; --tx-3:#6F7B8D;
+    --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-bd:rgba(91,141,239,.40); --on-accent:#0B0E13; --on-accent:#0B0E13;
+    --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);   --ok-bd:rgba(63,207,149,.34);
+    --warn:#E0A33C; --warn-dim:rgba(224,163,60,.15); --warn-bd:rgba(224,163,60,.36);
+    --crit:#F97066; --crit-dim:rgba(249,112,102,.15);--crit-bd:rgba(249,112,102,.36);
+    --skill:#B692F6; --skill-dim:rgba(182,146,246,.15); --skill-bd:rgba(182,146,246,.34);
+    --mcp:#4CC9E0;   --mcp-dim:rgba(76,201,224,.14);    --mcp-bd:rgba(76,201,224,.32);
+    --agent:#E0A33C; --agent-dim:rgba(224,163,60,.14);  --agent-bd:rgba(224,163,60,.32);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.34);
+    --shadow-2:0 22px 56px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14); --line-3:rgba(255,255,255,.24);
+  --tx:#E9EEF5; --tx-2:#9BA6B8; --tx-3:#6F7B8D;
+  --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-bd:rgba(91,141,239,.40); --on-accent:#0B0E13;
+  --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);   --ok-bd:rgba(63,207,149,.34);
+  --warn:#E0A33C; --warn-dim:rgba(224,163,60,.15); --warn-bd:rgba(224,163,60,.36);
+  --crit:#F97066; --crit-dim:rgba(249,112,102,.15);--crit-bd:rgba(249,112,102,.36);
+  --skill:#B692F6; --skill-dim:rgba(182,146,246,.15); --skill-bd:rgba(182,146,246,.34);
+  --mcp:#4CC9E0;   --mcp-dim:rgba(76,201,224,.14);    --mcp-bd:rgba(76,201,224,.32);
+  --agent:#E0A33C; --agent-dim:rgba(224,163,60,.14);  --agent-bd:rgba(224,163,60,.32);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.34);
+  --shadow-2:0 22px 56px rgba(0,0,0,.6);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18); --line-3:rgba(16,22,30,.28);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-bd:rgba(37,99,235,.32); --on-accent:#FFFFFF;
+  --ok:#15803D;   --ok-dim:rgba(21,128,61,.10);   --ok-bd:rgba(21,128,61,.30);
+  --warn:#B45309; --warn-dim:rgba(180,83,9,.11);  --warn-bd:rgba(180,83,9,.30);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10); --crit-bd:rgba(180,35,24,.30);
+  --skill:#6941C6; --skill-dim:rgba(105,65,198,.10); --skill-bd:rgba(105,65,198,.28);
+  --mcp:#0E7490;   --mcp-dim:rgba(14,116,144,.10);  --mcp-bd:rgba(14,116,144,.28);
+  --agent:#B45309; --agent-dim:rgba(180,83,9,.10);  --agent-bd:rgba(180,83,9,.28);
+  --shadow:0 1px 2px rgba(16,22,30,.05),0 8px 24px rgba(16,22,30,.06);
+  --shadow-2:0 18px 48px rgba(16,22,30,.16);
+}
+
+/* ══════════════════════════ base ══════════════════════════ */
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+body{
+  background:var(--bg); color:var(--tx); font-family:var(--sans);
+  font-size:clamp(15px,.55vw + 13.4px,16.5px); line-height:1.65;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  min-height:100dvh;
+}
+img,svg{max-width:100%}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-bd)}
+a:hover{border-bottom-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+code,kbd,samp,pre{font-family:var(--mono)}
+code{font-size:.86em;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:5px;padding:.1em .38em;color:var(--tx-2);
+  overflow-wrap:break-word;word-break:break-word}
+h1,h2,h3,h4{line-height:1.22;letter-spacing:-.015em;font-weight:660}
+p{max-width:70ch}
+ul,ol{max-width:70ch}
+
+/* ══════════════════════════ magna mark ══════════════════════════ */
+.magna-mark{width:26px;height:auto;flex:none;display:block}
+.magna-mark path{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion:no-preference){
+  .magna-mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{ from{stroke-dashoffset:1200} to{stroke-dashoffset:0} }
+@media (prefers-reduced-motion:no-preference){
+  .mg-thinking path{animation:mgLoop 1.9s ease-in-out infinite}
+  .mg-thinking path:nth-of-type(2){animation-delay:.22s}
+}
+@keyframes mgLoop{
+  0%{stroke-dashoffset:1200;opacity:.35}
+  45%{stroke-dashoffset:0;opacity:1}
+  100%{stroke-dashoffset:-1200;opacity:.35}
+}
+.wordmark{font-weight:650;letter-spacing:-.02em;font-size:16.5px;white-space:nowrap}
+.wordmark span{color:var(--tx-3);font-weight:560}
+
+/* ══════════════════════════ chrome ══════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid var(--line);
+}
+@supports not (background:color-mix(in srgb,red 50%,transparent)){ .topbar{background:var(--bg)} }
+.topbar-in{max-width:1300px;margin:0 auto;padding:10px clamp(14px,3vw,32px);
+  display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;border:0;min-height:44px}
+.brand:hover{border:0}
+.topbar .spacer{flex:1}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:0 14px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface);color:var(--tx);
+  font:inherit;font-size:13.6px;font-weight:560;cursor:pointer;white-space:nowrap;
+}
+.btn:hover{background:var(--surface-2);border-color:var(--line-3)}
+.btn .ic{width:17px;height:17px;flex:none}
+.btn.icon-only{padding:0;width:44px}
+@media (max-width:520px){ .btn .lbl{display:none} .btn{padding:0;width:44px} }
+
+/* ══════════════════════════ layout ══════════════════════════ */
+.shell{max-width:1300px;margin:0 auto;padding:0 clamp(14px,3vw,32px) 80px;
+  display:grid;grid-template-columns:1fr;gap:0}
+@media (min-width:1100px){
+  .shell{grid-template-columns:236px minmax(0,1fr);gap:clamp(28px,3.4vw,64px);align-items:start}
+}
+.toc{display:none}
+@media (min-width:1100px){
+  .toc{display:block;position:sticky;top:74px;padding:34px 0 40px;max-height:calc(100dvh - 74px);overflow-y:auto}
+}
+.toc .lbl-g{display:block;font-size:10.5px;letter-spacing:.10em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:640;margin:0 0 10px}
+.toc ol{list-style:none;padding:0;margin:0 0 22px;display:flex;flex-direction:column;gap:1px}
+.toc a{display:block;padding:8px 10px;border-radius:8px;border:0;color:var(--tx-2);
+  font-size:13.3px;line-height:1.4}
+.toc a:hover{background:var(--surface-2);color:var(--tx);border:0}
+.toc a .n{color:var(--tx-3);font-family:var(--mono);font-size:11px;margin-right:7px}
+main{min-width:0;padding-top:8px}
+section{padding:clamp(30px,4.5vw,52px) 0;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+
+/* ══════════════════════════ hero ══════════════════════════ */
+.hero{padding:clamp(30px,5.5vw,64px) 0 clamp(24px,3.5vw,40px);border-top:0}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:640;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);
+  border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:5px 11px}
+h1{font-size:clamp(28px,4.6vw,48px);margin:16px 0 0;max-width:19ch;font-weight:680}
+.lede{font-size:clamp(16px,1.1vw + 13.6px,20px);color:var(--tx-2);margin-top:16px;max-width:60ch;line-height:1.6}
+.hero-meta{margin-top:20px;font-size:12.6px;color:var(--tx-3);display:flex;flex-wrap:wrap;gap:6px 14px}
+
+/* ══════════════════════════ 30-second answers ══════════════════════════ */
+.tldr{border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-lg);
+  padding:clamp(16px,2.4vw,26px);box-shadow:var(--shadow);margin-top:26px}
+.tldr h2{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-3);font-weight:640}
+.tldr ol{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px;max-width:none}
+@media (min-width:760px){ .tldr ol{grid-template-columns:1fr 1fr;gap:14px 26px} }
+.tldr li{display:flex;gap:11px;align-items:flex-start;font-size:14.6px;line-height:1.55}
+.tldr .q{font-weight:640;color:var(--tx);display:block}
+.tldr .a{color:var(--tx-2);display:block}
+.tldr .num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);
+  background:var(--accent-dim);border:1px solid var(--accent-bd);border-radius:6px;
+  min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+  flex:none;margin-top:2px}
+
+/* ══════════════════════════ headings ══════════════════════════ */
+.sec-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+.sec-num{font-family:var(--mono);font-size:12px;font-weight:700;flex:none;
+  width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-2);margin-top:4px}
+h2.sec-title{font-size:clamp(22px,2.6vw,32px);margin:0}
+.sec-sub{color:var(--tx-2);margin-top:10px;font-size:clamp(15px,.5vw+13.6px,17px)}
+h3{font-size:clamp(17px,1.2vw+14px,21px);margin:34px 0 10px}
+h4{font-size:15px;margin:24px 0 8px;font-weight:640}
+
+/* ══════════════════════════ steps ══════════════════════════ */
+ol.steps{list-style:none;padding:0;margin:18px 0 0;counter-reset:st;display:flex;flex-direction:column;gap:2px}
+ol.steps>li{counter-increment:st;position:relative;padding:12px 0 14px 46px;border-top:1px solid var(--line)}
+ol.steps>li:first-child{border-top:0}
+ol.steps>li::before{
+  content:counter(st);position:absolute;left:0;top:12px;
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  background:var(--accent-dim);border:1px solid var(--accent-bd);color:var(--accent);
+}
+ol.steps>li>b:first-child,ol.steps>li>strong:first-child{display:block;margin-bottom:2px;font-weight:640;font-size:15.6px}
+ol.steps p{color:var(--tx-2);font-size:14.6px;margin-top:4px}
+ol.steps ul{margin:8px 0 0;padding-left:19px;color:var(--tx-2);font-size:14.4px}
+ol.steps ul li{margin-top:5px}
+@media (max-width:400px){ ol.steps>li{padding-left:40px} ol.steps>li::before{width:27px;height:27px} }
+
+/* ══════════════════════════ ui-name pill ══════════════════════════ */
+.ui{display:inline-flex;align-items:center;border:1px solid var(--line-2);background:var(--surface-2);
+  border-radius:6px;padding:1px 7px;font-size:.88em;font-weight:600;color:var(--tx);
+  white-space:nowrap;line-height:1.5}
+.ui.pri{background:var(--accent-dim);border-color:var(--accent-bd);color:var(--accent)}
+
+/* ══════════════════════════ callouts ══════════════════════════ */
+.note{border:1px solid var(--line);background:var(--surface-2);border-radius:var(--r);
+  padding:14px 16px;margin:20px 0 0;font-size:14.4px;color:var(--tx-2);line-height:1.6}
+.note b{color:var(--tx)}
+.note.warn{background:var(--warn-dim);border-color:var(--warn-bd)}
+.note.warn b{color:var(--warn)}
+.note.ok{background:var(--ok-dim);border-color:var(--ok-bd)}
+.note.ok b{color:var(--ok)}
+.changed{border:1px solid var(--line);border-left:3px solid var(--crit);
+  background:var(--surface-2);border-radius:var(--r);padding:13px 16px;margin-top:26px;
+  font-size:14.2px;color:var(--tx-2);line-height:1.6}
+.changed .t{display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  font-weight:660;color:var(--crit);margin-bottom:5px}
+.try{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:24px;
+  padding:13px 15px;border:1px dashed var(--line-2);border-radius:var(--r);background:var(--surface)}
+.try .t{font-size:12.4px;font-weight:640;color:var(--tx-2);margin-right:2px}
+.try a{display:inline-flex;align-items:center;min-height:44px;padding:0 13px;border-radius:8px;
+  border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);
+  font-size:12.8px;font-weight:560}
+.try a:hover{background:var(--surface-3);border-color:var(--line-3)}
+
+/* ══════════════════════════ figures / mock UI ══════════════════════════ */
+figure{margin:26px 0 0}
+figure.mock{border:1px solid var(--line-2);border-radius:var(--r-lg);background:var(--bg-2);
+  overflow:hidden;box-shadow:var(--shadow)}
+.mock-head{display:flex;align-items:center;gap:8px;padding:9px 14px;
+  border-bottom:1px solid var(--line);background:var(--surface-2)}
+.mock-head .dots{display:flex;gap:5px}
+.mock-head .dots i{width:9px;height:9px;border-radius:50%;background:var(--line-3);display:block}
+.mock-head .ttl{font-size:11.4px;font-weight:600;color:var(--tx-3);letter-spacing:.02em}
+.mock-body{padding:clamp(13px,2.2vw,22px)}
+figcaption{font-size:12.8px;color:var(--tx-3);padding:11px 15px;border-top:1px solid var(--line);
+  background:var(--surface-2);line-height:1.55}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* fake controls — spans, never focusable */
+.fbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:32px;padding:0 11px;border-radius:8px;border:1px solid var(--line-2);
+  background:var(--surface);color:var(--tx);font-size:12.6px;font-weight:560;white-space:nowrap}
+.fbtn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.fbtn.ghost{background:transparent}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;
+  font-size:11.2px;font-weight:600;border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-2);
+  white-space:nowrap}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.chip.ok{color:var(--ok);background:var(--ok-dim);border-color:var(--ok-bd)}
+.chip.warn{color:var(--warn);background:var(--warn-dim);border-color:var(--warn-bd)}
+.chip.off{color:var(--tx-3)}
+.chip.mono{font-family:var(--mono);font-size:10.6px;letter-spacing:-.01em}
+.toggle{width:38px;height:22px;border-radius:999px;background:var(--ok);position:relative;flex:none;display:block}
+.toggle i{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff;display:block}
+.toggle.off{background:var(--line-3)}
+.toggle.off i{right:auto;left:2px}
+
+/* ══════════════════════════ diagram: three things ══════════════════════════ */
+.chain{display:grid;gap:12px;grid-template-columns:1fr;align-items:stretch}
+@media (min-width:820px){ .chain{grid-template-columns:repeat(3,minmax(0,1fr));gap:34px} }
+.chain-node{border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);
+  padding:15px 16px;position:relative;min-width:0}
+.chain-node .kind{font-size:10.4px;letter-spacing:.10em;text-transform:uppercase;font-weight:680}
+.chain-node .nm{font-size:16px;font-weight:660;margin-top:5px}
+.chain-node .ex{font-size:13.2px;color:var(--tx-2);margin-top:7px;line-height:1.5}
+.chain-node .why{font-size:12.2px;color:var(--tx-3);margin-top:9px;padding-top:9px;border-top:1px dashed var(--line-2)}
+.chain-node.n-mcp{border-color:var(--mcp-bd);background:var(--mcp-dim)}
+.chain-node.n-mcp .kind{color:var(--mcp)}
+.chain-node.n-skill{border-color:var(--skill-bd);background:var(--skill-dim)}
+.chain-node.n-skill .kind{color:var(--skill)}
+.chain-node.n-agent{border-color:var(--agent-bd);background:var(--agent-dim)}
+.chain-node.n-agent .kind{color:var(--agent)}
+.chain-node::after{content:"";position:absolute;display:block;background:var(--line-3)}
+.chain-node:last-child::after{display:none}
+/* stacked: arrow below */
+.chain-node::after{left:50%;bottom:-12px;width:1px;height:12px;transform:translateX(-.5px)}
+.chain-arrow{display:none}
+@media (min-width:820px){
+  .chain-node::after{left:auto;right:-34px;top:50%;bottom:auto;width:34px;height:1px;transform:none}
+  .chain-arrow{display:block;position:absolute;right:-13px;top:50%;transform:translateY(-50%);
+    width:0;height:0;border-left:7px solid var(--line-3);
+    border-top:5px solid transparent;border-bottom:5px solid transparent}
+  .chain-node:last-child .chain-arrow{display:none}
+}
+.chain-legend{margin-top:16px;font-size:13.6px;color:var(--tx-2);line-height:1.6;max-width:72ch}
+.chain-legend b{color:var(--tx)}
+
+/* ══════════════════════════ tables ══════════════════════════ */
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:13.8px}
+th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-3);font-weight:660;
+  background:var(--surface-2);position:sticky;top:0}
+tbody tr:last-child td{border-bottom:0}
+td.rowh{font-weight:620;color:var(--tx);white-space:nowrap}
+th.c-skill{color:var(--skill)} th.c-mcp{color:var(--mcp)} th.c-agent{color:var(--agent)}
+table.cmp th:first-child,table.cmp td:first-child{width:21%}
+table.cmp th:not(:first-child),table.cmp td:not(:first-child){width:26.3%}
+table.shortcuts{min-width:420px}
+table.shortcuts td:first-child{white-space:nowrap;width:1%}
+
+/* ══════════════════════════ mock: skill card ══════════════════════════ */
+.skcard{border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);padding:14px 15px}
+.skcard+.skcard{margin-top:11px}
+.skcard .top{display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap}
+.skcard .tile{width:32px;height:32px;border-radius:9px;flex:none;display:flex;align-items:center;
+  justify-content:center;background:var(--skill-dim);border:1px solid var(--skill-bd);color:var(--skill)}
+.skcard .tile svg{width:17px;height:17px}
+.skcard .nm{font-size:14.8px;font-weight:640}
+.skcard .id{font-family:var(--mono);font-size:11px;color:var(--tx-3);margin-top:2px}
+.skcard .vl{font-size:13.2px;color:var(--tx-2);margin-top:6px;line-height:1.5}
+.skcard .quote{margin-top:9px;font-size:12.6px;color:var(--tx-2);font-style:italic;
+  border-left:2px solid var(--line-2);padding:2px 0 2px 10px}
+.skcard .foot{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px;
+  padding-top:11px;border-top:1px solid var(--line)}
+.skcard .foot .sp{flex:1;min-width:0}
+
+/* ══════════════════════════ mock: stepper ══════════════════════════ */
+.stepper{display:flex;align-items:center;gap:0;min-width:min-content;padding:2px 0 4px}
+.stepper .s{display:flex;align-items:center;gap:8px;padding:0 4px;white-space:nowrap}
+.stepper .n{width:24px;height:24px;border-radius:50%;flex:none;display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-size:11.5px;font-weight:700;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--tx-3)}
+.stepper .lb{font-size:12.6px;font-weight:600;color:var(--tx-3)}
+.stepper .s[data-done]{}
+.stepper .s[data-done] .n{background:var(--ok-dim);border-color:var(--ok-bd);color:var(--ok)}
+.stepper .s[data-done] .lb{color:var(--tx-2)}
+.stepper .s[data-on] .n{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.stepper .s[data-on] .lb{color:var(--tx);font-weight:660}
+.stepper .bar{width:clamp(16px,4vw,44px);height:1px;background:var(--line-2);flex:none}
+/* on narrow screens keep all four dots visible — only the current step keeps its label */
+@media (max-width:559px){
+  .stepper .s:not([data-on]) .lb{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap}
+  .stepper .bar{width:14px}
+  .stepper .s{padding:0 2px}
+}
+.wizpanel{margin-top:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:15px}
+.wizpanel .wt{font-size:15px;font-weight:650}
+.wizpanel .ws{font-size:13px;color:var(--tx-2);margin-top:5px;line-height:1.55}
+.scoperow{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}
+.scoperow:first-of-type{border-top:0;margin-top:6px}
+.box{width:19px;height:19px;border-radius:5px;flex:none;margin-top:2px;
+  border:1px solid var(--line-3);background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+.box.on{background:var(--accent);border-color:var(--accent)}
+.box.on svg{width:12px;height:12px;color:var(--on-accent)}
+.scoperow .sn{font-size:13.8px;font-weight:600}
+.scoperow .sd{font-size:12.6px;color:var(--tx-2);margin-top:2px;line-height:1.5}
+.wizfoot{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:15px;padding-top:13px;
+  border-top:1px solid var(--line)}
+.wizfoot .sp{flex:1;min-width:0}
+
+/* ══════════════════════════ mock: provider pick ══════════════════════════ */
+.pick{display:grid;gap:9px;grid-template-columns:1fr;margin-top:10px}
+@media (min-width:640px){ .pick{grid-template-columns:1fr 1fr} }
+.pick .p{border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);padding:12px 13px}
+.pick .p[data-sel]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-bd)}
+.pick .p .pn{font-size:13.8px;font-weight:640}
+.pick .p .pd{font-size:12.2px;color:var(--tx-2);margin-top:4px;line-height:1.5}
+.pick .p .pc{margin-top:9px}
+
+/* ══════════════════════════ mock: agent row ══════════════════════════ */
+.agcard{border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.agcard .ah{display:flex;gap:11px;align-items:flex-start;padding:14px 15px;flex-wrap:wrap}
+.agcard .av{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:var(--agent-dim);border:1px solid var(--agent-bd);color:var(--agent);font-weight:700;font-size:13px}
+.agcard .an{font-size:15.4px;font-weight:660}
+.agcard .ap{font-size:13px;color:var(--tx-2);margin-top:3px;line-height:1.5}
+.agmeta{display:flex;flex-wrap:wrap;gap:7px;padding:0 15px 13px}
+.agruns{border-top:1px solid var(--line);background:var(--surface-2);padding:12px 15px}
+.agruns .rt{font-size:10.6px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);font-weight:660}
+.agruns .r{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:12.8px}
+.agruns .r:first-of-type{border-top:0;margin-top:5px}
+.agruns .r .tm{font-family:var(--mono);font-size:11.4px;color:var(--tx-3);flex:none;min-width:78px}
+.agruns .r .ot{color:var(--tx-2);min-width:0}
+
+/* ══════════════════════════ mock: composer + slash ══════════════════════════ */
+.composer{border:1px solid var(--line-2);border-radius:14px;background:var(--surface);
+  padding:11px 13px;display:flex;align-items:center;gap:9px}
+.composer .cin{flex:1;min-width:0;font-size:14.4px;color:var(--tx)}
+.composer .cin .car{display:inline-block;width:1.5px;height:1.05em;background:var(--accent);
+  vertical-align:-.18em;margin-left:1px}
+@media (prefers-reduced-motion:no-preference){ .composer .cin .car{animation:blink 1.1s step-end infinite} }
+@keyframes blink{50%{opacity:0}}
+.composer .send{width:32px;height:32px;border-radius:9px;flex:none;display:flex;align-items:center;
+  justify-content:center;background:var(--accent);color:var(--on-accent)}
+.composer .send svg{width:15px;height:15px}
+.slashmenu{border:1px solid var(--line-2);border-radius:12px;background:var(--surface);
+  box-shadow:var(--shadow-2);overflow:hidden;margin-bottom:9px}
+.slashmenu .grp{font-size:10.4px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);
+  font-weight:660;padding:9px 13px 5px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.srow{display:flex;gap:10px;align-items:flex-start;padding:9px 13px;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.srow[data-sel]{background:var(--accent-dim)}
+.srow .si{width:24px;height:24px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--tx-3)}
+.srow .si svg{width:13px;height:13px}
+.srow .sm{font-family:var(--mono);font-size:12.4px;font-weight:600;color:var(--tx)}
+.srow .sd{font-size:12.2px;color:var(--tx-2);margin-top:2px;line-height:1.45}
+.srow.dis{opacity:.62}
+.srow.dis .sm{color:var(--tx-3)}
+.slashfoot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 13px;background:var(--surface-2);
+  border-top:1px solid var(--line);font-size:11.2px;color:var(--tx-3);align-items:center}
+.slashfoot .g{display:inline-flex;align-items:center;gap:5px}
+kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;
+  border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;background:var(--surface);
+  font-family:var(--mono);font-size:10.8px;font-weight:600;color:var(--tx-2);line-height:1}
+
+/* ══════════════════════════ mock: palette ══════════════════════════ */
+.pal{border:1px solid var(--line-2);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-2);overflow:hidden}
+.pal .pin{display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid var(--line);
+  font-size:14.6px;color:var(--tx-3)}
+.pal .pin svg{width:16px;height:16px;flex:none}
+
+/* ══════════════════════════ mock: approval ══════════════════════════ */
+.approve{border:1px solid var(--warn-bd);background:var(--warn-dim);border-radius:12px;padding:14px 15px}
+.approve .at{display:flex;gap:9px;align-items:center;font-size:14.6px;font-weight:650}
+.approve .at svg{width:17px;height:17px;color:var(--warn);flex:none}
+.approve .summary{margin-top:11px;border:1px solid var(--line);background:var(--surface);
+  border-radius:9px;padding:11px 12px;font-size:12.8px;color:var(--tx-2);line-height:1.6}
+.approve .summary b{color:var(--tx)}
+.approve .res{display:flex;gap:7px;align-items:center;margin-top:10px;font-size:12.2px;color:var(--ok)}
+.approve .res svg{width:14px;height:14px;flex:none}
+.approve .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.approve .why{margin-top:10px;font-size:11.8px;color:var(--tx-3)}
+
+/* ══════════════════════════ thinking line ══════════════════════════ */
+.thinking{display:flex;align-items:center;gap:10px;font-size:13.4px;color:var(--tx-2)}
+.thinking .magna-mark{width:20px}
+
+/* ══════════════════════════ quick reference ══════════════════════════ */
+.qr{border:1px solid var(--line-2);border-radius:var(--r-lg);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden;margin-top:24px}
+.qr-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);
+  background:var(--surface-2)}
+.qr-head .t{font-size:14.6px;font-weight:660}
+.qr-body{padding:6px 0}
+.qrow{display:grid;grid-template-columns:1fr;gap:3px;padding:13px 16px;border-bottom:1px solid var(--line)}
+@media (min-width:700px){ .qrow{grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:18px;align-items:baseline} }
+.qrow:last-child{border-bottom:0}
+.qrow .q{font-size:14px;font-weight:640}
+.qrow .a{font-size:13.8px;color:var(--tx-2);line-height:1.6}
+.qr-keys{border-top:1px solid var(--line);background:var(--surface-2);padding:6px 0 2px}
+
+/* ══════════════════════════ footer ══════════════════════════ */
+footer{border-top:1px solid var(--line);background:var(--bg-2)}
+.foot-in{max-width:1300px;margin:0 auto;padding:clamp(26px,4vw,48px) clamp(14px,3vw,32px)}
+.foot-grid{display:grid;gap:26px;grid-template-columns:1fr}
+@media (min-width:760px){ .foot-grid{grid-template-columns:1.3fr 1fr 1fr} }
+.foot-grid h3{font-size:10.6px;letter-spacing:.10em;text-transform:uppercase;color:var(--tx-3);
+  font-weight:660;margin:0 0 11px}
+.foot-grid ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.foot-grid ul a{display:flex;align-items:center;padding:8px 0;font-size:13.6px;color:var(--tx-2);
+  border:0;min-height:44px;flex-wrap:wrap;gap:0 5px}
+.foot-grid ul a:hover{color:var(--tx);border:0}
+.foot-grid ul a .k{color:var(--tx-3);font-size:12.4px}
+.foot-note{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:12.4px;color:var(--tx-3);line-height:1.6}
+
+/* ══════════════════════════ mobile contents drawer ══════════════════════════ */
+.scrim{position:fixed;inset:0;z-index:80;background:rgba(10,14,20,.44);display:none}
+:root[data-theme="dark"] .scrim{background:rgba(0,0,0,.6)}
+.scrim.open{display:block}
+.drawer{position:fixed;z-index:90;inset:0 auto 0 0;width:min(320px,86vw);
+  background:var(--surface);border-right:1px solid var(--line-2);box-shadow:var(--shadow-2);
+  transform:translateX(-102%);display:flex;flex-direction:column;visibility:hidden}
+@media (prefers-reduced-motion:no-preference){ .drawer{transition:transform .24s cubic-bezier(.16,1,.3,1),visibility 0s .24s} }
+.drawer.open{transform:none;visibility:visible;transition-delay:0s}
+.drawer-head{display:flex;align-items:center;gap:10px;padding:11px 12px 11px 16px;border-bottom:1px solid var(--line)}
+.drawer-head .t{flex:1;font-size:13.6px;font-weight:650}
+.drawer-body{overflow-y:auto;padding:10px 10px 30px}
+.drawer-body a{display:block;padding:11px 12px;min-height:44px;border-radius:9px;border:0;
+  color:var(--tx-2);font-size:14px;line-height:1.35}
+.drawer-body a:hover{background:var(--surface-2);color:var(--tx);border:0}
+.drawer-body a .n{font-family:var(--mono);font-size:11px;color:var(--tx-3);margin-right:8px}
+@media (min-width:1100px){ .tocbtn{display:none} }
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skiplink{position:absolute;left:8px;top:-70px;z-index:100;padding:0 16px;border-radius:8px;
+  min-height:44px;display:inline-flex;align-items:center;
+  background:var(--accent);color:var(--on-accent);border:0;font-weight:600;font-size:13.6px}
+.skiplink:focus{top:8px;border:0}
+</style>
+</head>
+<body>
+
+<a class="skiplink" href="#main">Skip to content</a>
+
+<!-- ═══════════════════ top bar ═══════════════════ -->
+<div class="topbar">
+  <div class="topbar-in">
+    <button class="btn icon-only tocbtn" id="tocBtn" aria-label="Open contents" aria-expanded="false" aria-controls="drawer">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <a class="brand" href="index.html">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-hd" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-hd" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-hd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-hd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wordmark">Magna<span>VERSE</span></span>
+    </a>
+    <span class="spacer"></span>
+    <button class="btn" id="themeBtn" aria-label="Switch colour theme">
+      <svg class="ic" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"></svg>
+      <span class="lbl" id="themeLbl">Theme</span>
+    </button>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ═══════════════════ side contents (desktop) ═══════════════════ -->
+  <nav class="toc" aria-label="On this page">
+    <p class="lbl-g" id="tocLbl1">On this page</p>
+    <ol aria-labelledby="tocLbl1">
+      <li><a href="#three"><span class="n">00</span>The three things</a></li>
+      <li><a href="#skill"><span class="n">01</span>Add a skill</a></li>
+      <li><a href="#mcp"><span class="n">02</span>Connect an MCP server</a></li>
+      <li><a href="#agent"><span class="n">03</span>Add an agent</a></li>
+      <li><a href="#call"><span class="n">04</span>Call them</a></li>
+      <li><a href="#quick"><span class="n">05</span>Quick reference</a></li>
+    </ol>
+    <p class="lbl-g" id="tocLbl2">Try it</p>
+    <ol aria-labelledby="tocLbl2">
+      <li><a href="apps/app-1-chatgpt.html">Familiar</a></li>
+      <li><a href="apps/app-4-launchpad.html">Ready</a></li>
+      <li><a href="functionality-map.html">Functionality map</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <!-- ═══════════════════ hero ═══════════════════ -->
+    <section class="hero">
+      <span class="eyebrow">MagnaVERSE · how-to</span>
+      <h1>Skills, MCP servers and agents — and how to call them</h1>
+      <p class="lede">Four questions, answered in order. No prior knowledge assumed. Every button
+        named here is a button that exists in the prototypes, spelled the same way.</p>
+      <div class="hero-meta">
+        <span>Written for a procurement or delivery lead</span><span aria-hidden="true">·</span>
+        <span>Takes about eight minutes</span><span aria-hidden="true">·</span>
+        <span>Nothing here requires an IT ticket</span>
+      </div>
+
+      <div class="tldr">
+        <h2>If you only have thirty seconds</h2>
+        <ol>
+          <li><span class="num">1</span><span><span class="q">Add a skill</span>
+            <span class="a">Connections → Skills → flip its toggle to <b>On</b>. For a new one:
+            <span class="ui">+ Add skill</span> → <span class="ui">From a template</span>.</span></span></li>
+          <li><span class="num">2</span><span><span class="q">Connect an MCP server</span>
+            <span class="a">Connections → Tools &amp; MCP → <span class="ui pri">Connect Magna Mail</span> →
+            four steps: Choose, Configure, Permissions, Done.</span></span></li>
+          <li><span class="num">3</span><span><span class="q">Add an agent</span>
+            <span class="a">Agents → <span class="ui pri">Create agent</span> → pick a template, name it,
+            pick its access and its trigger, test it, save.</span></span></li>
+          <li><span class="num">4</span><span><span class="q">Call any of them</span>
+            <span class="a">Type <kbd>/</kbd> in the message box and pick from the list — or just ask
+            in plain English and let Magna choose.</span></span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 0 · the three things ═══════════════════ -->
+    <section id="three">
+      <div class="sec-head"><span class="sec-num">00</span><h2 class="sec-title">Three things, three different jobs</h2></div>
+      <p class="sec-sub">Almost every confusion about this product comes from these three words being
+        used interchangeably. They are not the same, and the difference is simple.</p>
+
+      <h3>One sentence each</h3>
+      <ul style="margin-top:12px;padding-left:20px;color:var(--tx-2)">
+        <li style="margin-top:8px"><b style="color:var(--tx)">A skill is a saved instruction.</b>
+          A repeatable job Magna already knows how to do — <em>"write the weekly HSE digest"</em> —
+          written down once so it comes out the same way every time.</li>
+        <li style="margin-top:8px"><b style="color:var(--tx)">An MCP server is a connection to one of your systems.</b>
+          It gives Magna <em>tools</em>: "search mail", "look up a purchase order", "read a Jira issue".</li>
+        <li style="margin-top:8px"><b style="color:var(--tx)">An agent is a worker.</b>
+          A named role with its own model, its own tools and a trigger — and it is the only one of
+          the three that can run on a schedule, without you.</li>
+      </ul>
+
+      <div class="note"><b>MCP</b> stands for Model Context Protocol. Ignore the words. It is a plug
+        shape — an agreed way for one of your systems to offer its functions to an AI, so you connect
+        SAP or your mail once instead of building an integration for every product you buy.
+        A <b>tool</b> is one single thing Magna can do inside that system.</div>
+
+      <h3>How they fit together</h3>
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">The chain, left to right</span></div>
+        <div class="mock-body">
+          <div class="chain">
+            <div class="chain-node n-mcp">
+              <span class="chain-arrow" aria-hidden="true"></span>
+              <div class="kind">MCP server</div>
+              <div class="nm">Magna Mail</div>
+              <div class="ex">Gives Magna four tools: search mail, read a message, draft a reply, send mail.</div>
+              <div class="why">Without this, there is nothing to reach into. Connect once.</div>
+            </div>
+            <div class="chain-node n-skill">
+              <span class="chain-arrow" aria-hidden="true"></span>
+              <div class="kind">Skill</div>
+              <div class="nm">Weekly HSE digest</div>
+              <div class="ex">A written method: read the incident register, apply our thresholds, produce the committee summary.</div>
+              <div class="why">Uses whichever tools you have already connected. Owns none of its own.</div>
+            </div>
+            <div class="chain-node n-agent">
+              <div class="kind">Agent</div>
+              <div class="nm">HSE Digest</div>
+              <div class="ex">Runs the skill every weekday at 06:00, on the tools you allowed, and posts the result.</div>
+              <div class="why">The only one with a clock. Turn it off and nothing runs by itself.</div>
+            </div>
+          </div>
+          <p class="chain-legend"><b>The short version:</b> the MCP server brings the hands, the skill
+            is the written method, and the agent is the colleague who turns up at six in the morning
+            and does it. You can use a skill with no agent. You cannot use a tool you have not connected.</p>
+        </div>
+        <figcaption>You do not have to build all three. Most people start in the middle: turn on a
+          skill, use it in chat, and only later hand it to an agent.</figcaption>
+      </figure>
+
+      <h3>Side by side</h3>
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Comparison</span></div>
+        <div class="scrollx">
+          <table class="cmp">
+            <thead><tr>
+              <th scope="col"><span class="sr-only">Property</span></th>
+              <th scope="col" class="c-skill">Skill</th>
+              <th scope="col" class="c-mcp">MCP server</th>
+              <th scope="col" class="c-agent">Agent</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="rowh">What it is</td>
+                <td>A saved instruction</td><td>A connection to a system</td><td>A named worker</td></tr>
+              <tr><td class="rowh">What it gives you</td>
+                <td>A repeatable result</td><td>Tools — new things Magna can reach</td><td>Work that happens without you</td></tr>
+              <tr><td class="rowh">Where you add it</td>
+                <td>Connections → Skills</td><td>Connections → Tools &amp; MCP</td><td>Agents</td></tr>
+              <tr><td class="rowh">Needs anything outside Magna?</td>
+                <td>No</td><td>Yes — an account, and usually your admin's endpoint</td><td>No, but it can only use what is already connected</td></tr>
+              <tr><td class="rowh">Can it run on a clock?</td>
+                <td>No</td><td>No</td><td>Yes</td></tr>
+              <tr><td class="rowh">How you call it</td>
+                <td><kbd>/</kbd> or plain English</td><td><kbd>/</kbd>, or Magna picks the tool for you</td><td><span class="ui">Run</span>, a schedule, or another agent</td></tr>
+              <tr><td class="rowh">Typical example</td>
+                <td><code>hse-digest</code></td><td><code>sap-po-lookup</code></td><td>PO Slippage Watch</td></tr>
+              <tr><td class="rowh">Time to set up</td>
+                <td>One click</td><td>About two minutes</td><td>About five minutes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>Read the "How you call it" row twice — it is the answer to question four, and
+          it is the same answer for all three.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ═══════════════════ 1 · add a skill ═══════════════════ -->
+    <section id="skill">
+      <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">How do I add a skill?</h2></div>
+      <p class="sec-sub">Most of the time, "adding" a skill means turning on one that already exists.
+        That is one click. The longer routes are for skills nobody has written yet.</p>
+
+      <h3>The one-click route — from the catalogue</h3>
+      <ol class="steps">
+        <li><b>Open Connections, then the Skills tab.</b>
+          <p>You get a grid of cards, not a checkbox list. Each card is written for you, not for the
+            model: a plain-language name, the internal id in small grey type underneath, one sentence
+            of what it does, and a real example prompt.</p></li>
+        <li><b>Narrow it down.</b>
+          <p>Search matches the name, the description and the id. The filters are the ones that
+            matter: category — Reporting, Engineering, Procurement, HSE, Admin — and
+            <span class="ui">Ready to use</span> versus <span class="ui">Needs a connection</span>.</p></li>
+        <li><b>Press <span class="ui">Try it</span> before you commit.</b>
+          <p>This puts the card's example prompt into the message box. It <em>drafts</em> — it does
+            not send. Read it, change it if you like, and press <kbd>↵</kbd> when you are happy.
+            This is how you judge a skill, instead of guessing from its name.</p></li>
+        <li><b>Flip the toggle to On.</b>
+          <p>That is the whole thing. The skill is now available in chat and in the <kbd>/</kbd> menu,
+            and any agent you create can be given it.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Connections → Skills</span></div>
+        <div class="mock-body">
+          <div class="skcard">
+            <div class="top">
+              <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.1 5.3L19.5 10l-5.4 1.7L12 17l-2.1-5.3L4.5 10l5.4-1.7z"/></svg></span>
+              <div style="min-width:0;flex:1">
+                <div class="nm">Weekly HSE digest</div>
+                <div class="id">hse-digest</div>
+                <div class="vl">Summarises the incident register for the week and applies your committee reporting thresholds.</div>
+                <div class="quote">"Summarise this week's HSE incidents for the steering pack."</div>
+              </div>
+            </div>
+            <div class="foot">
+              <span class="chip ok"><span class="dot"></span>Ready to use</span>
+              <span class="chip">HSE</span>
+              <span class="sp"></span>
+              <span class="fbtn ghost">Try it</span>
+              <span class="toggle" aria-hidden="true"><i></i></span>
+              <span style="font-size:11.6px;color:var(--tx-2);font-weight:600">On</span>
+            </div>
+          </div>
+
+          <div class="skcard">
+            <div class="top">
+              <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.1 5.3L19.5 10l-5.4 1.7L12 17l-2.1-5.3L4.5 10l5.4-1.7z"/></svg></span>
+              <div style="min-width:0;flex:1">
+                <div class="nm">Find the governing clause</div>
+                <div class="id">clause-finder</div>
+                <div class="vl">Searches the subcontract library and quotes the clause that governs a question, with its page number.</div>
+                <div class="quote">"Which clause covers liquidated damages on Package 4?"</div>
+              </div>
+            </div>
+            <div class="foot">
+              <span class="chip warn"><span class="dot"></span>Needs Company Knowledge</span>
+              <span class="chip">Procurement</span>
+              <span class="sp"></span>
+              <span class="fbtn ghost">Try it</span>
+              <span class="fbtn pri">Connect</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>Two cards from the catalogue. The second one has no toggle — it has a
+          <span class="chip warn" style="font-size:10.6px"><span class="dot"></span>Needs Company Knowledge</span>
+          chip and a <span class="ui pri">Connect</span> button instead.</figcaption>
+      </figure>
+
+      <h3>When a card says "Needs Company Knowledge"</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">This is not an error and the skill is not broken.
+        It is telling you that the skill leans on a connection your workspace does not have yet —
+        in this case the document index, Company Knowledge. Nothing about the skill needs fixing.</p>
+      <div class="note"><b>What to do.</b> Press <span class="ui pri">Connect</span> on the chip. It
+        drops you into the connect stepper from <a href="#mcp">section 02</a>, already pointed at the
+        right system. Finish those four steps, come back to the Skills tab, and the amber chip has
+        become a green <span class="chip ok" style="font-size:10.6px"><span class="dot"></span>Ready to use</span>
+        with a normal toggle. Nothing you did in the Skills tab is lost.</div>
+      <div class="note warn"><b>The name in the chip is always the thing that is missing.</b>
+        <span class="ui">Needs Magna Mail</span> means connect your mail.
+        <span class="ui">Needs SAP purchase orders</span> means connect SAP. If the chip names a system
+        only your admin can reach, the button reads <span class="ui">Request access</span> instead,
+        and pressing it sends the request rather than opening a form you cannot complete.</div>
+
+      <h3>The other two routes — <span class="ui">+ Add skill</span></h3>
+      <p style="margin-top:10px;color:var(--tx-2)">If nothing in the catalogue does what you need,
+        <span class="ui">+ Add skill</span> offers three cards. The first is the catalogue you have
+        just seen. The other two:</p>
+      <ol class="steps">
+        <li><b>From a template — describe it in plain language.</b>
+          <p>A short guided flow, in the same four steps as everything else.</p>
+          <ul>
+            <li><b>Name it</b> the way your team would say it out loud — "Weekly supplier scorecard".
+              The internal id is generated for you: <code>weekly-supplier-scorecard</code>. You never type an id.</li>
+            <li><b>Say what it should do</b>, in a sentence or two of ordinary English. "Score every
+              active supplier on delivery, quality and prequalification, and rank them."</li>
+            <li><b>Pick which connections it may use.</b> Only the ones already connected are offered.</li>
+            <li><b>Pick a trigger</b> — on request, on a schedule, or when an agent calls it.</li>
+          </ul>
+          <p>A live preview of the finished card updates as you type, so you can see exactly what your
+            colleagues will see. Press <span class="ui pri">Create skill</span> when the preview reads well.</p></li>
+        <li><b>Import a skill definition.</b>
+          <p>For a skill someone has written as a file. Paste it in and press
+            <span class="ui pri">Validate</span>. It is checked <em>before</em> it goes anywhere near
+            your workspace.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Import a skill definition → Validate</span></div>
+        <div class="mock-body">
+          <div class="approve" style="border-color:var(--crit-bd);background:var(--crit-dim)">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" style="color:var(--crit)" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9 2.6 17.4A2 2 0 0 0 4.3 20.4h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+              This definition will not parse — nothing was added.</div>
+            <div class="summary">
+              <b>Line 2:</b> the <code>description</code> value opens with a quote and never closes it.
+              Add the closing <code>"</code> after <code>founder</code>.<br>
+              <b>Line 3:</b> <code>model: __inherit__</code> is an internal placeholder, not a model.
+              Use <code>model: same-as-chat</code>, or name a model such as <code>kimi-k2-instruct</code>.
+            </div>
+            <p class="why">Fix the two lines above and press Validate again — the paste box is editable.</p>
+          </div>
+          <div class="note" style="margin-top:14px"><b>Why you get this rather than a broken row.</b>
+            A skill that fails to parse is quarantined and shown to your workspace admin with this same
+            message. It never appears in anyone's skill list.</div>
+        </div>
+        <figcaption>A definition that fails validation is never added. You get the line number and the
+          fix, not a parser error pasted into a product screen.</figcaption>
+      </figure>
+
+      <div class="changed"><span class="t">What this replaces today</span>
+        Skills currently live behind <span class="ui">Tools → Skills 18/18</span> as an 18-item
+        checkbox list of internal names — <code>heartbeat</code>, <code>magna-api-skill-generator</code>,
+        <code>jira-ticket-definer</code> — all switched on by default, with descriptions written for
+        the model rather than for you and cut off mid-sentence. One of the eighteen ships to end users
+        with the words <code>failed to parse SKILL…</code> as its description.</div>
+
+      <div class="try"><span class="t">Walk this flow:</span>
+        <a href="apps/app-1-chatgpt.html">Familiar</a>
+        <a href="apps/app-4-launchpad.html">Ready</a>
+        <a href="apps/app-3-sovereign.html">Provable</a>
+        <span style="font-size:12.2px;color:var(--tx-3)">Sign in with the pre-filled demo credentials, then Connections → Skills.</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 2 · connect an MCP server ═══════════════════ -->
+    <section id="mcp">
+      <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">How do I connect an MCP server?</h2></div>
+      <p class="sec-sub">Four steps, always the same four, whichever system you are connecting.
+        The worked example here is Magna Mail, because mail is the one everybody wants first.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">The four steps, every time</span></div>
+        <div class="mock-body">
+          <div class="scrollx">
+            <div class="stepper">
+              <span class="s" data-done="1"><span class="n">✓</span><span class="lb">Choose</span></span><span class="bar"></span>
+              <span class="s" data-done="1"><span class="n">✓</span><span class="lb">Configure</span></span><span class="bar"></span>
+              <span class="s" data-on="1"><span class="n">3</span><span class="lb">Permissions</span></span><span class="bar"></span>
+              <span class="s"><span class="n">4</span><span class="lb">Done</span></span>
+            </div>
+          </div>
+          <div class="wizpanel">
+            <div class="wt">What may Magna do with your mail?</div>
+            <div class="ws">Read is on because nothing else works without it. Send is off, and stays
+              off until you tick it yourself.</div>
+            <div class="scoperow">
+              <span class="box on" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+              <div><div class="sn">Read mail</div><div class="sd">Search and open messages in this mailbox. Needed for everything else.</div></div>
+            </div>
+            <div class="scoperow">
+              <span class="box" aria-hidden="true"></span>
+              <div><div class="sn">Send mail as you</div><div class="sd">Messages go out under your name. Every send still shows you the draft first and waits for you to confirm.</div></div>
+            </div>
+            <div class="scoperow">
+              <span class="box" aria-hidden="true"></span>
+              <div><div class="sn">Read contacts</div><div class="sd">Resolve names to addresses so you can say "reply to Faisal" instead of typing an address.</div></div>
+            </div>
+            <div class="scoperow">
+              <span class="box" aria-hidden="true"></span>
+              <div><div class="sd" style="margin:0"><span class="sn">Read calendar</span><br>See free time and meeting subjects. Nothing is booked without your confirmation.</div></div>
+            </div>
+            <div class="wizfoot">
+              <span class="fbtn">Back</span>
+              <span class="sp"></span>
+              <span class="chip ok"><span class="dot"></span>on-prem · 0 bytes leave your network</span>
+              <span class="fbtn pri">Connect Magna Mail</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>Step 3 of 4. The primary button is never labelled "Next" on the step that commits —
+          it says exactly what pressing it will do.</figcaption>
+      </figure>
+
+      <h3>Step by step</h3>
+      <ol class="steps">
+        <li><b>Open Connections, then the Tools &amp; MCP tab.</b>
+          <p>One sentence at the top of that view explains what an MCP server is, so you never have to
+            remember. Each server is a card: its name, what it gives you in plain words, the tools it
+            exposes, where it runs, and one honest status — <span class="ui">Not connected</span>,
+            <span class="ui">Connected</span>, or <span class="ui">Error</span> with the last sync time.</p></li>
+        <li><b>Find Magna Mail and press <span class="ui pri">Connect Magna Mail</span>.</b>
+          <p>The stepper opens. You can leave at any point before step 4 — press Escape or the close
+            button. Nothing is committed until the last step.</p></li>
+        <li><b>Step 1 — Choose your provider.</b>
+          <p>Four options, and the residency consequence is stated on each one rather than buried in
+            a policy document.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Step 1 — Choose</span></div>
+        <div class="mock-body">
+          <div class="pick">
+            <div class="p" data-sel="1">
+              <div class="pn">Magna Mail <span class="chip ok" style="margin-left:5px"><span class="dot"></span>on-prem</span></div>
+              <div class="pd">Your Exchange server, inside the building. Mail is indexed on the Magna cluster in Riyadh DC-1.</div>
+              <div class="pc"><span class="chip ok">0 bytes leave your network</span></div>
+            </div>
+            <div class="p">
+              <div class="pn">Microsoft 365 <span class="chip warn" style="margin-left:5px"><span class="dot"></span>leaves your network</span></div>
+              <div class="pd">Message bodies are fetched from Microsoft's cloud region on every request.</div>
+              <div class="pc"><span class="chip warn">Traffic leaves your network</span></div>
+            </div>
+            <div class="p">
+              <div class="pn">Google Workspace <span class="chip warn" style="margin-left:5px"><span class="dot"></span>leaves your network</span></div>
+              <div class="pd">Same as above, against Google's servers.</div>
+              <div class="pc"><span class="chip warn">Traffic leaves your network</span></div>
+            </div>
+            <div class="p">
+              <div class="pn">IMAP <span class="chip">any provider</span></div>
+              <div class="pd">Anything else with an IMAP address. Where it runs depends on the address you give.</div>
+              <div class="pc"><span class="chip off">Residency depends on your endpoint</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Green means it stays inside your network. Amber means it does not. You are told
+          before you choose, not after.</figcaption>
+      </figure>
+
+      <ol class="steps" style="margin-top:22px">
+        <li value="4" style="counter-reset:st 3"><b>Step 2 — Configure the account.</b>
+          <p>Your email address and the display name to send under. <b>There is no password field,
+            and there should never be one.</b> Press <span class="ui pri">Authorise in provider →</span>
+            and your mail provider's own sign-in window opens. You approve it there, in the window you
+            already recognise. MagnaVERSE never sees your password.</p></li>
+        <li><b>Step 3 — Choose what it may do.</b>
+          <p>Four plain-English checkboxes, not permission codes. <span class="ui">Read mail</span> is on.
+            <span class="ui">Send mail as you</span> is <b>off</b> — you have to tick it deliberately.
+            <span class="ui">Read contacts</span> and <span class="ui">Read calendar</span> are your choice.
+            The panel above is exactly this step.</p>
+          <p>You can change all of this later without disconnecting: the same card gets a
+            <span class="ui">Permissions</span> action once connected.</p></li>
+        <li><b>Step 4 — Done, and it tells you how to use it.</b>
+          <p>The last step is not a "Success!" banner. It lists what got connected, which permissions
+            you granted, the four tool names, the <kbd>/</kbd> commands they map to, and a
+            <span class="ui">Try it</span> button that puts a working example in the message box.</p></li>
+        <li><b>Press <span class="ui">Test connection</span>.</b>
+          <p>On the card, any time. It runs a real check and reports a real result — which tools
+            responded, how long they took, and a readable error if one did not. This is how you tell a
+            working server from a broken one without opening a ticket.</p></li>
+      </ol>
+
+      <h3>What visibly changes after you connect</h3>
+      <div class="note ok"><b>Connecting something is pointless if nothing happens.</b> The moment
+        step 4 completes, four things change that you can see:
+        <ul style="margin:9px 0 0;padding-left:19px">
+          <li style="margin-top:4px">The mail tools appear in the <kbd>/</kbd> menu. Before, they were
+            greyed out with a <span class="ui">Connect …</span> label.</li>
+          <li style="margin-top:4px">The connection count in the sidebar goes up by one.</li>
+          <li style="margin-top:4px">Skills that said <span class="ui">Needs Magna Mail</span> now have
+            a working toggle, and the starter prompts on the home screen change.</li>
+          <li style="margin-top:4px">"Connect your mail" ticks itself off the
+            <span class="ui">Finish setting up</span> checklist.</li>
+        </ul></div>
+      <div class="note"><b>Disconnecting really disconnects.</b> The same card has a
+        <span class="ui">Disconnect</span> action. It reverts the status, removes the tools from the
+        <kbd>/</kbd> menu, and re-greys anything that depended on it. Nothing is left half-connected.</div>
+
+      <h3>Connecting something that is not in the catalogue</h3>
+      <p style="margin-top:10px;color:var(--tx-2)"><span class="ui">+ Add server</span> gives you the
+        same three routes as skills:</p>
+      <ul style="margin-top:10px;padding-left:20px;color:var(--tx-2)">
+        <li style="margin-top:6px"><b style="color:var(--tx)">From the catalogue</b> — pick a server
+          above and follow the four steps. This is the usual way.</li>
+        <li style="margin-top:6px"><b style="color:var(--tx)">From a template</b> — name it, give it a
+          server address and a transport, choose the auth. Your admin gives you the address; an address
+          inside your network keeps the connector on-prem. It is tested before it saves.</li>
+        <li style="margin-top:6px"><b style="color:var(--tx)">Import a config</b> — paste an MCP config
+          file. It is validated the same way a skill is, with the same readable error.</li>
+      </ul>
+
+      <div class="changed"><span class="t">What this replaces today</span>
+        Today there are four hard-coded MCP servers and no way at all to add a fifth — no
+        <span class="ui">+ Add server</span> button exists anywhere. The main text on each card is a
+        raw Kubernetes hostname such as <code>ms365-mcp.magna-system.svc.cluster.local:3000</code>,
+        and each card shows an enabled blue toggle, <span class="ui">Sign-in required</span> and
+        <span class="ui">No tools</span> at the same time. Nothing explains what connecting one would
+        let you do, and there is no way to tell a working server from a broken one.</div>
+
+      <div class="try"><span class="t">Walk this flow:</span>
+        <a href="apps/app-1-chatgpt.html">Familiar</a>
+        <a href="apps/app-2-claude.html">Considered</a>
+        <a href="apps/app-6-horizon.html">Horizon</a>
+        <span style="font-size:12.2px;color:var(--tx-3)">Connections → Tools &amp; MCP → Connect Magna Mail.</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 3 · add an agent ═══════════════════ -->
+    <section id="agent">
+      <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">How do I add an agent?</h2></div>
+      <p class="sec-sub">An agent is a name, a model, a set of tools and a trigger — nothing more.
+        If you can describe a colleague's job in two lines, you can make an agent.</p>
+
+      <h3>Step by step</h3>
+      <ol class="steps">
+        <li><b>Open Agents and press <span class="ui pri">Create agent</span>.</b>
+          <p>You land on a gallery of starting points, not an empty form: Procurement Analyst,
+            Contract Clause Reviewer, HSE Incident Reporter, Schedule Slip Analyst, Vendor Risk
+            Screener, Mail Triage. Pick the closest one — you can edit every field before saving, and
+            nothing is created until you do.</p>
+          <p>If none of them fits, describe what you want in plain English and let MagnaVERSE draft
+            the configuration. The draft is shown to you before anything is saved.</p></li>
+        <li><b>Name it, and say what it is for in one line.</b>
+          <p>"PO Slippage Watch — compare released purchase orders against the live P6 snapshot and
+            raise anything slipping." That line is what your colleagues will read, so write it for them.</p></li>
+        <li><b>Pick the model, or don't.</b>
+          <p>The default option reads <span class="ui">Same as chat (recommended)</span>. Leave it
+            unless you have a reason. You will never see a code token like <code>__inherit__</code> in
+            this dropdown.</p></li>
+        <li><b>Pick what it may use.</b>
+          <p>Four access presets, each spelling out what it grants in ordinary words:</p>
+          <ul>
+            <li><b>Read-only research</b> — look things up, never change anything.</li>
+            <li><b>Documents &amp; reports</b> — the above, plus producing files and drafts.</li>
+            <li><b>Connected systems</b> — the above, plus reading from SAP, P6, Jira, mail.</li>
+            <li><b>Full access</b> — everything you personally have. Use sparingly.</li>
+          </ul>
+          <p>If you want to be precise, open <span class="ui">Fine-tune permissions</span> underneath
+            and pick individual tools from a searchable, grouped list. Most people never open it.</p></li>
+        <li><b>Pick a trigger. This is the decision that matters.</b>
+          <ul>
+            <li><b>On request</b> — it only runs when you press <span class="ui">Run</span>, or
+              <span class="ui">@mention</span> it in chat. Start here.</li>
+            <li><b>Scheduled</b> — it runs on a clock. You get a plain-English preview of the schedule
+              as you set it: "every weekday at 06:00". No cron syntax unless you want it.</li>
+            <li><b>Called by another agent</b> — it does nothing on its own, and exists so a bigger
+              agent can hand it a piece of work.</li>
+          </ul></li>
+        <li><b>Test it before you save.</b>
+          <p>Type a sample prompt into the test panel and press <span class="ui">Run</span>. You see a
+            live trace — every step and every tool call as it happens — and a verdict line at the end:
+            "Used 3 tools · asked 1 question · 8s". If the trace shows it reaching for something you did
+            not intend, fix the access preset and run it again. This costs you thirty seconds and saves
+            you a surprise at 06:00.</p></li>
+        <li><b>Save. Then let it run.</b>
+          <p>It appears in the Agents table with its model, its access preset, its trigger, its last
+            run and its run count. The toggle on the row is the on/off switch — turning it off stops
+            the schedule without deleting anything.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Agents → PO Slippage Watch</span></div>
+        <div class="mock-body">
+          <div class="agcard">
+            <div class="ah">
+              <span class="av" aria-hidden="true">PO</span>
+              <div style="min-width:0;flex:1">
+                <div class="an">PO Slippage Watch</div>
+                <div class="ap">Compare released purchase orders against the live P6 snapshot and raise anything slipping.</div>
+              </div>
+              <span class="fbtn">Run</span>
+              <span class="fbtn">Open</span>
+            </div>
+            <div class="agmeta">
+              <span class="chip">Model · Same as chat</span>
+              <span class="chip">Access · Connected systems</span>
+              <span class="chip">Trigger · Every hour</span>
+              <span class="chip mono">sap-po-lookup</span>
+              <span class="chip mono">p6-schedule</span>
+              <span class="chip ok"><span class="dot"></span>On</span>
+            </div>
+            <div class="agruns">
+              <div class="rt">Run history · last 4 of 168</div>
+              <div class="r"><span class="tm">Today 14:00</span><span class="ot"><b>2 POs slipping</b> — C2 by 45 days, C3 by 15 days. 2 tools · 6.4s</span></div>
+              <div class="r"><span class="tm">Today 13:00</span><span class="ot">Nothing above threshold. 2 tools · 5.1s</span></div>
+              <div class="r"><span class="tm">Today 12:00</span><span class="ot">Nothing above threshold. 2 tools · 5.6s</span></div>
+              <div class="r"><span class="tm">Today 11:00</span><span class="ot" style="color:var(--warn)">Stopped — P6 snapshot was still being written. Retried at 11:06 and succeeded.</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Every run is recorded with what it did, what it found and how long it took. A
+          failed run says what stopped it in a sentence, not a stack trace.</figcaption>
+      </figure>
+
+      <h3>How to check what it actually did</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Press <span class="ui">Open</span> on the agent's
+        row. The run history is the middle of that panel: one line per run, with the time, the result
+        in a readable sentence, how many tools it used and how long it took. Click a run to see the
+        full output it produced and the tools it called, in order.</p>
+      <div class="note ok"><b>Two rules that always hold, whatever you configure.</b>
+        An agent can never use a tool you have not granted it. And anything that sends, publishes or
+        deletes still stops and asks you — an agent running at 06:00 will draft the email and wait,
+        it will not send it while you are asleep unless you granted that explicitly.</div>
+
+      <div class="changed"><span class="t">What this replaces today</span>
+        Today the same concept has four names in four consecutive screens: the nav says
+        <span class="ui">Tasks</span>, the subtitle says "custom roles for delegation", the button says
+        <span class="ui">+ New agent</span> and the next screen is titled
+        <span class="ui">Create subagent</span>. Access is three flat checkbox lists — 18 skills plus
+        4 servers plus 10 tools, 32 boxes with no search and no grouping — the model dropdown offers
+        <code>__inherit__</code>, and the empty state is a blank table that hides ten perfectly good
+        templates behind a button labelled with the wrong noun.</div>
+
+      <div class="try"><span class="t">Walk this flow:</span>
+        <a href="apps/app-1-chatgpt.html">Familiar</a>
+        <a href="apps/app-5-twin.html">Grounded</a>
+        <a href="apps/app-4-launchpad.html">Ready</a>
+        <span style="font-size:12.2px;color:var(--tx-3)">Agents → Create agent. Then Automations for the schedules.</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 4 · call them ═══════════════════ -->
+    <section id="call">
+      <div class="sec-head"><span class="sec-num">04</span><h2 class="sec-title">How do I call them?</h2></div>
+      <p class="sec-sub">This is the question that matters, and the answer is short: type a slash,
+        or just ask. Everything else on this page exists to make those two things work.</p>
+
+      <h3>1 · Type <kbd>/</kbd> in the message box</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">The menu opens the moment you press the key. It
+        lists every skill that is on and every tool from every connected MCP server, each with a
+        one-line description. Keep typing to filter — it matches names and descriptions, so
+        <code>/po</code> finds both the purchase-order tool and the PO variance skill.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">The composer, after pressing /</span></div>
+        <div class="mock-body">
+          <div class="slashmenu">
+            <div class="grp">Skills</div>
+            <div class="srow" data-sel="1">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 5.3L19.5 10l-5.4 1.7L12 17l-2.1-5.3L4.5 10l5.4-1.7z"/></svg></span>
+              <div style="min-width:0"><div class="sm">/hse-digest</div>
+                <div class="sd">Weekly HSE summary from the incident register, with your reporting thresholds applied.</div></div>
+            </div>
+            <div class="srow">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 5.3L19.5 10l-5.4 1.7L12 17l-2.1-5.3L4.5 10l5.4-1.7z"/></svg></span>
+              <div style="min-width:0"><div class="sm">/po-variance-check</div>
+                <div class="sd">Compare a purchase order against its contract terms and flag every deviation.</div></div>
+            </div>
+            <div class="grp">Tools · from connected systems</div>
+            <div class="srow">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg></span>
+              <div style="min-width:0"><div class="sm">/magna-mail.search</div>
+                <div class="sd">Search your mailbox. Read-only · runs on-prem.</div></div>
+            </div>
+            <div class="srow">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+              <div style="min-width:0"><div class="sm">/sap-po-lookup</div>
+                <div class="sd">Purchase orders, vendor master and goods receipts from SAP S/4HANA. Read-only.</div></div>
+            </div>
+            <div class="srow dis">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></span>
+              <div style="min-width:0"><div class="sm">/confluence.search</div>
+                <div class="sd">Not connected — <span style="color:var(--accent)">Connect Confluence</span> to use this.</div></div>
+            </div>
+            <div class="slashfoot">
+              <span class="g"><kbd>↑</kbd><kbd>↓</kbd> move</span>
+              <span class="g"><kbd>↵</kbd> insert</span>
+              <span class="g"><kbd>Esc</kbd> close</span>
+              <span class="g">Keep typing to filter</span>
+            </div>
+          </div>
+          <div class="composer">
+            <div class="cin">/hse<span class="car" aria-hidden="true"></span></div>
+            <span class="send" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </div>
+        <figcaption>Escape closes the menu and puts your cursor back in the message box, exactly where
+          it was. A greyed row is a real tool from a system you have not connected yet — the row tells
+          you which one.</figcaption>
+      </figure>
+
+      <h3>2 · Or just ask, in your own words</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">You do not have to remember any of those names.
+        Type <em>"Summarise this week's HSE incidents for the steering pack"</em> and Magna picks the
+        skill itself. It then shows you which one it used, in the reasoning line above the answer —
+        so you learn the names by seeing them, rather than by memorising them.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">While it works</span></div>
+        <div class="mock-body">
+          <div class="thinking">
+            <svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna is working">
+              <defs>
+                <linearGradient id="mgGB-th" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                </linearGradient>
+                <linearGradient id="mgR-th" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                </linearGradient>
+              </defs>
+              <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-th)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-th)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Running <b>hse-digest</b> · searching Company Knowledge…</span>
+          </div>
+          <div class="note" style="margin-top:14px">The animated mark is the working indicator, and the
+            status text next to it is honest — it names the skill it chose and the system it is reading.
+            When the answer arrives, that line collapses into a reasoning summary you can expand.</div>
+        </div>
+        <figcaption>Asking in plain English is the primary way to use everything on this page. The
+          <kbd>/</kbd> menu is a shortcut, not a requirement.</figcaption>
+      </figure>
+
+      <h3>3 · <kbd>⌘</kbd><kbd>K</kbd> for everything else</h3>
+      <p style="margin-top:10px;color:var(--tx-2)"><kbd>⌘</kbd><kbd>K</kbd> on a Mac,
+        <kbd>Ctrl</kbd><kbd>K</kbd> on Windows. This is the whole product in one box: views,
+        conversations, documents, agents, and actions. Type three letters of what you want.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Command palette</span></div>
+        <div class="mock-body">
+          <div class="pal">
+            <div class="pin">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+              <span>mail<span class="car" style="display:inline-block;width:1.5px;height:1.05em;background:var(--accent);vertical-align:-.18em;margin-left:1px"></span></span>
+            </div>
+            <div class="grp" style="font-size:10.4px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);font-weight:660;padding:9px 14px 5px;background:var(--surface-2);border-bottom:1px solid var(--line)">Actions</div>
+            <div class="srow" data-sel="1"><span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg></span>
+              <div><div class="sm" style="font-family:var(--sans);font-size:13.4px">Connect Magna Mail</div>
+              <div class="sd">Opens the four-step connect flow</div></div></div>
+            <div class="srow"><span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg></span>
+              <div><div class="sm" style="font-family:var(--sans);font-size:13.4px">Magna Mail permissions</div>
+              <div class="sd">Change scopes without disconnecting</div></div></div>
+            <div class="grp" style="font-size:10.4px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);font-weight:660;padding:9px 14px 5px;background:var(--surface-2);border-bottom:1px solid var(--line);border-top:1px solid var(--line)">Agents</div>
+            <div class="srow"><span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7z"/></svg></span>
+              <div><div class="sm" style="font-family:var(--sans);font-size:13.4px">Run Mail Triage</div>
+              <div class="sd">On request · last run today 08:12</div></div></div>
+            <div class="slashfoot">
+              <span class="g"><kbd>↑</kbd><kbd>↓</kbd> move</span>
+              <span class="g"><kbd>↵</kbd> run</span>
+              <span class="g"><kbd>Esc</kbd> close</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>The palette reaches actions as well as places — "Connect Magna Mail" starts the
+          flow from section 02 without you navigating anywhere.</figcaption>
+      </figure>
+
+      <h3>4 · Running an agent on demand</h3>
+      <ul style="margin-top:10px;padding-left:20px;color:var(--tx-2)">
+        <li style="margin-top:6px">Press <span class="ui">Run</span> on its row in the Agents table.</li>
+        <li style="margin-top:6px">Or press <span class="ui">Open</span> and then
+          <span class="ui pri">Run now</span> inside it, if you want to watch the trace.</li>
+        <li style="margin-top:6px">Or <span class="ui">@mention</span> it in the message box —
+          type <code>@</code> and its name autocompletes — to hand it a job mid-conversation.</li>
+        <li style="margin-top:6px">Or <kbd>⌘</kbd><kbd>K</kbd> → "Run" → its name.</li>
+      </ul>
+
+      <h3>5 · How a scheduled agent delivers its result</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">You do not go looking for it. When a scheduled agent
+        finishes, the run appears in <span class="ui">Automations</span> with its result written in a
+        sentence, and the output is delivered wherever you told it to go: a notification, a new message
+        in your chat, or a post to a channel. Nothing is buried in a log file you have to find.</p>
+      <div class="note"><b>If a scheduled run fails</b>, you get told, once, with what stopped it and a
+        <span class="ui">Run now</span> to retry. Silent failure is the thing this replaces.</div>
+
+      <h3>The first time it touches a real system</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Magna stops and asks. The prompt appears inline in
+        the conversation, not as a modal you dismiss reflexively. It names the exact tool, says whether
+        it is read-only, and says where it runs.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Tool approval, in the thread</span></div>
+        <div class="mock-body">
+          <div class="approve">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6.2v5.4c0 4.4 3.1 8.3 7.5 9.4 4.4-1.1 7.5-5 7.5-9.4V6.2z"/></svg>
+              Magna wants to run <code style="white-space:nowrap">magna-mail.search</code></div>
+            <div class="summary">
+              <b>What it will do</b> — search your mailbox for messages mentioning "Package 4" in the last 30 days.<br>
+              <b>Access</b> — read-only. It cannot send, delete or move anything with this permission.<br>
+              <b>Data used</b> — subject lines and message bodies from your mailbox only.
+            </div>
+            <div class="res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+              Runs on-prem in Riyadh DC-1. Nothing leaves your network.</div>
+            <div class="btns">
+              <span class="fbtn pri">Allow once</span>
+              <span class="fbtn">Allow for this thread</span>
+              <span class="fbtn">Always allow</span>
+              <span class="fbtn">Don't allow</span>
+            </div>
+            <p class="why">Why is it asking? — one paragraph, on click.</p>
+          </div>
+        </div>
+        <figcaption>Four choices, and Magna remembers the one you pick. This prompt is the moment you
+          learn how permissions work, so it is designed to be read, not clicked past.</figcaption>
+      </figure>
+
+      <h4>What each button means</h4>
+      <ul style="margin-top:8px;padding-left:20px;color:var(--tx-2)">
+        <li style="margin-top:5px"><b style="color:var(--tx)">Allow once</b> — just this one call.
+          You will be asked again next time.</li>
+        <li style="margin-top:5px"><b style="color:var(--tx)">Allow for this thread</b> — for the rest
+          of this conversation. A new conversation asks again.</li>
+        <li style="margin-top:5px"><b style="color:var(--tx)">Always allow</b> — pins a rule. This tool
+          runs without asking from now on, and the rule appears in Settings → Permissions.</li>
+        <li style="margin-top:5px"><b style="color:var(--tx)">Don't allow</b> — it does not run, and
+          Magna answers with whatever it can do without that tool.</li>
+      </ul>
+
+      <h4>Granting and revoking later</h4>
+      <p style="margin-top:8px;color:var(--tx-2)">Settings → Permissions holds three tiers, and they
+        behave differently on purpose:</p>
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Settings → Permissions</span></div>
+        <div class="scrollx">
+          <table>
+            <thead><tr><th scope="col">Tier</th><th scope="col">What it covers</th><th scope="col">Default</th></tr></thead>
+            <tbody>
+              <tr><td class="rowh">Read</td><td>Search knowledge, read files, open a message, fetch a page.</td>
+                <td><span class="chip ok"><span class="dot"></span>Automatic</span></td></tr>
+              <tr><td class="rowh">Write &amp; create</td><td>Draft documents, create a ticket, save a file.</td>
+                <td><span class="chip"><span class="dot"></span>Automatic, and every action is logged</span></td></tr>
+              <tr><td class="rowh">Send, publish, delete, pay</td><td>Anything other people will see, or that cannot be undone.</td>
+                <td><span class="chip warn"><span class="dot"></span>Always asks — locked</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>Below the tiers is an Exceptions table: one row per rule you pinned, with a
+          per-row Automatic / Ask / Blocked dropdown and a Remove action.</figcaption>
+      </figure>
+      <div class="note"><b>To revoke:</b> find the rule in the Exceptions table and press
+        <span class="ui">Remove</span>. It reverts to the tier default, which means you will simply be
+        asked again the next time. To take a whole system away, use
+        <span class="ui">Disconnect</span> on its card in Tools &amp; MCP, or untick the scope in
+        <span class="ui">Permissions</span> — for example turning off
+        <span class="ui">Send mail as you</span> while keeping <span class="ui">Read mail</span>.</div>
+
+      <div class="changed"><span class="t">What this replaces today</span>
+        Today a single switch called <span class="ui">Trust built-in tools and skills</span> is on by
+        default, which means the approval prompt — the one component that teaches people how
+        permissions work — never appears at all. The three override lists underneath are permanently
+        empty, and the help text's illustrative example is <code>github/delete_repo.py</code>.
+        There is no risk tiering: "send an email" and "delete a repository" are treated identically.</div>
+
+      <div class="try"><span class="t">Walk this flow:</span>
+        <a href="apps/app-4-launchpad.html">Ready</a>
+        <a href="apps/app-1-chatgpt.html">Familiar</a>
+        <a href="apps/app-6-horizon.html">Horizon</a>
+        <span style="font-size:12.2px;color:var(--tx-3)">Press <kbd>/</kbd> in the composer, then ⌘K, then ask about your inbox.</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 5 · quick reference ═══════════════════ -->
+    <section id="quick">
+      <div class="sec-head"><span class="sec-num">05</span><h2 class="sec-title">Quick reference</h2></div>
+      <p class="sec-sub">Print this bit, or keep the tab open. It is the whole page in one card.</p>
+
+      <div class="qr">
+        <div class="qr-head">
+          <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:22px">
+            <defs>
+              <linearGradient id="mgGB-qr" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+              </linearGradient>
+              <linearGradient id="mgR-qr" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+              </linearGradient>
+            </defs>
+            <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-qr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-qr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="t">The four answers</span>
+        </div>
+        <div class="qr-body">
+          <div class="qrow"><div class="q">Add a skill</div>
+            <div class="a">Connections → Skills → toggle it <b>On</b>. Press <span class="ui">Try it</span> first
+              to see what it does. For a new one: <span class="ui">+ Add skill</span> →
+              <span class="ui">From a template</span> → name it, describe it, pick its connections and its trigger.</div></div>
+          <div class="qrow"><div class="q">Connect an MCP server</div>
+            <div class="a">Connections → Tools &amp; MCP → <span class="ui pri">Connect Magna Mail</span> →
+              <b>Choose</b> the provider, <b>Configure</b> the account in the provider's own window,
+              tick the <b>Permissions</b> you want, <b>Done</b>. Then <span class="ui">Test connection</span>.</div></div>
+          <div class="qrow"><div class="q">Add an agent</div>
+            <div class="a">Agents → <span class="ui pri">Create agent</span> → pick a template → name it,
+              choose an access preset, choose a trigger (on request / scheduled / called by another agent),
+              press <span class="ui">Run</span> in the test panel, save.</div></div>
+          <div class="qrow"><div class="q">Call any of them</div>
+            <div class="a">Type <kbd>/</kbd> in the message box and pick from the list, or just ask in plain
+              English. Agents also run from <span class="ui">Run</span> on their row, from
+              <span class="ui">@mention</span>, or on their schedule.</div></div>
+        </div>
+        <div class="qr-keys">
+          <div class="scrollx">
+            <table class="shortcuts">
+              <thead><tr><th scope="col">Key</th><th scope="col">What it does</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>/</kbd></td><td>Opens the list of every skill and every connected tool, in the message box.</td></tr>
+                <tr><td><kbd>⌘</kbd><kbd>K</kbd> <span style="color:var(--tx-3);font-size:12.4px">or</span> <kbd>Ctrl</kbd><kbd>K</kbd></td>
+                  <td>The command palette — every view, conversation, document, agent and action.</td></tr>
+                <tr><td><kbd>↵</kbd></td><td>Sends your message. In a menu, inserts the highlighted item.</td></tr>
+                <tr><td><kbd>⇧</kbd><kbd>↵</kbd></td><td>New line inside the message box, without sending.</td></tr>
+                <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>Move through the <kbd>/</kbd> menu or the palette.</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Closes any menu, sheet or stepper. Your cursor goes back to the message box.</td></tr>
+                <tr><td><kbd>@</kbd></td><td>Mentions an agent, to hand it a job mid-conversation.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="note ok" style="margin-top:24px"><b>If you are setting up from scratch, do it in this
+        order.</b> Connect your mail first — it unlocks the most. Then turn on one skill and press
+        <span class="ui">Try it</span>. Then add a knowledge source so answers cite your own documents.
+        Then create one agent on a schedule. That is exactly the order of the
+        <span class="ui">Finish setting up</span> checklist in the sidebar, and each row ticks itself
+        when you genuinely finish it.</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════ footer ═══════════════════ -->
+<footer>
+  <div class="foot-in">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="index.html" style="margin-bottom:11px">
+          <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+            <defs>
+              <linearGradient id="mgGB-ft" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+              </linearGradient>
+              <linearGradient id="mgR-ft" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+              </linearGradient>
+            </defs>
+            <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="wordmark">Magna<span>VERSE</span></span>
+        </a>
+        <p style="font-size:13.4px;color:var(--tx-2);max-width:42ch">Every flow described here is built
+          and clickable in the six prototypes. They are dummy data in your browser — nothing is sent
+          anywhere, and the demo credentials are pre-filled.</p>
+      </div>
+      <div>
+        <h3>Try the flows</h3>
+        <ul>
+          <li><a href="apps/app-1-chatgpt.html">Familiar <span class="k">— the ChatGPT idiom</span></a></li>
+          <li><a href="apps/app-2-claude.html">Considered <span class="k">— warm paper, artifact panel</span></a></li>
+          <li><a href="apps/app-3-sovereign.html">Provable <span class="k">— residency receipts</span></a></li>
+          <li><a href="apps/app-4-launchpad.html">Ready <span class="k">— / and ⌘K front and centre</span></a></li>
+          <li><a href="apps/app-5-twin.html">Grounded <span class="k">— provenance rail</span></a></li>
+          <li><a href="apps/app-6-horizon.html">Horizon <span class="k">— spatial canvas</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Go deeper</h3>
+        <ul>
+          <li><a href="functionality-map.html">Functionality map <span class="k">— all 23 capabilities</span></a></li>
+          <li><a href="index.html">All deliverables <span class="k">— the entry point</span></a></li>
+          <li><a href="#three">Back to the definitions</a></li>
+          <li><a href="#quick">Back to the quick reference</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot-note">MagnaVERSE UX redesign · prepared for Magna, Riyadh. Button names on this page
+      match the prototypes exactly. Where this page describes the live app as it is today, it is quoting
+      the functional audit of build 1.0.491.</p>
+  </div>
+</footer>
+
+<!-- ═══════════════════ mobile contents drawer ═══════════════════ -->
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="Contents" aria-hidden="true">
+  <div class="drawer-head">
+    <span class="t">On this page</span>
+    <button class="btn icon-only" id="drawerClose" aria-label="Close contents">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <a href="#three"><span class="n">00</span>The three things</a>
+    <a href="#skill"><span class="n">01</span>Add a skill</a>
+    <a href="#mcp"><span class="n">02</span>Connect an MCP server</a>
+    <a href="#agent"><span class="n">03</span>Add an agent</a>
+    <a href="#call"><span class="n">04</span>Call them</a>
+    <a href="#quick"><span class="n">05</span>Quick reference</a>
+    <hr style="border:0;border-top:1px solid var(--line);margin:10px 12px">
+    <a href="apps/app-1-chatgpt.html">Prototype — Familiar</a>
+    <a href="apps/app-4-launchpad.html">Prototype — Ready</a>
+    <a href="functionality-map.html">Functionality map</a>
+  </div>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "magnaverse.howto.theme";
+
+  /* ---------- theme ---------- */
+  var SUN = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/>';
+  var MOON = '<path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.6 8.6 0 1 0 10.8 10.8z"/>';
+  function effective(){
+    var t = root.getAttribute("data-theme");
+    if(t) return t;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function paint(){
+    var e = effective();
+    var icon = document.getElementById("themeIcon");
+    var lbl  = document.getElementById("themeLbl");
+    if(icon) icon.innerHTML = (e === "dark" ? SUN : MOON);
+    if(lbl)  lbl.textContent = (e === "dark" ? "Light" : "Dark");
+    var b = document.getElementById("themeBtn");
+    if(b) b.setAttribute("aria-label", e === "dark" ? "Switch to the light theme" : "Switch to the dark theme");
+  }
+  try{
+    var saved = localStorage.getItem(KEY);
+    if(saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+  }catch(e){}
+  paint();
+  var tb = document.getElementById("themeBtn");
+  if(tb) tb.addEventListener("click", function(){
+    var next = effective() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try{ localStorage.setItem(KEY, next); }catch(e){}
+    paint();
+  });
+  if(window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var onmq = function(){ if(!root.getAttribute("data-theme")) paint(); };
+    if(mq.addEventListener) mq.addEventListener("change", onmq);
+    else if(mq.addListener) mq.addListener(onmq);
+  }
+
+  /* ---------- contents drawer ---------- */
+  var drawer = document.getElementById("drawer");
+  var scrim  = document.getElementById("scrim");
+  var tocBtn = document.getElementById("tocBtn");
+  var closeBtn = document.getElementById("drawerClose");
+  var lastFocus = null;
+
+  function drawerOpen(){ return drawer.classList.contains("open"); }
+  function openDrawer(){
+    lastFocus = document.activeElement;
+    scrim.hidden = false;
+    scrim.classList.add("open");
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
+    tocBtn.setAttribute("aria-expanded","true");
+    var first = drawer.querySelector("a, button");
+    if(first) first.focus();
+  }
+  function closeDrawer(){
+    scrim.classList.remove("open");
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
+    tocBtn.setAttribute("aria-expanded","false");
+    window.setTimeout(function(){ if(!drawerOpen()) scrim.hidden = true; }, 260);
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  if(tocBtn)   tocBtn.addEventListener("click", function(){ drawerOpen() ? closeDrawer() : openDrawer(); });
+  if(closeBtn) closeBtn.addEventListener("click", closeDrawer);
+  if(scrim)    scrim.addEventListener("click", closeDrawer);
+  drawer.addEventListener("click", function(e){
+    if(e.target.closest("a")) closeDrawer();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && drawerOpen()){ e.preventDefault(); closeDrawer(); return; }
+    /* focus trap while the drawer is open */
+    if(e.key === "Tab" && drawerOpen()){
+      var f = drawer.querySelectorAll("a[href], button:not([disabled])");
+      if(!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* close the drawer if the viewport grows past the desktop breakpoint */
+  if(window.matchMedia){
+    var wide = window.matchMedia("(min-width: 1100px)");
+    var onwide = function(ev){ if(ev.matches && drawerOpen()) closeDrawer(); };
+    if(wide.addEventListener) wide.addEventListener("change", onwide);
+    else if(wide.addListener) wide.addListener(onwide);
+  }
+
+  /* ---------- highlight the current section in the side contents ---------- */
+  var links = [].slice.call(document.querySelectorAll(".toc a[href^='#']"));
+  if(links.length && "IntersectionObserver" in window){
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute("href").slice(1)] = a; });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        var a = map[en.target.id];
+        if(!a) return;
+        if(en.isIntersecting){
+          links.forEach(function(l){ l.style.background = ""; l.style.color = ""; l.removeAttribute("aria-current"); });
+          a.style.background = "var(--accent-dim)";
+          a.style.color = "var(--accent)";
+          a.setAttribute("aria-current","true");
+        }
+      });
+    }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+    ["three","skill","mcp","agent","call","quick"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) io.observe(el);
+    });
+  }
+})();
+</script>
+</body></html>
