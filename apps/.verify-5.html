@@ -1,0 +1,25 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>verify-5</title>
+<style>body{margin:0;font:12px monospace;background:#222;color:#eee}
+#f{border:0;display:block}</style></head><body>
+<iframe id="f" src="app-5-twin.html" width="320" height="568"></iframe>
+<script>
+window.setSize=function(w,h){var f=document.getElementById('f');f.width=w;f.height=h;
+  return new Promise(function(r){setTimeout(r,450);});};
+window.probe=function(){
+  var d=document.getElementById('f').contentDocument, w=document.getElementById('f').contentWindow;
+  var out={w:w.innerWidth,h:w.innerHeight,
+    docOverflow:d.documentElement.scrollWidth-d.documentElement.clientWidth,
+    bodyOverflow:d.body.scrollWidth-d.body.clientWidth};
+  var small=[];
+  Array.prototype.forEach.call(d.querySelectorAll('button,a,input,select,textarea,[role=button],[role=tab],summary'),function(el){
+    if(el.offsetParent===null && el.tagName!=='BODY') return;
+    var r=el.getBoundingClientRect();
+    if(r.width===0||r.height===0) return;
+    if(r.width<44||r.height<44) small.push((el.id||el.className||el.tagName).toString().slice(0,44)+' '+Math.round(r.width)+'x'+Math.round(r.height));
+  });
+  out.small=small;
+  return out;
+};
+window.frameDoc=function(){return document.getElementById('f').contentDocument;};
+window.frameWin=function(){return document.getElementById('f').contentWindow;};
+</script></body></html>

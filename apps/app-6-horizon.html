@@ -46,6 +46,10 @@
   --dot:rgba(14,22,35,.11);
   --edge:rgba(14,22,35,.22);
 
+  /* vendor sign-in buttons — Google and Apple brand conventions */
+  --g-bg:#FFFFFF; --g-bd:#747775; --g-tx:#1F1F1F;
+  --ap-bg:#000000; --ap-tx:#FFFFFF; --ap-mark:#FFFFFF;
+
   --e1:0 1px 2px rgba(11,20,35,.06);
   --e2:0 2px 5px rgba(11,20,35,.06), 0 10px 26px -16px rgba(11,20,35,.30);
   --e3:0 4px 10px rgba(11,20,35,.07), 0 26px 60px -26px rgba(11,20,35,.42);
@@ -89,6 +93,9 @@
     --dot:rgba(126,168,214,.14);
     --edge:rgba(150,186,224,.30);
 
+    --g-bg:#131314; --g-bd:#8E918F; --g-tx:#E3E3E3;
+    --ap-bg:#FFFFFF; --ap-tx:#000000; --ap-mark:#000000;
+
     --e1:0 1px 2px rgba(0,0,0,.5);
     --e2:0 2px 6px rgba(0,0,0,.45), 0 12px 30px -18px rgba(0,0,0,.9);
     --e3:0 4px 12px rgba(0,0,0,.5), 0 30px 64px -28px rgba(0,0,0,.95);
@@ -124,6 +131,9 @@
   --dot:rgba(126,168,214,.14);
   --edge:rgba(150,186,224,.30);
 
+  --g-bg:#131314; --g-bd:#8E918F; --g-tx:#E3E3E3;
+  --ap-bg:#FFFFFF; --ap-tx:#000000; --ap-mark:#000000;
+
   --e1:0 1px 2px rgba(0,0,0,.5);
   --e2:0 2px 6px rgba(0,0,0,.45), 0 12px 30px -18px rgba(0,0,0,.9);
   --e3:0 4px 12px rgba(0,0,0,.5), 0 30px 64px -28px rgba(0,0,0,.95);
@@ -145,6 +155,8 @@
   --public:#B45309;  --public-dim:rgba(180,83,9,.11);
   --rose:#BE123C;    --rose-dim:rgba(190,18,60,.10);
   --dot:rgba(14,22,35,.11); --edge:rgba(14,22,35,.22);
+  --g-bg:#FFFFFF; --g-bd:#747775; --g-tx:#1F1F1F;
+  --ap-bg:#000000; --ap-tx:#FFFFFF; --ap-mark:#FFFFFF;
   --e1:0 1px 2px rgba(11,20,35,.06);
   --e2:0 2px 5px rgba(11,20,35,.06), 0 10px 26px -16px rgba(11,20,35,.30);
   --e3:0 4px 10px rgba(11,20,35,.07), 0 26px 60px -26px rgba(11,20,35,.42);
@@ -289,38 +301,117 @@ img,svg{max-width:100%}
 .screen{display:none;min-height:100vh;min-height:100dvh}
 .screen.is-on{display:block}
 
-.auth{display:grid;grid-template-columns:1.05fr .95fr;min-height:100vh;min-height:100dvh;background:var(--bg)}
-.auth__brand{
-  position:relative;overflow:hidden;
-  background:var(--bg-2);
-  padding:48px 52px;display:flex;flex-direction:column;justify-content:space-between;
-}
-.auth__brand::before{
-  content:"";position:absolute;inset:0;
+/* --- spatial login: the omni-input IS the sign-in --- */
+.spatial{
+  position:relative;min-height:100vh;min-height:100dvh;overflow:hidden;
+  background-color:var(--field);
   background-image:radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 0);
-  background-size:26px 26px;opacity:.85;
+  background-size:28px 28px;
+  display:flex;flex-direction:column;align-items:center;
+  padding:26px 16px 60px;
 }
-/* the horizon: a low brand-gradient band. CSS only, no raster, never behind body copy */
-.auth__brand::after{
-  content:"";position:absolute;left:-10%;right:-10%;bottom:-30%;height:70%;
-  background:radial-gradient(60% 100% at 50% 100%, color-mix(in srgb,var(--mg-t) 26%, transparent), transparent 70%),
-             linear-gradient(90deg, color-mix(in srgb,var(--mg-g) 18%, transparent), color-mix(in srgb,var(--mg-t) 14%, transparent) 52%, color-mix(in srgb,var(--mg-b) 20%, transparent));
-  filter:blur(28px);opacity:.5;pointer-events:none;
+.spatial::after{
+  content:"";position:absolute;left:-15%;right:-15%;bottom:-34%;height:66%;z-index:0;pointer-events:none;
+  background:radial-gradient(58% 100% at 50% 100%, color-mix(in srgb,var(--mg-t) 24%, transparent), transparent 70%),
+             linear-gradient(90deg, color-mix(in srgb,var(--mg-g) 16%, transparent), color-mix(in srgb,var(--mg-t) 12%, transparent) 52%, color-mix(in srgb,var(--mg-b) 18%, transparent));
+  filter:blur(34px);opacity:.45;
 }
-.auth__brand > *{position:relative;z-index:1}
-.auth__promise{max-width:26rem}
-.auth__promise h1{font-size:clamp(28px,3.2vw,42px);letter-spacing:-.028em;margin-bottom:14px}
-.auth__promise p{color:var(--tx-2);font-size:16px;line-height:1.6}
-.auth__bigmark{width:104px;margin-bottom:26px}
-.auth__stats{display:flex;flex-wrap:wrap;gap:10px}
-.auth__stat{
-  background:var(--surface);box-shadow:var(--e1), inset 0 0 0 1px var(--line);
-  border-radius:var(--r);padding:10px 13px;min-width:118px;
+.drift{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.drift b{
+  position:absolute;display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--tx-3);
+  background:var(--surface);padding:5px 10px;border-radius:var(--r-pill);
+  box-shadow:var(--e1), inset 0 0 0 1px var(--line);white-space:nowrap;opacity:.72;
 }
-.auth__stat b{display:block;font-family:var(--mono);font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.auth__stat span{font-size:11px;color:var(--tx-3);text-transform:uppercase;letter-spacing:.07em;font-weight:650}
+.drift b i{width:6px;height:6px;border-radius:50%;background:var(--private);font-style:normal;flex:none}
+@media (prefers-reduced-motion: no-preference){
+  .drift b{animation:driftY 17s ease-in-out infinite alternate}
+  .drift b:nth-child(2n){animation-duration:23s;animation-delay:-4s}
+  .drift b:nth-child(3n){animation-duration:29s;animation-delay:-9s}
+}
+@keyframes driftY{from{transform:translate3d(0,0,0)}to{transform:translate3d(6px,-22px,0)}}
+.sp-in{position:relative;z-index:2;width:100%;max-width:660px;display:flex;flex-direction:column;align-items:center}
+.sp-bar{position:relative;z-index:3;width:100%;max-width:1180px;display:flex;align-items:center;gap:10px;margin-bottom:clamp(20px,5vh,54px)}
+.sp-bar .spacer{flex:1}
+.sp-hero{text-align:center;margin-bottom:22px}
+.sp-hero .magna-mark{width:58px;margin:0 auto 16px}
+.sp-hero h1{font-size:clamp(23px,4vw,34px);letter-spacing:-.028em;margin-bottom:9px}
+.sp-hero p{color:var(--tx-2);font-size:14.5px;max-width:40ch;margin:0 auto;line-height:1.6}
 
-.auth__form{display:flex;align-items:center;justify-content:center;padding:40px 32px;background:var(--bg)}
+.omnilogin{
+  width:100%;background:var(--surface);background-image:var(--lift);
+  border-radius:var(--r-lg);box-shadow:var(--e3), inset 0 0 0 1px var(--line-2);
+  overflow:hidden;transition:box-shadow .16s ease;
+}
+.omnilogin:focus-within{box-shadow:var(--e4), inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%, transparent), 0 0 0 4px var(--accent-dim)}
+.ol-row{display:flex;flex-direction:column;gap:1px;padding:11px 16px 9px}
+.ol-row + .ol-row{box-shadow:inset 0 1px 0 var(--line)}
+.ol-row label{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3)}
+.ol-row input{border:0;background:transparent;font-size:16px;padding:4px 0;width:100%;min-height:30px}
+.ol-row input::placeholder{color:var(--tx-3)}
+.ol-err{padding:0 16px 10px}
+.ol-foot{display:flex;align-items:center;gap:10px;padding:9px 10px 10px 14px;box-shadow:inset 0 1px 0 var(--line);flex-wrap:wrap}
+.ol-foot .spacer{flex:1;min-width:0}
+.ol-hint{font-size:11.5px;color:var(--tx-3);display:inline-flex;align-items:center;gap:5px}
+.ol-send{
+  display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 8px 0 18px;
+  border-radius:var(--r-pill);background:var(--accent);color:var(--accent-tx);
+  font-size:14.5px;font-weight:640;box-shadow:0 2px 10px -3px var(--accent);
+  transition:filter .12s, transform .08s;
+}
+.ol-send:hover{filter:brightness(1.08)} .ol-send:active{transform:translateY(1px)}
+.ol-send[disabled]{opacity:.55;cursor:not-allowed}
+.ol-send span.d{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2)}
+.ol-send svg{width:16px;height:16px}
+.ol-send .magna-mark{width:20px}
+
+.provrow{display:grid;grid-template-columns:1fr;gap:8px;width:100%;margin-top:14px}
+@media (min-width:560px){ .provrow{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.provbtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:44px;padding:0 14px;border-radius:var(--r-sm);
+  font-size:13.5px;font-weight:600;white-space:nowrap;transition:filter .12s, background .12s;
+}
+.provbtn:hover{filter:brightness(.97)}
+.provbtn svg{flex:none}
+.provbtn--magna{background:var(--surface);color:var(--tx);box-shadow:inset 0 0 0 1px var(--line-2), var(--e1)}
+.provbtn--magna:hover{background:var(--surface-2);filter:none}
+.provbtn--google{background:var(--g-bg);color:var(--g-tx);box-shadow:inset 0 0 0 1px var(--g-bd);font-family:Roboto,var(--sans)}
+.provbtn--apple{background:var(--ap-bg);color:var(--ap-tx)}
+.provbtn--apple svg{fill:var(--ap-mark)}
+
+/* --- streamed demo preview --- */
+.demo{position:relative;z-index:1;width:100%;max-width:1060px;margin:clamp(28px,6vh,58px) auto 0}
+.demo__link{display:block;margin:0 auto;width:2px;height:46px;overflow:visible}
+.demo__hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.demo__dots{display:flex;gap:6px;margin-left:auto}
+.demo__dots button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.demo__dots button i{display:block;width:8px;height:8px;border-radius:50%;background:var(--line-2);transition:background .2s,transform .2s}
+.demo__dots button[aria-current="true"] i{background:var(--accent);transform:scale(1.35)}
+.demo__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+@media (min-width:900px){ .demo__grid{grid-template-columns:minmax(0,290px) minmax(0,1fr)} }
+.demo .node{position:static;width:auto;animation:none}
+.demo .cite{cursor:default}
+.demo .prose{font-size:14px}
+.demo__cap{
+  display:flex;align-items:center;gap:9px;margin:14px 0 0;font-size:12.8px;color:var(--tx-2);
+  padding:10px 13px;border-radius:var(--r-sm);background:var(--private-dim);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--private) 24%, transparent);
+}
+.demo__cap svg{width:15px;height:15px;color:var(--private);flex:none}
+.w{opacity:0;transition:opacity .22s ease}
+.w.on{opacity:1}
+.blk{opacity:0;transform:translateY(6px);transition:opacity .3s ease, transform .3s ease}
+.blk.on{opacity:1;transform:none}
+.demo-res{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.demo-mail{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.demo-mail:last-child{border-bottom:0}
+.demo-mail b{font-weight:620;flex:none}
+.demo-mail span{color:var(--tx-2);min-width:0;overflow-wrap:anywhere}
+.demo-cursor{display:inline-block;width:2px;height:1.05em;background:var(--accent);vertical-align:-.14em;margin-left:1px}
+@media (prefers-reduced-motion: no-preference){ .demo-cursor{animation:blink 1.05s steps(2) infinite} }
+@keyframes blink{50%{opacity:0}}
+
 .authcard{width:100%;max-width:400px}
 .authcard h2{font-size:24px;margin-bottom:6px}
 .authcard > p.lede{color:var(--tx-2);font-size:14px;margin-bottom:22px}
@@ -346,7 +437,6 @@ img,svg{max-width:100%}
 .auth__or::before,.auth__or::after{content:"";flex:1;height:1px;background:var(--line)}
 .auth__foot{margin-top:20px;font-size:13px;color:var(--tx-2);text-align:center}
 .auth__foot button{color:var(--accent);font-weight:640}
-.auth__resi{display:inline-flex;margin-bottom:18px}
 
 /* workspace picker */
 .wspick{max-width:840px;margin:0 auto;padding:56px 24px 80px}
@@ -448,8 +538,8 @@ img,svg{max-width:100%}
 .threadrow:hover{background:var(--surface-2);color:var(--tx)}
 .threadrow.is-on{background:var(--surface);color:var(--tx);box-shadow:var(--e1), inset 0 0 0 1px var(--line)}
 .threadrow .dot{margin-top:7px}
-.threadrow span{flex:1;min-width:0;font-size:13.2px;line-height:1.4;font-weight:520;overflow-wrap:anywhere}
-.threadrow em{display:block;font-style:normal;font-size:11px;color:var(--tx-3);margin-top:2px}
+.threadrow > span:not(.dot){flex:1;min-width:0;font-size:13.2px;line-height:1.4;font-weight:520;overflow-wrap:anywhere}
+.threadrow em{display:block;font-style:normal;font-size:11px;color:var(--tx-3);margin-top:2px;line-height:1.45}
 .projrow{
   width:100%;text-align:left;display:flex;gap:9px;align-items:center;
   padding:7px 9px;border-radius:var(--r-sm);min-height:40px;color:var(--tx-2);font-size:13.2px;font-weight:540;
@@ -588,9 +678,10 @@ img,svg{max-width:100%}
   overflow-x:auto;
 }
 .kxbox figcaption{
-  display:flex;align-items:center;gap:8px;margin-top:10px;
+  display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;
   font-size:11px;color:var(--tx-3);font-weight:600;letter-spacing:.03em;
 }
+.kxbox figcaption > svg{width:14px;height:14px;flex:none;color:var(--private)}
 .kxd{
   display:flex;align-items:center;justify-content:center;gap:.45em;
   font-family:var(--serif);font-size:20px;line-height:1.1;min-width:max-content;padding:6px 2px;
@@ -684,6 +775,7 @@ table.tbl tr.is-warn td{background:var(--public-dim)}
   flex:none;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;
   background:var(--accent-dim);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;margin-top:1px;
 }
+.srcrow__i svg{width:12px;height:12px}
 .srcrow__b{flex:1;min-width:0}
 .srcrow__b b{display:block;font-size:13px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
 .srcrow__b span{display:block;font-size:11.5px;color:var(--tx-3);margin-top:1px;overflow-wrap:anywhere}
@@ -742,7 +834,11 @@ table.tbl tr.is-warn td{background:var(--public-dim)}
 
 /* ---- 14. OMNI INPUT --------------------------------------------------- */
 .omniwrap{position:absolute;left:0;right:0;bottom:0;z-index:16;padding:0 14px 14px;pointer-events:none;display:flex;justify-content:center}
-.omniwrap.is-rest{top:0;align-items:center;padding:20px}
+.omniwrap.is-rest{
+  top:0;padding:20px;overflow-y:auto;overflow-x:hidden;pointer-events:auto;
+  align-items:center;            /* fallback */
+  align-items:safe center;       /* never clip the top when the block is taller than the stage */
+}
 .omni{pointer-events:auto;width:100%;max-width:780px}
 .omniwrap.is-rest .omni{max-width:720px}
 .rest{text-align:center;margin-bottom:22px;position:relative}
@@ -865,6 +961,8 @@ table.tbl tr.is-warn td{background:var(--public-dim)}
 .popitem__b span{display:block;font-size:11.5px;color:var(--tx-3);line-height:1.45;margin-top:2px;overflow-wrap:anywhere}
 .popitem__t{margin-left:auto;flex:none;display:flex;align-items:center;gap:6px}
 .popitem .tick{width:15px;height:15px;color:var(--accent);flex:none;margin-top:3px}
+.popitem[disabled]{opacity:.78;cursor:default;background:var(--surface-2)}
+.popitem[disabled]:hover{background:var(--surface-2)}
 .popsep{height:1px;background:var(--line);margin:5px 4px}
 
 /* slash menu */
@@ -954,6 +1052,7 @@ mark{background:var(--accent-dim);color:var(--accent);border-radius:3px;padding:
 .tabs button .cnt{font-family:var(--mono);font-size:10.5px;color:var(--tx-3)}
 
 .card{background:var(--surface);background-image:var(--lift);border-radius:var(--r);box-shadow:var(--e1), inset 0 0 0 1px var(--line);padding:16px}
+.card > svg{width:18px;height:18px;flex:none;color:var(--tx-3)}
 .cards{display:grid;gap:12px}
 .cards--2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
 .cards--3{grid-template-columns:repeat(auto-fit,minmax(238px,1fr))}
@@ -1062,7 +1161,7 @@ body.bd-mark .bdmark{opacity:.085}
 }
 @keyframes bdDrift{from{transform:translate3d(0,0,0) rotate(-2deg) scale(1)}to{transform:translate3d(10px,-14px,0) rotate(2deg) scale(1.06)}}
 .rail .bdmark{left:-30%;bottom:6%;width:160%}
-.rest .bdmark{left:50%;top:50%;width:520px;transform:translate(-50%,-50%);opacity:0}
+.rest .bdmark{left:50%;top:50%;width:min(520px,92%);transform:translate(-50%,-50%);opacity:0}
 body.bd-mark .rest .bdmark{opacity:.06}
 
 /* ---- 20. RESPONSIVE --------------------------------------------------- */
@@ -1081,8 +1180,41 @@ body.bd-mark .rest .bdmark{opacity:.06}
   .app.is-panel-off .panel{opacity:1}
   .tbar__title{max-width:22ch}
 }
+
+/* Touch widths — every interactive target ≥ 44×44 CSS px.
+   Inline citation chips are exempt: WCAG 2.5.8 excludes targets inside a
+   sentence of text, and inflating them would break the line box. */
+@media (max-width:1023px){
+  :root{--strip:44px}
+  .ibtn{width:44px;height:44px;flex:none}
+  .btn{min-height:44px}
+  .minibtn{min-height:44px}
+  .seg button{min-height:44px;min-width:44px;justify-content:center}
+  .tabs button{min-height:44px}
+  .zoomer button{width:44px;height:44px}
+  .search input{height:44px}
+  .projrow{min-height:44px}
+  .reason{min-height:44px}
+  .nextchip{min-height:48px}
+  .sendbtn{width:44px;height:44px}
+  .composer textarea{min-height:46px}
+  .ol-row input{min-height:44px}
+  .auth__foot button{min-height:44px;padding:0 6px}
+  .rail__foot .avatar{width:44px;height:44px;border-radius:12px}
+  .strip__item{min-height:44px}
+  .strip__btn{min-width:48px;justify-content:center}
+  .pill--btn{min-height:44px;min-width:44px;justify-content:center}
+  .demo__dots button{width:44px;height:44px}
+  .tbar{min-height:52px}
+  /* switches keep their look but gain a 52×44 touch target */
+  .sw{width:52px;height:44px;background:transparent;box-shadow:none;border-radius:0}
+  .sw::before{content:"";position:absolute;left:5px;top:50%;transform:translateY(-50%);width:42px;height:25px;border-radius:99px;background:var(--surface-3);box-shadow:inset 0 0 0 1px var(--line-2);transition:background .16s}
+  .sw::after{top:50%;left:8px;transform:translateY(-50%)}
+  .sw[aria-checked="true"]::before{background:var(--accent);box-shadow:none}
+  .sw[aria-checked="true"]::after{transform:translateY(-50%) translateX(17px)}
+}
 @media (max-width:767px){
-  :root{--rail:0px;--strip:30px}
+  :root{--rail:0px}
   body{font-size:15px}
   .app{grid-template-columns:0 0 minmax(0,1fr);grid-template-areas:"rail panel main" "strip strip strip"}
   .rail{
@@ -1107,10 +1239,9 @@ body.bd-mark .rest .bdmark{opacity:.06}
   }
   .mobbar .brandline{flex:1;min-width:0}
   .mobbar .wordmark{font-size:14px}
-  .tbar{min-height:44px;padding:6px 10px;gap:6px}
+  .tbar{min-height:52px;padding:6px 10px;gap:6px}
   .tbar__title{display:none}
-  .ibtn{width:44px;height:44px}
-  .seg button{min-height:38px;padding:0 12px}
+  .seg button{padding:0 12px}
   .page__in{padding:16px 14px 90px}
   .page__hd h1{font-size:19px}
   .mail{grid-template-columns:minmax(0,1fr)}
@@ -1130,21 +1261,22 @@ body.bd-mark .rest .bdmark{opacity:.06}
   .palette{max-width:none;margin:0;border-radius:0;max-height:100%;height:100%}
   .hint{display:none}
   .omniwrap{padding:0 10px 10px}
-  .omniwrap.is-rest{padding:14px 12px}
-  .minibtn{min-height:40px;padding:0 10px}
-  .actions .minibtn{min-height:44px}
+  .minibtn{padding:0 10px}
   .actions .minibtn--hide{display:none}
   .actions .minibtn--more{display:inline-flex}
-  .pill--btn{min-height:40px;padding:0 12px}
-  .omniwrap.is-rest{align-items:flex-end;padding-bottom:16px}
+  .pill--btn{padding:0 12px}
+  .omniwrap.is-rest{padding:14px 12px 20px}
   .rest{margin-bottom:16px}
   .rest .magna-mark{width:44px;margin-bottom:12px}
-  .auth{grid-template-columns:minmax(0,1fr)}
-  .auth__brand{padding:28px 20px;min-height:auto}
-  .auth__promise h1{font-size:24px}
-  .auth__bigmark{width:64px;margin-bottom:16px}
-  .auth__stats{display:none}
-  .auth__form{padding:26px 18px 50px}
+  .spatial{padding:16px 12px 44px}
+  .sp-bar{margin-bottom:16px}
+  .sp-hero{margin-bottom:16px}
+  .sp-hero .magna-mark{width:42px;margin-bottom:11px}
+  .sp-hero p{font-size:13.5px}
+  .drift{display:none}
+  .demo{margin-top:30px}
+  .demo__link{height:30px}
+  .ol-hint{display:none}
   .wspick{padding:26px 16px 60px}
   .strip__item{padding:0 9px;font-size:11px}
   .strip__item .lb{display:none}
@@ -1155,6 +1287,9 @@ body.bd-mark .rest .bdmark{opacity:.06}
   .code pre{font-size:11.8px}
 }
 @media (max-width:400px){
+  .sp-hero h1{font-size:20px}
+  .sp-hero p{font-size:12.5px;line-height:1.5}
+  .provbtn{font-size:13px;padding:0 10px}
   .intents{grid-template-columns:minmax(0,1fr)}
   .modal__ft{gap:6px}
   .modal__ft .btn{flex:1;min-width:44%}
@@ -1179,84 +1314,144 @@ body.bd-mark .rest .bdmark{opacity:.06}
 
 <!-- ===================== AUTH (login + register) ===================== -->
 <div class="screen is-on" id="scr-auth">
-  <div class="auth">
-    <div class="auth__brand">
-      <div>
-        <svg class="magna-mark auth__bigmark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+  <div class="spatial">
+    <div class="drift" aria-hidden="true">
+      <b style="left:4%;top:16%"><i></i>mgn-h200-04 · <span id="au-gpu">61%</span></b>
+      <b style="right:5%;top:11%"><i></i>egress today 0 B</b>
+      <b style="left:9%;top:64%"><i></i>8,400 docs indexed</b>
+      <b style="right:8%;top:57%"><i></i>p6-schedule · ok 11 ms</b>
+      <b style="left:2%;top:38%"><i></i>TLS 1.3 · pinned</b>
+      <b style="right:3%;top:78%"><i></i>sap-po-lookup · ok 9 ms</b>
+      <b style="left:12%;top:87%"><i></i>queue depth 0</b>
+      <b style="right:12%;top:32%"><i></i>Riyadh DC-1 · 148 d uptime</b>
+    </div>
+
+    <div class="sp-bar">
+      <span class="brandline">
+        <svg class="magna-mark" style="width:22px" viewBox="0 0 640 440" role="img" aria-label="Magna">
           <defs>
-            <linearGradient id="mgGB-login" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mgGB-bar" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
               <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
             </linearGradient>
-            <linearGradient id="mgR-login" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mgR-bar" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
               <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
             </linearGradient>
           </defs>
-          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-bar)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-bar)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <div class="auth__promise">
-          <h1>Runs on Magna GPUs<br>in Riyadh.</h1>
-          <p>MagnaVERSE Horizon is an enterprise AI workspace whose inference never leaves your network. Eight H200s in DC-1, your documents, your audit trail.</p>
-        </div>
-      </div>
-      <div class="auth__stats" aria-label="Cluster status">
-        <div class="auth__stat"><b id="au-gpu">61%</b><span>Cluster load</span></div>
-        <div class="auth__stat"><b>8×H200</b><span>Riyadh DC-1</span></div>
-        <div class="auth__stat"><b>0 B</b><span>Egress today</span></div>
-        <div class="auth__stat"><b>8,400</b><span>Indexed docs</span></div>
-      </div>
+        <span class="wordmark" style="font-size:15px">Magna<span class="v">VERSE</span></span>
+      </span>
+      <span class="pill pill--private"><span class="dot dot--private"></span>Private · Riyadh DC-1</span>
+      <span class="spacer"></span>
+      <button class="ibtn" id="btn-theme-login" aria-label="Change theme"></button>
     </div>
 
-    <div class="auth__form">
-      <!-- sign in -->
-      <div class="authcard" id="card-login">
-        <span class="pill pill--private auth__resi"><span class="dot dot--private"></span> Private · Riyadh DC-1</span>
-        <h2>Sign in to MagnaVERSE</h2>
-        <p class="lede">Use your Magna directory account.</p>
-        <div class="demo-note">
-          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
-          <span><b>Demo credentials filled</b> — press <b>Sign in</b>. This prototype stores nothing and sends nothing.</span>
+    <div class="sp-in">
+      <div id="card-login" style="width:100%">
+        <div class="sp-hero">
+          <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+            <defs>
+              <linearGradient id="mgGB-login" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+              </linearGradient>
+              <linearGradient id="mgR-login" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+              </linearGradient>
+            </defs>
+            <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h1>Sign in and the canvas assembles.</h1>
+          <p>Inference runs on Magna's own eight H200s in Riyadh DC-1. Your prompt, your documents and your audit trail never leave the building.</p>
         </div>
-        <form id="form-login" novalidate>
-          <div class="field">
+
+        <form class="omnilogin" id="form-login" novalidate>
+          <div class="ol-row">
             <label for="li-email">Work email</label>
-            <input class="input" id="li-email" type="email" autocomplete="username" value="ahmad.farahat@magna.ai" spellcheck="false">
-            <div class="err" id="err-email" hidden></div>
+            <input id="li-email" type="email" autocomplete="username" value="ahmad.farahat@magna.ai" spellcheck="false" placeholder="you@magna.ai">
           </div>
-          <div class="field">
+          <div class="ol-err"><div class="err" id="err-email" hidden></div></div>
+          <div class="ol-row">
             <label for="li-pass">Password</label>
-            <input class="input" id="li-pass" type="password" autocomplete="current-password" value="magnademo">
-            <div class="err" id="err-pass" hidden></div>
+            <input id="li-pass" type="password" autocomplete="current-password" value="magnademo" placeholder="Your Magna directory password">
           </div>
-          <button class="btn btn--pri btn--lg btn--block" type="submit" id="btn-signin">Sign in</button>
+          <div class="ol-err"><div class="err" id="err-pass" hidden></div></div>
+          <div class="ol-foot">
+            <span class="pill pill--private"><span class="dot dot--private"></span>Private · Riyadh DC-1</span>
+            <span class="spacer"></span>
+            <span class="ol-hint"><span class="kbd">↵</span> to sign in</span>
+            <button class="ol-send" id="btn-signin" type="submit"><span>Sign in</span><span class="d" aria-hidden="true"></span></button>
+          </div>
         </form>
-        <div class="auth__or">or</div>
-        <button class="btn btn--lg btn--block" id="btn-sso">
-          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Continue with Magna SSO
-        </button>
+
+        <div class="demo-note" style="margin-top:12px">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span><b>Demo credentials filled — press Sign in.</b> This prototype stores nothing, sends nothing, and has no backend.</span>
+        </div>
+
+        <div class="auth__or">or continue with</div>
+        <div class="provrow">
+          <button type="button" class="provbtn provbtn--magna" id="btn-sso">
+            <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Magna SSO
+          </button>
+          <button type="button" class="provbtn provbtn--google" id="btn-google">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.8591-3.0477.8591-2.344 0-4.3282-1.5831-5.036-3.7104H.9574v2.3318C2.4382 15.9832 5.4818 18 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V4.9582H.9573A8.9965 8.9965 0 0 0 0 9c0 1.4523.3477 2.8268.9573 4.0418L3.964 10.71z"/>
+              <path fill="#EA4335" d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.426 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.656 3.5795 9 3.5795z"/>
+            </svg>
+            Sign in with Google
+          </button>
+          <button type="button" class="provbtn provbtn--apple" id="btn-apple">
+            <svg width="15" height="18" viewBox="0 0 14 17" aria-hidden="true"><path d="M11.6 9.03c-.02-1.9 1.55-2.81 1.62-2.86-.88-1.29-2.26-1.47-2.75-1.49-1.17-.12-2.28.69-2.87.69-.59 0-1.5-.67-2.47-.65-1.27.02-2.44.74-3.09 1.87-1.32 2.29-.34 5.68.94 7.54.63.91 1.38 1.93 2.36 1.89.95-.04 1.31-.61 2.45-.61 1.14 0 1.47.61 2.47.59 1.02-.02 1.67-.93 2.29-1.84.72-1.05 1.02-2.07 1.04-2.12-.02-.01-2-.77-2.02-3.05zM9.77 3.5c.52-.63.87-1.51.77-2.39-.75.03-1.66.5-2.2 1.13-.48.56-.9 1.45-.79 2.31.84.06 1.7-.42 2.22-1.05z"/></svg>
+            Sign in with Apple
+          </button>
+        </div>
+        <p class="tiny muted" style="text-align:center;margin-top:10px">Prototype buttons — they open the demo session directly. No provider sign-in page is ever shown, and no provider password is ever requested.</p>
         <p class="auth__foot">No account yet? <button type="button" id="go-register">Create an account</button></p>
       </div>
 
-      <!-- register -->
-      <div class="authcard" id="card-register" hidden>
-        <span class="pill pill--private auth__resi"><span class="dot dot--private"></span> Private · Riyadh DC-1</span>
-        <h2>Create your account</h2>
-        <p class="lede">Your admin has pre-approved the <b>magna.ai</b> domain.</p>
-        <form id="form-register" novalidate>
-          <div class="field"><label for="rg-name">Full name</label><input class="input" id="rg-name" value="Ahmad Farahat" autocomplete="name"></div>
-          <div class="field"><label for="rg-email">Work email</label><input class="input" id="rg-email" type="email" value="ahmad.farahat@magna.ai" spellcheck="false" autocomplete="username"></div>
-          <div class="field"><label for="rg-org">Organisation</label><input class="input" id="rg-org" value="Magna · Riyadh" autocomplete="organization"></div>
-          <div class="field">
-            <label for="rg-pass">Password</label>
-            <input class="input" id="rg-pass" type="password" value="magnademo" autocomplete="new-password">
-            <div class="err" id="err-reg" hidden></div>
-          </div>
-          <button class="btn btn--pri btn--lg btn--block" type="submit">Create account</button>
+      <div class="authcard" id="card-register" hidden style="max-width:none;width:100%">
+        <div class="sp-hero"><h1>Create your account</h1><p>Your admin has pre-approved the <b>magna.ai</b> domain.</p></div>
+        <form id="form-register" class="omnilogin" novalidate style="padding-bottom:2px">
+          <div class="ol-row"><label for="rg-name">Full name</label><input id="rg-name" value="Ahmad Farahat" autocomplete="name"></div>
+          <div class="ol-row"><label for="rg-email">Work email</label><input id="rg-email" type="email" value="ahmad.farahat@magna.ai" spellcheck="false" autocomplete="username"></div>
+          <div class="ol-row"><label for="rg-org">Organisation</label><input id="rg-org" value="Magna · Riyadh" autocomplete="organization"></div>
+          <div class="ol-row"><label for="rg-pass">Password</label><input id="rg-pass" type="password" value="magnademo" autocomplete="new-password"></div>
+          <div class="ol-err"><div class="err" id="err-reg" hidden></div></div>
+          <div class="ol-foot"><span class="pill pill--private"><span class="dot dot--private"></span>Private · Riyadh DC-1</span><span class="spacer"></span>
+            <button class="ol-send" type="submit"><span>Create account</span><span class="d" aria-hidden="true"></span></button></div>
         </form>
         <p class="auth__foot">Already registered? <button type="button" id="go-login">Sign in</button></p>
       </div>
     </div>
+
+    <section class="demo" id="demo" aria-label="Live preview of MagnaVERSE">
+      <svg class="demo__link" viewBox="0 0 2 46" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="dlink" x1="0" y1="0" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#1E50C8" stop-opacity="0"/><stop offset="1" stop-color="#1F8F86"/></linearGradient></defs>
+        <path d="M1 0 L1 46" stroke="url(#dlink)" stroke-width="2"/>
+      </svg>
+      <div class="demo__hd">
+        <span class="eyebrow">Live preview — what happens after you sign in</span>
+        <button class="btn" id="demo-toggle">Pause</button>
+        <div class="demo__dots" id="demo-dots" role="tablist" aria-label="Preview scenario"></div>
+      </div>
+      <div class="demo__grid">
+        <article class="node node--ask">
+          <div class="node__hd"><span class="node__kind" id="demo-qk">You asked</span></div>
+          <div class="node__body" id="demo-q"></div>
+        </article>
+        <article class="node node--answer">
+          <div class="node__hd"><span class="node__kind" id="demo-ak">Answer</span><span class="node__meta">Kimi K2 Instruct · 1T MoE</span></div>
+          <div class="node__body"><div class="prose" id="demo-a"></div></div>
+        </article>
+      </div>
+      <p class="demo__cap" id="demo-cap"></p>
+    </section>
   </div>
 </div>
 
@@ -1368,7 +1563,7 @@ body.bd-mark .rest .bdmark{opacity:.06}
             <button id="btn-mode-canvas" class="is-on" aria-pressed="true">Canvas</button>
             <button id="btn-mode-list" aria-pressed="false">List</button>
           </div>
-          <button class="ibtn" id="btn-fit" aria-label="Fit all cards to view"></button>
+          <button class="ibtn" id="btn-fit" aria-label="Fit the thread width to the view"></button>
         </div>
 
         <div class="stage mode-canvas" id="stage">
@@ -1569,7 +1764,9 @@ var IC={
  flag:'<path d="M5 21V4h13l-2.5 4L18 12H5"/>',
  bolt:'<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>'
 };
-function ic(n,cls){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"'+(cls?' class="'+cls+'"':'')+' aria-hidden="true">'+(IC[n]||'')+'</svg>';}
+/* width/height attributes give every icon an intrinsic size, so a bare icon in a
+   flex or inline context can never stretch. CSS rules still override them. */
+function ic(n,cls){return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"'+(cls?' class="'+cls+'"':'')+' aria-hidden="true">'+(IC[n]||'')+'</svg>';}
 
 var markSeq=0;
 function mark(cls,extra){
@@ -1962,12 +2159,13 @@ function modal(title,bodyHTML,footHTML,opts){
 function applyTheme(){
   var r=document.documentElement;
   if(S.theme==="system") r.setAttribute("data-theme","system"); else r.setAttribute("data-theme",S.theme);
-  var b=$("#btn-theme");
-  if(b){
+  ["#btn-theme","#btn-theme-login"].forEach(function(sel){
+    var b=$(sel); if(!b) return;
     b.innerHTML=ic(S.theme==="light"?"sun":S.theme==="dark"?"moon":"monitor");
     b.setAttribute("aria-label","Theme: "+S.theme+". Click to change.");
     b.title="Theme: "+S.theme;
-  }
+  });
+  $$(".ol-send .d").forEach(function(d){ if(!d.innerHTML) d.innerHTML=ic("send"); });
   document.body.classList.toggle("bd-mark",S.backdrop==="mark");
 }
 function cycleTheme(){
@@ -1979,7 +2177,8 @@ function cycleTheme(){
 /* ============================================================ 5 · SCREENS */
 function showScreen(id){
   $$(".screen").forEach(function(s){ s.classList.toggle("is-on", s.id===id); });
-  document.title = id==="scr-app" ? "MagnaVERSE · Horizon" : "MagnaVERSE · Horizon";
+  if(id==="scr-auth"){ if(typeof startDemo==="function") startDemo(); }
+  else if(typeof stopDemo==="function") stopDemo();
 }
 /* --- auth --- */
 $("#go-register").addEventListener("click",function(){ $("#card-login").hidden=true; $("#card-register").hidden=false; $("#rg-name").focus(); });
@@ -1997,10 +2196,9 @@ $("#form-login").addEventListener("submit",function(e){
   if(!ok) return;
   var btn=$("#btn-signin");
   btn.disabled=true;
-  btn.innerHTML=mark("mg-thinking",' style="width:22px"')+"<span>Signing in…</span>";
-  btn.style.gap="10px";
+  btn.innerHTML="<span>Signing in…</span>"+mark("mg-thinking",' style="width:22px"');
   setTimeout(function(){
-    btn.disabled=false; btn.innerHTML="Sign in"; 
+    btn.disabled=false; btn.innerHTML='<span>Sign in</span><span class="d" aria-hidden="true">'+ic("send")+'</span>'; 
     S.authed=true; persist();
     if(S.ws){ enterApp(); } else { showScreen("scr-ws"); renderWorkspaces(); }
   }, REDUCE?250:1150);
@@ -2724,10 +2922,12 @@ function bbox(){
 function fitAll(){
   if(curMode()!=="canvas") return;
   var b=bbox(); if(!b) return;
-  var vw=canvas.clientWidth, vh=canvas.clientHeight, m=32;
-  var z=Math.min((vw-2*m)/(b.x2-b.x1),(vh-2*m)/(b.y2-b.y1),1.4);
-  VP.z=Math.max(0.3,Math.min(1.4,z));
-  VP.x=m-b.x1*VP.z+((vw-2*m)-(b.x2-b.x1)*VP.z)/2;
+  var vw=canvas.clientWidth, m=32;
+  /* fit the graph's WIDTH and anchor to the top — a whole thread is far taller
+     than the viewport, so fitting both axes would zoom to an unreadable 30%. */
+  var z=Math.min((vw-2*m)/(b.x2-b.x1),1.2);
+  VP.z=Math.max(0.55,z);
+  VP.x=m-b.x1*VP.z+Math.max(0,((vw-2*m)-(b.x2-b.x1)*VP.z)/2);
   VP.y=m-b.y1*VP.z;
   applyVP();
 }
@@ -2803,7 +3003,8 @@ function renderThread(){
   $("#omniwrap").classList.toggle("is-rest",th.turns.length===0);
   $("#intents").style.display = th.turns.length===0 ? "" : "none";
   $("#rest").style.display = th.turns.length===0 ? "" : "none";
-  VP.z=defaultZoom(); VP.x=8; VP.y=8;
+  var tourOn=!S.tourDone && th.turns.length>0;
+  VP.z=defaultZoom(); VP.x=8; VP.y=tourOn?188:8;
   setMode(); layout(); applyVP();
   if(curMode()!=="canvas"){ var c=$("#canvas"); if(c) c.scrollTop=0; }
 }
@@ -2848,6 +3049,12 @@ function renderComposerPills(){
   $("#kbd-cmd").textContent=IS_MAC?"⌘K":"Ctrl K";
 }
 function autogrow(){ omni.style.height="auto"; omni.style.height=Math.min(190,omni.scrollHeight)+"px"; }
+function setPlaceholder(){
+  omni.placeholder = window.innerWidth<560
+    ? "Ask anything…  press / for tools"
+    : "Ask anything, or press / for skills and connected systems…";
+}
+setPlaceholder();
 omni.addEventListener("input",function(){ autogrow(); maybeSlash(); });
 omni.addEventListener("keydown",function(e){
   if(slash.hidden===false){
@@ -3686,7 +3893,7 @@ function commitConnection(){
     S.conn[c.id]="connected";
   }
   persist();
-  buildRail(); renderPanel(); renderTbar(); renderConnections();
+  buildRail(); renderPanel(); renderTbar(); renderConnections(); renderStrip();
   toast(c.name+" connected · "+m.tools.length+" tools now available");
 }
 function disconnect(connId){
@@ -3698,7 +3905,7 @@ function disconnect(connId){
   $("#dc-go").addEventListener("click",function(){
     if(connId==="mail"){ S.mail={connected:false,provider:null,account:null,display:null,scopes:{read:true,send:false,contacts:false,calendar:false},sync:null}; }
     else S.conn[connId]="disconnected";
-    persist(); closeOverlay(); buildRail(); renderPanel(); renderTbar(); renderConnections();
+    persist(); closeOverlay(); buildRail(); renderPanel(); renderTbar(); renderConnections(); renderStrip();
     toast(c.name+" disconnected");
   });
 }
@@ -4545,7 +4752,11 @@ function renderIntents(){
     toast("Drafted — edit the parts in brackets, then press Enter");
   }); });
 }
-$("#tour-dismiss").addEventListener("click",function(){ S.tourDone=true; persist(); $("#tourcard").hidden=true; focusComposerIfChat(); });
+$("#tour-dismiss").addEventListener("click",function(){
+  S.tourDone=true; persist(); $("#tourcard").hidden=true;
+  if(curMode()==="canvas" && VP.y>150){ VP.y=8; applyVP(); }
+  focusComposerIfChat();
+});
 $("#tour-try").addEventListener("click",function(){
   S.mode=S.mode==="list"?"canvas":"list"; persist(); setMode(); layout(); applyVP();
   $("#tour-h").textContent = S.mode==="list" ? "This is list view" : "This is canvas view";
@@ -4555,12 +4766,169 @@ $("#tour-try").addEventListener("click",function(){
   $("#tour-try").textContent = S.mode==="list" ? "Show me canvas" : "Show me list";
 });
 
+
+/* ============================================================ 23b · LOGIN DEMO */
+var DEMO=[
+ {q:"Which POs slipped past their promised date this month?",
+  status:["Thinking…","Querying SAP S/4HANA…","Writing…"],
+  parts:[
+   {t:"w",h:"Three purchase orders slipped past their promised date in August. Two of the three are with the same vendor. [1]"},
+   {t:"b",h:'<div class="tblwrap"><table class="tbl"><thead><tr><th>Purchase order</th><th>Vendor</th><th>Promised</th><th class="num">Slip</th></tr></thead><tbody>'+
+     '<tr class="is-warn"><td>PO-4471182</td><td>Alkhorayef Industrial</td><td>28 Aug 2026</td><td class="num">24 d</td></tr>'+
+     '<tr><td>PO-4470913</td><td>Alkhorayef Industrial</td><td>11 Aug 2026</td><td class="num">9 d</td></tr>'+
+     '<tr><td>PO-4468220</td><td>Saudi Cable</td><td>19 Aug 2026</td><td class="num">3 d</td></tr>'+
+     '</tbody></table></div>'},
+   {t:"w",h:"PO-4471182 is the one that matters — it sits on the critical path to chilled-water loop 2 acceptance."},
+   {t:"b",h:'<div class="demo-res"><span class="pill pill--private"><span class="dot dot--private"></span>mgn-h200-04 · Riyadh DC-1</span><span class="pill">0 B egress</span><span class="pill">4.1 s</span></div>'}
+  ],
+  cap:"Answered straight from SAP S/4HANA. Ran on Magna GPUs in Riyadh — nothing left the network."},
+
+ {q:"Summarise the change orders on Package 4 and who owns the risk.",
+  status:["Thinking…","Searching Company Knowledge…","Reading 2 documents…","Writing…"],
+  parts:[
+   {t:"b",h:'<div class="demo-res" style="margin-bottom:10px"><span class="eyebrow" style="align-self:center">Grounded in</span>'+
+     '<span class="pill pill--private">Change Order Log — DC-2</span><span class="pill pill--private">Alkhorayef MSA Rev 7</span>'+
+     '<span class="pill pill--public">Site IoT feed — not connected</span></div>'},
+   {t:"w",h:"Four change orders are open on Package 4, worth SAR 3.1M in total. Three are client-driven scope additions; the fourth is a supplier claim Magna is contesting. [1]"},
+   {t:"w",h:"Commercial risk sits with Nouf Al-Harbi in Legal. Delivery risk sits with you, because CO-0837 moves the pressure-test window. [2]"},
+   {t:"b",h:'<div class="demo-res"><span class="pill pill--private"><span class="dot dot--private"></span>2 internal documents</span><span class="pill">0 web calls</span><span class="pill">confidence: medium</span></div>'}
+  ],
+  cap:"Every claim carries a source, and Magna names the source it could not see."},
+
+ {q:"What's in my inbox about the rebar delay?",
+  status:["Thinking…","Asking magna-mail…","Reading 2 messages…","Writing…"],
+  parts:[
+   {t:"b",h:'<div class="demo-res" style="margin-bottom:10px"><span class="pill pill--accent">magna-mail.search</span><span class="pill pill--private">read-only</span><span class="pill pill--private">runs on-prem</span></div>'},
+   {t:"w",h:"Two messages. Zamil Steel confirmed the rebar delay in writing on Tuesday, and Site QA flagged that the level 3 pour cannot start without it."},
+   {t:"b",h:'<div><div class="demo-mail"><b>Zamil Steel</b><span>Rebar consignment 4 — revised sailing, 02 Sep</span></div>'+
+     '<div class="demo-mail"><b>Site QA</b><span>Level 3 pour on hold pending rebar — 3 crews idle from Monday</span></div></div>'},
+   {t:"w",h:"I have drafted a reply asking for a firm revised date. It is sitting in the composer — nothing has been sent."},
+   {t:"b",h:'<div class="demo-res"><span class="pill pill--private"><span class="dot dot--private"></span>mailbox never left DC-1</span><span class="pill pill--public">sending always asks first</span></div>'}
+  ],
+  cap:"Your mailbox, read by an on-premises MCP server. Magna drafts the reply; you press send."}
+];
+var demoTimers=[], demoIdx=0, demoPaused=false, demoStopped=true;
+function dpush(t){ demoTimers.push(t); return t; }
+function stopDemo(){
+  demoStopped=true;
+  demoTimers.forEach(function(t){ clearTimeout(t); });
+  demoTimers=[];
+}
+function dwords(str){
+  return str.split(/\s+/).map(function(w){
+    var m=w.match(/^(.*)\[(\d)\](.*)$/);
+    if(m) return '<span class="w">'+esc(m[1])+'<span class="cite">'+esc(m[2])+'</span>'+esc(m[3])+'</span>';
+    return '<span class="w">'+esc(w)+'</span>';
+  }).join(" ");
+}
+function demoDots(){
+  var d=$("#demo-dots"); if(!d) return;
+  if(!d.firstChild){
+    d.innerHTML=DEMO.map(function(x,i){
+      return '<button role="tab" data-sc="'+i+'" aria-current="false" aria-label="Preview scenario '+(i+1)+': '+esc(x.q)+'"><i></i></button>';
+    }).join("");
+    /* built once — rebuilding on every scenario would steal keyboard focus */
+    $$("[data-sc]",d).forEach(function(b){ b.addEventListener("click",function(){ demoPlay(+b.getAttribute("data-sc")); }); });
+  }
+  $$("[data-sc]",d).forEach(function(b){ b.setAttribute("aria-current", (+b.getAttribute("data-sc")===demoIdx)?"true":"false"); });
+}
+function setDemoToggle(){
+  var b=$("#demo-toggle"); if(!b) return;
+  b.innerHTML=(demoPaused?ic("play"):'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg>')+
+    "<span>"+(demoPaused?"Play":"Pause")+"</span>";
+  b.setAttribute("aria-label",demoPaused?"Play the preview":"Pause the preview");
+}
+function demoPlay(i){
+  var q=$("#demo-q"), a=$("#demo-a"), cap=$("#demo-cap");
+  if(!q||!a) return;
+  stopDemo(); demoStopped=false;
+  demoIdx=i; demoDots();
+  var sc=DEMO[i];
+  cap.style.visibility="hidden";
+  if(REDUCE||demoPaused){
+    q.textContent=sc.q;
+    a.innerHTML=sc.parts.map(function(pt){ return pt.t==="w" ? '<p>'+dwords(pt.h)+'</p>' : '<div class="blk">'+pt.h+'</div>'; }).join("");
+    $$(".w,.blk",a).forEach(function(n){ n.classList.add("on"); });
+    cap.innerHTML=ic("shield")+"<span>"+esc(sc.cap)+"</span>"; cap.style.visibility="visible";
+    return;
+  }
+  a.innerHTML='';
+  var ci=0;
+  q.innerHTML='<span id="demo-qt"></span><span class="demo-cursor"></span>';
+  (function type(){
+    if(demoStopped) return;
+    ci++;
+    var t=$("#demo-qt"); if(!t) return;
+    t.textContent=sc.q.slice(0,ci);
+    if(ci<sc.q.length) dpush(setTimeout(type,20));
+    else dpush(setTimeout(think,380));
+  })();
+  function think(){
+    if(demoStopped) return;
+    q.innerHTML=esc(sc.q);
+    a.innerHTML='<div style="display:flex;align-items:center;gap:12px;padding:4px 0">'+mark("mg-thinking",' style="width:32px"')+
+      '<div><b id="demo-st" style="font-size:14px;font-weight:600">'+esc(sc.status[0])+'</b>'+
+      '<div class="tiny muted" style="margin-top:2px">On mgn-h200-04 · Riyadh DC-1 · nothing has left your network</div></div></div>';
+    var si=0;
+    (function step(){
+      if(demoStopped) return;
+      si++;
+      if(si<sc.status.length){
+        var e=$("#demo-st"); if(e) e.textContent=sc.status[si];
+        dpush(setTimeout(step,520));
+      } else dpush(setTimeout(stream,420));
+    })();
+  }
+  function stream(){
+    if(demoStopped) return;
+    a.innerHTML=sc.parts.map(function(pt){ return pt.t==="w" ? '<p>'+dwords(pt.h)+'</p>' : '<div class="blk">'+pt.h+'</div>'; }).join("");
+    var seq=$$(".w,.blk",a), k=0;
+    (function rev(){
+      if(demoStopped) return;
+      if(k>=seq.length){ done(); return; }
+      var n=seq[k]; n.classList.add("on"); k++;
+      dpush(setTimeout(rev, n.classList.contains("blk")?250:24));
+    })();
+  }
+  function done(){
+    if(demoStopped) return;
+    cap.innerHTML=ic("shield")+"<span>"+esc(sc.cap)+"</span>";
+    cap.style.visibility="visible";
+    dpush(setTimeout(function(){ if(!demoStopped&&!demoPaused) demoPlay((i+1)%DEMO.length); },4200));
+  }
+}
+function startDemo(){
+  if(!$("#demo")) return;
+  $("#demo-qk").innerHTML=ic("user")+"You asked";
+  $("#demo-ak").innerHTML=ic("spark")+"Answer";
+  setDemoToggle(); demoDots(); demoPlay(demoIdx);
+}
+$("#demo-toggle").addEventListener("click",function(){
+  demoPaused=!demoPaused; setDemoToggle();
+  if(demoPaused){ stopDemo(); demoPlay(demoIdx); } else demoPlay(demoIdx);
+});
+
+/* provider sign-in — simulated round-trip only. No provider screen, no provider password. */
+function providerSignIn(btn,label){
+  var old=btn.innerHTML; btn.disabled=true;
+  btn.innerHTML=mark("mg-thinking",' style="width:18px"')+"<span>Authorising with "+label+"…</span>";
+  setTimeout(function(){
+    btn.disabled=false; btn.innerHTML=old;
+    S.authed=true; persist();
+    if(S.ws) enterApp(); else { showScreen("scr-ws"); renderWorkspaces(); }
+    toast("Signed in with "+label+" — demo session");
+  }, REDUCE?250:1200);
+}
+$("#btn-google").addEventListener("click",function(){ providerSignIn(this,"Google"); });
+$("#btn-apple").addEventListener("click",function(){ providerSignIn(this,"Apple"); });
+$("#btn-theme-login").addEventListener("click",cycleTheme);
+
 /* ============================================================ 24 · BOOT */
 var rt;
 window.addEventListener("resize",function(){
   clearTimeout(rt);
   rt=setTimeout(function(){
-    applyPanel();
+    applyPanel(); setPlaceholder(); autogrow();
     if(window.innerWidth>=768){ closeDrawers(); readingMobile=false; }
     if($("#scr-app").classList.contains("is-on")){
       setMode();
@@ -4576,6 +4944,7 @@ $("#rest-greet").textContent="Good afternoon, "+USER.name.split(" ")[0]+".";
 if(S.authed && S.ws){ enterApp(); }
 else if(S.authed){ showScreen("scr-ws"); renderWorkspaces(); }
 else { showScreen("scr-auth"); }
+if(!S.authed || !S.ws){ /* demo runs only while the login screen is on */ }
 /* keep the sign-in cluster figure alive on the login screen */
 setInterval(function(){ var g=$("#au-gpu"); if(g && !document.hidden) g.textContent=Math.round(52+Math.random()*22)+"%"; }, REDUCE?60000:3200);
 

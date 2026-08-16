@@ -575,35 +575,73 @@ svg.diagram{display:block;width:100%;height:auto;min-width:420px}
    except the provider marks, which are brand assets.
    ========================================================================== */
 
-/* ------------------------------- auth shell ----------------------------- */
-.auth{position:fixed;inset:0;z-index:300;display:flex;background:var(--bg);overflow-y:auto}
-.auth-brand{width:46%;flex:none;position:relative;overflow:hidden;background:var(--bg-2);
-  border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;
-  padding:40px 44px}
-.auth-brand .bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.auth-brand .bg svg{position:absolute;right:-90px;bottom:-70px;width:460px;opacity:.11}
-.auth-brand .bg .glow{position:absolute;inset:auto -20% -30% -20%;height:62%;
+/* ------------------------------- auth shell -----------------------------
+   V4 §1 — this app's login is the EDITORIAL SPLIT, 60/40.
+
+   Left (60%): a warm-paper essay panel. A real pull-quote about sovereign AI
+   set in the display serif, the mark small and quiet above it, a colophon
+   below, and the streamed preview framed like a plate in a book. Right (40%):
+   the form, on a slightly lighter surface, with a hairline of air around it.
+   The inside cover of a book — typography does the work, not a hero image.
+   No other app in the set uses this shape.
+   ------------------------------------------------------------------------ */
+.auth{position:fixed;inset:0;z-index:300;display:flex;background:var(--bg-2);overflow:hidden}
+
+/* ---- left: the essay panel ---- */
+.auth-brand{flex:0 0 60%;width:60%;position:relative;overflow-y:auto;background:var(--bg-2);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;gap:18px;
+  padding:34px clamp(28px,4.4vw,62px) 24px;
+  /* the double rule of a title page: the border, then a hairline 4px inside it */
+  box-shadow:inset -5px 0 0 -4px var(--line)}
+.auth-brand .bg{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.auth-brand .bg svg{position:absolute;right:-120px;bottom:-90px;width:420px;opacity:.07}
+.auth-brand .bg .glow{position:absolute;inset:auto -20% -30% -20%;height:52%;
   background:radial-gradient(58% 58% at 50% 100%, var(--accent-dim), transparent 72%)}
 @media (prefers-reduced-motion: no-preference){
   .auth-brand .bg svg{animation:markdrift 30s ease-in-out infinite alternate}
 }
-.auth-brand > *{position:relative;z-index:1}
-.auth-lock{display:flex;align-items:center;gap:11px}
-.auth-lock .magna-mark{width:44px}
-.auth-lock b{font-size:18px;font-weight:650;letter-spacing:-.005em}
-.auth-lock b em{font-style:normal;font-weight:500;color:var(--tx-3)}
-.auth-pitch h1{font-family:var(--serif);font-size:36px;font-weight:500;line-height:1.22;letter-spacing:-.01em;
-  max-width:15ch}
-.auth-pitch p{margin-top:14px;font-size:15.5px;line-height:1.7;color:var(--tx-2);max-width:42ch}
-.auth-facts{display:flex;flex-direction:column;gap:10px;margin-top:26px}
-.auth-facts div{display:flex;gap:10px;align-items:flex-start;font-size:13.4px;color:var(--tx-2);line-height:1.55}
-.auth-facts .ic{color:var(--private);margin-top:2px}
-.auth-foot{font-size:11.5px;color:var(--tx-3);line-height:1.6}
+.auth-brand > *:not(.bg){position:relative;z-index:1}
 
-.auth-form{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:40px 28px}
+/* the mark stays small and quiet here — the type is the loud element */
+.auth-lock{display:flex;align-items:center;gap:9px}
+.auth-lock .magna-mark{width:26px}
+.auth-lock b{font-size:14.5px;font-weight:650;letter-spacing:.005em}
+.auth-lock b em{font-style:normal;font-weight:500;color:var(--tx-3)}
+.auth-lock .folio{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--tx-3)}
+.auth-lock.compact{display:none}
+
+/* ---- the pull-quote ---- */
+.pullquote{margin-top:4px}
+/* the measure lives on the blockquote, where 1ch is the DISPLAY face — putting
+   it on the figure would size it against the body font and crush the quote */
+.pullquote blockquote{position:relative;font-family:var(--serif);font-weight:500;
+  font-size:clamp(23px,2.35vw,35px);line-height:1.24;letter-spacing:-.014em;color:var(--tx);
+  max-width:33ch;text-wrap:pretty;hyphens:manual}
+.pullquote blockquote::before{content:"\201C";position:absolute;left:-.44em;top:-.02em;
+  font-family:var(--serif);font-size:2.4em;line-height:1;color:var(--accent);opacity:.26;
+  pointer-events:none}
+.pullquote figcaption{display:flex;flex-direction:column;gap:3px;margin-top:15px;padding-top:11px;
+  border-top:1px solid var(--line);max-width:34ch}
+.pullquote figcaption b{font-size:12.4px;font-weight:650;color:var(--tx-2)}
+.pullquote figcaption span{font-family:var(--mono);font-size:10px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--tx-3)}
+.auth-deck{font-size:14.4px;line-height:1.7;color:var(--tx-2);max-width:56ch}
+.auth-deck em{font-style:normal;color:var(--tx);font-weight:600}
+.factline{display:flex;gap:7px;flex-wrap:wrap}
+.auth-foot{font-size:11.2px;color:var(--tx-3);line-height:1.65;max-width:56ch}
+
+/* ---- right: the form, on the lighter surface ---- */
+.auth-form{flex:1 1 40%;min-width:0;display:flex;align-items:center;justify-content:center;
+  padding:40px clamp(20px,3vw,44px);background:var(--surface);overflow-y:auto;position:relative}
+.auth-themebtn{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:11px;
+  display:grid;place-items:center;color:var(--tx-3);border:1px solid transparent}
+.auth-themebtn:hover{background:var(--surface-2);border-color:var(--line);color:var(--tx)}
 .auth-card{width:100%;max-width:396px}
 .auth-card h2{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.005em}
 .auth-card .sub{margin-top:6px;font-size:14px;color:var(--tx-2);line-height:1.6}
+/* the form panel is the lighter surface, so the fields read as wells cut into it */
+.auth-form .field input{background:var(--bg)}
 .field{margin-top:16px}
 .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
 .field input{width:100%;height:44px;padding:0 13px;border-radius:11px;border:1px solid var(--line-2);
@@ -633,6 +671,139 @@ svg.diagram{display:block;width:100%;height:auto;min-width:420px}
 .auth-badge{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
   border:1px solid var(--private-line);background:var(--private-dim);color:var(--private);font-size:11.5px;
   font-weight:600;margin-bottom:18px}
+
+/* ---------------------- V4 §2 — provider sign-in buttons -----------------
+   Vendor-accurate chrome, held to each brand's own spec:
+     Google — white fill / #747775 hairline / #1F1F1F label in light; #131314
+              fill / #8E918F hairline / #E3E3E3 label in dark. The four-colour
+              G is never recoloured, never on a coloured fill, and keeps its
+              clear space. Roboto-ish system stack, height >= 40px.
+     Apple  — solid black with white logotype and label in light; white with a
+              black logotype and label in dark. Radius matches the rest.
+   Both fills are declared as their own tokens so they resolve correctly over
+   this app's warm cream (light) and warm charcoal (dark) grounds, under the
+   OS preference AND under an explicit data-theme choice.
+
+   THESE ARE DEMO BUTTONS. Clicking goes straight into the demo session. There
+   is no Google or Apple sign-in screen anywhere in this file and none may be
+   added: a convincing replica of a provider's credential screen is a phishing
+   page regardless of intent.
+   ------------------------------------------------------------------------ */
+:root{--goog-bg:#FFFFFF;--goog-bd:#747775;--goog-tx:#1F1F1F;--appl-bg:#000000;--appl-tx:#FFFFFF}
+@media (prefers-color-scheme: dark){
+  :root{--goog-bg:#131314;--goog-bd:#8E918F;--goog-tx:#E3E3E3;--appl-bg:#FFFFFF;--appl-tx:#000000}
+}
+:root[data-theme="dark"]{--goog-bg:#131314;--goog-bd:#8E918F;--goog-tx:#E3E3E3;
+  --appl-bg:#FFFFFF;--appl-tx:#000000}
+:root[data-theme="light"]{--goog-bg:#FFFFFF;--goog-bd:#747775;--goog-tx:#1F1F1F;
+  --appl-bg:#000000;--appl-tx:#FFFFFF}
+
+.provs{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.pbtn{width:100%;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  gap:11px;padding:0 14px;font-size:14.5px;font-weight:600;letter-spacing:.005em;
+  transition:box-shadow .16s ease,opacity .16s ease}
+.pbtn .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbtn .magna-mark{width:21px}
+.pbtn.google{background:var(--goog-bg);border:1px solid var(--goog-bd);color:var(--goog-tx);
+  font-family:Roboto,"Helvetica Neue","Segoe UI",Arial,sans-serif;font-weight:500}
+.pbtn.google:hover{box-shadow:0 1px 2px rgba(60,64,67,.30),0 1px 3px 1px rgba(60,64,67,.15)}
+.pbtn.apple{background:var(--appl-bg);border:1px solid var(--appl-bg);color:var(--appl-tx);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif}
+.pbtn.apple:hover{opacity:.86}
+.pbtn.magna{background:var(--surface);border:1px solid var(--line-2);color:var(--tx)}
+.pbtn.magna:hover{background:var(--surface-2);border-color:var(--tx-3)}
+.pbtn.magna .ic{color:var(--private)}
+.pbtn:disabled{cursor:default}
+/* the G is a brand asset: fixed fills, never currentColor, never stroked */
+.gmark{width:19px;height:19px;flex:none;display:block}
+.amark{width:17px;height:17px;flex:none;display:block;fill:currentColor;translate:0 -1px}
+.provnote{margin-top:11px;font-size:11.2px;line-height:1.55;color:var(--tx-3);text-align:center}
+
+/* -------------------- V4 §3 — the streamed demo preview ------------------
+   Framed like this app's artifact panel, because that is the frame the rest
+   of the product already speaks in. Ambient: every step is a timer, nothing
+   here can block or slow the form, and pvStop() clears the chain on teardown.
+   ------------------------------------------------------------------------ */
+.pvwrap{margin-top:auto;max-width:580px;width:100%}
+.pvtoggle{display:none;width:100%;min-height:46px;align-items:center;justify-content:center;gap:9px;
+  padding:0 14px;border:1px dashed var(--line-2);border-radius:12px;background:var(--surface);
+  color:var(--tx-2);font-size:13.6px;font-weight:600}
+.pvtoggle:hover{border-style:solid;border-color:var(--accent);color:var(--accent)}
+.pvtoggle .ic{transition:transform .18s ease}
+.pvwrap.open .pvtoggle .ic.chev{transform:rotate(90deg)}
+.preview{border:1px solid var(--line-2);border-radius:15px;background:var(--surface);overflow:hidden;
+  box-shadow:var(--shadow);display:flex;flex-direction:column}
+.pv-head{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);flex:none}
+.pv-head .thumb{width:27px;height:27px;border-radius:8px;flex:none;display:grid;place-items:center;
+  background:var(--accent-dim);color:var(--accent);border:1px solid var(--line)}
+.pv-head .t{flex:1;min-width:0}
+.pv-head .t b{display:block;font-size:12.6px;font-weight:650}
+.pv-head .t span{display:block;font-size:10.6px;color:var(--tx-3)}
+/* flex:none matters — with flex:1 the basis:0 would beat the height and the
+   panel would grow with whatever the scenario renders */
+.pv-body{flex:none;height:clamp(188px,26vh,258px);overflow-y:auto;overflow-x:hidden;
+  padding:14px 14px 16px;display:flex;flex-direction:column;gap:11px;scrollbar-width:thin}
+.pv-q{align-self:flex-end;max-width:90%;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:13.2px;line-height:1.55;color:var(--tx)}
+.pv-caret{display:inline-block;width:1.5px;height:.95em;background:var(--accent);vertical-align:-1px;
+  margin-left:2px;border-radius:1px}
+@media (prefers-reduced-motion: no-preference){
+  .pv-caret{animation:pvblink 1.05s steps(1,end) infinite}
+}
+@keyframes pvblink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+.pv-think{gap:9px}
+.pv-think .mg-thinking{width:26px}
+.pv-think .tx b{font-size:12.4px}
+.pv-think .tx span{font-size:10.8px}
+.pv-a{font-size:13.2px;line-height:1.62;color:var(--tx)}
+.pv-a > * + *{margin-top:9px}
+.pv-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pv-meta .magna-mark{width:20px}
+.pv-meta b{font-size:12.2px;font-weight:650}
+.pv-meta .chip{height:20px;font-size:10.4px;padding:0 7px}
+.pv-a .tbl{min-width:330px;font-size:11.8px}
+.pv-a .tbl th{padding:6px 9px;font-size:9.6px}
+.pv-a .tbl td{padding:6px 9px}
+.pv-a .tbl th.num,.pv-a .tbl td.num{font-size:11.4px}
+.pv-a .tblcap{padding:6px 9px;font-size:10.6px}
+.pv-a .mathblock{padding:10px 12px;gap:10px}
+.pv-a .mrow{font-size:15.5px}
+.pv-a .srcbox > .hd{padding:7px 11px;font-size:10px}
+.pv-a .src{padding:6px 11px;font-size:11.8px}
+.pv-a .src .t span{font-size:10.4px}
+.pv-a .cite{font-size:9px}
+.pv-mail{border:1px solid var(--line);border-radius:11px;background:var(--surface-2);overflow:hidden}
+.pv-mail .mh{display:flex;align-items:baseline;gap:8px;padding:8px 11px 3px}
+.pv-mail .mh b{font-size:12.2px;font-weight:650;flex:1;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.pv-mail .mh time{font-family:var(--mono);font-size:10px;color:var(--tx-3);flex:none}
+.pv-mail .ms{padding:0 11px;font-size:12.4px;font-weight:600;color:var(--accent)}
+.pv-mail p{padding:4px 11px 10px;font-size:11.8px;line-height:1.58;color:var(--tx-2)}
+.pv-res{display:flex;align-items:flex-start;gap:7px;padding-top:9px;border-top:1px dashed var(--line);
+  font-size:10.8px;line-height:1.5;color:var(--private)}
+.pv-res .ic{width:13px;height:13px;margin-top:1px}
+.pv-b{opacity:1}
+@media (prefers-reduced-motion: no-preference){
+  .pv-b{animation:pvin .32s cubic-bezier(.16,1,.3,1) both}
+}
+@keyframes pvin{from{opacity:0;translate:0 5px}to{opacity:1;translate:0 0}}
+.pv-foot{flex:none;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 13px;
+  border-top:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.pv-cap{flex:1;min-width:150px;font-size:11.2px;line-height:1.45;color:var(--tx-2)}
+.pv-cap b{color:var(--tx);font-weight:650}
+.pv-ctl{display:flex;align-items:center;gap:3px;flex:none;margin-left:auto}
+.pv-play{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--tx-2);
+  border:1px solid var(--line)}
+.pv-play:hover{background:var(--surface);color:var(--tx);border-color:var(--line-2)}
+.pv-play .ic{width:15px;height:15px}
+.pv-play .ic[data-icon="play"]{fill:currentColor;stroke:none}
+.pv-dots{display:flex;align-items:center;gap:1px}
+.pv-dot{width:34px;height:34px;display:grid;place-items:center;border-radius:9px}
+.pv-dot i{display:block;width:7px;height:7px;border-radius:99px;background:var(--line-2);
+  transition:width .2s ease,background .2s ease}
+.pv-dot:hover i{background:var(--tx-3)}
+.pv-dot[aria-current="true"] i{width:19px;background:var(--accent)}
 
 /* workspace picker */
 .wsgrid{display:flex;flex-direction:column;gap:11px;margin-top:20px}
@@ -675,7 +846,9 @@ button.lrow:hover{background:var(--surface-2)}
 .lrow .t b{display:block;font-size:14.2px;font-weight:600}
 .lrow .t p{font-size:12.8px;color:var(--tx-2);margin-top:3px;line-height:1.55}
 .lrow .t .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.lrow .side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+/* renamed from .side: the sidebar owns that class, and the mobile drawer rule
+   was capturing every list row's right-hand column and flinging it off-canvas */
+.lrow .rside{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:7px}
 .pill{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:99px;
   border:1px solid var(--line);background:var(--surface-2);font-size:11px;color:var(--tx-2);white-space:nowrap}
 .pill .dot{width:5px;height:5px;border-radius:99px;background:currentColor;flex:none}
@@ -845,7 +1018,22 @@ button.lrow:hover{background:var(--surface-2)}
   color:var(--private);font-weight:600}
 
 @media (max-width:900px){
-  .auth-brand{display:none}
+  /* the editorial split stacks: FORM FIRST, essay and preview beneath it, so
+     the sign-in button is reachable without scrolling on a 320x568 screen. */
+  .auth{flex-direction:column;overflow-y:auto;height:100dvh}
+  .auth-form{order:1;flex:none;width:100%;flex-direction:column;align-items:stretch;
+    justify-content:flex-start;padding:22px 18px 26px;overflow:visible}
+  .auth-card{max-width:460px;margin:0 auto;width:100%}
+  .auth-themebtn{top:14px;right:12px}
+  .auth-brand{order:2;flex:none;width:100%;overflow:visible;border-right:0;box-shadow:none;
+    border-top:1px solid var(--line);padding:26px 18px 30px;gap:18px}
+  .auth-lock{display:none}
+  .auth-lock.compact{display:flex;margin-bottom:16px;max-width:460px;width:100%;
+    margin-left:auto;margin-right:auto}
+  /* the hanging opening quote must not reach past the panel padding at 320px */
+  .pullquote{padding-left:26px}
+  .pullquote blockquote{font-size:23px;max-width:30ch}
+  .pvwrap{margin-top:0;max-width:none}
   .maillayout{grid-template-columns:1fr}
   .maillist{border-right:0;border-bottom:1px solid var(--line);max-height:270px}
   .maildetail{max-height:none}
@@ -854,13 +1042,26 @@ button.lrow:hover{background:var(--surface-2)}
 @media (max-width:767px){
   .vwrap{padding:18px 14px 48px}
   .vhd h2{font-size:21px}
-  .auth-form{padding:24px 16px}
+  .auth-form{padding:20px 14px 24px}
   .auth-card h2{font-size:22px}
+  .auth-brand{padding:24px 14px 28px}
+  /* V4 §3 — under 768 the preview collapses to a disclosure below the form.
+     The engine only runs while it is open (see pvSetOpen). */
+  .pvtoggle{display:flex}
+  .pvwrap:not(.open) .preview{display:none}
+  .pvwrap.open .preview{margin-top:10px}
+  .pv-body{height:auto;min-height:210px;max-height:52vh}
+  .pv-play,.pv-dot{width:44px;height:44px}
+  .pv-foot{padding:6px 8px 6px 12px}
+  .pullquote blockquote{font-size:22px}
+  .pbtn{height:48px}
+  .auth-themebtn{width:44px;height:44px}
+  .auth-alt button{display:inline-block;min-height:44px;min-width:44px;line-height:44px}
   .wizard{width:100%;height:100dvh;max-height:none;border-radius:0;border:0}
   .field input{height:46px}
   .vtab{height:44px}
   .lrow{flex-wrap:wrap}
-  .lrow .side{flex-direction:row;align-items:center;width:100%}
+  .lrow .rside{flex-direction:row;align-items:center;width:100%}
   .vgrid{grid-template-columns:1fr}
   .maillayout{min-height:0}
   .draft textarea{min-height:180px}
@@ -1145,12 +1346,25 @@ button.setuprow:hover .go{color:var(--accent)}
   align-items:center;gap:6px}
 .seg button:hover{color:var(--tx)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--tx);font-weight:600;box-shadow:var(--shadow)}
-.switch{width:42px;height:24px;border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);
-  position:relative;transition:background .16s ease}
+.switch{width:42px;height:24px;flex:none;border-radius:99px;background:var(--surface-3);
+  border:1px solid var(--line-2);position:relative;transition:background .16s ease}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:99px;
   background:var(--surface);box-shadow:var(--shadow);transition:left .16s ease}
 .switch[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
 .switch[aria-checked="true"]::after{left:21px}
+
+/* V4 §4 — on touch widths the toggle needs a real 44px box, not just a padded
+   hit area: the 42x24 pill moves into ::before so the button itself is 54x44
+   and measures correctly in an audit. The visual is unchanged. */
+@media (max-width:1023px){
+  .switch,.switch[aria-checked="true"]{width:54px;height:44px;background:none;border-color:transparent}
+  .switch::before{content:"";position:absolute;left:6px;right:6px;top:10px;bottom:10px;
+    border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);
+    transition:background .16s ease}
+  .switch[aria-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
+  .switch::after{top:12px;left:8px}
+  .switch[aria-checked="true"]::after{left:27px}
+}
 .setlist{display:flex;flex-direction:column;gap:8px}
 .setcard{display:flex;gap:12px;align-items:flex-start;padding:12px 13px;border:1px solid var(--line);
   border-radius:12px;background:var(--surface-2)}
@@ -1227,6 +1441,38 @@ button.setuprow:hover .go{color:var(--accent)}
   .tb-sub{display:none}
 }
 
+/* V4 §4 — 768px is a touch width too (tablet portrait), so the tap targets
+   have to grow there as well, not only below 767. Same list as the mobile
+   block; the layout itself is unchanged. */
+@media (min-width:768px) and (max-width:1023px){
+  .threadbar{height:58px}
+  .iconbtn{width:44px;height:44px}
+  .ctl,.tool{height:44px}
+  .send{width:44px;height:44px}
+  .act{height:44px;padding:0 11px}
+  .aptab{height:44px}
+  .achip{height:44px}
+  .cbtn{height:44px;padding:0 12px}
+  .tool{min-width:44px}
+  .navitem{padding:11px 10px;min-height:44px}
+  .brand,.userchip{min-height:44px;min-width:44px}
+  .mi,.src,.setnav button,.seg button{min-height:44px}
+  .btn,.btn.sm,.fchip,.exchip,.vtab{min-height:44px}
+  .fchip,.exchip,.act.more{min-width:44px}
+  .mailitem,.optrow,.scoperow,.routecard,.setuprow,.lrow{min-height:44px}
+  .reason{height:44px}
+  .newchat,.searchrow{height:44px;min-height:44px;min-width:44px}
+  .sec-hd .add{width:44px;height:44px}
+  .tour .hd .x,.explain .eh .x,.setup .sh .x{width:44px;height:44px}
+  .searchbox{height:auto;min-height:44px}
+  .searchbox input,#palInput,#skillQ{min-height:44px}
+  #input{min-height:44px}
+  /* login controls */
+  .auth-themebtn{width:44px;height:44px}
+  .pv-play,.pv-dot{width:44px;height:44px}
+  .auth-alt button{display:inline-block;min-height:44px;min-width:44px;line-height:44px}
+}
+
 /* ---------------------------- mobile ------------------------------------ */
 @media (max-width:767px){
   .app{height:100vh;height:100dvh}
@@ -1276,19 +1522,24 @@ button.setuprow:hover .go{color:var(--accent)}
   .ctl,.tool{height:44px}
   .send{width:44px;height:44px}
   .act{height:44px;padding:0 11px}
-  .cbtn{height:36px;padding:0 10px}
+  .cbtn{height:44px;padding:0 12px}
   .aptab{height:44px}
-  .achip{height:36px}
+  .achip{height:44px}
+  .tool{min-width:44px}
   .navitem{padding:11px 10px;min-height:44px}
   .mi,.src,.setnav button,.seg button{min-height:44px}
   /* v2/v3 view controls */
   .btn,.btn.sm,.fchip,.exchip,.vtab{min-height:44px}
   .mailitem,.optrow,.scoperow,.routecard,.setuprow,.lrow{min-height:44px}
-  /* the toggle keeps its 42x24 look but gets a 44px-tall hit area */
-  .switch{position:relative}
-  .switch::before{content:"";position:absolute;left:-6px;right:-6px;top:-10px;bottom:-10px}
   .seg button{padding:5px 14px}
-  .reason{height:36px}
+  /* V4 §4 — the remaining sub-44 targets found in the width sweep */
+  .reason{height:44px}
+  .newchat,.searchrow{height:44px;min-height:44px}
+  .sec-hd .add,.tour .hd .x,.explain .eh .x,.setup .sh .x{width:44px;height:44px}
+  .act.more,.fchip,.exchip{min-width:44px}
+  .searchbox{height:auto;min-height:44px}
+  .searchbox input,#palInput,#skillQ{min-height:44px}
+  #input{min-height:44px}
 
   /* message row keeps Copy + Retry, the rest go behind an overflow button */
   .mfoot .meta{display:none}
@@ -1318,6 +1569,21 @@ button.setuprow:hover .go{color:var(--accent)}
   /* keyboard hints are noise on touch */
   .searchrow kbd,.cmp-foot kbd,.pal-foot,.slash .sf,#cmpHint,.row .t span kbd{display:none}
   .cmp-foot > span:nth-child(n+4){display:none}
+}
+
+/* V4 §4 — tablet portrait (768–900) is a touch width too, so the guided
+   steppers and the modals are full-screen sheets there as well rather than
+   cards floating in a narrow viewport. */
+@media (min-width:768px) and (max-width:900px){
+  .scrim,.scrim.center{padding:0;align-items:stretch}
+  .wizard,.stepper,.modal{width:100%;height:100dvh;max-height:none;border-radius:0;border:0}
+  .modal-body{flex-direction:column}
+  .setnav{width:auto;display:flex;gap:4px;overflow-x:auto;border-right:0;
+    border-bottom:1px solid var(--line);padding:8px}
+  .setnav button{white-space:nowrap}
+  .palette{width:100%;max-height:100dvh;height:100dvh;border-radius:0;border:0}
+  .guard{width:100%;height:100dvh;border-radius:0;border:0;display:flex;flex-direction:column}
+  .guard .bd{flex:1;overflow-y:auto}
 }
 
 @media (max-width:360px){
@@ -1390,6 +1656,7 @@ button.setuprow:hover .go{color:var(--accent)}
 <symbol id="i-agent" viewBox="0 0 24 24"><rect x="4" y="7.5" width="16" height="12" rx="3"/><path d="M12 3v4.5M8.5 13h.01M15.5 13h.01M9.5 16.5h5"/></symbol>
 <symbol id="i-send2" viewBox="0 0 24 24"><path d="M21 3 10.5 13.5M21 3l-6.8 18-3.7-7.5L3 9.8Z"/></symbol>
 <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5 19 12 7 19.5Z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
 <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13.5a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.6 1.6M14 10.5a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.6-1.6"/></symbol>
 <symbol id="i-upload" viewBox="0 0 24 24"><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15M12 16V4M7.5 8.5 12 4l4.5 4.5"/></symbol>
 <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="12" r="4.2"/><path d="M12.2 12H21M18 12v3.5M15 12v2.5"/></symbol>
@@ -1424,20 +1691,69 @@ button.setuprow:hover .go{color:var(--accent)}
         <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth2)" stroke-width="52"
               stroke-linecap="round" stroke-linejoin="round"/></svg>
       <b>Magna<em>VERSE</em></b>
+      <span class="folio">Sovereign AI · 2.0</span>
     </div>
 
-    <div class="auth-pitch">
-      <h1>The answer never leaves the building.</h1>
-      <p>Runs on Magna GPUs in Riyadh. Your prompts, your documents and every answer stay inside
-        your own network.</p>
-      <div class="auth-facts">
-        <div><svg class="ic" aria-hidden="true"><use href="#i-shield"></use></svg>
-          <span>Inference on Magna cluster, Riyadh DC-1 — 8×H200. Zero egress on the Private tier.</span></div>
-        <div><svg class="ic" aria-hidden="true"><use href="#i-db"></use></svg>
-          <span>Connected to SAP S/4HANA, Primavera P6, Jira, Confluence and 8,400 indexed documents.</span></div>
-        <div><svg class="ic" aria-hidden="true"><use href="#i-sparkle"></use></svg>
-          <span>Kimi K2 Instruct, DeepSeek V3.1, Qwen 3 and NVIDIA Nemotron — all served on-premises.</span></div>
-      </div>
+    <!-- the pull-quote is the loud element on this page; the mark above stays quiet -->
+    <figure class="pullquote">
+      <blockquote>Sovereignty is not a setting you switch on. It is where the machine sits, who
+        holds the keys, and whether the answer ever had to leave the building.</blockquote>
+      <figcaption>
+        <b>MagnaVERSE — Deployment Principles</b>
+        <span>§1 · Riyadh, Saudi Arabia</span>
+      </figcaption>
+    </figure>
+
+    <p class="auth-deck">Every prompt, every document and every generated answer stays on Magna's own
+      cluster. Nothing reaches a hosted model unless someone <em>deliberately chooses</em> to send it
+      there.</p>
+
+    <div class="factline">
+      <span class="pill ok"><span class="dot"></span>Riyadh DC-1 · 8×H200</span>
+      <span class="pill">Zero egress on Private</span>
+      <span class="pill">8,400 documents indexed</span>
+      <span class="pill">6 systems connected</span>
+    </div>
+
+    <!-- ============ V4 §3 — the streamed demo preview ====================
+         Framed like the artifact panel so it reads as native to this app.
+         Ambient only: it is a chain of timers, it never gates the form, and
+         pvStop() tears every timer down when the login goes away. -->
+    <div class="pvwrap" id="pvWrap">
+      <button class="pvtoggle" id="pvToggle" data-act="pv-toggle" aria-expanded="false"
+              aria-controls="pvPanel">
+        <svg class="ic chev" aria-hidden="true"><use href="#i-chev"></use></svg>
+        <span>See a 20-second demo</span>
+      </button>
+
+      <figure class="preview" id="pvPanel">
+        <div class="pv-head">
+          <span class="thumb"><svg class="ic" aria-hidden="true"><use href="#i-msg"></use></svg></span>
+          <span class="t"><b>A real session, replayed</b>
+            <span>no sign-in needed — this is what is inside</span></span>
+          <span class="pill ok"><span class="dot"></span>Private</span>
+        </div>
+
+        <div class="pv-body" id="pvBody" role="region" aria-live="off"
+             aria-label="Demo preview of a MagnaVERSE conversation"></div>
+
+        <figcaption class="pv-foot">
+          <span class="pv-cap" id="pvCap">Scenario 1 of 3 — connected enterprise data</span>
+          <span class="pv-ctl">
+            <button class="pv-play" id="pvPlay" data-act="pv-play" aria-label="Pause the preview">
+              <svg class="ic" aria-hidden="true" data-icon="pause"><use href="#i-pause"></use></svg>
+            </button>
+            <span class="pv-dots" role="group" aria-label="Preview scenarios">
+              <button class="pv-dot" data-act="pv-dot" data-i="0" aria-current="true"
+                      aria-label="Scenario 1 — late purchase orders from SAP"><i></i></button>
+              <button class="pv-dot" data-act="pv-dot" data-i="1" aria-current="false"
+                      aria-label="Scenario 2 — change orders with citations"><i></i></button>
+              <button class="pv-dot" data-act="pv-dot" data-i="2" aria-current="false"
+                      aria-label="Scenario 3 — a mail answer through the magna-mail MCP server"><i></i></button>
+            </span>
+          </span>
+        </figcaption>
+      </figure>
     </div>
 
     <p class="auth-foot">MagnaVERSE 2.0 · sovereign deployment · Riyadh, Saudi Arabia<br>
@@ -1445,6 +1761,25 @@ button.setuprow:hover .go{color:var(--accent)}
   </section>
 
   <section class="auth-form">
+    <button class="auth-themebtn" data-act="cycle-theme" aria-label="Switch theme">
+      <svg class="ic" aria-hidden="true" id="authThemeIcon"><use href="#i-sun"></use></svg>
+    </button>
+
+    <!-- shown only when the split has stacked; the essay panel's lock is hidden then -->
+    <div class="auth-lock compact">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna"><defs>
+        <linearGradient id="mgGB-auth3" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/>
+          <stop offset="1" stop-color="#1E50C8"/></linearGradient>
+        <linearGradient id="mgR-auth3" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient></defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-auth3)" stroke-width="52"
+              stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth3)" stroke-width="52"
+              stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Magna<em>VERSE</em></b>
+    </div>
+
     <!-- ---------------- sign in ---------------- -->
     <div class="auth-card" id="paneLogin">
       <span class="auth-badge"><svg class="ic sm" aria-hidden="true"><use href="#i-shield"></use></svg>
@@ -1477,9 +1812,40 @@ button.setuprow:hover .go{color:var(--accent)}
         </button>
       </form>
 
-      <div class="auth-or">or</div>
-      <button class="auth-btn ghost" data-act="sso">
-        <svg class="ic" aria-hidden="true"><use href="#i-shield"></use></svg>Continue with Magna SSO</button>
+      <div class="auth-or">or continue with</div>
+
+      <!-- V4 §2 — provider buttons.
+           Every one of these is simulated end to end: the click runs a short
+           "Authorising…" state on the Magna mark and then drops straight into
+           the demo session. This prototype does NOT contain, and must never
+           contain, a replica of a Google or Apple sign-in page or any field
+           asking for a Google or Apple password. -->
+      <div class="provs">
+        <button class="pbtn magna" type="button" data-act="sso">
+          <svg class="ic" aria-hidden="true"><use href="#i-shield"></use></svg>
+          <span class="lb">Sign in with Magna SSO</span>
+        </button>
+
+        <button class="pbtn google" type="button" data-act="oauth" data-prov="google">
+          <svg class="gmark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.28-3.14.76-4.59l-7.97-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          <span class="lb">Sign in with Google</span>
+        </button>
+
+        <button class="pbtn apple" type="button" data-act="oauth" data-prov="apple">
+          <svg class="amark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.088-4.61 1.088zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+          </svg>
+          <span class="lb">Sign in with Apple</span>
+        </button>
+      </div>
+
+      <p class="provnote">Provider sign-in is simulated in this prototype — it never opens a Google
+        or Apple page and never asks for a provider password.</p>
 
       <p class="auth-alt">New to MagnaVERSE?
         <button data-act="auth-pane" data-pane="register">Create an account</button></p>
@@ -3380,6 +3746,9 @@ function applyTheme(t){
   var dark = t === "dark" || (t === "system" &&
     window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
   $("#themeIcon").innerHTML = '<use href="#' + (dark ? "i-moon" : "i-sun") + '"></use>';
+  /* the login carries its own toggle so both themes are first-class before sign-in */
+  var authIcon = $("#authThemeIcon");
+  if(authIcon) authIcon.innerHTML = '<use href="#' + (dark ? "i-moon" : "i-sun") + '"></use>';
   $("#themeBtn").setAttribute("aria-label",
     "Switch theme — currently " + (t === "system" ? "system (" + (dark?"dark":"light") + ")" : t));
   $$('[data-act="theme"]').forEach(function(b){
@@ -4310,9 +4679,12 @@ function showAuth(pane){
   ["login","register","workspace"].forEach(function(p){
     $("#pane" + p.charAt(0).toUpperCase() + p.slice(1)).hidden = p !== pane;
   });
-  if(pane === "login"){ var e = $("#liEmail"); if(e) e.focus(); }
+  if(pane === "login"){ var e = $("#liEmail"); if(e && !isMobile()) e.focus(); }
+  /* the preview is ambient: it is booted on a later task so it can never
+     delay painting the form or stealing focus from it */
+  setTimeout(pvSyncWidth, 0);
 }
-function hideAuth(){ $("#auth").hidden = true; }
+function hideAuth(){ $("#auth").hidden = true; pvStop(); }
 function fieldError(id, on, msg){
   var f = $("#" + id);
   f.classList.toggle("bad", !!on);
@@ -4365,6 +4737,268 @@ function signOut(){
   showAuth("login");
   toast("Signed out — your session was cleared from this device");
 }
+
+/* ==================================================================== V4 §3
+   The streamed login preview.
+
+   Design of the engine: exactly ONE timer is ever live, held in PV.timer, and
+   every step schedules the next one itself. That makes teardown a single
+   clearTimeout — pvStop() cannot leave an interval running behind the login —
+   and it makes pause/resume trivial, because the pending step is stashed in
+   PV.next and simply re-invoked on play.
+
+   Nothing here touches the form. The chain is started from a deferred task
+   after showAuth() has already focused the email field.
+
+   Under prefers-reduced-motion: reduce nothing animates — scenario 1 renders
+   in its finished state and the dots switch between finished states.
+   ======================================================================== */
+var PV = { timer:null, next:null, paused:false, running:false, hidPause:false,
+           i:0, open:false, seq:0 };
+
+function pvIcon(id){ return '<svg class="ic" aria-hidden="true"><use href="#' + id + '"></use></svg>'; }
+function pvRes(txt){ return '<div class="pv-res">' + pvIcon("i-shield") + "<span>" + txt + "</span></div>"; }
+
+var PV_SCEN = [
+  {
+    label: "Scenario 1 of 3 · connected enterprise data",
+    q: "Which POs slipped past their promised date this month?",
+    think: [["Thinking…", "reading the question against the programme"],
+            ["Querying SAP S/4HANA…", "on-prem MCP server · read-only"],
+            ["Writing…", "composing the answer"]],
+    chips: '<span class="chip acc">sap-s4hana · po_receipts</span>',
+    lede: "Nine purchase orders were received after their promised date this month. Three suppliers " +
+          "account for 74 of the 96 late days between them.",
+    blocks: [
+      '<div class="tblwrap"><div class="tblscroll"><table class="tbl">' +
+        "<thead><tr><th>PO</th><th>Supplier</th><th>Promised</th><th class=\"num\">Days late</th></tr></thead>" +
+        "<tbody>" +
+        '<tr><td class="name">4500019242</td><td>Al-Rajhi Steel</td><td>04 Aug</td><td class="num">13</td></tr>' +
+        '<tr><td class="name">4500019180</td><td>Gulf Rebar Co.</td><td>29 Jul</td><td class="num">13</td></tr>' +
+        '<tr><td class="name">4500019311</td><td>Saudi Cement</td><td>08 Aug</td><td class="num">6</td></tr>' +
+        "</tbody></table></div>" +
+        '<div class="tblcap">3 of 9 rows · SAP S/4HANA · read at 14:02 today</div></div>',
+      '<div class="mathblock"><span class="mrow">on-time rate<span class="op">=</span>1<span class="op">−</span>' +
+        '<span class="frac"><span class="num">9</span><span class="den">142</span></span>' +
+        '<span class="op">=</span>93.7%</span><span class="mtag">rendered</span></div>',
+      pvRes("Ran on Magna GPUs in Riyadh DC-1 · 0 bytes left the network")
+    ],
+    cap: "<b>Connected enterprise data.</b> Those rows were read out of SAP at query time — the model did not remember them."
+  },
+  {
+    label: "Scenario 2 of 3 · provenance you can click",
+    q: "Summarise the change orders on Package 4 and who owns the risk.",
+    think: [["Thinking…", "scoping the question to Package 4"],
+            ["Searching Company Knowledge…", "8,400 documents indexed"],
+            ["Writing…", "attaching sources to each claim"]],
+    chips: '<span class="chip acc">Grounded · 2 sources</span>',
+    lede: "Four change orders are open on Package 4. Two are commercial, two are design-led, and the " +
+          "largest sits with the structural subcontractor.",
+    blocks: [
+      "<p>The rebar substitution (CO-114, SAR 2.4 m) stays with Contracts until the supplier claim " +
+        'closes<span class="cite">1</span>. The slab thickening on levels 3–5 (CO-117) belongs to ' +
+        'engineering, and it is the one on the critical path<span class="cite">2</span>.</p>',
+      '<div class="srcbox"><div class="hd">' + pvIcon("i-book") + "Sources</div>" +
+        '<div class="srcgrp"><div class="src"><span class="n">1</span><span class="t">' +
+          "<b>PKG4 — Change Order Register.xlsx</b><span>Company Knowledge · updated 12 Aug</span></span></div>" +
+        '<div class="src"><span class="n">2</span><span class="t">' +
+          "<b>PKG4-MOM-2026-08-11.pdf</b><span>Primavera P6 · linked minute</span></span></div></div></div>",
+      pvRes("Every sentence carries its source · retrieval and inference both on-premises")
+    ],
+    cap: "<b>Provenance.</b> Each claim is pinned to the document it came from — open the source and it scrolls into view."
+  },
+  {
+    label: "Scenario 3 of 3 · the mail MCP server",
+    q: "What's in my inbox about the rebar delay?",
+    think: [["Thinking…", "deciding which tool answers this"],
+            ["Running magna-mail…", "on-premises Exchange · read-only scope"],
+            ["Writing…", "summarising three messages"]],
+    chips: '<span class="chip acc">magna-mail · search_messages</span>',
+    lede: "Three messages from the past week mention the rebar delay. The most recent is from the " +
+          "supplier, and it moves the date again.",
+    blocks: [
+      '<div class="pv-mail"><div class="mh"><b>Khalid Al-Otaibi · Gulf Rebar Co.</b>' +
+        "<time>Tue 14:02</time></div>" +
+        '<div class="ms">RE: PKG4 — rebar delivery, week 33</div>' +
+        "<p>“…the 16 mm bar is released for dispatch on Sunday. The 25 mm stays held at the mill " +
+        "until the mill certificate is re-issued…”</p></div>",
+      pvRes("Read through magna-mail · read-only · your mailbox never left Magna's network")
+    ],
+    cap: "<b>The mail MCP.</b> MagnaVERSE read on-premises Exchange through an MCP server it holds a read-only grant for."
+  }
+];
+
+function pvReduced(){
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+function pvKill(){ if(PV.timer){ clearTimeout(PV.timer); PV.timer = null; } }
+function pvClear(){ pvKill(); PV.next = null; }
+function pvAt(fn, ms){
+  pvKill();
+  PV.next = fn;
+  var seq = PV.seq;
+  PV.timer = setTimeout(function(){
+    PV.timer = null; PV.next = null;
+    if(seq !== PV.seq || PV.paused || !PV.running) return;
+    fn();
+  }, ms);
+}
+function pvScroll(){ var b = $("#pvBody"); if(b) b.scrollTop = b.scrollHeight; }
+function pvDots(){
+  $$("#pvWrap .pv-dot").forEach(function(b){
+    b.setAttribute("aria-current", (+b.dataset.i === PV.i) ? "true" : "false");
+  });
+}
+function pvSetPlay(paused){
+  var b = $("#pvPlay"); if(!b) return;
+  var ic = paused ? "play" : "pause";
+  b.innerHTML = '<svg class="ic" aria-hidden="true" data-icon="' + ic + '"><use href="#i-' + ic + '"></use></svg>';
+  b.setAttribute("aria-label", paused ? "Play the preview" : "Pause the preview");
+}
+function pvMeta(s){
+  return '<div class="pv-meta">' + markSVG("", "MagnaVERSE") + "<b>MagnaVERSE</b>" +
+    '<span class="chip priv"><span class="dot"></span>Private · Riyadh DC-1</span>' + s.chips + "</div>";
+}
+
+/* --- the animated path ------------------------------------------------- */
+function pvType(s, n){
+  var body = $("#pvBody"); if(!body) return;
+  var q = $(".pv-q", body);
+  if(!q){ q = document.createElement("div"); q.className = "pv-q"; body.appendChild(q); }
+  q.textContent = s.q.slice(0, n);
+  var car = document.createElement("span"); car.className = "pv-caret"; q.appendChild(car);
+  pvScroll();
+  if(n >= s.q.length){ pvAt(function(){ car.remove(); pvThink(s, 0); }, 420); return; }
+  pvAt(function(){ pvType(s, n + 1); }, s.q.charAt(n) === " " ? 46 : 21);
+}
+function pvThink(s, k){
+  var body = $("#pvBody"); if(!body) return;
+  var row = $(".pv-think", body);
+  if(!row){
+    row = document.createElement("div");
+    row.className = "thinking pv-think pv-b";
+    row.setAttribute("role", "status");
+    row.innerHTML = markSVG("mg-thinking", "MagnaVERSE is working") +
+      '<span class="tx"><b></b><span></span></span>';
+    body.appendChild(row);
+  }
+  $("b", row).textContent = s.think[k][0];
+  $(".tx span", row).textContent = s.think[k][1];
+  pvScroll();
+  if(k + 1 < s.think.length){ pvAt(function(){ pvThink(s, k + 1); }, 440); return; }
+  pvAt(function(){ row.remove(); pvAnswer(s); }, 480);
+}
+function pvAnswer(s){
+  var body = $("#pvBody"); if(!body) return;
+  var a = document.createElement("div");
+  a.className = "pv-a pv-b";
+  a.innerHTML = pvMeta(s) + '<p class="pv-lede"></p>';
+  body.appendChild(a);
+  pvScroll();
+  pvWords(s, a, s.lede.split(" "), 1);
+}
+function pvWords(s, a, w, n){
+  var p = $(".pv-lede", a); if(!p) return;
+  p.textContent = w.slice(0, n).join(" ");
+  pvScroll();
+  if(n >= w.length){ pvAt(function(){ pvBlocks(s, a, 0); }, 240); return; }
+  pvAt(function(){ pvWords(s, a, w, n + 1); }, 48);
+}
+function pvBlocks(s, a, n){
+  if(n >= s.blocks.length){
+    var cap = $("#pvCap"); if(cap) cap.innerHTML = s.cap;
+    pvAt(pvAdvance, 3200);
+    return;
+  }
+  var d = document.createElement("div");
+  d.className = "pv-b";
+  d.innerHTML = s.blocks[n];
+  a.appendChild(d);
+  pvScroll();
+  pvAt(function(){ pvBlocks(s, a, n + 1); }, 300);
+}
+function pvAdvance(){ pvRender((PV.i + 1) % PV_SCEN.length, true); }
+
+/* --- the finished state (reduced motion, or a jump while paused) -------- */
+function pvFinal(s){
+  var body = $("#pvBody"); if(!body) return;
+  body.innerHTML = '<div class="pv-q">' + esc(s.q) + "</div>" +
+    '<div class="pv-a">' + pvMeta(s) + "<p>" + esc(s.lede) + "</p>" + s.blocks.join("") + "</div>";
+  var cap = $("#pvCap"); if(cap) cap.innerHTML = s.cap;
+  body.scrollTop = 0;
+}
+function pvRender(i, animate){
+  var body = $("#pvBody"); if(!body) return;
+  pvClear();
+  PV.seq++;
+  PV.i = i;
+  pvDots();
+  var s = PV_SCEN[i];
+  body.innerHTML = "";
+  if(!animate){ pvFinal(s); return; }
+  var cap = $("#pvCap"); if(cap) cap.textContent = s.label;
+  pvType(s, 0);
+}
+
+/* --- lifecycle --------------------------------------------------------- */
+function pvStart(){
+  if(PV.running || !$("#pvBody")) return;
+  PV.running = true;
+  PV.paused = false;
+  var reduced = pvReduced();
+  var play = $("#pvPlay");
+  if(play) play.hidden = reduced;     /* nothing animates, so nothing to pause */
+  pvSetPlay(false);
+  pvRender(PV.i, !reduced);
+}
+function pvStop(){
+  PV.running = false;
+  PV.hidPause = false;
+  PV.seq++;
+  pvClear();
+}
+function pvTogglePlay(){
+  if(!PV.running) return;
+  if(PV.paused){
+    PV.paused = false;
+    pvSetPlay(false);
+    var f = PV.next; PV.next = null;
+    if(f) f(); else pvRender(PV.i, true);
+  } else {
+    PV.paused = true;
+    pvKill();                          /* PV.next survives — that is the resume point */
+    pvSetPlay(true);
+  }
+}
+function pvGoto(i){
+  PV.i = i;
+  if(!PV.running){ pvDots(); return; }
+  /* paused or reduced-motion: land on the finished state rather than replaying */
+  pvRender(i, !pvReduced() && !PV.paused);
+}
+/* < 768px the preview is a disclosure below the form; it only runs while open */
+function pvSyncWidth(){
+  var w = $("#pvWrap"); if(!w) return;
+  var wantOpen = isMobile() ? PV.open : true;
+  w.classList.toggle("open", wantOpen);
+  var t = $("#pvToggle");
+  if(t){
+    t.setAttribute("aria-expanded", PV.open ? "true" : "false");
+    var lb = t.querySelector("span");
+    if(lb) lb.textContent = PV.open ? "Hide the demo" : "See a 20-second demo";
+  }
+  if(wantOpen && !$("#auth").hidden) pvStart(); else pvStop();
+}
+/* a backgrounded tab should not burn timers; it resumes where it left off */
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden){
+    if(PV.running && !PV.paused){ PV.hidPause = true; PV.paused = true; pvKill(); }
+  } else if(PV.hidPause){
+    PV.hidPause = false; PV.paused = false;
+    var f = PV.next; PV.next = null;
+    if(f) f(); else if(PV.running) pvRender(PV.i, !pvReduced());
+  }
+});
 
 /* --------------------------------------------------------------- routing */
 var VIEW_TITLES = {
@@ -4580,7 +5214,7 @@ function viewConnections(){
         '<span class="meta">' + statusPill(c.status) + '<span class="pill mono">' + c.tools + " tools</span>" +
         '<span class="pill">synced ' + esc(c.sync) + "</span>" +
         (c.local ? '<span class="pill ok"><span class="dot"></span>on-prem</span>' : "") + "</span></span>" +
-        '<span class="side"><button class="btn sm" data-act="test-connection" data-name="' + esc(c.name) +
+        '<span class="rside"><button class="btn sm" data-act="test-connection" data-name="' + esc(c.name) +
         '">Test connection</button></span></div></div>';
     }).join("");
   }
@@ -4635,7 +5269,7 @@ function viewAgents(){
       "</span>" +
       '<p style="margin-top:9px;color:var(--tx-3)"><strong style="color:var(--tx-2)">Last run ' +
       esc(a.lastRun) + ":</strong> " + esc(a.lastOutput) + "</p></span>" +
-      '<span class="side">' + resultPill(a.enabled ? a.lastResult : "off") +
+      '<span class="rside">' + resultPill(a.enabled ? a.lastResult : "off") +
       '<span class="pill mono">' + a.runs + " runs</span>" +
       '<button class="btn sm primary" data-act="agent-run" data-id="' + a.id + '">' +
       '<svg class="ic sm" aria-hidden="true"><use href="#i-play"></use></svg>Run now</button>' +
@@ -4675,7 +5309,7 @@ function viewTasks(){
       '<span class="pill">last ' + esc(s.last) + "</span>" +
       '<span class="pill">next ' + esc(s.on ? s.next : "paused") + "</span></span>" +
       '<p style="margin-top:9px;color:var(--tx-3)">' + esc(s.detail) + "</p></span>" +
-      '<span class="side">' + resultPill(s.on ? s.result : "off") +
+      '<span class="rside">' + resultPill(s.on ? s.result : "off") +
       '<button class="btn sm" data-act="sched-run" data-id="' + s.id + '">Run now</button>' +
       '<button class="switch" data-act="sched-toggle" data-id="' + s.id + '" role="switch" aria-checked="' +
       s.on + '" aria-label="Enable ' + esc(s.name) + '"></button></span></div></div>';
@@ -4726,7 +5360,7 @@ function viewProject(){
       return '<div class="lcard"><button class="lrow" data-act="convo" data-convo="' + k + '">' +
         '<span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-msg"></use></svg></span>' +
         '<span class="t"><b>' + esc(CONVOS[k].title) + "</b><p>" + esc(CONVOS[k].sub) + "</p></span>" +
-        '<span class="side"><span class="pill ok"><span class="dot"></span>Private</span></span></button></div>';
+        '<span class="rside"><span class="pill ok"><span class="dot"></span>Private</span></span></button></div>';
     }).join("") :
       '<div class="empty-v"><svg class="ic" aria-hidden="true"><use href="#i-msg"></use></svg>' +
       "<b>No conversations in this project yet</b><p>Chats you start from here inherit the project's files " +
@@ -4776,7 +5410,7 @@ function viewProject(){
     '<span class="t"><b>Data residency</b><p>' +
     (p.pinned ? "Every conversation in this project is forced to <strong>Private</strong>. Members cannot switch it."
               : "Threads in this project may be switched to Public by their owner.") + "</p></span>" +
-    '<span class="side"><button class="btn sm" data-act="proj-pin">' +
+    '<span class="rside"><button class="btn sm" data-act="proj-pin">' +
     (p.pinned ? "Unpin from Private" : "Pin to Private") + "</button></span></div></div>";
 
   return '<div class="projhd"><span class="swatch" style="background:' + p.colour + '"></span>' +
@@ -5232,6 +5866,36 @@ function handleV2(a, el, e){
     toast("Magna SSO — single sign-on is simulated in this prototype");
     V.pendingUser = { email:"ahmad.farahat@magna.ai", name:"Ahmad Farahat" };
     showAuth("workspace"); return true;
+
+  /* V4 §2 — Google / Apple.
+     The provider round-trip is SIMULATED, never imitated: a brief authorising
+     state on the Magna mark, then straight into the demo session. No provider
+     sign-in screen and no provider password field exists in this file. */
+  case "oauth": {
+    if(el.dataset.busy) return true;
+    var isApple = el.dataset.prov === "apple";
+    var prov = isApple ? "Apple" : "Google";
+    var art = isApple ? "an " : "a ";
+    var back = el.innerHTML;
+    el.dataset.busy = "1";
+    el.disabled = true;
+    el.innerHTML = markSVG("mg-thinking", "Authorising") +
+      '<span class="lb">Authorising with ' + prov + "…</span>";
+    setTimeout(function(){
+      el.innerHTML = back;
+      el.disabled = false;
+      delete el.dataset.busy;
+      V.pendingUser = { email:"ahmad.farahat@magna.ai", name:"Ahmad Farahat" };
+      toast(prov + " sign-in is simulated — this prototype never opens " + art + prov + " sign-in page");
+      showAuth("workspace");
+    }, 950);
+    return true;
+  }
+
+  /* ---- login demo preview ---- */
+  case "pv-play": pvTogglePlay(); return true;
+  case "pv-dot":  pvGoto(+el.dataset.i); return true;
+  case "pv-toggle": PV.open = !PV.open; pvSyncWidth(); return true;
   case "pick-workspace": pickWorkspace(el.dataset.ws); return true;
   case "sign-out": signOut(); return true;
 
@@ -6379,7 +7043,7 @@ setView("chat");
 /* crossing a breakpoint must not strand the drawer open or the rail wrong */
 ["(min-width: 768px)", "(max-width: 1023px)"].forEach(function(q){
   var mq = window.matchMedia(q);
-  var fn = function(){ closeDrawer(false); syncSidebarToWidth(); };
+  var fn = function(){ closeDrawer(false); syncSidebarToWidth(); pvSyncWidth(); };
   if(mq.addEventListener) mq.addEventListener("change", fn);
   else if(mq.addListener) mq.addListener(fn);
 });

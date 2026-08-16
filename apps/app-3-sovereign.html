@@ -150,7 +150,7 @@ body{
 .btn.wide{width:100%}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 
-.iconbtn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;border-radius:8px;
   color:var(--tx-2);transition:background .12s,color .12s}
 .iconbtn:hover{background:var(--surface-2);color:var(--tx)}
 .iconbtn.on{background:var(--accent-dim);color:var(--accent-tx)}
@@ -1305,6 +1305,259 @@ body:not([data-view="chat"]) .composer-zone{display:none}
 body:not([data-view="chat"]):not([data-view="mail"]) .panel{display:none}
 body[data-view="mail"] #page .pg-scroll{overflow:hidden}
 
+/* ============================================================
+   33b · v4 — CONSOLE LOGIN. The pre-flight check IS the thesis.
+   Dark theme: a full-bleed instrument panel on near-black.
+   Light theme: the same console drawn on paper white — hairline
+   rules, mono readouts, no washed-out dark surfaces.
+   ============================================================ */
+.cx{
+  --cx-ground:#F8FAFC; --cx-ink:rgba(16,22,30,.055); --cx-edge:rgba(16,22,30,.15);
+  --cx-vig:radial-gradient(120% 78% at 50% 0%,rgba(37,99,235,.045),transparent 62%);
+  position:relative;display:flex;flex-direction:column;
+  min-height:100vh;min-height:100dvh;background:var(--cx-ground);color:var(--tx)
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .cx{
+    --cx-ground:#04060A; --cx-ink:rgba(255,255,255,.045); --cx-edge:rgba(255,255,255,.115);
+    --cx-vig:radial-gradient(120% 78% at 50% 0%,rgba(63,207,149,.07),transparent 62%);
+  }
+}
+:root[data-theme="dark"] .cx{
+  --cx-ground:#04060A; --cx-ink:rgba(255,255,255,.045); --cx-edge:rgba(255,255,255,.115);
+  --cx-vig:radial-gradient(120% 78% at 50% 0%,rgba(63,207,149,.07),transparent 62%);
+}
+.cx-grid{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(var(--cx-ink) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--cx-ink) 1px,transparent 1px);
+  background-size:38px 38px;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 38%,transparent 92%);
+          mask-image:linear-gradient(180deg,#000 0,#000 38%,transparent 92%)}
+.cx-grid::after{content:"";position:absolute;inset:0;background:var(--cx-vig)}
+
+/* the rail — a status strip, not a marketing header */
+.cx-rail{position:relative;z-index:2;flex:none;display:flex;align-items:center;gap:9px;
+  min-height:50px;padding:6px 18px;border-bottom:1px solid var(--cx-edge);flex-wrap:nowrap;overflow:hidden}
+.cx-brand{display:flex;align-items:center;gap:10px;flex:none}
+.cx-brand .magna-mark{width:30px}
+.cx-brand .nm{font-size:15px;letter-spacing:-.015em;white-space:nowrap}
+.cx-brand .nm b{font-weight:650}
+.cx-brand .nm span{color:var(--tx-3);font-weight:650}
+.cx-vr{width:1px;height:20px;background:var(--cx-edge);flex:none}
+.cx-rtag{font-family:var(--mono);font-size:10.6px;letter-spacing:.01em;color:var(--tx-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.cx-rtag b{color:var(--tx-2);font-weight:600}
+.cx-sp{flex:1}
+
+/* two instrument bays: the form, and the readouts beside it */
+.cx-body{position:relative;z-index:1;flex:1;min-height:0;width:100%;max-width:1200px;margin:0 auto;
+  display:grid;grid-template-columns:minmax(0,404px) minmax(0,1fr);gap:16px;
+  align-items:stretch;padding:20px 18px 28px}
+.cx-solo .cx-body{grid-template-columns:minmax(0,440px);justify-content:center;align-items:center}
+.cx-bay{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+/* the bordered terminal card, with corner registration ticks */
+.cx-card{position:relative;border:1px solid var(--cx-edge);border-radius:var(--r-lg);background:var(--surface);
+  box-shadow:var(--shadow-2);min-width:0}
+.cx-card::before,.cx-card::after{content:"";position:absolute;width:10px;height:10px;pointer-events:none;opacity:.6}
+.cx-card::before{left:-1px;top:-1px;border-left:1px solid var(--accent);border-top:1px solid var(--accent);
+  border-radius:var(--r-lg) 0 0 0}
+.cx-card::after{right:-1px;bottom:-1px;border-right:1px solid var(--accent);border-bottom:1px solid var(--accent);
+  border-radius:0 0 var(--r-lg) 0}
+.cx-bar{display:flex;align-items:center;gap:8px;min-height:31px;padding:0 10px;
+  border-bottom:1px solid var(--line);background:var(--surface-2);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;
+  font-family:var(--mono);font-size:10.4px;letter-spacing:.03em;color:var(--tx-2);white-space:nowrap;overflow:hidden}
+.cx-bar b{color:var(--tx-3);font-weight:400}
+.cx-bar .cx-opt{color:var(--tx-3)}
+.cx-led{width:7px;height:7px;border-radius:99px;flex:none;background:var(--tx-3)}
+.cx-led.ok{background:var(--private);box-shadow:0 0 0 3px var(--private-dim)}
+.cx-led.acc{background:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.cx-led.warn{background:var(--public);box-shadow:0 0 0 3px var(--public-dim)}
+@media (prefers-reduced-motion:no-preference){ .cx-led.ok,.cx-led.acc{animation:pulse 3.2s ease-in-out infinite} }
+.cx-pad{padding:15px 17px 14px}
+.cx-form h1{font-size:21px;font-weight:680;letter-spacing:-.02em;margin-bottom:4px}
+.cx-lede{font-size:12.6px;color:var(--tx-2);margin-bottom:12px;line-height:1.5}
+.cx-form .demo-note{margin-bottom:12px}
+.cx-form .field{margin-bottom:11px}
+.cx-form .auth-or{margin:12px 0}
+.cx-form .auth-legal{margin-top:12px;font-size:10.6px}
+
+/* ---- pre-flight readout ---- */
+.cx-lines{padding:5px 0;font-family:var(--mono);font-size:11.3px}
+.cx-ln{display:flex;align-items:center;gap:8px;padding:5px 11px;min-height:26px;color:var(--tx-3);
+  opacity:.4;transition:opacity .22s ease,color .22s ease}
+.cx-ln .g{width:12px;flex:none;text-align:center;font-size:10.5px;line-height:1}
+.cx-ln .s{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cx-ln .lead{flex:1 1 10px;min-width:6px;height:0;border-bottom:1px dotted var(--line-2);opacity:.85}
+.cx-ln .ms{flex:none;font-size:10px;font-variant-numeric:tabular-nums;color:var(--tx-3)}
+.cx-ln .k{flex:none;width:12px;text-align:center;font-size:11px;color:transparent}
+.cx-ln[data-s="run"]{opacity:1;color:var(--tx-2)}
+.cx-ln[data-s="run"] .g{color:var(--accent-tx)}
+.cx-ln[data-s="ok"]{opacity:1;color:var(--tx-2)}
+.cx-ln[data-s="ok"] .g,.cx-ln[data-s="ok"] .k{color:var(--private-tx)}
+.cx-ln[data-s="warn"]{opacity:1;color:var(--public-tx)}
+.cx-ln[data-s="warn"] .g,.cx-ln[data-s="warn"] .k{color:var(--public-tx)}
+.cx-ln[data-s="warn"] .ms{color:var(--public-tx)}
+@media (prefers-reduced-motion:no-preference){ .cx-ln[data-s="run"] .g{animation:cxBlink 1s steps(2,start) infinite} }
+@keyframes cxBlink{50%{opacity:.15}}
+.cx-pre-foot{padding:9px 11px;border-top:1px solid var(--line);font-size:10.8px;color:var(--tx-3);line-height:1.5}
+
+/* ---- provider buttons — vendor conventions, simulated round-trip ---- */
+.cx-prov{display:flex;flex-direction:column;gap:9px}
+.prow{display:flex;align-items:center;gap:9px;min-width:0}
+.prow .ptag{flex:none;width:80px;display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);
+  font-size:10px;letter-spacing:.01em;color:var(--private-tx);white-space:nowrap}
+.prow .ptag.warn{color:var(--public-tx)}
+.pbtn{flex:1;min-width:0;height:44px;padding:0 14px;border-radius:var(--r);border:1px solid transparent;
+  display:inline-flex;align-items:center;justify-content:center;gap:11px;
+  font-size:14px;font-weight:500;letter-spacing:.005em;white-space:nowrap;
+  transition:background .12s,border-color .12s,filter .12s}
+.pbtn .pmk{flex:none;display:flex;align-items:center;justify-content:center;width:18px;height:18px}
+.pbtn .plb{overflow:hidden;text-overflow:ellipsis}
+.pbtn[disabled]{opacity:.55;cursor:not-allowed}
+.pbtn .magna-mark{width:20px}
+/* Google — white, 1px #747775, Roboto-ish, the four-colour G never recoloured */
+.pbtn.google{font-family:Roboto,"Helvetica Neue",Arial,var(--sans);
+  background:#FFFFFF;border-color:#747775;color:#1F1F1F}
+.pbtn.google:hover{background:#F5F6F7}
+.pbtn.google:active{background:#EDEEF0}
+/* Apple — solid black, white logotype (light); inverted in dark */
+.pbtn.apple{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",var(--sans);
+  background:#000000;border-color:#000000;color:#FFFFFF}
+.pbtn.apple .amk{fill:#FFFFFF}
+.pbtn.apple:hover{background:#1A1A1A;border-color:#1A1A1A}
+/* Magna SSO — matched visual weight, app tokens */
+.pbtn.magna{background:var(--surface-2);border-color:var(--line-2);color:var(--tx)}
+.pbtn.magna:hover{background:var(--surface-3);border-color:var(--line-3)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .pbtn.google{background:#131314;border-color:#8E918F;color:#E3E3E3}
+  :root:not([data-theme="light"]) .pbtn.google:hover{background:#1D1D1E}
+  :root:not([data-theme="light"]) .pbtn.apple{background:#FFFFFF;border-color:#FFFFFF;color:#000000}
+  :root:not([data-theme="light"]) .pbtn.apple .amk{fill:#000000}
+  :root:not([data-theme="light"]) .pbtn.apple:hover{background:#EDEDED;border-color:#EDEDED}
+}
+:root[data-theme="dark"] .pbtn.google{background:#131314;border-color:#8E918F;color:#E3E3E3}
+:root[data-theme="dark"] .pbtn.google:hover{background:#1D1D1E}
+:root[data-theme="dark"] .pbtn.apple{background:#FFFFFF;border-color:#FFFFFF;color:#000000}
+:root[data-theme="dark"] .pbtn.apple .amk{fill:#000000}
+:root[data-theme="dark"] .pbtn.apple:hover{background:#EDEDED;border-color:#EDEDED}
+.cx-egress{display:flex;align-items:flex-start;gap:7px;margin-top:9px;padding:9px 10px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--surface-2);
+  font-size:11px;line-height:1.5;color:var(--tx-3)}
+.cx-egress b{color:var(--tx-2);font-weight:620}
+
+/* ---- streamed demo preview ---- */
+.cx-demo{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
+.cx-pp{width:26px;height:26px;flex:none;border-radius:7px;display:grid;place-items:center;color:var(--tx-3);
+  transition:background .12s,color .12s}
+.cx-pp:hover{background:var(--surface-3);color:var(--tx)}
+.cx-dots{display:flex;align-items:center;gap:3px;flex:none}
+.cx-dot{width:22px;height:26px;display:grid;place-items:center;border-radius:6px}
+.cx-dot::after{content:"";width:6px;height:6px;border-radius:99px;background:var(--line-3);transition:background .16s,transform .16s}
+.cx-dot:hover::after{background:var(--tx-3)}
+.cx-dot[aria-selected="true"]::after{background:var(--accent);transform:scale(1.25)}
+.cx-demo-bd{display:flex;min-height:0;flex:1 1 auto}
+.cx-thread{flex:1;min-width:0;padding:11px 12px;overflow-y:auto;min-height:262px;scrollbar-width:none;
+  display:flex;flex-direction:column;gap:8px;justify-content:flex-start}
+.cx-thread::-webkit-scrollbar{width:0;height:0}
+.cx-q{align-self:flex-end;max-width:88%;background:var(--surface-3);border:1px solid var(--line);
+  padding:7px 11px;border-radius:12px 12px 3px 12px;font-size:12.4px;line-height:1.45;color:var(--tx)}
+.cx-q .cur{display:inline-block;width:6px;height:12px;background:var(--accent);vertical-align:-1px;margin-left:1px}
+@media (prefers-reduced-motion:no-preference){ .cx-q .cur{animation:cxBlink 1s steps(2,start) infinite} }
+.cx-think{display:flex;align-items:center;gap:9px;color:var(--tx-2);font-size:11.8px;min-height:30px}
+.cx-think[hidden]{display:none}
+.cx-think .magna-mark{width:26px}
+.cx-think i{font-style:normal;color:var(--tx-3);font-size:10.6px;font-family:var(--mono)}
+.cx-a{font-size:12.4px;line-height:1.55;color:var(--tx);min-width:0}
+.cx-a p{margin:0 0 7px}
+.cx-a p:last-child{margin-bottom:0}
+.cx-a b{font-weight:650}
+.cx-ahd{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.cx-ahd .magna-mark{width:19px}
+.cx-ahd .nm{font-size:11.4px;font-weight:650}
+.cx-a .tblwrap{margin-bottom:7px}
+.cx-a table.data{font-size:11.2px}
+.cx-a table.data th{padding:5px 8px;font-size:9px}
+.cx-a table.data td{padding:5px 8px}
+.cx-a .mathblk{padding:10px 14px;margin-bottom:7px}
+.cx-a .mrow{font-size:15px}
+.cx-src{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:99px;
+  border:1px solid color-mix(in srgb,var(--accent) 38%,transparent);background:var(--accent-dim);
+  color:var(--accent-tx);font-size:10.4px;font-weight:600;font-family:var(--mono);max-width:100%}
+.cx-src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cx-tool{display:flex;align-items:center;gap:7px;padding:5px 9px;border-radius:8px;border:1px dashed var(--line-2);
+  background:var(--surface-2);font-family:var(--mono);font-size:10.4px;color:var(--tx-3);margin-bottom:7px}
+.cx-tool b{color:var(--tx-2);font-weight:600}
+.cx-tool .ms{margin-left:auto;font-variant-numeric:tabular-nums}
+.cx-mail{display:flex;gap:8px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface-2);margin-bottom:6px;font-size:11.2px}
+.cx-mail .mt{flex:1;min-width:0}
+.cx-mail .mt b{display:block;font-weight:620;font-size:11.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-mail .mt span{display:block;color:var(--tx-3);font-size:10.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-mail .tm{flex:none;font-family:var(--mono);font-size:9.8px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+.cx-res{display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:10.2px;color:var(--private-tx);flex-wrap:wrap}
+
+/* reveal units — real streaming, layout grows as it does in the product */
+.cx-a .tk{display:none}
+.cx-a .tk.on{display:inline}
+.cx-blk{display:none}
+.cx-blk.on{display:block}
+tr.cx-blk.on{display:table-row}
+/* these are flex boxes in their own right — .cx-blk.on must not flatten them */
+.cx-ahd.on,.cx-tool.on,.cx-mail.on,.cx-res.on,.cx-a .mathblk.on{display:flex}
+.cx-src.on{display:inline-flex}
+
+/* the receipt fills in alongside the answer */
+.cx-rcpt{flex:none;width:178px;border-left:1px solid var(--line);background:var(--surface-2);
+  border-radius:0 0 var(--r-lg) 0;padding:10px 11px;min-width:0}
+.cx-rcpt .rh{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700;margin-bottom:8px}
+.cx-rcpt dl{display:block}
+.cx-rcpt .rr{display:none;margin-bottom:7px}
+.cx-rcpt .rr.on{display:block;animation:cxIn .22s ease both}
+@media (prefers-reduced-motion:reduce){ .cx-rcpt .rr.on{animation:none} }
+@keyframes cxIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.cx-rcpt dt{font-size:9.2px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3);font-weight:700;margin-bottom:1px}
+.cx-rcpt dd{font-family:var(--mono);font-size:10.6px;color:var(--tx);font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;line-height:1.35}
+.cx-rcpt dd.good{color:var(--private-tx);font-weight:600}
+.cx-cap{padding:9px 12px;border-top:1px solid var(--line);font-size:11.2px;color:var(--tx-3);line-height:1.5;
+  min-height:36px}
+.cx-cap b{color:var(--tx-2);font-weight:650}
+
+/* ---- console responsive ---- */
+@media (max-width:1023px){
+  .cx-body{grid-template-columns:minmax(0,1fr);max-width:620px;gap:14px}
+  .cx-thread{min-height:238px}
+}
+@media (max-width:767px){
+  .cx-rail{padding:6px 12px;gap:7px}
+  .cx-rail .cx-opt{display:none}
+  .cx-body{padding:14px 12px 26px;gap:12px}
+  .cx-pad{padding:14px 13px 15px}
+  .cx-form h1{font-size:19px}
+  .cx-demo-bd{flex-direction:column}
+  .cx-thread{max-height:none;min-height:0}
+  .cx-rcpt{width:auto;border-left:0;border-top:1px solid var(--line);border-radius:0;padding:9px 12px}
+  .cx-rcpt .rh{margin-bottom:7px}
+  /* the receipt becomes a compact strip rather than a tall column */
+  .cx-rcpt dl{display:flex;flex-wrap:wrap;gap:9px 20px}
+  .cx-rcpt .rr{margin-bottom:0}
+  .cx-rcpt .rr.on{display:block;flex:0 0 auto;max-width:100%}
+  .cx-pp{width:44px;height:44px}
+  .cx-dot{width:34px;height:44px}
+  .cx-bar{min-height:46px}
+}
+@media (max-width:439px){
+  .prow{flex-wrap:wrap;gap:4px}
+  .prow .pbtn{flex:1 1 100%}
+  .prow .ptag{padding-left:3px}
+  .cx-brand .nm{font-size:14px}
+  .cx-rtag{font-size:9.8px}
+}
+
 /* ---------- 33. v2 RESPONSIVE ---------- */
 @media (max-width:1023px){
   .pg{padding:16px 18px 34px}
@@ -1347,6 +1600,32 @@ body[data-view="mail"] #page .pg-scroll{overflow:hidden}
 @media (max-width:420px){
   .tiles{grid-template-columns:1fr}
   .auth-card{max-width:none}
+}
+/* v4 §4 — the last touch targets under 44px. Placed last so it wins. */
+@media (max-width:767px){
+  .cbtn{height:44px;min-height:44px}
+  .code-hd,.fig-hd{height:auto;min-height:52px;padding-top:4px;padding-bottom:4px}
+  .reason{min-height:44px}
+  .seg2 button{height:44px;min-width:44px}
+  .seg button{height:44px;min-width:44px;padding:0 13px}
+  .btn.sm{min-width:44px}
+  .set-nav button{min-width:44px}
+  .disclose > button{min-height:44px}
+  .src a,.src .ttl{display:inline-flex;align-items:center;min-height:44px}
+  .composer textarea{min-height:44px}
+  /* the switch keeps its 26px track but its hit box is a full 44px tall */
+  .switch{width:46px;height:44px;background:transparent;border-color:transparent;border-radius:0}
+  .switch::before{content:"";position:absolute;left:0;top:9px;width:46px;height:26px;border-radius:99px;
+    background:var(--surface-3);border:1px solid var(--line-2);transition:background .14s,border-color .14s}
+  .switch::after{top:11px;left:2px;width:20px;height:20px}
+  .switch[aria-checked="true"]{background:transparent;border-color:transparent}
+  .switch[aria-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
+  .switch[aria-checked="true"]::after{transform:translateX(22px)}
+  /* preview controls get full targets; the scenario label yields the room */
+  .cx-dot{width:44px}
+  .cx-tool{flex-wrap:wrap;line-height:1.5}
+  .cx-tool .ms{margin-left:0;width:100%;padding-left:20px}
+  .cx-demo .cx-bar b,.cx-demo .cx-bar #cxScene{display:none}
 }
 </style>
 </head>
@@ -1413,105 +1692,179 @@ body[data-view="mail"] #page .pg-scroll{overflow:hidden}
 <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4.5v15M15 4.5v15"/></symbol>
 </defs></svg>
 
-<!-- ============ STAGE 1 · LOGIN ============ -->
+<!-- ============ STAGE 1 · LOGIN — console / pre-flight check ============
+     PROTOTYPE SAFETY RULE — do not change this.
+     The Google and Apple buttons below are SIMULATED. Clicking one goes
+     straight into the demo session. This file must NEVER render a replica of a
+     Google or Apple sign-in screen and must NEVER show a field asking for a
+     Google or Apple password: a convincing copy of a provider credential screen
+     is a phishing page regardless of intent, and this prototype is deployed
+     publicly. The provider round-trip is simulated, never imitated.
+     ===================================================================== -->
 <section class="stage-screen" id="stageAuth" aria-label="Sign in to MagnaVERSE">
-  <div class="auth">
-    <div class="auth-brand">
-      <div class="auth-bg" aria-hidden="true">
-        <span class="glow a1"></span><span class="glow a2"></span><span class="glow a3"></span>
-        <svg class="magna-mark bigmark" viewBox="0 0 640 440" aria-hidden="true">
-          <defs>
-            <linearGradient id="mgGB-auth" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
-            </linearGradient>
-            <linearGradient id="mgR-auth" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
-            </linearGradient>
-          </defs>
-          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="blogo">
+  <div class="cx">
+    <div class="cx-grid" aria-hidden="true"></div>
+
+    <header class="cx-rail">
+      <span class="cx-brand">
         <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
           <defs>
-            <linearGradient id="mgGB-login" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mgGB-cx" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
               <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
             </linearGradient>
-            <linearGradient id="mgR-login" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <linearGradient id="mgR-cx" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
               <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
             </linearGradient>
           </defs>
-          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-cx)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-cx)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="nm"><b>Magna</b><span>VERSE</span></span>
-      </div>
-      <div class="bwrap">
-        <h1>Sovereign AI, and the receipts to prove it.</h1>
-        <p>Runs on Magna GPUs in Riyadh. Your data never leaves your network — and every answer
-          carries a signed record of exactly where it ran and what it touched.</p>
-        <div class="auth-facts">
-          <div class="af"><svg class="ico sm" style="color:var(--private)"><use href="#i-server"></use></svg>
-            <span><b>8×H200</b> in Riyadh DC-1 · tenancy <span class="mono">magna-ksa-prod</span></span></div>
-          <div class="af"><svg class="ico sm" style="color:var(--private)"><use href="#i-shield-ok"></use></svg>
-            <span><b>0 bytes</b> of prompt or document data leave the Kingdom on the Private tier</span></div>
-          <div class="af"><svg class="ico sm" style="color:var(--tx-3)"><use href="#i-fingerprint"></use></svg>
-            <span>Every turn writes an exportable, signed residency receipt</span></div>
-        </div>
-      </div>
-      <div class="foot">
-        <span class="pill private"><svg class="ico xs"><use href="#i-shield-ok"></use></svg>Private · Riyadh DC-1</span>
-        <span class="pill xs">MagnaVERSE 2.0</span>
-        <span>Prototype · no data leaves this browser</span>
-      </div>
-    </div>
+      </span>
+      <span class="cx-vr" aria-hidden="true"></span>
+      <span class="cx-rtag">tenancy <b>magna-ksa-prod</b></span>
+      <span class="cx-rtag cx-opt">region <b>KSA · Riyadh DC-1</b></span>
+      <span class="cx-sp"></span>
+      <span class="cx-rtag" id="cxClock">--:--:--&nbsp;AST</span>
+      <span class="pill xs private"><span class="dot pulse"></span>link secure</span>
+    </header>
 
-    <div class="auth-form">
-      <form class="auth-card" id="loginForm" novalidate>
-        <h2>Sign in</h2>
-        <p class="lede">Use your Magna work account. Access is scoped by your workspace role.</p>
+    <main class="cx-body">
 
-        <div class="demo-note">
-          <svg class="ico sm" style="flex:none;margin-top:1px"><use href="#i-info"></use></svg>
-          <span><b>Demo credentials filled — press Sign in.</b> This prototype keeps all state in your
-            browser. Nothing is transmitted anywhere.</span>
+      <!-- ---- BAY 1 · the terminal card. The form is the priority. ---- -->
+      <form class="cx-card cx-form" id="loginForm" novalidate>
+        <div class="cx-bar">
+          <span class="cx-led ok" aria-hidden="true"></span>
+          <span>auth <b>▸</b> sign-in</span>
+          <span class="cx-sp"></span>
+          <span class="cx-opt">tty/1 · local</span>
         </div>
+        <div class="cx-pad">
+          <h1>Sign in</h1>
+          <p class="cx-lede">Your Magna work account. Access is scoped by your workspace role.</p>
 
-        <div class="field" id="fEmail">
-          <label for="loginEmail">Work email</label>
-          <input class="inp" id="loginEmail" type="email" autocomplete="off" spellcheck="false"
-            value="ahmad.farahat@magna.ai" placeholder="you@magna.ai">
-          <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter your work email.</span></span>
-        </div>
-        <div class="field" id="fPass">
-          <label for="loginPass">Password</label>
-          <input class="inp" id="loginPass" type="password" autocomplete="off" value="magna-demo">
-          <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Password must be at least 4 characters.</span></span>
-        </div>
+          <div class="demo-note">
+            <svg class="ico sm" style="flex:none;margin-top:1px"><use href="#i-info"></use></svg>
+            <span><b>Demo credentials are filled — press Sign in.</b></span>
+          </div>
 
-        <button class="btn primary lg wide" id="loginBtn" type="submit">Sign in</button>
-        <div class="auth-or">or</div>
-        <div class="auth-alt">
-          <button class="btn lg wide" id="ssoBtn" type="button">
-            <svg class="ico sm"><use href="#i-lock"></use></svg>Continue with Magna SSO</button>
-          <button class="btn ghost lg wide" id="toRegister" type="button">Create an account</button>
+          <div class="field" id="fEmail">
+            <label for="loginEmail">Work email</label>
+            <input class="inp" id="loginEmail" type="email" autocomplete="username" spellcheck="false"
+              value="ahmad.farahat@magna.ai" placeholder="you@magna.ai">
+            <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter your work email.</span></span>
+          </div>
+          <div class="field" id="fPass">
+            <label for="loginPass">Password</label>
+            <input class="inp" id="loginPass" type="password" autocomplete="current-password" value="magna-demo">
+            <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Password must be at least 4 characters.</span></span>
+          </div>
+
+          <button class="btn primary lg wide" id="loginBtn" type="submit">Sign in</button>
+
+          <div class="auth-or">or continue with</div>
+
+          <!-- Simulated providers. No provider credential screen exists in this file. -->
+          <div class="cx-prov">
+            <div class="prow">
+              <button class="pbtn google" id="googleBtn" type="button">
+                <span class="pmk" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" width="18" height="18" focusable="false">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                  </svg>
+                </span>
+                <span class="plb">Sign in with Google</span>
+              </button>
+              <span class="ptag warn" title="Federating through Google sends one identity assertion outside the Kingdom">
+                <svg class="ico xs"><use href="#i-arrow-out"></use></svg>leaves KSA</span>
+            </div>
+            <div class="prow">
+              <button class="pbtn apple" id="appleBtn" type="button">
+                <span class="pmk" aria-hidden="true">
+                  <svg viewBox="0 0 384 512" width="15" height="18" focusable="false">
+                    <path class="amk" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+                  </svg>
+                </span>
+                <span class="plb">Sign in with Apple</span>
+              </button>
+              <span class="ptag warn" title="Federating through Apple sends one identity assertion outside the Kingdom">
+                <svg class="ico xs"><use href="#i-arrow-out"></use></svg>leaves KSA</span>
+            </div>
+            <div class="prow">
+              <button class="pbtn magna" id="ssoBtn" type="button">
+                <span class="pmk" aria-hidden="true"><svg class="ico sm"><use href="#i-lock"></use></svg></span>
+                <span class="plb">Sign in with Magna SSO</span>
+              </button>
+              <span class="ptag" title="Your directory runs inside the tenancy — nothing leaves the network">
+                <svg class="ico xs"><use href="#i-shield-ok"></use></svg>on-prem</span>
+            </div>
+          </div>
+
+          <p class="cx-egress">
+            <svg class="ico xs" style="flex:none;margin-top:2px"><use href="#i-info"></use></svg>
+            <span>Google and Apple are <b>external identity providers</b>: federating through either sends one
+              identity assertion outside the Kingdom, and it is logged. Prompts, documents and answers never
+              leave. Magna SSO resolves against the on-prem directory instead.</span>
+          </p>
+
+          <button class="btn ghost lg wide" id="toRegister" type="button" style="margin-top:10px">Create an account</button>
+          <p class="auth-legal">Prototype — nothing is transmitted anywhere. In production, prompts and answers
+            stay in your tenancy for 90 days and are never used for training.</p>
         </div>
-        <p class="auth-legal">By signing in you accept the Magna acceptable-use policy. Prompts and
-          answers are retained for 90 days inside your tenancy and are never used for model training.</p>
       </form>
-    </div>
+
+      <!-- ---- BAY 2 · instruments: pre-flight readout + streamed preview ---- -->
+      <div class="cx-bay">
+
+        <section class="cx-card cx-pre" aria-label="Pre-flight check">
+          <div class="cx-bar">
+            <span class="cx-led ok" id="cxPreLed" aria-hidden="true"></span>
+            <span>pre-flight <b>▸</b> magna-ksa-prod</span>
+            <span class="cx-sp"></span>
+            <span class="cx-opt" id="cxPreCount">0/5</span>
+          </div>
+          <ol class="cx-lines" id="cxPre" aria-live="polite" aria-label="Pre-flight check results"></ol>
+          <p class="cx-pre-foot" id="cxPreFoot">Checks run against this browser session only — the numbers are
+            representative of a real Magna deployment.</p>
+        </section>
+
+        <section class="cx-card cx-demo" id="cxDemo" aria-label="Live preview of a MagnaVERSE session">
+          <div class="cx-bar">
+            <span class="cx-led acc" aria-hidden="true"></span>
+            <span>preview <b>▸</b> <span id="cxScene">live session</span></span>
+            <span class="cx-sp"></span>
+            <button class="cx-pp" id="cxPP" type="button" aria-label="Pause the preview" aria-pressed="false">
+              <svg class="ico sm"><use href="#i-pause"></use></svg></button>
+            <span class="cx-dots" id="cxDots" role="tablist" aria-label="Preview scenario"></span>
+          </div>
+          <div class="cx-demo-bd">
+            <div class="cx-thread" id="cxThread" aria-hidden="true"></div>
+            <aside class="cx-rcpt" aria-hidden="true">
+              <div class="rh">residency receipt</div>
+              <dl id="cxRcpt"></dl>
+            </aside>
+          </div>
+          <p class="cx-cap" id="cxCap" aria-hidden="true"></p>
+          <p class="sr" id="cxSR">A looping preview of three MagnaVERSE answers: purchase orders that slipped past
+            their promised date, sourced from SAP; a summary of Package 4 change orders with document citations;
+            and an inbox search run through the on-prem magna-mail MCP server. Every answer carries a residency
+            receipt showing it ran on Magna GPUs in Riyadh with zero bytes of egress.</p>
+        </section>
+
+      </div>
+    </main>
   </div>
 </section>
 
-<!-- ============ STAGE 2 · REGISTER ============ -->
+<!-- ============ STAGE 2 · REGISTER — same console shell ============ -->
 <section class="stage-screen" id="stageRegister" aria-label="Create an account">
-  <div class="auth">
-    <div class="auth-brand">
-      <div class="auth-bg" aria-hidden="true">
-        <span class="glow a1"></span><span class="glow a2"></span><span class="glow a3"></span>
-      </div>
-      <div class="blogo">
+  <div class="cx cx-solo">
+    <div class="cx-grid" aria-hidden="true"></div>
+    <header class="cx-rail">
+      <span class="cx-brand">
         <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
           <defs>
             <linearGradient id="mgGB-reg" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
@@ -1525,34 +1878,41 @@ body[data-view="mail"] #page .pg-scroll{overflow:hidden}
           <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-reg)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="nm"><b>Magna</b><span>VERSE</span></span>
-      </div>
-      <div class="bwrap">
-        <h1>One account, one tenancy, one audit trail.</h1>
-        <p>New accounts are provisioned into your organisation's own cluster. An administrator
-          assigns your workspace and your sovereignty defaults.</p>
-      </div>
-      <div class="foot"><span class="pill private"><svg class="ico xs"><use href="#i-shield-ok"></use></svg>Private · Riyadh DC-1</span></div>
-    </div>
-    <div class="auth-form">
-      <form class="auth-card" id="registerForm" novalidate>
-        <h2>Create an account</h2>
-        <p class="lede">You will land in the workspace picker once this is done.</p>
-        <div class="field" id="rName"><label for="regName">Full name</label>
-          <input class="inp" id="regName" type="text" value="Ahmad Farahat" autocomplete="off">
-          <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter your name.</span></span></div>
-        <div class="field" id="rEmail"><label for="regEmail">Work email</label>
-          <input class="inp" id="regEmail" type="email" value="ahmad.farahat@magna.ai" autocomplete="off" spellcheck="false">
-          <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter a valid work email.</span></span></div>
-        <div class="field" id="rPass"><label for="regPass">Password</label>
-          <input class="inp" id="regPass" type="password" value="magna-demo" autocomplete="off">
-          <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">At least 4 characters.</span></span></div>
-        <div class="field" id="rOrg"><label for="regOrg">Organisation</label>
-          <input class="inp" id="regOrg" type="text" value="Magna Industrial · Riyadh" autocomplete="off">
-          <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter your organisation.</span></span></div>
-        <button class="btn primary lg wide" id="registerBtn" type="submit">Create account</button>
-        <button class="btn ghost lg wide" id="toLogin" type="button" style="margin-top:8px">Back to sign in</button>
+      </span>
+      <span class="cx-vr" aria-hidden="true"></span>
+      <span class="cx-rtag">provisioning <b>new account</b></span>
+      <span class="cx-sp"></span>
+      <span class="pill xs private"><span class="dot"></span>Private · Riyadh DC-1</span>
+    </header>
+    <main class="cx-body">
+      <form class="cx-card cx-form" id="registerForm" novalidate>
+        <div class="cx-bar">
+          <span class="cx-led ok" aria-hidden="true"></span>
+          <span>auth <b>▸</b> provision</span>
+          <span class="cx-sp"></span>
+          <span class="cx-opt">tty/1 · local</span>
+        </div>
+        <div class="cx-pad">
+          <h1>Create an account</h1>
+          <p class="cx-lede">New accounts are provisioned into your organisation's own cluster. An administrator
+            assigns your workspace and your sovereignty defaults.</p>
+          <div class="field" id="rName"><label for="regName">Full name</label>
+            <input class="inp" id="regName" type="text" value="Ahmad Farahat" autocomplete="name">
+            <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter your name.</span></span></div>
+          <div class="field" id="rEmail"><label for="regEmail">Work email</label>
+            <input class="inp" id="regEmail" type="email" value="ahmad.farahat@magna.ai" autocomplete="username" spellcheck="false">
+            <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter a valid work email.</span></span></div>
+          <div class="field" id="rPass"><label for="regPass">Password</label>
+            <input class="inp" id="regPass" type="password" value="magna-demo" autocomplete="new-password">
+            <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">At least 4 characters.</span></span></div>
+          <div class="field" id="rOrg"><label for="regOrg">Organisation</label>
+            <input class="inp" id="regOrg" type="text" value="Magna Industrial · Riyadh" autocomplete="organization">
+            <span class="err"><svg class="ico xs"><use href="#i-alert"></use></svg><span class="msg">Enter your organisation.</span></span></div>
+          <button class="btn primary lg wide" id="registerBtn" type="submit">Create account</button>
+          <button class="btn ghost lg wide" id="toLogin" type="button" style="margin-top:8px">Back to sign in</button>
+        </div>
       </form>
-    </div>
+    </main>
   </div>
 </section>
 
@@ -4355,7 +4715,11 @@ const v2 = {
 /* ============================================================
    18 · session, stages, workspace
    ============================================================ */
-function setStage(s){ document.body.setAttribute("data-stage", s); window.scrollTo(0,0); }
+function setStage(s){
+  document.body.setAttribute("data-stage", s);
+  window.scrollTo(0,0);
+  if(s === "auth") cxEnter(); else cxLeave();   /* v4 — console timers never outlive the login */
+}
 function saveSession(){
   store.set("session", JSON.stringify({user:v2.user, ws:v2.ws}));
 }
@@ -4385,22 +4749,412 @@ $("#loginForm").addEventListener("submit", ev=>{
   if(pw.length < 4){ return fieldErr("#fPass","Password must be at least 4 characters."); }
   const btn = $("#loginBtn");
   btn.disabled = true;
-  btn.innerHTML = '<svg class="magna-mark mg-thinking" viewBox="0 0 640 440" aria-hidden="true">'+
-    '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
-    '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-login)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-    'Signing in…';
-  setTimeout(()=>{
+  btn.innerHTML = CXTHINK + "Signing in…";
+  /* the pre-flight readout keeps going — the last line is written by the sign-in itself */
+  cxPreAppend("authenticating on-prem…", "ok", 128, 760, function(){
     v2.user = {name:"Ahmad Farahat", email:em, org:"Magna · Riyadh"};
     btn.disabled = false; btn.textContent = "Sign in";
     renderWorkspaces(); setStage("workspace");
-  }, 950);
+  });
 });
-$("#ssoBtn").addEventListener("click", ()=>{
-  toast("Magna SSO — federated to your directory","i-lock");
-  setTimeout(()=>{ renderWorkspaces(); setStage("workspace"); }, 700);
-});
+/* Simulated providers — see the safety note in the console module below.
+   Clicking goes straight into the demo session. No provider screen is rendered. */
+$("#googleBtn").addEventListener("click", ()=> cxProvider("google"));
+$("#appleBtn").addEventListener("click",  ()=> cxProvider("apple"));
+$("#ssoBtn").addEventListener("click",    ()=> cxProvider("magna"));
 $("#toRegister").addEventListener("click", ()=> setStage("register"));
 $("#toLogin").addEventListener("click", ()=> setStage("auth"));
+
+/* ============================================================
+   18b · v4 — CONSOLE LOGIN
+   The pre-flight readout, the simulated Google / Apple / Magna SSO
+   round-trip, and the streamed demo preview.
+
+   SAFETY: the provider buttons never render a Google or Apple
+   sign-in screen and never ask for a provider password. The
+   round-trip is simulated end to end, inside this file.
+
+   TIMERS: every timeout created here lives in cx.timers (page) or
+   cx.dt (demo). cxLeave() clears both plus the clock interval, so
+   leaving the login stage never leaves anything running.
+   ============================================================ */
+const cxRM = window.matchMedia("(prefers-reduced-motion: reduce)");
+const cx = {timers:[], dt:[], clock:0, ops:[], k:0, i:0, gen:0,
+            paused:false, alive:false, autoPaused:false, provHTML:{}, dotsReady:false};
+
+function cxT(ms, fn){
+  const id = setTimeout(function(){ cx.timers = cx.timers.filter(x=>x!==id); fn(); }, ms);
+  cx.timers.push(id); return id;
+}
+function cxTClear(){ cx.timers.forEach(clearTimeout); cx.timers = []; }
+function cxDT(ms, fn){
+  const id = setTimeout(function(){ cx.dt = cx.dt.filter(x=>x!==id); fn(); }, ms);
+  cx.dt.push(id); return id;
+}
+function cxDClear(){ cx.dt.forEach(clearTimeout); cx.dt = []; }
+
+const CXMARK  = '<svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true">'+
+  '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-msg)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-msg)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CXTHINK = CXMARK.replace('class="magna-mark"', 'class="magna-mark mg-thinking"');
+
+/* ---------- the Riyadh clock in the rail ---------- */
+function cxTick(){
+  const el = $("#cxClock"); if(!el) return;
+  const d = new Date(Date.now() + 3*3600*1000);          /* AST = UTC+3, no DST */
+  const p = n => String(n).length<2 ? "0"+n : String(n);
+  el.textContent = p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds())+" AST";
+}
+
+/* ---------- the pre-flight readout ---------- */
+const CX_PRE = [
+  {t:"resolving magna-ksa-prod…",           ms:184, d:430},
+  {t:"cluster DC-1 · 8×H200 · healthy",     ms:212, d:520},
+  {t:"TLS 1.3 · certificate pinned",        ms:96,  d:420},
+  {t:"egress to public internet · blocked", ms:38,  d:470},
+  {t:"audit log · append-only · writable",  ms:61,  d:380}
+];
+function cxLine(text){
+  const li = document.createElement("li");
+  li.className = "cx-ln"; li.setAttribute("data-s","wait");
+  li.innerHTML = '<span class="g">·</span><span class="s">'+esc(text)+'</span>'+
+    '<span class="lead"></span><span class="ms"></span><span class="k">✓</span>';
+  return li;
+}
+function cxMark(li, s, ms){
+  li.setAttribute("data-s", s);
+  $(".g", li).textContent = s==="run" ? "▌" : (s==="warn" ? "!" : (s==="ok" ? "›" : "·"));
+  $(".k", li).textContent = s==="warn" ? "⚠" : "✓";
+  $(".ms", li).textContent = (ms==null) ? (s==="run" ? "…" : "") : ms+" ms";
+}
+function cxPreCount(n){
+  const el = $("#cxPreCount"); if(el) el.textContent = n+"/"+CX_PRE.length;
+}
+function cxPreStart(){
+  const ol = $("#cxPre"); if(!ol) return;
+  ol.innerHTML = "";
+  CX_PRE.forEach(function(o){ ol.appendChild(cxLine(o.t)); });
+  const lis = $$(".cx-ln", ol);
+  if(cxRM.matches){                                  /* no animation — final state at once */
+    lis.forEach(function(li,i){ cxMark(li, "ok", CX_PRE[i].ms); });
+    cxPreCount(CX_PRE.length); return;
+  }
+  cxPreCount(0);
+  (function step(i){
+    if(i >= CX_PRE.length) return;
+    cxMark(lis[i], "run", null);
+    cxT(CX_PRE[i].d, function(){
+      cxMark(lis[i], "ok", CX_PRE[i].ms);
+      cxPreCount(i+1);
+      cxT(110, function(){ step(i+1); });
+    });
+  })(0);
+}
+/* appended live — sign-in and identity federation write their own lines */
+function cxPreAppend(text, state, ms, delay, done){
+  const ol = $("#cxPre");
+  if(!ol){ if(done) cxT(delay||0, done); return; }
+  const li = cxLine(text);
+  ol.appendChild(li);
+  cxMark(li, "run", null);
+  const wait = cxRM.matches ? 60 : (delay||420);
+  cxT(wait, function(){ cxMark(li, state, ms); if(done) done(); });
+}
+
+/* ---------- simulated identity providers ----------
+   NOTHING here renders a provider UI. There is no Google screen, no
+   Apple screen and no provider password field anywhere in this file. */
+const CX_IDP = {
+  google:{n:"Google",     host:"accounts.google.com",            ext:true},
+  apple: {n:"Apple",      host:"appleid.apple.com",              ext:true},
+  magna: {n:"Magna SSO",  host:"idp.magna-ksa-prod.internal",    ext:false}
+};
+function cxProvReset(){
+  ["googleBtn","appleBtn","ssoBtn"].forEach(function(id){
+    const b = $("#"+id); if(!b) return;
+    if(cx.provHTML[id] == null) cx.provHTML[id] = b.innerHTML;
+    else b.innerHTML = cx.provHTML[id];
+    b.disabled = false;
+  });
+}
+function cxProvider(kind){
+  const m = CX_IDP[kind], btn = $("#"+(kind==="magna" ? "ssoBtn" : kind+"Btn"));
+  ["googleBtn","appleBtn","ssoBtn"].forEach(function(id){ const b=$("#"+id); if(b) b.disabled = true; });
+  if(btn) btn.innerHTML = '<span class="pmk">'+CXTHINK+'</span><span class="plb">Authorising with '+esc(m.n)+'…</span>';
+  const finish = function(){
+    cxPreAppend("authenticating on-prem…", "ok", 128, 420, function(){
+      v2.user = {name:"Ahmad Farahat", email:$("#loginEmail").value.trim() || "ahmad.farahat@magna.ai",
+                 org:"Magna · Riyadh"};
+      toast(m.ext ? "Signed in via "+m.n+" — identity federated, data stayed on-prem"
+                  : "Magna SSO — federated to your on-prem directory",
+            m.ext ? "i-arrow-out" : "i-lock");
+      renderWorkspaces(); setStage("workspace");
+    });
+  };
+  if(m.ext){
+    cxPreAppend("federating identity · "+m.host, "warn", 214, 620, function(){
+      cxPreAppend("identity assertion returned · 1 record left KSA", "warn", 61, 480, finish);
+    });
+  }else{
+    cxPreAppend("federating identity · magna directory (on-prem)", "ok", 44, 560, finish);
+  }
+}
+
+/* ============================================================
+   the streamed preview — three scenarios, real rendering
+   ============================================================ */
+const CX_SCENES = [
+  {
+    label:"po-slippage",
+    prompt:"Which POs slipped past their promised date this month?",
+    think:["Thinking…","Querying SAP · EKKO/EKPO…","Comparing receipts to promised dates…","Writing…"],
+    html:
+      '<div class="cx-ahd cx-blk">'+CXMARK+'<span class="nm">MagnaVERSE</span>'+
+        '<span class="pill xs private"><span class="dot"></span>Private · Riyadh DC-1</span></div>'+
+      '<p class="cx-blk" data-stream="words">Four purchase orders were received after their promised date in '+
+        'August. Two vendors carry <b>SAR 3.86M</b> of the slippage.</p>'+
+      '<div class="tblwrap cx-blk" data-stream="rows"><table class="data"><thead><tr>'+
+        '<th>PO</th><th>Vendor</th><th class="num">Promised</th><th class="num">Late</th></tr></thead><tbody>'+
+        '<tr class="cx-blk"><td>4500178342</td><td>Al-Rajhi Steel</td><td class="num">04 Aug</td><td class="num">+15 d</td></tr>'+
+        '<tr class="cx-blk"><td>4500178901</td><td>Zamil Industrial</td><td class="num">11 Aug</td><td class="num">+10 d</td></tr>'+
+        '<tr class="cx-blk"><td>4500179114</td><td>Saudi Cable Co.</td><td class="num">14 Aug</td><td class="num">+6 d</td></tr>'+
+        '<tr class="cx-blk"><td>4500179550</td><td>Bin Quraya</td><td class="num">22 Aug</td><td class="num">+3 d</td></tr>'+
+        '</tbody></table></div>'+
+      '<span class="cx-src cx-blk"><svg class="ico xs"><use href="#i-db"></use></svg>'+
+        '<span>SAP S/4HANA · EKKO / EKPO · read-only</span></span>'+
+      '<span class="cx-res cx-blk"><svg class="ico xs"><use href="#i-shield-ok"></use></svg>'+
+        'ran on dc1-h200-04 · Riyadh · 0 bytes egress</span>',
+    rcpt:[["node","dc1-h200-04 · Riyadh"],["model","magna-lg-70b"],["tool","sap.read_orders"],
+          ["rows read","1 284"],["egress","0 bytes",1],["receipt","sha256:9f3c…a17e"]],
+    capT:"Connected enterprise data.", capB:"The query ran against SAP inside your own network — nothing left it."
+  },
+  {
+    label:"change-orders",
+    prompt:"Summarise the change orders on Package 4 and who owns the risk.",
+    think:["Thinking…","Searching Company Knowledge…","Reading 6 documents…","Writing…"],
+    html:
+      '<div class="cx-ahd cx-blk">'+CXMARK+'<span class="nm">MagnaVERSE</span>'+
+        '<span class="pill xs private"><span class="dot"></span>Private · Riyadh DC-1</span></div>'+
+      '<p class="cx-blk" data-stream="words">Package 4 carries <b>six</b> open change orders. Cost exposure stays '+
+        'with the contractor until CO-4118 is countersigned<sup class="cite">[1]</sup>; schedule risk sits with '+
+        'Magna from the 12 Sep milestone<sup class="cite">[2]</sup>.</p>'+
+      '<div class="mathblk cx-blk"><span class="tagn">exposure</span>'+
+        '<span class="mrow"><span class="var">E</span><span class="op">=</span>'+
+        '<span class="bigop"><span class="lim">6</span><span class="gl">Σ</span><span class="lim">i=1</span></span>'+
+        '<span class="var">c</span><span class="sub">i</span><span class="op">·</span>'+
+        '<span class="var">p</span><span class="sub">i</span><span class="op">=</span>4.12M SAR</span></div>'+
+      '<div class="cx-blk" data-stream="kids">'+
+        '<span class="cx-src cx-blk"><svg class="ico xs"><use href="#i-doc"></use></svg>'+
+          '<span>[1] CO-Register-P4.xlsx · rev 12 · p.3</span></span> '+
+        '<span class="cx-src cx-blk"><svg class="ico xs"><use href="#i-doc"></use></svg>'+
+          '<span>[2] Contract-P4 §14.3 · signed 04 Mar</span></span>'+
+      '</div>'+
+      '<span class="cx-res cx-blk"><svg class="ico xs"><use href="#i-shield-ok"></use></svg>'+
+        'ran on dc1-h200-02 · Riyadh · 0 bytes egress</span>',
+    rcpt:[["node","dc1-h200-02 · Riyadh"],["model","magna-lg-70b"],["retrieved","6 documents"],
+          ["index","company-knowledge"],["egress","0 bytes",1],["receipt","sha256:c41b…7d90"]],
+    capT:"Provenance.", capB:"Every claim carries the document it came from — and the receipt to check it."
+  },
+  {
+    label:"magna-mail",
+    prompt:"What's in my inbox about the rebar delay?",
+    think:["Thinking…","Calling magna-mail · search_messages…","Reading 3 messages…","Writing…"],
+    html:
+      '<div class="cx-ahd cx-blk">'+CXMARK+'<span class="nm">MagnaVERSE</span>'+
+        '<span class="pill xs private"><span class="dot"></span>Private · Riyadh DC-1</span></div>'+
+      '<div class="cx-tool cx-blk"><svg class="ico xs"><use href="#i-plug"></use></svg>'+
+        '<b>magna-mail</b> · search_messages("rebar delay")<span class="ms">142 ms · 3 hits</span></div>'+
+      '<div class="cx-blk" data-stream="kids">'+
+        '<div class="cx-mail cx-blk"><span class="mt"><b>Al-Rajhi Steel — Revised delivery, PO 4500178342</b>'+
+          '<span>“…mill rolling slipped 15 days; earliest on site 19 Aug…”</span></span><span class="tm">19 Aug</span></div>'+
+        '<div class="cx-mail cx-blk"><span class="mt"><b>Site QA — Pour sequence for Grid C needs rework</b>'+
+          '<span>“…if rebar lands 19 Aug we must resequence pours 14–17…”</span></span><span class="tm">19 Aug</span></div>'+
+      '</div>'+
+      '<p class="cx-blk" data-stream="words">Both threads are unanswered. Site QA needs a decision on the pour '+
+        'sequence before Thursday.</p>'+
+      '<span class="cx-src cx-blk"><svg class="ico xs"><use href="#i-server"></use></svg>'+
+        '<span>magna-mail · MCP · on-prem, scoped, revocable</span></span>'+
+      '<span class="cx-res cx-blk"><svg class="ico xs"><use href="#i-shield-ok"></use></svg>'+
+        'ran on dc1-h200-07 · Riyadh · 0 bytes egress</span>',
+    rcpt:[["node","dc1-h200-07 · Riyadh"],["model","magna-lg-70b"],["mcp server","magna-mail"],
+          ["scope","read only"],["egress","0 bytes",1],["receipt","sha256:2ea8…b155"]],
+    capT:"Your mailbox, as a tool.", capB:"The magna-mail MCP server runs on-prem — read-only, and revocable in a click."
+  }
+];
+
+/* wrap each word (with its leading space) so hidden tokens take no space and
+   the answer genuinely grows, the way a real stream does */
+function cxTok(el){
+  const out = [], texts = [];
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+  let n; while((n = w.nextNode())) texts.push(n);
+  texts.forEach(function(t){
+    if(!/\S/.test(t.nodeValue)) return;
+    const parts = t.nodeValue.match(/\s*\S+/g) || [];
+    const frag = document.createDocumentFragment();
+    parts.forEach(function(p){
+      const s = document.createElement("span");
+      s.className = "tk"; s.textContent = p;
+      frag.appendChild(s); out.push(s);
+    });
+    /* a text node that ended in whitespace keeps it, so "carry <b>SAR" stays spaced */
+    if(/\s$/.test(t.nodeValue)) frag.appendChild(document.createTextNode(" "));
+    t.parentNode.replaceChild(frag, t);
+  });
+  return out;
+}
+function cxSteps(root){
+  const steps = [];
+  Array.prototype.forEach.call(root.children, function(blk){
+    if(!blk.classList || !blk.classList.contains("cx-blk")) return;
+    steps.push({d:140, f:function(){ blk.classList.add("on"); }});
+    const mode = blk.getAttribute("data-stream");
+    if(mode === "words"){
+      const toks = cxTok(blk);
+      for(let i=0; i<toks.length; i+=2){
+        const grp = toks.slice(i, i+2);
+        steps.push({d:38, f:function(){ grp.forEach(function(s){ s.classList.add("on"); }); }});
+      }
+    }else if(mode === "rows"){
+      $$("tbody tr.cx-blk", blk).forEach(function(tr){
+        steps.push({d:118, f:function(){ tr.classList.add("on"); }});
+      });
+    }else if(mode === "kids"){
+      Array.prototype.forEach.call(blk.children, function(k){
+        if(k.classList && k.classList.contains("cx-blk"))
+          steps.push({d:170, f:function(){ k.classList.add("on"); }});
+      });
+    }
+  });
+  return steps;
+}
+/* the residency receipt fills in alongside the answer, not after it */
+function cxInterleave(steps, rows){
+  if(!rows.length) return steps;
+  const out = [], every = Math.max(1, Math.floor(steps.length / (rows.length + 1)));
+  let r = 0;
+  steps.forEach(function(s, i){
+    out.push(s);
+    if(r < rows.length && (i+1) % every === 0){
+      const el = rows[r++]; out.push({d:0, f:function(){ el.classList.add("on"); }});
+    }
+  });
+  while(r < rows.length){ const el = rows[r++]; out.push({d:150, f:function(){ el.classList.add("on"); }}); }
+  return out;
+}
+function cxRender(sc){
+  const lab = $("#cxScene"); if(lab) lab.textContent = sc.label;
+  $("#cxThread").innerHTML =
+    '<div class="cx-q" id="cxQ"></div>'+
+    '<div class="cx-think" id="cxTh" hidden>'+CXTHINK+'<span class="ts">Thinking…</span></div>'+
+    '<div class="cx-a" id="cxA" hidden>'+sc.html+'</div>';
+  $("#cxRcpt").innerHTML = sc.rcpt.map(function(r){
+    return '<div class="rr"><dt>'+esc(r[0])+'</dt><dd'+(r[2]?' class="good"':'')+'>'+esc(r[1])+'</dd></div>';
+  }).join("");
+  const cap = $("#cxCap");
+  cap.innerHTML = '<b>'+esc(sc.capT)+'</b> '+esc(sc.capB);
+  cap.style.visibility = "hidden";
+  $$(".cx-dot", $("#cxDots")).forEach(function(d, i){ d.setAttribute("aria-selected", String(i === cx.i)); });
+  $("#cxThread").scrollTop = 0;
+}
+function cxFinal(sc){
+  $("#cxQ").innerHTML = '<span class="qt"></span>';
+  $(".qt", $("#cxQ")).textContent = sc.prompt;
+  $("#cxTh").hidden = true;
+  $("#cxA").hidden = false;
+  cxSteps($("#cxA")).forEach(function(s){ s.f(); });
+  $$(".rr", $("#cxRcpt")).forEach(function(r){ r.classList.add("on"); });
+  $("#cxCap").style.visibility = "visible";
+}
+function cxBuild(sc){
+  const ops = [], q = $("#cxQ"), th = $("#cxTh"), a = $("#cxA"), p = sc.prompt;
+  ops.push({d:480, f:function(){ q.innerHTML = '<span class="qt"></span><span class="cur"></span>'; }});
+  for(let i=1; i<=p.length; i++){
+    (function(n){
+      ops.push({d: /[.,?!]/.test(p.charAt(n-1)) ? 95 : 27,
+                f:function(){ const t = $(".qt", q); if(t) t.textContent = p.slice(0, n); }});
+    })(i);
+  }
+  ops.push({d:340, f:function(){ const c = $(".cur", q); if(c) c.remove(); th.hidden = false; }});
+  sc.think.forEach(function(t, i){
+    ops.push({d: i===0 ? 70 : 420, f:function(){ const s = $(".ts", th); if(s) s.textContent = t; }});
+  });
+  ops.push({d:380, f:function(){ th.hidden = true; a.hidden = false; }});
+  cxInterleave(cxSteps(a), $$(".rr", $("#cxRcpt"))).forEach(function(s){ ops.push(s); });
+  ops.push({d:280, f:function(){ $("#cxCap").style.visibility = "visible"; }});
+  ops.push({d:3000, f:function(){ cxGo(cx.i + 1); }});
+  return ops;
+}
+function cxRun(){
+  if(cx.paused || !cx.alive) return;
+  const op = cx.ops[cx.k];
+  if(!op) return;
+  cxDT(op.d, function(){
+    if(cx.paused || !cx.alive) return;
+    const gen = cx.gen;
+    cx.k++;
+    op.f();
+    const th = $("#cxThread"); if(th) th.scrollTop = th.scrollHeight;
+    if(cx.gen === gen) cxRun();          /* op.f may have jumped to another scenario */
+  });
+}
+function cxGo(i){
+  cx.gen++; cxDClear();
+  const n = CX_SCENES.length;
+  cx.i = ((i % n) + n) % n;
+  const sc = CX_SCENES[cx.i];
+  cxRender(sc);
+  cx.ops = []; cx.k = 0;
+  if(cxRM.matches || cx.paused){ cxFinal(sc); return; }   /* reduced motion: finished state, no animation */
+  cx.ops = cxBuild(sc);
+  cxRun();
+}
+function cxDemoInit(){
+  if(cx.dotsReady) return;
+  cx.dotsReady = true;
+  $("#cxDots").innerHTML = CX_SCENES.map(function(s, i){
+    return '<button class="cx-dot" type="button" role="tab" data-i="'+i+'" aria-selected="'+(i===0)+'"'+
+      ' aria-label="Scenario '+(i+1)+' — '+esc(s.label)+'"></button>';
+  }).join("");
+  $("#cxDots").addEventListener("click", function(ev){
+    const b = ev.target.closest(".cx-dot"); if(!b) return;
+    cxGo(+b.dataset.i);
+  });
+  const pp = $("#cxPP");
+  if(cxRM.matches){ pp.hidden = true; }
+  pp.addEventListener("click", function(){
+    cx.paused = !cx.paused;
+    pp.setAttribute("aria-pressed", String(cx.paused));
+    pp.setAttribute("aria-label", cx.paused ? "Play the preview" : "Pause the preview");
+    pp.innerHTML = '<svg class="ico sm"><use href="#'+(cx.paused ? "i-play" : "i-pause")+'"></use></svg>';
+    if(cx.paused) cxDClear();
+    else if(!cx.ops.length) cxGo(cx.i);
+    else cxRun();
+  });
+}
+document.addEventListener("visibilitychange", function(){
+  if(!cx.alive) return;
+  if(document.hidden){ if(!cx.paused){ cx.autoPaused = true; cx.paused = true; cxDClear(); } }
+  else if(cx.autoPaused){ cx.autoPaused = false; cx.paused = false; cxRun(); }
+});
+
+/* ---------- enter / leave the console ---------- */
+function cxEnter(){
+  if(cx.alive) return;
+  cx.alive = true;
+  cxProvReset();
+  cxPreStart();
+  cxTick(); cx.clock = setInterval(cxTick, 1000);
+  cxDemoInit();
+  /* deliberately deferred — the preview must never block or slow the form */
+  cxT(520, function(){ if(cx.alive && !document.hidden) cxGo(0); });
+}
+function cxLeave(){
+  if(!cx.alive) return;
+  cx.alive = false;
+  cxDClear(); cxTClear();
+  if(cx.clock){ clearInterval(cx.clock); cx.clock = 0; }
+}
 $("#registerForm").addEventListener("submit", ev=>{
   ev.preventDefault();
   ["#rName","#rEmail","#rPass","#rOrg"].forEach(clearErr);

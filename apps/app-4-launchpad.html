@@ -26,6 +26,10 @@
   --c-key:#8250DF; --c-str:#0A7B4B; --c-fn:#1F5FD0; --c-com:#8A93A2; --c-num:#B45309;
   --shadow-1:0 1px 2px rgba(16,22,30,.07), 0 1px 1px rgba(16,22,30,.04);
   --shadow-2:0 18px 48px rgba(16,22,30,.16), 0 2px 8px rgba(16,22,30,.06);
+  /* login veil over the live workspace — dim first, blur second */
+  --veil:rgba(228,233,241,.52); --veil-solid:rgba(230,235,242,.93);
+  --veilfx:blur(16px) saturate(102%) brightness(1.03);
+  --peek-bg:rgba(255,255,255,.92);
   --r-sm:8px; --r:10px; --r-lg:16px;
   --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -47,6 +51,9 @@
     --c-key:#C792EA; --c-str:#8FE3B2; --c-fn:#82AAFF; --c-com:#5C6A80; --c-num:#F5A524;
     --shadow-1:0 1px 2px rgba(0,0,0,.5);
     --shadow-2:0 24px 64px rgba(0,0,0,.62), 0 2px 10px rgba(0,0,0,.4);
+    --veil:rgba(4,7,11,.50); --veil-solid:rgba(4,7,11,.93);
+  --veilfx:blur(16px) saturate(106%) brightness(1.55);
+    --peek-bg:rgba(21,27,36,.92);
   }
 }
 /* explicit choice beats the media query — in BOTH directions */
@@ -64,6 +71,9 @@
   --c-key:#C792EA; --c-str:#8FE3B2; --c-fn:#82AAFF; --c-com:#5C6A80; --c-num:#F5A524;
   --shadow-1:0 1px 2px rgba(0,0,0,.5);
   --shadow-2:0 24px 64px rgba(0,0,0,.62), 0 2px 10px rgba(0,0,0,.4);
+  --veil:rgba(4,7,11,.50); --veil-solid:rgba(4,7,11,.93);
+  --veilfx:blur(16px) saturate(106%) brightness(1.55);
+  --peek-bg:rgba(21,27,36,.92);
   color-scheme:dark;
 }
 :root[data-theme="light"]{
@@ -80,6 +90,9 @@
   --c-key:#8250DF; --c-str:#0A7B4B; --c-fn:#1F5FD0; --c-com:#8A93A2; --c-num:#B45309;
   --shadow-1:0 1px 2px rgba(16,22,30,.07), 0 1px 1px rgba(16,22,30,.04);
   --shadow-2:0 18px 48px rgba(16,22,30,.16), 0 2px 8px rgba(16,22,30,.06);
+  --veil:rgba(228,233,241,.52); --veil-solid:rgba(230,235,242,.93);
+  --veilfx:blur(16px) saturate(102%) brightness(1.03);
+  --peek-bg:rgba(255,255,255,.92);
   color-scheme:light;
 }
 
@@ -134,7 +147,7 @@ ul,ol{margin:0;padding:0}
 .btn.danger{background:var(--public-dim);border-color:var(--public-line);color:var(--public);font-weight:600}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 
-.iconbtn{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:var(--r-sm);
+.iconbtn{display:inline-grid;place-items:center;flex:none;width:30px;height:30px;border-radius:var(--r-sm);
   color:var(--tx-3);cursor:pointer;transition:background .12s ease,color .12s ease}
 .iconbtn:hover{background:var(--surface-2);color:var(--tx)}
 .iconbtn.on{background:var(--accent-dim);color:var(--accent-tx)}
@@ -655,30 +668,195 @@ textarea.input{resize:vertical;min-height:96px;line-height:1.55}
 .checkrow span{display:block;font-size:11.8px;color:var(--tx-3);line-height:1.45;margin-top:2px}
 .checkrow.locked{opacity:.75;cursor:default}
 
-/* ---------- auth ------------------------------------------------------ */
-.auth{position:fixed;inset:0;z-index:200;display:none;background:var(--bg);overflow-y:auto}
-.auth.on{display:flex}
-.auth-brand{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:20px;
-  padding:48px 52px;background:var(--bg-2);border-right:1px solid var(--line);position:relative;
-  overflow:hidden}
-.auth-brand .lock{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
-.auth-brand .lock .magna-mark{width:44px}
-.auth-brand .wordmark{font-size:24px;font-weight:650;letter-spacing:-.02em}
-.auth-brand .wordmark .wm{color:var(--tx-3)}
-.auth-brand h1{font-size:30px;font-weight:650;letter-spacing:-.025em;line-height:1.2;
-  max-width:15ch;position:relative;z-index:1}
-.auth-brand p{font-size:14.5px;color:var(--tx-2);line-height:1.6;max-width:44ch;position:relative;z-index:1}
-.auth-brand .facts{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;margin-top:6px}
-.auth-brand .fact{display:flex;align-items:center;gap:10px;font-size:12.8px;color:var(--tx-2)}
-.auth-brand .fact svg{color:var(--private);flex:none}
-.auth-form{width:min(470px,100%);flex:none;display:flex;flex-direction:column;justify-content:center;
-  padding:44px 40px;background:var(--bg)}
-.auth-form h2{font-size:21px;font-weight:650;letter-spacing:-.02em;margin-bottom:4px}
-.auth-form .sub{font-size:13px;color:var(--tx-2);margin-bottom:20px;line-height:1.55}
+/* ---------- auth (V4 §1) — LOGIN OVER A LIVE WORKSPACE ------------------
+   The launchpad behind this overlay is already rendered and stays rendered;
+   the veil blurs and dims it. Everything a person has to read — the card,
+   the preview, the peek cards — sits on its own solid surface above the
+   veil, so legibility never depends on what happens to be behind it.     */
+.auth{position:fixed;inset:0;z-index:200;display:none;overflow-y:auto;overflow-x:hidden;
+  background:transparent;overscroll-behavior:contain}
+.auth.on{display:block}
+.auth-veil{position:fixed;inset:0;z-index:0;
+  background:radial-gradient(128% 96% at 50% 44%, rgba(8,12,18,0) 38%, rgba(8,12,18,.16) 100%),
+    var(--veil);
+  -webkit-backdrop-filter:var(--veilfx);backdrop-filter:var(--veilfx)}
+/* if the browser cannot blur, dim harder — contrast is not optional */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .auth-veil{background:var(--veil-solid)}
+}
+/* margin:auto centring — a flex/grid centre would clip the top of a card
+   taller than the viewport, and this one must always start at its top */
+.stage{position:relative;z-index:1;display:flex;min-height:100vh;min-height:100dvh;padding:26px 20px}
+.stage-in{position:relative;margin:auto;width:100%;max-width:1240px;display:grid;gap:16px;
+  grid-template-areas:"card" "peek" "demo"}
+/* one column below 1024 — a sign-in form should never be 700px wide */
+@media (max-width:1023px){
+  .stage-in{max-width:580px}
+}
+@media (min-width:1024px){
+  .stage-in{grid-template-columns:minmax(0,404px) minmax(0,1fr);gap:20px;
+    grid-template-areas:"card demo" "peek peek"}
+  .peeks{flex-direction:row}
+  .peeks>.peek{flex:1;min-width:0}
+  .peeks-l{position:absolute;left:0;top:-20px}
+}
+@media (min-width:1340px){
+  .stage-in{grid-template-columns:222px minmax(0,404px) minmax(0,1fr);gap:24px;
+    grid-template-areas:"peek card demo";align-items:center}
+  /* the peeks tuck a little behind the card — glimpsed, not stacked beside */
+  .peeks{flex-direction:column;align-self:center;margin-right:-24px;position:relative}
+  .peek{padding-right:32px}
+  .peeks-l{position:static;padding-left:2px}
+}
+/* after the media queries on purpose: the single-card screens (register,
+   workspace picker) are one centred column at every width */
+.stage-in.solo{grid-template-columns:minmax(0,1fr);grid-template-areas:"card";max-width:466px}
+.stage-in.solo.wide{max-width:860px}
+
+/* the floating sign-in card — opaque, elevated, never translucent */
+.acard{grid-area:card;position:relative;z-index:2;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:20px;padding:20px 20px 18px;box-shadow:var(--shadow-2)}
+.acard .field{margin-bottom:12px}
+.acard .auth-or{margin:14px 0}
+.acard .auth-alt{margin-top:14px}
+.acard .auth-foot{margin-top:14px}
+.acard.wide{width:100%;max-width:820px;margin:0 auto}
+.acard .wspick{padding:0;max-width:100%}
+.acard-top{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.acard-top .magna-mark{width:30px}
+.acard-top .wordmark{font-size:16px;font-weight:650;letter-spacing:-.02em}
+.acard-top .wordmark .wm{color:var(--tx-3)}
+.acard-top .pill{margin-left:auto}
+.acard h2{font-size:21px;font-weight:650;letter-spacing:-.02em;margin-bottom:4px}
+.acard .sub{font-size:13px;color:var(--tx-2);margin-bottom:16px;line-height:1.55}
+
+/* "waiting for you" — the value, visible before you are in */
+.peeks{grid-area:peek;position:relative;display:flex;flex-direction:column;gap:9px;min-width:0;z-index:1}
+.peeks-l{display:flex;align-items:center;gap:7px;font-size:10.2px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--tx-2);font-weight:700;margin-bottom:1px}
+.peek{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;
+  border:1px solid var(--line-2);background:var(--peek-bg);box-shadow:var(--shadow-1);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.peek .pk-i{width:30px;height:30px;border-radius:9px;flex:none;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--tx-2)}
+.peek .pk-t{min-width:0}
+.peek b{display:block;font-size:12.6px;font-weight:650;line-height:1.35;color:var(--tx)}
+.peek span{display:block;font-size:11.2px;color:var(--tx-3);line-height:1.4;margin-top:1px}
+@media (prefers-reduced-motion: no-preference){
+  .peek{animation:peekIn .5s cubic-bezier(.16,1,.3,1) both}
+  .peek:nth-child(3){animation-delay:.08s}
+  .peek:nth-child(4){animation-delay:.16s}
+}
+@keyframes peekIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* ---------- V4 §2 · provider buttons -----------------------------------
+   Demo buttons. They sign you straight into the prototype: there is no
+   provider credential screen anywhere in this file, and never a field
+   asking for a Google or Apple password.                                  */
+.provstack{display:flex;flex-direction:column;gap:9px}
+.provbtn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;
+  min-height:44px;padding:0 14px;border-radius:var(--r);font-size:14px;font-weight:500;
+  cursor:pointer;transition:background .12s ease,filter .12s ease}
+.provbtn .plabel{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.provbtn .magna-mark{width:20px}
+.provbtn[disabled]{opacity:.6;cursor:default}
+/* Google: white face, 1px #747775 hairline, the four-colour G never recoloured */
+.gbtn{background:#FFFFFF;border:1px solid #747775;color:#1F1F1F;
+  font-family:Roboto,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Arial,sans-serif}
+.gbtn:hover{background:#F5F6F7}
+.gbtn .gmark{width:19px;height:19px;flex:none}
+/* Apple: solid black face, white logotype */
+.abtn{background:#000000;border:1px solid #000000;color:#FFFFFF;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,Arial,sans-serif}
+.abtn:hover{background:#141414}
+.abtn .amark{width:16px;height:19px;flex:none;fill:currentColor;margin-top:-2px}
+/* dark theme variants, exactly as each vendor specifies */
+:root[data-theme="dark"] .gbtn{background:#131314;border-color:#8E918F;color:#E3E3E3}
+:root[data-theme="dark"] .gbtn:hover{background:#1D1D1E}
+:root[data-theme="dark"] .abtn{background:#FFFFFF;border-color:#FFFFFF;color:#000000}
+:root[data-theme="dark"] .abtn:hover{background:#EFEFEF}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .gbtn{background:#131314;border-color:#8E918F;color:#E3E3E3}
+  :root:not([data-theme="light"]) .gbtn:hover{background:#1D1D1E}
+  :root:not([data-theme="light"]) .abtn{background:#FFFFFF;border-color:#FFFFFF;color:#000000}
+  :root:not([data-theme="light"]) .abtn:hover{background:#EFEFEF}
+}
+.provnote{font-size:11.2px;color:var(--tx-3);line-height:1.5;margin-top:10px;
+  display:flex;align-items:flex-start;gap:7px}
+.provnote svg{flex:none;margin-top:1px}
+
+/* ---------- V4 §3 · the streamed demo preview -------------------------- */
+.demoslot{grid-area:demo;min-width:0}
+.demo{border:1px solid var(--line-2);background:var(--surface);border-radius:18px;
+  box-shadow:var(--shadow-2);overflow:hidden;display:flex;flex-direction:column}
+.demo-hd{display:flex;align-items:center;gap:9px;padding:8px 10px 8px 12px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);background:var(--surface-2)}
+.demo-hd .lbl{font-size:11.6px;font-weight:650;letter-spacing:.01em}
+.demo-hd .rt{margin-left:auto;display:flex;align-items:center;gap:4px}
+.demo-dots{display:flex;gap:2px}
+.demo-dots button{display:grid;place-items:center;width:26px;height:30px;border-radius:6px}
+.demo-dots button:hover{background:var(--surface-3)}
+.demo-dots i{display:block;width:7px;height:7px;border-radius:99px;background:var(--line-2);
+  transition:width .18s ease,background .18s ease}
+.demo-dots button[aria-current="true"] i{background:var(--accent);width:18px}
+.demo-body{padding:14px 14px 6px;min-height:346px;display:flex;flex-direction:column;gap:10px}
+.demo-foot{border-top:1px solid var(--line);background:var(--surface-2);padding:9px 12px;
+  display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:var(--tx-2);line-height:1.5;
+  min-height:44px}
+.demo-foot svg{flex:none;margin-top:2px;color:var(--private)}
+.demo-cap{opacity:0;transition:opacity .3s ease}
+.demo-cap.on{opacity:1}
+.dm-user{display:flex;justify-content:flex-end}
+.dm-user .bub{max-width:92%;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:13.2px;line-height:1.5;
+  color:var(--tx);overflow-wrap:anywhere;min-height:20px}
+.dm-caret{display:inline-block;width:2px;height:1em;background:var(--accent);
+  vertical-align:-2px;margin-left:1px}
+@media (prefers-reduced-motion: no-preference){
+  .dm-caret{animation:dmCaret 1s steps(1) infinite}
+}
+@keyframes dmCaret{0%,49%{opacity:1}50%,100%{opacity:0}}
+.dm-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dm-head b{font-size:12.2px;font-weight:650}
+.dm-ans{font-size:13.2px;line-height:1.62;color:var(--tx)}
+.dm-ans p{margin-bottom:9px}
+.dm-ans p:last-child{margin-bottom:0}
+.dm-ans strong{font-weight:650}
+.dm-ans .tblwrap{margin-bottom:9px}
+.dm-ans table.tbl{min-width:352px;font-size:11.8px}
+.dm-ans table.tbl th{padding:6px 9px;font-size:9.4px}
+.dm-ans table.tbl td{padding:6px 9px}
+.dm-ans .mathblock{padding:12px 14px;margin-bottom:9px;gap:12px}
+.dm-ans .mrow{font-size:16px}
+.dm-ans .mrow .op{padding:0 .3em}
+.dm-head .a-mark{width:24px;height:24px}
+.dm-head .a-mark .magna-mark{width:16px}
+.dm-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+.dm-tool{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;border-radius:10px;
+  border:1px solid var(--task-line);background:var(--task-dim);font-size:11.4px;color:var(--tx-2)}
+.dm-tool code{font-family:var(--mono);font-size:11px;color:var(--task);font-weight:600}
+.dm-tool .ms{margin-left:auto;font-family:var(--mono);font-size:10.2px;color:var(--tx-3)}
+.dm-mail{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:9px}
+.dm-mrow{display:flex;align-items:baseline;gap:9px;padding:7px 10px;font-size:11.8px;
+  border-bottom:1px solid var(--line)}
+.dm-mrow:last-child{border-bottom:0}
+.dm-mrow b{font-weight:600;color:var(--tx);flex:none;max-width:38%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.dm-mrow span{color:var(--tx-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-mrow .wn{margin-left:auto;flex:none;font-size:10.2px;color:var(--tx-3);font-family:var(--mono)}
+.dm-resid{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--private);
+  border:1px solid var(--private-line);background:var(--private-dim);border-radius:99px;
+  padding:5px 11px;align-self:flex-start;max-width:100%;line-height:1.4}
+.dm-resid svg{flex:none}
+/* mobile disclosure — the preview never comes before the form on a phone */
+.demo-toggle{display:none}
 .demo-note{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border-radius:var(--r);
   background:var(--accent-dim);border:1px solid var(--accent-line);color:var(--accent-tx);
   font-size:12.2px;line-height:1.5;margin-bottom:16px}
 .demo-note svg{flex:none;margin-top:1px}
+.authnote-mini{display:flex;font-size:11.6px;color:var(--tx-2);gap:7px;align-items:flex-start;
+  margin-bottom:13px;line-height:1.45}
+.authnote-mini svg{flex:none;margin-top:1px;color:var(--accent)}
 .auth-or{display:flex;align-items:center;gap:12px;margin:16px 0;font-size:11.5px;color:var(--tx-3)}
 .auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--line)}
 .auth-alt{font-size:12.8px;color:var(--tx-2);text-align:center;margin-top:18px}
@@ -854,11 +1032,23 @@ textarea.input{resize:vertical;min-height:96px;line-height:1.55}
   .maillist{width:100%}
 }
 @media (max-width:767px){
-  .auth{flex-direction:column;overflow-y:auto}
-  .auth-brand{flex:none;border-right:0;border-bottom:1px solid var(--line);padding:26px 20px;gap:14px}
-  .auth-brand h1{font-size:22px}
-  .auth-brand p,.auth-brand .facts{display:none}
-  .auth-form{width:100%;padding:26px 20px 40px}
+  /* the form comes first and fits a 320×568 screen without scrolling;
+     the preview collapses to a disclosure below it */
+  .stage{padding:14px 12px 22px;align-items:flex-start}
+  .stage-in{gap:14px}
+  .acard{padding:16px 15px 16px;border-radius:16px}
+  .acard h2{font-size:19px}
+  .acard .sub{margin-bottom:11px}
+  .acard-top{margin-bottom:12px}
+  .authnote-mini{margin-bottom:11px}
+  .demo-toggle{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+    min-height:46px;border:1px dashed var(--line-2);border-radius:14px;background:var(--peek-bg);
+    color:var(--tx-2);font-size:13px;font-weight:600}
+  .demo-toggle .ico{color:var(--accent)}
+  .demo{display:none}
+  .demoslot.open .demo{display:flex}
+  .demoslot.open .demo-toggle{margin-bottom:10px}
+  .demo-body{min-height:300px;padding:12px 12px 6px}
   .wsgrid{grid-template-columns:1fr}
   .wspick{padding:28px 18px}
   .pg{padding:16px 14px 44px}
@@ -1246,6 +1436,90 @@ textarea.input{resize:vertical;min-height:96px;line-height:1.55}
 
   .toasts{bottom:96px;left:12px;right:12px;transform:none}
   .toast{width:100%;justify-content:center}
+  /* every remaining control cleared to 44px (V4 §4) */
+  .btn{min-height:44px}
+  .cbtn{min-height:44px;padding:0 12px}
+  .reason{min-height:44px}
+  .fchip{min-width:44px;justify-content:center}
+  .seg3 button{min-height:44px;min-width:44px}
+  .filterbar .srch input{min-height:44px}
+  .pal-in input{min-height:44px}
+  .checkrow input,.checkline input{width:20px;height:20px}
+  /* the switch keeps its desktop look but gets a 52x44 hit area */
+  .switch{position:relative}
+  .switch::before{content:"";position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);width:52px;height:44px}
+  .demo-dots button{width:44px;height:44px}
+  a.src{min-height:44px}
+  .auth-alt{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
+  .auth-alt button{min-height:44px;padding:0 6px}
+}
+
+/* ---------------------- TABLET 768–1023 (touch too) -------------------
+   A tablet is a touch device: the same 44px minimums apply, the steppers
+   are full-screen sheets rather than squeezed modals, and every editable
+   surface stays at 16px so iPadOS does not zoom on focus.               */
+@media (min-width:768px) and (max-width:1023px){
+  .iconbtn{width:44px;height:44px}
+  .tool{min-height:44px;padding:0 12px}
+  .sendbtn{width:44px;height:44px}
+  .trigger{min-height:44px;padding:0 11px}
+  .stat{min-height:44px;padding:0 13px}
+  .btn{min-height:44px}
+  .btn.sm{min-height:44px;padding:0 12px}
+  .act{min-height:44px;padding:0 12px}
+  .cbtn{min-height:44px;padding:0 12px}
+  .conv{min-height:48px;padding:9px 10px}
+  .navitem{height:44px}
+  .newchat{height:48px}
+  .searchbtn{height:46px}
+  .seg button{height:44px}
+  .seg3 button{min-height:44px}
+  .fchip{min-height:44px}
+  .tab{min-height:44px}
+  .setup-row{min-height:52px}
+  .brandbtn{min-height:44px}
+  .userchip{min-height:48px}
+  .menu-i,.pi,.si{min-height:48px;align-items:center}
+  .m-cat{min-height:46px}
+  .achip{height:36px;padding:0 6px 0 11px}
+  .achip button{width:24px;height:24px}
+  .reason{min-height:44px}
+  .checkrow{min-height:52px}
+  /* the icon rail is a touch target column, not a 40px one */
+  .sb.rail{width:66px}
+  .sb.rail .sb-pad{padding-left:11px;padding-right:11px}
+  .sb.rail .navitem,.sb.rail .newchat,.sb.rail .searchbtn{width:44px;height:44px}
+  .sb.rail .brandbtn{width:44px;min-height:44px}
+  /* 16px on every editable surface */
+  #composerInput,.slot,.pal-in input,.input,.filterbar .srch input{font-size:16px}
+  /* steppers become full-screen sheets */
+  .modal,.modal.narrow{left:0;top:0;transform:none;width:100%;max-width:100%;
+    height:100dvh;max-height:100dvh;border-radius:0;border:0}
+  .m-body{flex-direction:column}
+  .m-cats{width:100%;flex:none;border-right:0;border-bottom:1px solid var(--line);
+    display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:8px;scrollbar-width:none}
+  .m-cats::-webkit-scrollbar{display:none}
+  .m-cat{white-space:nowrap;flex:none}
+  .m-pane{padding:18px 16px 30px}
+  .palette{max-height:82vh}
+  /* every remaining control cleared to 44px (V4 §4) */
+  .btn{min-height:44px}
+  .cbtn{min-height:44px;padding:0 12px}
+  .reason{min-height:44px}
+  .fchip{min-width:44px;justify-content:center}
+  .seg3 button{min-height:44px;min-width:44px}
+  .filterbar .srch input{min-height:44px}
+  .pal-in input{min-height:44px}
+  .checkrow input,.checkline input{width:20px;height:20px}
+  /* the switch keeps its desktop look but gets a 52x44 hit area */
+  .switch{position:relative}
+  .switch::before{content:"";position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);width:52px;height:44px}
+  .demo-dots button{width:44px;height:44px}
+  a.src{min-height:44px}
+  .auth-alt{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
+  .auth-alt button{min-height:44px;padding:0 6px}
 }
 @media (max-width:400px){
   .lp{padding:14px 11px 36px}
@@ -2975,46 +3249,95 @@ slashData = function () {
    Auth
    ========================================================================== */
 function authMark(sfx) { return magnaMark(sfx, false); }
-function brandSide() {
-  return '<div class="auth-brand">' +
-    '<div class="brandfx" aria-hidden="true" style="inset:0;opacity:1">' +
-      '<div class="bd bd-1" style="right:-150px;top:-90px;width:520px;opacity:.10">' + magnaMark("authbd", true) + "</div>" +
-    "</div>" +
-    '<div class="lock">' + authMark("authlock") +
-      '<span class="wordmark">Magna<span class="wm">VERSE</span></span></div>' +
-    "<h1>Your operational brain, on your own hardware.</h1>" +
-    "<p>Inference runs on Magna GPUs in Riyadh DC-1. Your prompts, your documents and your mail " +
-    "never leave your network unless you explicitly move a thread to the Public tier.</p>" +
-    '<div class="facts">' +
-      ['<svg class="ico" viewBox="0 0 24 24"><path d="M12 3 4.5 6v6c0 4.4 3.2 8.2 7.5 9 4.3-.8 7.5-4.6 7.5-9V6Z"/></svg>Private tier · Magna cluster · Riyadh DC-1 · 8×H200',
-       '<svg class="ico" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg>Kimi K2 Instruct · DeepSeek V3.1 · Qwen 3 · NVIDIA Nemotron',
-       '<svg class="ico" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg>6 connected systems · 8,400 indexed documents']
-      .map(f => '<span class="fact">' + f + "</span>").join("") +
-    "</div></div>";
+
+/* ---- the veil + stage that every auth screen sits on -------------------
+   The launchpad behind is real and stays rendered; the veil only blurs and
+   dims it. Nothing readable is ever placed on the blurred layer.        */
+function stageOpen(areas) {
+  return '<div class="auth-veil" aria-hidden="true"></div>' +
+    '<div class="stage"><div class="stage-in' + (areas ? " " + areas : "") + '">';
 }
+const stageClose = "</div></div>";
+
+/* three "waiting for you" cards — the value, visible before you are in */
+function peekCards() {
+  const rows = [
+    ['<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+     "2 tasks ran overnight", "Vendor risk sweep · Daily pulse — both finished at 05:00"],
+    ['<svg class="ico" viewBox="0 0 24 24"><path d="M20 15.5A2.5 2.5 0 0 1 17.5 18H8l-4 3V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5Z"/></svg>',
+     "1 thread needs you", "“Package 4 change orders” is waiting on a file"],
+    ['<svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.6 7.8 10.6 15.8M16.4 7.8 13.4 15.8M8.5 6h7"/></svg>',
+     "6 systems connected", "SAP · P6 · Jira · Confluence · HR · Knowledge"]
+  ];
+  return '<aside class="peeks" aria-label="Waiting for you in this workspace">' +
+    '<span class="peeks-l"><span class="dot live" style="color:var(--private)"></span>Waiting for you</span>' +
+    rows.map(r => '<div class="peek"><span class="pk-i">' + r[0] + "</span>" +
+      '<span class="pk-t"><b>' + esc(r[1]) + "</b><span>" + esc(r[2]) + "</span></span></div>").join("") +
+    "</aside>";
+}
+
+/* ---- V4 §2 · Google and Apple, drawn to each vendor's own convention ----
+   These are DEMO buttons. Clicking goes straight into the prototype
+   session. This file contains no imitation of a provider sign-in screen
+   and never asks for a Google or Apple password — a convincing replica of
+   a credential screen is a phishing page whatever the intent.           */
+const GOOGLE_G =
+  '<svg class="gmark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">' +
+  '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/>' +
+  '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/>' +
+  '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.55 10.78l7.98-6.19Z"/>' +
+  '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/>' +
+  "</svg>";
+const APPLE_MARK =
+  '<svg class="amark" viewBox="0 0 814 1000" aria-hidden="true" focusable="false">' +
+  '<path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>' +
+  "</svg>";
+function providerButtons() {
+  return '<div class="provstack">' +
+    '<button type="button" class="provbtn gbtn" data-prov="google">' + GOOGLE_G +
+      '<span class="plabel">Sign in with Google</span></button>' +
+    '<button type="button" class="provbtn abtn" data-prov="apple">' + APPLE_MARK +
+      '<span class="plabel">Sign in with Apple</span></button>' +
+    '<button type="button" class="btn block" data-prov="sso">' +
+      '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2.5"/>' +
+      '<path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span class="plabel">Continue with Magna SSO</span></button>' +
+    "</div>" +
+    '<p class="provnote"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 4.5 6v6c0 4.4 3.2 8.2 7.5 9 4.3-.8 7.5-4.6 7.5-9V6Z"/></svg>' +
+      "<span>Demo buttons. They sign you straight into the prototype — MagnaVERSE never shows you a " +
+      "Google or Apple sign-in page and never asks for a provider password.</span></p>";
+}
+
 function renderLogin(err) {
-  $("#authRoot").innerHTML = brandSide() +
-    '<div class="auth-form"><h2>Sign in</h2>' +
-    '<p class="sub">MagnaVERSE · Magna KSA tenant</p>' +
-    '<div class="demo-note"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.4"/></svg>' +
-      "<span>Demo credentials are filled in for you — just press <strong>Sign in</strong>. " +
-      "Nothing is transmitted; this prototype keeps its state on this device only.</span></div>" +
-    '<form id="loginForm" novalidate>' +
-      '<div class="field"><label for="liEmail">Work email</label>' +
-        '<input class="input" id="liEmail" type="email" value="ahmad.farahat@magna.ai" autocomplete="username">' +
-        '<span class="errmsg" id="liEmailErr"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16v.4"/></svg><span></span></span></div>' +
-      '<div class="field"><label for="liPass">Password</label>' +
-        '<input class="input" id="liPass" type="password" value="magna2026" autocomplete="current-password">' +
-        '<span class="errmsg" id="liPassErr"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16v.4"/></svg><span></span></span></div>' +
-      '<button class="btn primary block" id="liGo" type="submit">Sign in</button>' +
-    "</form>" +
-    '<div class="auth-or">or</div>' +
-    '<button class="btn block" id="liSso"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Continue with Magna SSO</button>' +
-    '<p class="auth-alt">New here? <button id="liReg" type="button">Create an account</button></p>' +
-    '<div class="auth-foot"><span class="pill sm private"><span class="dot"></span>Private · Riyadh DC-1</span>' +
-      "<span>Prototype · no data leaves this device</span></div>" +
-    "</div>";
+  $("#authRoot").innerHTML = stageOpen() +
+    peekCards() +
+    '<section class="acard" tabindex="-1" aria-labelledby="liH">' +
+      '<div class="acard-top">' + authMark("authcard") +
+        '<span class="wordmark">Magna<span class="wm">VERSE</span></span>' +
+        '<span class="pill sm private"><span class="dot"></span>Riyadh DC-1</span></div>' +
+      '<h2 id="liH">Sign in</h2>' +
+      '<p class="sub">Your workspace is already running — 2 tasks finished overnight while you were away.</p>' +
+      '<p class="authnote-mini"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.4"/></svg>' +
+        "<span>Demo credentials are filled in — just press <strong>Sign in</strong>. Nothing is " +
+        "transmitted; state stays on this device.</span></p>" +
+      '<form id="loginForm" novalidate>' +
+        '<div class="field"><label for="liEmail">Work email</label>' +
+          '<input class="input" id="liEmail" type="email" value="ahmad.farahat@magna.ai" autocomplete="username">' +
+          '<span class="errmsg" id="liEmailErr"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16v.4"/></svg><span></span></span></div>' +
+        '<div class="field"><label for="liPass">Password</label>' +
+          '<input class="input" id="liPass" type="password" value="magna2026" autocomplete="current-password">' +
+          '<span class="errmsg" id="liPassErr"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16v.4"/></svg><span></span></span></div>' +
+        '<button class="btn primary block" id="liGo" type="submit">Sign in</button>' +
+      "</form>" +
+      '<div class="auth-or">or</div>' +
+      providerButtons() +
+      '<p class="auth-alt">New here? <button id="liReg" type="button">Create an account</button></p>' +
+      '<div class="auth-foot"><span class="pill sm private"><span class="dot"></span>Private · Riyadh DC-1</span>' +
+        "<span>Prototype · no data leaves this device</span></div>" +
+    "</section>" +
+    demoPanelHTML() +
+    stageClose;
   if (err) showAuthErr(err.field, err.msg);
+  mountDemo();
 }
 function showAuthErr(field, msg) {
   const el = $("#" + field + "Err");
@@ -3028,8 +3351,12 @@ function clearAuthErrs() {
   $$(".input", $("#authRoot")).forEach(e => e.classList.remove("bad"));
 }
 function renderRegister() {
-  $("#authRoot").innerHTML = brandSide() +
-    '<div class="auth-form"><h2>Create an account</h2>' +
+  $("#authRoot").innerHTML = stageOpen("solo") +
+    '<section class="acard" tabindex="-1">' +
+    '<div class="acard-top">' + authMark("authreg") +
+      '<span class="wordmark">Magna<span class="wm">VERSE</span></span>' +
+      '<span class="pill sm private"><span class="dot"></span>Riyadh DC-1</span></div>' +
+    "<h2>Create an account</h2>" +
     '<p class="sub">You will be added to the Magna KSA tenant.</p>' +
     '<form id="regForm" novalidate>' +
       '<div class="field"><label for="rgName">Full name</label><input class="input" id="rgName" value="Ahmad Farahat">' +
@@ -3042,11 +3369,14 @@ function renderRegister() {
         '<span class="errmsg" id="rgPassErr"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg><span></span></span></div>' +
       '<button class="btn primary block" id="rgGo" type="submit">Create account</button>' +
     "</form>" +
+    '<div class="auth-or">or</div>' +
+    providerButtons() +
     '<p class="auth-alt">Already have one? <button id="rgBack" type="button">Sign in</button></p>' +
-    "</div>";
+    "</section>" + stageClose;
 }
 function renderWorkspace() {
-  $("#authRoot").innerHTML =
+  $("#authRoot").innerHTML = stageOpen("solo wide") +
+    '<section class="acard wide" tabindex="-1">' +
     '<div class="wspick"><div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">' +
       magnaMark("wsmark", false) + '<span style="font-size:17px;font-weight:650;letter-spacing:-.02em">Magna<span style="color:var(--tx-3)">VERSE</span></span></div>' +
     "<h2>Choose a workspace</h2>" +
@@ -3073,15 +3403,60 @@ function renderWorkspace() {
         "<div class='dr'><b>Seats</b>10</div></dl></button>" +
     "</div>" +
     '<p style="margin-top:18px;font-size:12px;color:var(--tx-3)">You can switch tier per thread later from the composer.</p>' +
-    "</div>";
+    "</div></section>" + stageClose;
 }
+/* the workspace behind stays live but must not be reachable while the
+   sign-in dialog is up — inert keeps Tab inside the card */
+function shellInert(on) {
+  const s = $(".shell");
+  if (!s) return;
+  if (on) { s.setAttribute("inert", ""); s.setAttribute("aria-hidden", "true"); }
+  else { s.removeAttribute("inert"); s.removeAttribute("aria-hidden"); }
+}
+let authT = null;
 function showAuth(screen) {
+  stopDemo();
+  clearTimeout(authT);
   $("#authRoot").classList.add("on");
+  $("#authRoot").dataset.screen = screen || "login";
+  shellInert(true);
   if (screen === "register") renderRegister();
   else if (screen === "workspace") renderWorkspace();
   else renderLogin();
+  const card = $(".acard", $("#authRoot"));
+  const first = screen === "login" && window.innerWidth >= 768 ? $("#liEmail") : null;
+  /* preventScroll: focus must never scroll the stage away from the card top */
+  if (first) first.focus({ preventScroll: true });
+  else if (card) card.focus({ preventScroll: true });
 }
-function hideAuth() { $("#authRoot").classList.remove("on"); $("#authRoot").innerHTML = ""; }
+function hideAuth() {
+  stopDemo();
+  clearTimeout(authT);
+  $("#authRoot").classList.remove("on");
+  $("#authRoot").innerHTML = "";
+  $("#authRoot").removeAttribute("data-screen");
+  shellInert(false);
+}
+
+/* ---- V4 §2 · provider round-trip, simulated and never imitated --------
+   No provider window, no provider password field: the button shows the
+   Magna mark thinking, then drops you into the demo session.           */
+function providerSignIn(btn) {
+  if (btn.dataset.busy) return;
+  const kind = btn.dataset.prov;
+  const label = kind === "google" ? "Google" : kind === "apple" ? "Apple" : "Magna SSO";
+  btn.dataset.busy = "1";
+  btn.setAttribute("aria-busy", "true");
+  $$("#authRoot .provbtn, #authRoot .btn.block").forEach(b => { if (b !== btn) b.disabled = true; });
+  btn.innerHTML = magnaMark(uid("pv"), true, "mg-thinking") +
+    '<span class="plabel">Authorising with ' + esc(label) + "…</span>";
+  authT = setTimeout(() => {
+    state.session = { name: "Ahmad Farahat", email: "ahmad.farahat@magna.ai", org: "Magna · Riyadh",
+      via: label };
+    store.set("session", state.session);
+    showAuth("workspace");
+  }, 1150);
+}
 
 function doSignIn(email, pass) {
   clearAuthErrs();
@@ -3091,7 +3466,8 @@ function doSignIn(email, pass) {
   const btn = $("#liGo");
   btn.classList.add("loading");
   btn.innerHTML = '<span class="spinner"></span> Signing in on Riyadh DC-1…';
-  setTimeout(() => {
+  clearTimeout(authT);
+  authT = setTimeout(() => {
     state.session = { name: "Ahmad Farahat", email: email.trim(), org: "Magna · Riyadh" };
     store.set("session", state.session);
     showAuth("workspace");
@@ -3113,6 +3489,310 @@ function signOut() {
   $("#scrim").classList.remove("open");
   showAuth("login");
 }
+
+/* ============================================================================
+   V4 §3 — the streamed demo preview
+   A prompt typed character by character, the Magna mark thinking, then an
+   answer streaming in with the real renderers. Three scenarios, each making
+   a different point. Pure timeouts: it never blocks the form, and every
+   timer is dropped on teardown.
+   ========================================================================== */
+const DEMO_RESID =
+  '<span class="dm-resid"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true">' +
+  '<path d="M12 3 4.5 6v6c0 4.4 3.2 8.2 7.5 9 4.3-.8 7.5-4.6 7.5-9V6Z"/></svg>' +
+  "Ran on Magna GPUs in Riyadh DC-1 · nothing left the network</span>";
+
+const DEMO_SCENES = [
+  { /* 1 — connected enterprise data */
+    q: "Which POs slipped past their promised date this month?",
+    status: ["Thinking…", "Querying SAP S/4HANA…", "Writing the answer…"],
+    cap: "Answered from live SAP purchase orders — the query ran inside your network.",
+    blocks: [
+      { t: "p", h: "Four purchase orders slipped past their promised date in August, holding " +
+        "<strong>SAR 2.41 m</strong> of committed spend." },
+      { t: "html", h: '<div class="tblwrap"><table class="tbl"><thead><tr>' +
+        '<th scope="col">PO</th><th scope="col">Vendor</th><th scope="col" class="num">Late</th>' +
+        '<th scope="col" class="num">Value</th></tr></thead><tbody>' +
+        '<tr><td>4500091823</td><td>Gulf Rebar Co</td><td class="num">12 d</td><td class="num">1.15 m</td></tr>' +
+        '<tr><td>4500092011</td><td>Al-Faris Steel</td><td class="num">8 d</td><td class="num">0.62 m</td></tr>' +
+        '<tr><td>4500092188</td><td>Nasser Cables</td><td class="num">5 d</td><td class="num">0.41 m</td></tr>' +
+        '<tr><td>4500092240</td><td>ITC Formwork</td><td class="num">3 d</td><td class="num">0.23 m</td></tr>' +
+        "</tbody></table></div>" },
+      { t: "html", h: '<div class="dm-chips"><span class="pill sm accent">SAP S/4HANA · 4 records</span>' +
+        '<span class="pill sm">EKKO · EKPO · synced 06:00</span></div>' },
+      { t: "p", h: "Gulf Rebar is the outlier — the same vendor slipped twice last quarter." },
+      { t: "resid" }
+    ] },
+  { /* 2 — provenance */
+    q: "Summarise the change orders on Package 4 and who owns the risk.",
+    status: ["Thinking…", "Searching Company Knowledge…", "Writing the answer…"],
+    cap: "Every sentence traces back to a document you own — provenance, not vibes.",
+    blocks: [
+      { t: "p", h: "Eleven change orders since April. Nine trace to two causes: late client drawings " +
+        '<span class="cite">1</span> and the rebar substitution <span class="cite">2</span>.' },
+      { t: "html", h: '<div class="mathblock"><span class="mrow"><span class="var">E</span>' +
+        '<span class="op">=</span><span class="sig">Σ</span><span class="var">v</span>' +
+        '<span class="sub-i">i</span><span class="op">×</span><span class="var">p</span>' +
+        '<span class="sub-i">i</span><span class="op">=</span><span>SAR 1.84 m</span></span>' +
+        '<span class="mathtag">exposure</span></div>' },
+      { t: "p", h: "Commercial holds the exposure; Engineering owns the cause. <strong>Two</strong> " +
+        "change orders are still unpriced." },
+      { t: "html", h: '<div class="dm-chips"><span class="pill sm accent">2 sources · grounded</span>' +
+        '<span class="pill sm private"><span class="dot"></span>Company Knowledge</span></div>' +
+        '<div class="dm-mail"><div class="dm-mrow"><b>[1]</b><span>Package 4 · change log · rev 9</span>' +
+        '<span class="wn">Confluence</span></div>' +
+        '<div class="dm-mrow"><b>[2]</b><span>CO-114 minutes · p.3</span>' +
+        '<span class="wn">Knowledge</span></div></div>' },
+      { t: "resid" }
+    ] },
+  { /* 3 — the mail MCP */
+    q: "What's in my inbox about the rebar delay?",
+    status: ["Thinking…", "Calling magna-mail · search_mail…", "Writing the answer…"],
+    cap: "Mail is an MCP server running on-prem — read freely, and nothing sends without your approval.",
+    blocks: [
+      { t: "html", h: '<div class="dm-tool"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>' +
+        '<span><code>magna-mail</code> · search_mail("rebar delay")</span>' +
+        '<span class="ms">3 hits · 0.4 s</span></div>' },
+      { t: "p", h: "Three messages this week, all about the same slip." },
+      { t: "html", h: '<div class="dm-mail">' +
+        '<div class="dm-mrow"><b>Gulf Rebar Co</b><span>Revised delivery — Zone C</span><span class="wn">Tue</span></div>' +
+        '<div class="dm-mrow"><b>Site QS</b><span>Rebar shortfall affects pour 14</span><span class="wn">Wed</span></div>' +
+        '<div class="dm-mrow"><b>Planning</b><span>P6 impact: 6 days on the critical path</span><span class="wn">Thu</span></div>' +
+        "</div>" },
+      { t: "p", h: "Gulf Rebar want six more days. I can draft the reply — nothing sends until you approve it." },
+      { t: "resid" }
+    ] }
+];
+
+const demo = { i: 0, step: 0, steps: [], playing: false, started: false, gen: 0, timers: [], reduced: false };
+function demoTimer(fn, ms) {
+  const g = demo.gen;
+  const id = setTimeout(() => { if (g !== demo.gen) return; fn(); }, ms);
+  demo.timers.push(id);
+  return id;
+}
+function demoClearTimers() { demo.timers.forEach(clearTimeout); demo.timers = []; }
+/* teardown — leaving the login must not leave a single interval running */
+function stopDemo() {
+  demo.gen++; demoClearTimers();
+  demo.steps = []; demo.step = 0; demo.started = false; demo.playing = false;
+}
+
+function demoPanelHTML() {
+  const dots = DEMO_SCENES.map((s, i) =>
+    '<button type="button" data-demodot="' + i + '" aria-current="' + (i === 0) + '" ' +
+    'aria-label="Scenario ' + (i + 1) + ": " + esc(s.q) + '"><i></i></button>').join("");
+  return '<div class="demoslot" id="demoSlot">' +
+    '<button type="button" class="demo-toggle" id="demoToggle" aria-expanded="false" aria-controls="demoPanel">' +
+      '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none">' +
+      '<path d="M8 5.5v13l11-6.5z"/></svg>See a 30-second demo</button>' +
+    '<section class="demo" id="demoPanel" aria-label="Preview of a MagnaVERSE conversation">' +
+      '<div class="demo-hd"><span class="lbl">Live preview</span>' +
+        '<span class="pill sm private"><span class="dot live"></span>Private · Riyadh DC-1</span>' +
+        '<span class="rt"><span class="demo-dots" id="demoDots">' + dots + "</span>" +
+        '<button type="button" class="iconbtn" id="demoPlay" aria-label="Pause the preview"></button></span></div>' +
+      '<p class="sr">A looping preview of three example conversations. It is decorative — the sign-in ' +
+        "form above works independently.</p>" +
+      '<div class="demo-body" id="demoBody"></div>' +
+      '<div class="demo-foot"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path d="M12 3 4.5 6v6c0 4.4 3.2 8.2 7.5 9 4.3-.8 7.5-4.6 7.5-9V6Z"/></svg>' +
+        '<span class="demo-cap" id="demoCap"></span></div>' +
+    "</section></div>";
+}
+
+const PLAY_IC = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none">' +
+  '<path d="M8 5.5v13l11-6.5z"/></svg>';
+const PAUSE_IC = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none">' +
+  '<rect x="7" y="5.5" width="3.6" height="13" rx="1.2"/><rect x="13.4" y="5.5" width="3.6" height="13" rx="1.2"/></svg>';
+function syncDemoCtl() {
+  const p = $("#demoPlay");
+  if (p) {
+    p.innerHTML = demo.playing ? PAUSE_IC : PLAY_IC;
+    p.setAttribute("aria-label", demo.playing ? "Pause the preview" : "Play the preview");
+    p.setAttribute("title", demo.playing ? "Pause" : "Play");
+    p.style.display = demo.reduced ? "none" : "";
+  }
+  $$("#demoDots button").forEach(b =>
+    b.setAttribute("aria-current", String(+b.dataset.demodot === demo.i)));
+}
+
+/* ---- streaming primitives --------------------------------------------- */
+function tokenizeHTML(h) {
+  const out = [], re = /<[^>]*>|[^<]+/g;
+  let m;
+  while ((m = re.exec(h))) {
+    if (m[0][0] === "<") out.push(m[0]);
+    else m[0].split(/(\s+)/).forEach(w => { if (w) out.push(w); });
+  }
+  return out;
+}
+function setDemoQ(t) { const q = $("#dmQ"); if (q) q.innerHTML = esc(t) + '<span class="dm-caret"></span>'; }
+function dropDemoCaret() { const c = $("#dmQ .dm-caret"); if (c) c.remove(); }
+function showDemoThinking(s) {
+  const b = $("#demoBody"); if (!b) return;
+  const w = document.createElement("div");
+  w.id = "dmThink";
+  w.innerHTML = thinkingHTML(s);
+  b.appendChild(w);
+}
+function setDemoThinking(s) { const t = $("#dmThink .th-tx"); if (t) t.textContent = s; }
+function openDemoAnswer() {
+  const b = $("#demoBody"); if (!b) return;
+  const th = $("#dmThink"); if (th) th.remove();
+  const head = document.createElement("div");
+  head.className = "dm-head";
+  head.innerHTML = '<span class="a-mark">' + magnaMark(uid("dm"), true) + "</span><b>MagnaVERSE</b>" +
+    '<span class="pill sm">Kimi K2 Instruct</span>';
+  b.appendChild(head);
+  const a = document.createElement("div");
+  a.className = "dm-ans"; a.id = "dmAns";
+  b.appendChild(a);
+}
+function newDemoP() {
+  const a = $("#dmAns"); if (!a) return;
+  const old = $("#dmP"); if (old) old.removeAttribute("id");
+  const p = document.createElement("p");
+  p.id = "dmP";
+  a.appendChild(p);
+}
+function setDemoP(h) { const p = $("#dmP"); if (p) p.innerHTML = h; }
+function addDemoHTML(h) {
+  const a = $("#dmAns"); if (!a) return;
+  const old = $("#dmP"); if (old) old.removeAttribute("id");
+  const d = document.createElement("div");
+  d.innerHTML = h;
+  while (d.firstChild) a.appendChild(d.firstChild);
+}
+
+function buildDemoSteps(sc) {
+  const st = [];
+  for (let n = 0; n < sc.q.length; n += 2) {
+    const txt = sc.q.slice(0, Math.min(sc.q.length, n + 2));
+    st.push({ d: 26, run: () => setDemoQ(txt) });
+  }
+  st.push({ d: 460, run: () => { dropDemoCaret(); showDemoThinking(sc.status[0]); } });
+  for (let k = 1; k < sc.status.length; k++) {
+    const s = sc.status[k];
+    st.push({ d: 780, run: () => setDemoThinking(s) });
+  }
+  st.push({ d: 700, run: openDemoAnswer });
+  sc.blocks.forEach(b => {
+    if (b.t === "p") {
+      st.push({ d: 140, run: newDemoP });
+      let acc = "";
+      tokenizeHTML(b.h).forEach(tk => {
+        acc += tk;
+        const cur = acc;
+        st.push({ d: (/^\s+$/.test(tk) || tk[0] === "<") ? 0 : 30, run: () => setDemoP(cur) });
+      });
+    } else {
+      const h = b.t === "resid" ? DEMO_RESID : b.h;
+      st.push({ d: b.t === "resid" ? 300 : 260, run: () => addDemoHTML(h) });
+    }
+  });
+  st.push({ d: 300, run: () => { const c = $("#demoCap"); if (c) c.classList.add("on"); } });
+  return st;
+}
+
+function pumpDemo() {
+  if (!demo.playing) return;
+  if (demo.step >= demo.steps.length) {
+    demoTimer(() => { if (demo.playing) startDemo(demo.i + 1); }, 3600);
+    return;
+  }
+  const s = demo.steps[demo.step++];
+  demoTimer(() => { s.run(); pumpDemo(); }, s.d);
+}
+function startDemo(i) {
+  const body = $("#demoBody"); if (!body) return;
+  demo.gen++; demoClearTimers();
+  const n = DEMO_SCENES.length;
+  demo.i = ((i || 0) % n + n) % n;
+  demo.started = true; demo.playing = true;
+  const sc = DEMO_SCENES[demo.i];
+  body.innerHTML = '<div class="dm-user"><span class="bub" id="dmQ"><span class="dm-caret"></span></span></div>';
+  const cap = $("#demoCap");
+  if (cap) { cap.classList.remove("on"); cap.textContent = sc.cap; }
+  demo.steps = buildDemoSteps(sc);
+  demo.step = 0;
+  syncDemoCtl();
+  pumpDemo();
+}
+/* reduced motion: the finished state, immediately, with no timers at all */
+function renderDemoFinal(i) {
+  const body = $("#demoBody"); if (!body) return;
+  const n = DEMO_SCENES.length;
+  demo.i = ((i || 0) % n + n) % n;
+  const sc = DEMO_SCENES[demo.i];
+  body.innerHTML = '<div class="dm-user"><span class="bub">' + esc(sc.q) + "</span></div>" +
+    '<div class="dm-head"><span class="a-mark">' + magnaMark(uid("dm"), true) + "</span>" +
+    "<b>MagnaVERSE</b><span class=\"pill sm\">Kimi K2 Instruct</span></div>" +
+    '<div class="dm-ans">' + sc.blocks.map(b =>
+      b.t === "p" ? "<p>" + b.h + "</p>" : b.t === "resid" ? DEMO_RESID : b.h).join("") + "</div>";
+  const cap = $("#demoCap");
+  if (cap) { cap.textContent = sc.cap; cap.classList.add("on"); }
+  syncDemoCtl();
+}
+function setDemoPlaying(on) {
+  demo.playing = on;
+  if (!on) { demo.gen++; demoClearTimers(); }          /* freeze exactly where it is */
+  else if (!demo.started) startDemo(demo.i);
+  else pumpDemo();
+  syncDemoCtl();
+}
+const demoIsMobile = () => window.matchMedia("(max-width:767px)").matches;
+/* the preview is ambient: it starts after the form is on screen, never before */
+function mountDemo() {
+  if (!$("#demoSlot")) return;
+  demo.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  demo.i = 0; demo.step = 0; demo.steps = []; demo.started = false; demo.playing = false;
+  syncDemoCtl();
+  if (demo.reduced) { renderDemoFinal(0); return; }
+  if (demoIsMobile()) return;                          /* waits for the disclosure */
+  demo.playing = true;                                 /* control reads Pause from the first frame */
+  syncDemoCtl();
+  requestAnimationFrame(() => demoTimer(() => startDemo(0), 320));
+}
+
+document.addEventListener("click", e => {
+  const tg = e.target.closest("#demoToggle");
+  if (tg) {
+    const slot = $("#demoSlot");
+    const open = !slot.classList.contains("open");
+    slot.classList.toggle("open", open);
+    tg.setAttribute("aria-expanded", String(open));
+    tg.lastChild.textContent = open ? "Hide the demo" : "See a 30-second demo";
+    if (open) { if (demo.reduced) renderDemoFinal(demo.i); else startDemo(demo.i); }
+    else stopDemo();
+    return;
+  }
+  const pl = e.target.closest("#demoPlay");
+  if (pl) { setDemoPlaying(!demo.playing); return; }
+  const dt = e.target.closest("[data-demodot]");
+  if (dt) {
+    const i = +dt.dataset.demodot;
+    if (demo.reduced) renderDemoFinal(i); else startDemo(i);
+    return;
+  }
+  const pv = e.target.closest("[data-prov]");
+  if (pv) { providerSignIn(pv); return; }
+});
+/* pause while the tab is hidden — no work off-screen, no drift on return */
+document.addEventListener("visibilitychange", () => {
+  if (!$("#demoPanel") || demo.reduced) return;
+  if (document.hidden) { if (demo.playing) { demo.gen++; demoClearTimers(); demo.wasPlaying = true; demo.playing = false; syncDemoCtl(); } }
+  else if (demo.wasPlaying) { demo.wasPlaying = false; setDemoPlaying(true); }
+});
+window.addEventListener("pagehide", stopDemo);
+let demoRzT = null;
+window.addEventListener("resize", () => {
+  clearTimeout(demoRzT);
+  demoRzT = setTimeout(() => {
+    if (!$("#demoPanel") || demo.reduced || demo.started) return;
+    if (!demoIsMobile()) startDemo(demo.i);
+  }, 220);
+});
 </script>
 
 <script>
@@ -4096,12 +4776,8 @@ document.addEventListener("submit", e => {
 document.addEventListener("click", e => {
   if (e.target.closest("#liReg")) { showAuth("register"); return; }
   if (e.target.closest("#rgBack")) { showAuth("login"); return; }
-  if (e.target.closest("#liSso")) {
-    const b = e.target.closest("#liSso");
-    b.innerHTML = '<span class="spinner"></span> Redirecting to Magna SSO…';
-    setTimeout(() => { state.session = { name: "Ahmad Farahat", email: "ahmad.farahat@magna.ai", org: "Magna · Riyadh" };
-      store.set("session", state.session); showAuth("workspace"); }, 900);
-  }
+  /* Google · Apple · Magna SSO are handled by providerSignIn — every one of
+     them goes straight into the demo session, never to a provider screen. */
 });
 
 /* ============================================================================
@@ -4755,20 +5431,27 @@ document.addEventListener("click", e => {
   if (e.target.closest("[data-agentsave]")) { state.setup.agent = true; saveSetup(); renderSetup(); }
 });
 
-/* ---------- Help gets "Show setup" and "How skills work" --------------- */
-const coreSettingsPane = settingsPane;
-settingsPane = function (cat) {
-  let h = coreSettingsPane(cat);
-  if (cat === "help") {
-    h += '<div class="row"><div class="rl"><b>Show the setup checklist</b>' +
-      "<span>The “Finish setting up” card on the launchpad, with its real completion state.</span></div>" +
-      '<div class="rc"><button class="btn sm" data-showsetup="1">Show setup</button></div></div>' +
-      '<div class="row"><div class="rl"><b>Show “How skills work” again</b>' +
-      "<span>The three-step explainer at the top of the Skills catalogue.</span></div>" +
-      '<div class="rc"><button class="btn sm" data-showskillex="1">Show me again</button></div></div>';
-  }
-  return h;
-};
+/* ---------- Help gets "Show setup" and "How skills work" ---------------
+   settingsPane is declared in a later <script>, so the wrap has to wait
+   until every block has run — doing it inline threw a ReferenceError and
+   killed the rest of this block. */
+document.addEventListener("DOMContentLoaded", patchSettingsPane);
+function patchSettingsPane() {
+  if (typeof settingsPane !== "function") return;
+  const coreSettingsPane = settingsPane;
+  settingsPane = function (cat) {
+    let h = coreSettingsPane(cat);
+    if (cat === "help") {
+      h += '<div class="row"><div class="rl"><b>Show the setup checklist</b>' +
+        "<span>The “Finish setting up” card on the launchpad, with its real completion state.</span></div>" +
+        '<div class="rc"><button class="btn sm" data-showsetup="1">Show setup</button></div></div>' +
+        '<div class="row"><div class="rl"><b>Show “How skills work” again</b>' +
+        "<span>The three-step explainer at the top of the Skills catalogue.</span></div>" +
+        '<div class="rc"><button class="btn sm" data-showskillex="1">Show me again</button></div></div>';
+    }
+    return h;
+  };
+}
 document.addEventListener("click", e => {
   if (e.target.closest("[data-showsetup]")) { store.set("setupHidden", false); closeModal("#settingsModal"); goHome(); toast("Setup checklist is back on the launchpad"); }
   if (e.target.closest("[data-showskillex]")) { store.set("skillExplainHidden", false); closeModal("#settingsModal"); go("connections"); renderPage("connections", "skills"); }

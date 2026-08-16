@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE — Enterprise AI that runs inside your network</title>
+<meta name="description" content="MagnaVERSE is a sovereign enterprise AI workspace. The same capability as the public assistants, running on Magna's own GPUs — on-prem, in-country, inside your network. Zero bytes of egress on a private-tier answer.">
+<meta name="color-scheme" content="light dark">
+<script>
+  /* Applied before first paint so the correct theme is on screen immediately. */
+  (function () {
+    try {
+      var t = localStorage.getItem('magnaverse-theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+<style>
+/* ============================================================================
+   MagnaVERSE — enterprise landing page
+   Palette: "basalt & limestone" — architectural neutrals with a green cast,
+   one signal colour (petrol teal, drawn from the midpoint of the Magna mark),
+   and the mark's own blue / red reserved strictly for meaning.
+   Type: system grotesque for voice, system monospace for every piece of
+   metadata — the page's whole data layer reads as a datasheet.
+   ========================================================================= */
+
+/* ---------- Tokens: light (default) ---------- */
+:root {
+  color-scheme: light;
+
+  --bg:            #E7E9E4;   /* pale limestone-grey, faint green cast */
+  --bg-deep:       #DDE0D9;   /* recessed bands */
+  --surface:       #F4F5F1;
+  --surface-2:     #FBFCF9;
+  --surface-inset: #E1E4DD;
+
+  --ink:           #0E1412;
+  --ink-2:         #33403A;
+  --muted:         #59655F;
+  --faint:         #7C8A83;
+
+  --line:          #CCD2C8;
+  --line-soft:     #D9DED4;
+  --line-strong:   #A9B3A7;
+
+  --accent:        #0D6E64;   /* petrol teal */
+  --accent-hi:     #0A574F;
+  --accent-soft:   #D4E5E0;
+  --on-accent:     #F3FAF7;
+
+  --blue:          #1B47B4;   /* from the mark */
+  --red:           #A3241A;   /* from the mark */
+  --amber:         #8A6212;
+
+  --shadow-sm: 0 1px 2px rgba(14, 20, 18, .07);
+  --shadow-md: 0 2px 4px rgba(14, 20, 18, .05), 0 12px 28px -12px rgba(14, 20, 18, .22);
+  --shadow-lg: 0 1px 2px rgba(14, 20, 18, .06), 0 32px 64px -28px rgba(14, 20, 18, .34);
+
+  --grid-line: rgba(14, 20, 18, .05);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+               Arial, "Noto Sans", "Noto Sans Arabic", "Geeza Pro", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", "Courier New", monospace;
+
+  --wrap: 1240px;
+  --gut: clamp(18px, 4vw, 44px);
+  --r: 3px;      /* the page is squared-off on purpose */
+  --r-lg: 5px;
+}
+
+/* ---------- Tokens: dark via system preference ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg:            #080C0B;
+    --bg-deep:       #050807;
+    --surface:       #0E1413;
+    --surface-2:     #141B19;
+    --surface-inset: #0A100F;
+
+    --ink:           #E9EEEA;
+    --ink-2:         #C2CCC6;
+    --muted:         #94A19B;
+    --faint:         #6D7B75;
+
+    --line:          #222B28;
+    --line-soft:     #1A2220;
+    --line-strong:   #34403C;
+
+    --accent:        #45C9B4;
+    --accent-hi:     #6EDCC9;
+    --accent-soft:   #13312D;
+    --on-accent:     #04110F;
+
+    --blue:          #7E9CFF;
+    --red:           #E8756B;
+    --amber:         #D9A83C;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, .4), 0 12px 28px -12px rgba(0, 0, 0, .7);
+    --shadow-lg: 0 1px 2px rgba(0, 0, 0, .5), 0 32px 64px -28px rgba(0, 0, 0, .85);
+
+    --grid-line: rgba(233, 238, 234, .045);
+  }
+}
+
+/* ---------- Tokens: explicit toggle beats the media query, both directions ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:            #080C0B;
+  --bg-deep:       #050807;
+  --surface:       #0E1413;
+  --surface-2:     #141B19;
+  --surface-inset: #0A100F;
+
+  --ink:           #E9EEEA;
+  --ink-2:         #C2CCC6;
+  --muted:         #94A19B;
+  --faint:         #6D7B75;
+
+  --line:          #222B28;
+  --line-soft:     #1A2220;
+  --line-strong:   #34403C;
+
+  --accent:        #45C9B4;
+  --accent-hi:     #6EDCC9;
+  --accent-soft:   #13312D;
+  --on-accent:     #04110F;
+
+  --blue:          #7E9CFF;
+  --red:           #E8756B;
+  --amber:         #D9A83C;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, .4), 0 12px 28px -12px rgba(0, 0, 0, .7);
+  --shadow-lg: 0 1px 2px rgba(0, 0, 0, .5), 0 32px 64px -28px rgba(0, 0, 0, .85);
+
+  --grid-line: rgba(233, 238, 234, .045);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:            #E7E9E4;
+  --bg-deep:       #DDE0D9;
+  --surface:       #F4F5F1;
+  --surface-2:     #FBFCF9;
+  --surface-inset: #E1E4DD;
+
+  --ink:           #0E1412;
+  --ink-2:         #33403A;
+  --muted:         #59655F;
+  --faint:         #7C8A83;
+
+  --line:          #CCD2C8;
+  --line-soft:     #D9DED4;
+  --line-strong:   #A9B3A7;
+
+  --accent:        #0D6E64;
+  --accent-hi:     #0A574F;
+  --accent-soft:   #D4E5E0;
+  --on-accent:     #F3FAF7;
+
+  --blue:          #1B47B4;
+  --red:           #A3241A;
+  --amber:         #8A6212;
+
+  --shadow-sm: 0 1px 2px rgba(14, 20, 18, .07);
+  --shadow-md: 0 2px 4px rgba(14, 20, 18, .05), 0 12px 28px -12px rgba(14, 20, 18, .22);
+  --shadow-lg: 0 1px 2px rgba(14, 20, 18, .06), 0 32px 64px -28px rgba(14, 20, 18, .34);
+
+  --grid-line: rgba(14, 20, 18, .05);
+}
+
+/* ---------- Reset & base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img, svg { max-width: 100%; }
+h1, h2, h3, h4 { margin: 0; font-weight: 640; letter-spacing: -0.028em; line-height: 1.08; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hi); }
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection { background: var(--accent); color: var(--on-accent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* ---------- The Magna mark ---------- */
+.magna-mark { display: block; width: 26px; height: auto; flex: none; }
+.magna-mark path { stroke-dasharray: 1200; stroke-dashoffset: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .magna-mark path { animation: mgDraw 1.5s cubic-bezier(.16, 1, .3, 1) both; }
+  .magna-mark path:nth-of-type(2) { animation-delay: .18s; }
+  .mg-thinking path { animation: mgLoop 1.9s ease-in-out infinite; }
+  .mg-thinking path:nth-of-type(2) { animation-delay: .22s; }
+}
+@keyframes mgDraw { from { stroke-dashoffset: 1200 } to { stroke-dashoffset: 0 } }
+@keyframes mgLoop {
+  0%   { stroke-dashoffset: 1200; opacity: .35 }
+  45%  { stroke-dashoffset: 0;    opacity: 1   }
+  100% { stroke-dashoffset: -1200; opacity: .35 }
+}
+
+.brand-lockup { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); min-height: 44px; }
+.wordmark {
+  font-weight: 650;
+  font-size: 17px;
+  letter-spacing: -0.022em;
+  white-space: nowrap;
+  line-height: 1;
+}
+.wordmark span { color: var(--muted); font-weight: 560; }
+
+/* ---------- Layout primitives ---------- */
+.wrap { width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: var(--gut); }
+.section { padding-block: clamp(56px, 8vw, 104px); border-top: 1px solid var(--line); }
+.section--flush { border-top: 0; }
+.band { background: var(--bg-deep); }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  line-height: 1.5;
+}
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 22px; height: 1px;
+  margin-right: 10px;
+  vertical-align: middle;
+  background: var(--line-strong);
+}
+.eyebrow--plain::before { display: none; }
+
+.sec-head { display: grid; gap: 18px; margin-bottom: clamp(30px, 4vw, 52px); }
+.sec-head h2 { font-size: clamp(28px, 3.6vw, 44px); max-width: 20ch; }
+.sec-head p { color: var(--muted); font-size: clamp(15px, 1.3vw, 17.5px); max-width: 62ch; line-height: 1.62; }
+
+.lede { color: var(--ink-2); font-size: clamp(16px, 1.4vw, 18.5px); line-height: 1.6; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 11px 20px;
+  border-radius: var(--r);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 560;
+  letter-spacing: -0.008em;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn--primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn--primary:hover { background: var(--accent-hi); border-color: var(--accent-hi); color: var(--on-accent); }
+.btn--ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn--ghost:hover { background: var(--surface); border-color: var(--ink-2); color: var(--ink); }
+.btn--quiet { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.btn--quiet:hover { background: var(--surface-2); color: var(--ink); }
+.btn--wide { width: 100%; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+.icon-btn:hover { color: var(--ink); border-color: var(--line-strong); background: var(--surface-2); }
+.icon-btn svg { width: 18px; height: 18px; display: block; }
+
+/* ---------- Header ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 64px;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 18px;
+  flex: 1;
+}
+.nav-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 11px;
+  border-radius: var(--r);
+  line-height: 1.2;
+}
+.nav-links a:hover { color: var(--ink); background: var(--surface); }
+.nav-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.nav .btn { min-height: 44px; padding: 8px 16px; font-size: 14px; }
+
+.nav-toggle { display: none; }
+
+/* Mobile nav sheet */
+.nav-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: none;
+}
+.nav-sheet[data-open="true"] { display: block; }
+.nav-scrim { position: absolute; inset: 0; background: rgba(4, 8, 7, .55); }
+.nav-panel {
+  position: absolute;
+  inset: 0 0 auto 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 14px var(--gut) 22px;
+  box-shadow: var(--shadow-lg);
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+.nav-panel-top { display: flex; align-items: center; justify-content: space-between; min-height: 48px; margin-bottom: 10px; }
+.nav-panel a.nav-sheet-link {
+  display: block;
+  padding: 14px 4px;
+  min-height: 44px;
+  font-size: 17px;
+  font-weight: 550;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-soft);
+}
+.nav-panel a.nav-sheet-link:hover { color: var(--accent); }
+.nav-panel .btn { margin-top: 18px; }
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  padding-top: clamp(44px, 6vw, 80px);
+  padding-bottom: clamp(40px, 5vw, 64px);
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(120% 78% at 50% 0%, #000 20%, transparent 76%);
+  mask-image: radial-gradient(120% 78% at 50% 0%, #000 20%, transparent 76%);
+  pointer-events: none;
+}
+.hero > * { position: relative; }
+
+.hero-grid { display: grid; gap: clamp(26px, 3vw, 34px); }
+.hero h1 {
+  font-size: clamp(34px, 6.2vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.038em;
+  max-width: 25ch;
+}
+.hero h1 .sub { color: var(--muted); display: block; }
+.hero-sub { max-width: 58ch; color: var(--ink-2); font-size: clamp(16px, 1.5vw, 19px); line-height: 1.58; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.hero-note { font-family: var(--font-mono); font-size: 11.5px; color: var(--faint); letter-spacing: .02em; }
+
+.jv-strip {
+  margin-top: clamp(30px, 4vw, 44px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding-block: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.jv-strip b { color: var(--ink-2); font-weight: 600; letter-spacing: .06em; }
+.jv-strip .sep { color: var(--line-strong); }
+
+/* ---------- Hero product visual ---------- */
+.pv-frame {
+  position: relative;
+  margin-top: clamp(30px, 4vw, 48px);
+  border-radius: var(--r-lg);
+  padding: 1px;
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--accent) 42%, transparent),
+      var(--line) 42%,
+      var(--line) 68%,
+      color-mix(in srgb, var(--blue) 32%, transparent));
+  box-shadow: var(--shadow-lg);
+}
+.pv {
+  background: var(--surface);
+  border-radius: calc(var(--r-lg) - 1px);
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pv-chrome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  min-height: 40px;
+}
+.pv-dots { display: flex; gap: 6px; flex: none; }
+.pv-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); display: block; }
+.pv-url {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: .04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pv-chrome-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.pv-body {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr) 208px;
+  min-height: 468px;
+}
+
+/* sidebar */
+.pv-side {
+  border-right: 1px solid var(--line);
+  background: var(--surface-2);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.pv-side .brand-lockup { min-height: 0; }
+.pv-side .brand-lockup .magna-mark { width: 20px; }
+.pv-side .wordmark { font-size: 13.5px; }
+.pv-new {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 8px 10px;
+  color: var(--ink-2);
+  font-size: 11.5px;
+  font-weight: 550;
+  background: var(--surface);
+}
+.pv-new svg { width: 13px; height: 13px; }
+.pv-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding-inline: 4px;
+}
+.pv-list { display: grid; gap: 2px; }
+.pv-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px;
+  border-radius: var(--r);
+  color: var(--muted);
+  font-size: 11.5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pv-row.is-active { background: var(--surface-inset); color: var(--ink); font-weight: 550; box-shadow: inset 2px 0 0 var(--accent); }
+.pv-row .tick { width: 5px; height: 5px; border-radius: 50%; background: var(--line-strong); flex: none; }
+.pv-row.is-active .tick { background: var(--accent); }
+.pv-row .agent-dot { width: 14px; height: 14px; border-radius: 2px; border: 1px solid var(--line-strong); flex: none;
+  display: grid; place-items: center; font-family: var(--font-mono); font-size: 7.5px; color: var(--muted); letter-spacing: 0; }
+
+/* main column */
+.pv-main { display: flex; flex-direction: column; min-width: 0; background: var(--surface); }
+.pv-top {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  min-height: 44px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 540;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+.chip--mono { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.chip--tier { border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); color: var(--accent); background: var(--accent-soft); }
+.chip .caret { color: var(--faint); font-size: 9px; }
+.pv-top-right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.conn {
+  width: 22px; height: 22px; border-radius: 3px;
+  border: 1px solid var(--line);
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 8px; font-weight: 600;
+  color: var(--muted); background: var(--surface-2); letter-spacing: 0;
+}
+
+.pv-thread { padding: 18px 16px 8px; display: grid; gap: 16px; flex: 1; align-content: start; min-width: 0; }
+.pv-user {
+  justify-self: end;
+  max-width: 84%;
+  background: var(--surface-inset);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  padding: 9px 12px;
+  color: var(--ink);
+  font-size: 12px;
+}
+.pv-asst { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; }
+.pv-asst .magna-mark { width: 20px; margin-top: 2px; }
+.pv-asst-body { display: grid; gap: 8px; min-width: 0; }
+.pv-reason {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--faint);
+}
+.pv-reason .caret { font-size: 8px; }
+.pv-answer { color: var(--ink-2); font-size: 12px; line-height: 1.62; }
+.pv-answer strong { color: var(--ink); font-weight: 600; }
+.pv-cite {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .04em;
+  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: 2px; padding: 0 3px; vertical-align: 1px; background: var(--accent-soft);
+}
+.pv-sources { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 2px; }
+.pv-src {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid var(--line); border-radius: 2px;
+  padding: 3px 7px; font-size: 10px; color: var(--muted); background: var(--surface-2);
+  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.pv-src b { font-family: var(--font-mono); font-weight: 600; color: var(--ink-2); font-size: 9px; letter-spacing: .04em; }
+
+.pv-pending { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: center; }
+.pv-pending .magna-mark { width: 20px; }
+.pv-status { font-size: 11.5px; color: var(--muted); }
+.pv-status .dotdot { color: var(--faint); }
+
+.pv-composer {
+  margin: 8px 16px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  padding: 9px 10px 8px;
+  display: grid;
+  gap: 8px;
+}
+.pv-composer-text { color: var(--faint); font-size: 12px; }
+.pv-composer-row { display: flex; align-items: center; gap: 6px; }
+.pv-mini {
+  border: 1px solid var(--line); border-radius: 3px; width: 22px; height: 22px;
+  display: grid; place-items: center; color: var(--faint); background: var(--surface);
+}
+.pv-mini svg { width: 12px; height: 12px; }
+.pv-send {
+  margin-left: auto; width: 24px; height: 24px; border-radius: 3px;
+  background: var(--accent); color: var(--on-accent); display: grid; place-items: center;
+}
+.pv-send svg { width: 12px; height: 12px; }
+
+/* residency rail */
+.pv-rail {
+  border-left: 1px solid var(--line);
+  background: var(--surface-2);
+  padding: 14px 12px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+.pv-rail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pv-live { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
+.pv-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .pv-live i { animation: pulseDot 2.4s ease-in-out infinite; }
+}
+@keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1) } 50% { opacity: .35; transform: scale(.78) } }
+
+.pv-kv { display: grid; gap: 7px; }
+.pv-kv > div { display: grid; gap: 2px; padding-bottom: 7px; border-bottom: 1px dashed var(--line); }
+.pv-kv > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.pv-k { font-family: var(--font-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.pv-v { font-size: 11.5px; color: var(--ink); font-weight: 550; }
+.pv-v.ok { color: var(--accent); font-family: var(--font-mono); letter-spacing: .04em; }
+.pv-ar { font-size: 11px; color: var(--muted); }
+
+.pv-gpu { display: grid; gap: 6px; }
+.pv-bars { display: flex; gap: 3px; align-items: flex-end; height: 34px; }
+.pv-bars i {
+  flex: 1; background: color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: 1px; display: block; transform-origin: bottom;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv-bars i { animation: barBreathe 4.2s ease-in-out infinite; }
+}
+@keyframes barBreathe { 0%, 100% { transform: scaleY(1) } 50% { transform: scaleY(.72) } }
+
+.pv-seal {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 8px 9px;
+  background: var(--surface);
+  display: grid;
+  gap: 3px;
+}
+.pv-seal .pv-k { color: var(--muted); }
+.pv-seal-note { font-size: 10.5px; color: var(--muted); line-height: 1.45; }
+
+/* product visual responsive collapse */
+@media (max-width: 1000px) {
+  .pv-body { grid-template-columns: 176px minmax(0, 1fr); }
+  .pv-rail { display: none; }
+  .pv-body { min-height: 420px; }
+}
+@media (max-width: 640px) {
+  .pv-body { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .pv-side { display: none; }
+  .pv-user { max-width: 92%; }
+  .pv-url { display: none; }
+}
+
+/* ---------- Proposition / metrics ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+  border: 1px solid var(--line);
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface);
+}
+.stat {
+  padding: 22px 20px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+}
+.stat-n { font-family: var(--font-mono); font-size: clamp(22px, 2.4vw, 30px); font-weight: 600; letter-spacing: -0.03em; color: var(--ink); line-height: 1.1; }
+.stat-n em { font-style: normal; color: var(--accent); }
+.stat-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.stat-d { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* ---------- Sovereignty ledger ---------- */
+.flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 26px;
+}
+.flow-step { background: var(--surface); padding: 18px 16px; display: flex; flex-direction: column; gap: 7px; }
+.flow-step .where { margin-top: auto; padding-top: 8px; }
+.flow-step .n { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; color: var(--accent); }
+.flow-step h3 { font-size: 15px; letter-spacing: -0.018em; }
+.flow-step p { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+.flow-step .where { font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; color: var(--faint); text-transform: uppercase; }
+
+.ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.ledger-col {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+.ledger-col h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  font-weight: 600;
+}
+.ledger-col.stays h3 { color: var(--accent); }
+.ledger-col.leaves h3 { color: var(--red); }
+.ledger-col li {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13.5px;
+  color: var(--ink-2);
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  line-height: 1.5;
+}
+.ledger-col li:last-child { border-bottom: 0; }
+.ledger-col li::before {
+  content: "";
+  width: 6px; height: 6px; flex: none;
+  border-radius: 1px;
+  transform: translateY(-1px);
+}
+.ledger-col.stays li::before { background: var(--accent); }
+.ledger-col.leaves li::before { background: var(--red); }
+.ledger-foot {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  color: var(--muted);
+  border-left: 2px solid var(--accent);
+  padding: 4px 0 4px 14px;
+}
+.ledger-foot b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Feature grid ---------- */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.feature {
+  background: var(--surface);
+  padding: 24px 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.feature:hover { background: var(--surface-2); }
+.feature .fh { display: flex; align-items: center; gap: 10px; }
+.feature svg.ico { width: 19px; height: 19px; color: var(--accent); flex: none; }
+.feature h3 { font-size: 16.5px; letter-spacing: -0.02em; }
+.feature p { font-size: 13.5px; color: var(--muted); line-height: 1.58; }
+.feature .meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  margin-top: auto;
+}
+
+/* ---------- Models & compute ---------- */
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
+.model-list { border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); }
+.model-list li {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.model-list li:last-child { border-bottom: 0; }
+.model-list .mn { font-size: 15px; font-weight: 580; color: var(--ink); letter-spacing: -0.018em; }
+.model-list .mp { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin-left: auto; }
+.model-list .md { flex-basis: 100%; font-size: 12.5px; color: var(--muted); }
+
+.spec {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+.spec-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.spec-head h3 { font-size: 15px; }
+.spec-head .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.spec-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.spec-rows > div {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft);
+  border-right: 1px solid var(--line-soft);
+  display: grid; gap: 3px;
+}
+.spec-rows > div:nth-child(2n) { border-right: 0; }
+.spec-rows > div:nth-last-child(-n+2) { border-bottom: 0; }
+.spec-v { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
+.spec-k { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); }
+
+/* ---------- Security ---------- */
+.sec-band { background: var(--bg-deep); }
+.sec-split { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
+.ciso-quote {
+  border-left: 2px solid var(--accent);
+  padding-left: 20px;
+  font-size: clamp(19px, 2.1vw, 25px);
+  line-height: 1.28;
+  letter-spacing: -0.026em;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+.ciso-quote span { color: var(--muted); }
+.controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.control { background: var(--surface); padding: 18px 18px 20px; display: grid; gap: 7px; align-content: start; }
+.control h3 { font-size: 14.5px; letter-spacing: -0.016em; display: flex; align-items: center; gap: 8px; }
+.control h3 svg { width: 16px; height: 16px; color: var(--accent); flex: none; }
+.control p { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+.badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  padding: 7px 10px;
+  color: var(--ink-2);
+  background: var(--surface);
+}
+
+/* ---------- Deployment comparison ---------- */
+.cmp-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); -webkit-overflow-scrolling: touch; }
+table.cmp { width: 100%; border-collapse: collapse; min-width: 780px; }
+table.cmp th, table.cmp td { text-align: left; padding: 14px 18px; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+table.cmp thead th { border-bottom: 1px solid var(--line); background: var(--surface-2); }
+table.cmp thead th:first-child { width: 21%; }
+table.cmp .opt-name { font-size: 15.5px; font-weight: 620; letter-spacing: -0.02em; color: var(--ink); display: block; }
+table.cmp .opt-sub { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); display: block; margin-top: 4px; }
+table.cmp tbody th {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--faint); font-weight: 500; white-space: nowrap;
+}
+table.cmp td { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+table.cmp tbody tr:last-child th, table.cmp tbody tr:last-child td { border-bottom: 0; }
+table.cmp td .yes { color: var(--accent); font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; }
+
+@media (max-width: 780px) {
+  .cmp-wrap { border: 0; border-radius: 0; overflow: visible; background: transparent; }
+  table.cmp { min-width: 0; display: block; }
+  table.cmp thead { display: none; }
+  table.cmp tbody, table.cmp tr, table.cmp th, table.cmp td { display: block; width: 100%; }
+  table.cmp tbody tr {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  table.cmp tbody th { background: var(--surface-2); border-bottom: 1px solid var(--line); padding: 10px 16px; }
+  table.cmp td { border-bottom: 1px solid var(--line-soft); padding: 12px 16px; }
+  table.cmp td::before {
+    content: attr(data-opt);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+}
+
+/* ---------- Prototypes ---------- */
+.proto-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.proto {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  padding: 18px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink);
+  transition: border-color .16s ease, background-color .16s ease, transform .16s ease;
+}
+.proto:hover { border-color: var(--accent); background: var(--surface-2); color: var(--ink); transform: translateY(-1px); }
+.proto .pk { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); display: flex; justify-content: space-between; gap: 8px; }
+.proto h3 { font-size: 16px; letter-spacing: -0.02em; }
+.proto p { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+.proto .go { font-size: 12px; color: var(--accent); font-weight: 560; margin-top: auto; padding-top: 6px; }
+.proto-extra { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.proto-extra a {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  padding: 10px 14px; border: 1px dashed var(--line-strong); border-radius: var(--r);
+  font-size: 13.5px; color: var(--ink-2); font-weight: 540; background: var(--surface);
+}
+.proto-extra a:hover { border-style: solid; border-color: var(--accent); color: var(--accent); }
+
+/* ---------- CTA ---------- */
+.cta { background: var(--bg-deep); border-top: 1px solid var(--line); }
+.cta-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.cta h2 { font-size: clamp(28px, 4vw, 46px); max-width: 16ch; letter-spacing: -0.032em; }
+.cta-points { display: grid; gap: 10px; margin-top: 22px; }
+.cta-points li { display: flex; gap: 10px; font-size: 14px; color: var(--ink-2); align-items: baseline; }
+.cta-points li::before { content: "—"; color: var(--accent); font-family: var(--font-mono); flex: none; }
+
+.form-card {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  padding: clamp(18px, 2.4vw, 26px);
+  box-shadow: var(--shadow-md);
+}
+.form-card h3 { font-size: 17px; margin-bottom: 4px; }
+.form-note { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.field input, .field select {
+  font: inherit;
+  font-size: 14.5px;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--surface-2);
+  color: var(--ink);
+  width: 100%;
+}
+.field input::placeholder { color: var(--faint); }
+.field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.form-legal { font-size: 11.5px; color: var(--faint); margin-top: 12px; line-height: 1.5; }
+.form-ok {
+  margin-top: 14px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.form-ok b { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 4px; }
+[hidden] { display: none !important; }
+
+/* ---------- Footer ---------- */
+.site-footer { border-top: 1px solid var(--line); padding-block: 40px 48px; background: var(--bg); }
+.foot-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 28px; }
+.foot-grid h4 { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 500; margin-bottom: 12px; }
+.foot-grid li { margin-bottom: 0; }
+.foot-grid a { color: var(--muted); font-size: 13.5px; display: inline-flex; align-items: center; min-height: 44px; }
+.foot-grid a:hover { color: var(--ink); }
+.foot-about { font-size: 13px; color: var(--muted); max-width: 40ch; margin-top: 12px; line-height: 1.6; }
+.foot-bottom {
+  margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em; color: var(--faint);
+}
+
+/* ---------- Entrance: CSS only, on load, hero region only.
+   Nothing is scroll-gated, so no observer can ever leave content hidden. --- */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-grid > *, .pv-frame, .jv-strip {
+    animation: riseIn .72s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  .hero-grid > *:nth-child(1) { animation-delay: .02s }
+  .hero-grid > *:nth-child(2) { animation-delay: .08s }
+  .hero-grid > *:nth-child(3) { animation-delay: .15s }
+  .hero-grid > *:nth-child(4) { animation-delay: .22s }
+  .pv-frame  { animation-delay: .30s }
+  .jv-strip  { animation-delay: .40s }
+}
+@keyframes riseIn { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+
+/* ---------- Skip link ---------- */
+.skip {
+  position: fixed; left: 12px; top: 8px; z-index: 200;
+  transform: translateY(-200%);
+  background: var(--accent); color: var(--on-accent);
+  padding: 12px 16px; min-height: 44px; display: inline-flex; align-items: center;
+  border-radius: var(--r); font-size: 14px; font-weight: 560;
+}
+.skip:focus { transform: none; color: var(--on-accent); }
+
+/* ---------- Responsive layout ---------- */
+@media (max-width: 1080px) {
+  .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .proto-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .nav-actions .btn--primary { display: none; }
+  .nav-toggle { display: inline-flex; }
+  .two-col, .sec-split, .cta-grid { grid-template-columns: minmax(0, 1fr); }
+  .foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .ledger { grid-template-columns: minmax(0, 1fr); }
+  .features { grid-template-columns: minmax(0, 1fr); }
+  .proto-grid { grid-template-columns: minmax(0, 1fr); }
+  .flow { grid-template-columns: minmax(0, 1fr); }
+  .controls { grid-template-columns: minmax(0, 1fr); }
+  .spec-rows { grid-template-columns: minmax(0, 1fr); }
+  .spec-rows > div { border-right: 0; }
+  .spec-rows > div:nth-last-child(2) { border-bottom: 1px solid var(--line-soft); }
+  .hero-cta .btn { flex: 1 1 100%; }
+}
+@media (max-width: 420px) {
+  .stat-grid { grid-template-columns: minmax(0, 1fr); }
+  .jv-strip { gap: 6px 16px; font-size: 10px; }
+}
+@media (min-width: 1600px) {
+  :root { --wrap: 1360px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand-lockup" href="#top" aria-label="MagnaVERSE — home">
+        <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+          <defs>
+            <linearGradient id="mgGB-nav" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+            </linearGradient>
+            <linearGradient id="mgR-nav" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+            </linearGradient>
+          </defs>
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-nav)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-nav)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="wordmark">Magna<span>VERSE</span></span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#sovereignty">Sovereignty</a>
+        <a href="#workspace">Workspace</a>
+        <a href="#compute">Models &amp; compute</a>
+        <a href="#security">Security</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#prototypes">Prototypes</a>
+      </div>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Switch to dark theme">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2"></circle>
+            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"></path>
+          </svg>
+        </button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navSheet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16"></path>
+          </svg>
+        </button>
+        <a class="btn btn--primary" href="#book">Book a walkthrough</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile nav sheet -->
+<div class="nav-sheet" id="navSheet" data-open="false" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="nav-scrim" data-close></div>
+  <div class="nav-panel">
+    <div class="nav-panel-top">
+      <span class="eyebrow eyebrow--plain">Menu</span>
+      <button class="icon-btn" type="button" data-close aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </button>
+    </div>
+    <a class="nav-sheet-link" href="#sovereignty">Sovereignty</a>
+    <a class="nav-sheet-link" href="#workspace">Workspace</a>
+    <a class="nav-sheet-link" href="#compute">Models &amp; compute</a>
+    <a class="nav-sheet-link" href="#security">Security &amp; compliance</a>
+    <a class="nav-sheet-link" href="#deployment">Deployment</a>
+    <a class="nav-sheet-link" href="#prototypes">Live prototypes</a>
+    <a class="btn btn--primary btn--wide" href="#book">Book a walkthrough</a>
+  </div>
+</div>
+
+<main id="main">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div class="hero-grid">
+        <p class="eyebrow">Sovereign enterprise AI workspace &nbsp;·&nbsp; Magna AI</p>
+        <h1><span class="sub">The same capability.</span>Without the data leaving.</h1>
+        <p class="hero-sub">
+          MagnaVERSE is the enterprise AI workspace your teams already know how to use — running
+          on Magna's own GPUs, inside your network, in your country. Every prompt, every document
+          and every model weight stays on infrastructure you can point at.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn--primary" href="#book">Book a walkthrough</a>
+          <a class="btn btn--ghost" href="apps/app-1-chatgpt.html">Open the live prototype</a>
+          <span class="hero-note">No public API. No shared tenancy. No egress.</span>
+        </div>
+      </div>
+
+      <!-- ============ PRODUCT VISUAL (HTML/CSS) ============ -->
+      <div class="pv-frame">
+        <div class="pv" role="img" aria-label="The MagnaVERSE workspace: a conversation sidebar, an assistant answer citing Primavera P6 and internal site reports, and a data-residency panel showing inference on 8 NVIDIA H200 GPUs in Riyadh DC-1 with zero bytes of egress.">
+          <div class="pv-chrome" aria-hidden="true">
+            <span class="pv-dots"><i></i><i></i><i></i></span>
+            <span class="pv-url">https://magnaverse.internal.<b>corp</b>.sa &nbsp;·&nbsp; tenancy RUH-DC1-08</span>
+            <span class="pv-chrome-right">
+              <span class="chip chip--mono">Private tier</span>
+            </span>
+          </div>
+
+          <div class="pv-body" aria-hidden="true">
+            <!-- sidebar -->
+            <aside class="pv-side">
+              <div class="brand-lockup">
+                <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+                  <defs>
+                    <linearGradient id="mgGB-pvb" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                    </linearGradient>
+                    <linearGradient id="mgR-pvb" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-pvb)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-pvb)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="wordmark">Magna<span>VERSE</span></span>
+              </div>
+
+              <div class="pv-new">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                New workspace
+              </div>
+
+              <div>
+                <div class="pv-label">Today</div>
+                <div class="pv-list">
+                  <div class="pv-row is-active"><span class="tick"></span>Northern Corridor — schedule risk</div>
+                  <div class="pv-row"><span class="tick"></span>Vendor terms vs. policy</div>
+                  <div class="pv-row"><span class="tick"></span>Q3 shutdown sequencing</div>
+                </div>
+              </div>
+
+              <div>
+                <div class="pv-label">Agents</div>
+                <div class="pv-list">
+                  <div class="pv-row"><span class="agent-dot">SR</span>Schedule Risk</div>
+                  <div class="pv-row"><span class="agent-dot">HS</span>HSE Incident Triage</div>
+                  <div class="pv-row"><span class="agent-dot">CR</span>Contract Review</div>
+                  <div class="pv-row"><span class="agent-dot">PR</span>Procurement Analyst</div>
+                </div>
+              </div>
+            </aside>
+
+            <!-- transcript -->
+            <div class="pv-main">
+              <div class="pv-top">
+                <span class="chip">Kimi K2 Instruct <span class="caret">▾</span></span>
+                <span class="chip chip--tier">Private <span class="caret">▾</span></span>
+                <span class="pv-top-right">
+                  <span class="conn">SAP</span>
+                  <span class="conn">P6</span>
+                  <span class="conn">JIRA</span>
+                  <span class="conn">MCP</span>
+                </span>
+              </div>
+
+              <div class="pv-thread">
+                <div class="pv-user">
+                  Where are we exposed on the Northern Corridor package? Cross-check the P6 schedule
+                  against last week's site reports.
+                </div>
+
+                <div class="pv-asst">
+                  <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+                    <defs>
+                      <linearGradient id="mgGB-pva" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                      </linearGradient>
+                      <linearGradient id="mgR-pva" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-pva)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-pva)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div class="pv-asst-body">
+                    <div class="pv-reason"><span class="caret">▸</span> Reasoning · 4 steps · Primavera P6, Company Knowledge</div>
+                    <div class="pv-answer">
+                      Three activities on the critical path lost float this cycle. The binding constraint is the
+                      <strong>tunnel-boring handover</strong> — the site reports record a crew stand-down that the
+                      schedule has not yet absorbed <span class="pv-cite">2</span>, so the downstream fit-out dates in
+                      P6 are optimistic <span class="pv-cite">1</span>. Two mitigations are available without
+                      re-baselining.
+                    </div>
+                    <div class="pv-sources">
+                      <span class="pv-src"><b>1</b> P6 · Package 4 schedule</span>
+                      <span class="pv-src"><b>2</b> Site report · wk 32</span>
+                      <span class="pv-src"><b>3</b> Digital twin · corridor</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pv-pending">
+                  <svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna">
+                    <defs>
+                      <linearGradient id="mgGB-pvt" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                      </linearGradient>
+                      <linearGradient id="mgR-pvt" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-pvt)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-pvt)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div class="pv-status">Searching Company Knowledge<span class="dotdot">…</span></div>
+                </div>
+              </div>
+
+              <div class="pv-composer">
+                <div class="pv-composer-text">Draw the two mitigations as a revised sequence…</div>
+                <div class="pv-composer-row">
+                  <span class="pv-mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+                  <span class="pv-mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"></path></svg></span>
+                  <span class="chip chip--mono">8×H200</span>
+                  <span class="pv-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"></path></svg></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- residency rail -->
+            <aside class="pv-rail">
+              <div class="pv-rail-head">
+                <span class="pv-label">Residency</span>
+                <span class="pv-live"><i></i>Live</span>
+              </div>
+
+              <div class="pv-kv">
+                <div>
+                  <span class="pv-k">Inference</span>
+                  <span class="pv-v">Riyadh DC-1 · 8×H200</span>
+                  <span class="pv-ar" lang="ar" dir="rtl">الرياض · المملكة العربية السعودية</span>
+                </div>
+                <div>
+                  <span class="pv-k">Context</span>
+                  <span class="pv-v">Company Knowledge (in-VPC)</span>
+                </div>
+                <div>
+                  <span class="pv-k">Egress this answer</span>
+                  <span class="pv-v ok">0 B ✓</span>
+                </div>
+                <div>
+                  <span class="pv-k">Retention</span>
+                  <span class="pv-v">Customer-controlled</span>
+                </div>
+              </div>
+
+              <div class="pv-gpu">
+                <span class="pv-k">POD utilisation</span>
+                <span class="pv-bars">
+                  <i style="height:62%"></i><i style="height:81%"></i><i style="height:47%"></i><i style="height:93%"></i>
+                  <i style="height:70%"></i><i style="height:55%"></i><i style="height:88%"></i><i style="height:64%"></i>
+                </span>
+              </div>
+
+              <div class="pv-seal">
+                <span class="pv-k">Policy</span>
+                <span class="pv-seal-note">Private tier blocks any egress path. Public tier requires an explicit confirmation and is logged.</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="jv-strip">
+        <span>A joint venture of <b>Trend Micro</b> &amp; <b>Wistron</b></span>
+        <span class="sep">/</span>
+        <span>Powered by <b>NVIDIA</b></span>
+        <span class="sep">/</span>
+        <span><b>ISO 27001</b> aligned</span>
+        <span class="sep">/</span>
+        <span><b>1,000+</b> validated use cases</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 01 · PROPOSITION ================= -->
+  <section class="section" aria-labelledby="prop-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">01 — The proposition</p>
+        <h2 id="prop-h">Your CISO's objection to public AI is correct. This removes it.</h2>
+        <p>
+          Public assistants are a data-transfer decision dressed up as a productivity decision.
+          MagnaVERSE gives the CIO the capability and the CISO the boundary: frontier open-weight
+          models, executed on Magna hardware that sits inside the perimeter you already audit.
+        </p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <span class="stat-n"><em>0</em> bytes</span>
+          <span class="stat-k">Egress · private tier</span>
+          <span class="stat-d">A private-tier answer touches no external network. Nothing to intercept, nothing to subpoena abroad.</span>
+        </div>
+        <div class="stat">
+          <span class="stat-n">1.2 EF</span>
+          <span class="stat-k">MagnaREACTOR AI POD</span>
+          <span class="stat-d">1.2 exaflops and 28.4 TB of HBM3e on NVIDIA GB300 NVL72 liquid-cooled racks.</span>
+        </div>
+        <div class="stat">
+          <span class="stat-n">80+</span>
+          <span class="stat-k">Pre-built agents · 34 verticals</span>
+          <span class="stat-d">Construction, energy, manufacturing and government workflows arrive configured, not blank.</span>
+        </div>
+        <div class="stat">
+          <span class="stat-n">1,000+</span>
+          <span class="stat-k">Validated use cases</span>
+          <span class="stat-d">Patterns already proven on this stack, so the pilot starts from evidence rather than a whiteboard.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 · SOVEREIGNTY ================= -->
+  <section class="section band" id="sovereignty" aria-labelledby="sov-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">02 — Sovereignty, concretely</p>
+        <h2 id="sov-h">Follow one prompt from the keyboard to the answer.</h2>
+        <p>
+          Sovereignty is not a badge on a slide. It is a claim about a specific path taken by a
+          specific packet. Here is the whole path on a private-tier turn.
+        </p>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <span class="n">01</span>
+          <h3>The prompt is written</h3>
+          <p>A user types into MagnaVERSE from a browser on the corporate network. The session never leaves your identity boundary.</p>
+          <span class="where">Origin · your network</span>
+        </div>
+        <div class="flow-step">
+          <span class="n">02</span>
+          <h3>Context is retrieved</h3>
+          <p>Company Knowledge, connectors and the digital-twin context graph are queried in place. Documents are read where they already live.</p>
+          <span class="where">Retrieval · in-VPC</span>
+        </div>
+        <div class="flow-step">
+          <span class="n">03</span>
+          <h3>Inference executes</h3>
+          <p>An open-weight model runs on Magna GPUs — a typical tenancy is 8×H200 in Riyadh DC-1, or your own POD on your own floor.</p>
+          <span class="where">Compute · in-country</span>
+        </div>
+        <div class="flow-step">
+          <span class="n">04</span>
+          <h3>The answer returns</h3>
+          <p>The response, its citations and the full audit record are written to storage you control. Egress on the turn: zero bytes.</p>
+          <span class="where">Result · logged, retained by you</span>
+        </div>
+      </div>
+
+      <div class="ledger">
+        <div class="ledger-col stays">
+          <h3>Stays inside the perimeter</h3>
+          <ul>
+            <li>Prompts, attachments and conversation history</li>
+            <li>Model weights — the models are hosted, not called</li>
+            <li>Embeddings and the retrieval index</li>
+            <li>Connector traffic: SAP S/4HANA, Primavera P6, Jira, Confluence, mail via MCP</li>
+            <li>The digital-twin context graph and every document that feeds it</li>
+            <li>Audit trails, policy decisions and retention</li>
+          </ul>
+        </div>
+        <div class="ledger-col leaves">
+          <h3>Leaves on a private-tier turn</h3>
+          <ul>
+            <li>Nothing.</li>
+            <li>No prompt text to a third-party API</li>
+            <li>No telemetry containing customer content</li>
+            <li>No training signal — your data does not improve anyone's model</li>
+            <li>No vendor-side copy to be requested by a foreign process</li>
+            <li>Public-tier routing exists, but it is off unless a user explicitly confirms it, and the confirmation is logged</li>
+          </ul>
+        </div>
+        <p class="ledger-foot">
+          <b>The test to apply:</b> ask any AI vendor to name the physical machine that executes your
+          prompt, and who can legally compel access to it. MagnaVERSE answers with a rack number.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 03 · WORKSPACE ================= -->
+  <section class="section" id="workspace" aria-labelledby="ws-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">03 — The workspace</p>
+        <h2 id="ws-h">Familiar on the surface. Governed all the way down.</h2>
+        <p>
+          Adoption fails when the secure option is the harder option. MagnaVERSE is a chat workspace
+          your staff can use on day one — and everything underneath it is the part procurement cares about.
+        </p>
+      </div>
+
+      <div class="features">
+        <article class="feature">
+          <div class="fh">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 5h16v11H8l-4 3.5z"></path><path d="M8 9h8M8 12.5h5"></path>
+            </svg>
+            <h3>Conversational workspace</h3>
+          </div>
+          <p>Threads, attachments, citations, an expandable reasoning trace and per-conversation model choice. If a user can use a public assistant, they can use this.</p>
+          <div class="meta">Web · no client install</div>
+        </article>
+
+        <article class="feature">
+          <div class="fh">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.2"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"></rect>
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.2"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"></rect>
+            </svg>
+            <h3>80+ pre-built agents</h3>
+          </div>
+          <p>Schedule risk, HSE incident triage, contract review, procurement analysis and more, spanning 34 verticals — configured for the work rather than sold as a blank canvas.</p>
+          <div class="meta">34 verticals · extensible</div>
+        </article>
+
+        <article class="feature">
+          <div class="fh">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="6" cy="6" r="2.4"></circle><circle cx="18" cy="18" r="2.4"></circle>
+              <path d="M6 8.4v6a3.2 3.2 0 0 0 3.2 3.2h6.4"></path><path d="M13 4.4h2.8a2.8 2.8 0 0 1 2.8 2.8v8.4"></path>
+            </svg>
+            <h3>Workflow automation</h3>
+          </div>
+          <p>Turn a proven conversation into a scheduled, repeatable run with defined inputs, approvals and outputs — the step where a pilot becomes an operating process.</p>
+          <div class="meta">Triggers · approvals · outputs</div>
+        </article>
+
+        <article class="feature">
+          <div class="fh">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9.5 14.5l-3 3a3.5 3.5 0 0 1-5-5l3-3"></path><path d="M14.5 9.5l3-3a3.5 3.5 0 0 1 5 5l-3 3"></path><path d="M9 15l6-6"></path>
+            </svg>
+            <h3>Enterprise connectors, via MCP</h3>
+          </div>
+          <p>SAP S/4HANA, Primavera P6, Jira, Confluence and mail connect through the Model Context Protocol — each server runs inside your network, under your credentials and your scopes.</p>
+          <div class="meta">MCP · in-network servers</div>
+        </article>
+
+        <article class="feature">
+          <div class="fh">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="5" r="2.2"></circle><circle cx="5" cy="18" r="2.2"></circle><circle cx="19" cy="18" r="2.2"></circle>
+              <path d="M12 7.2v4.4M12 11.6L6.4 16.3M12 11.6l5.6 4.7"></path>
+            </svg>
+            <h3>Digital-twin context graph</h3>
+          </div>
+          <p>Assets, projects, documents and people held as a live graph, so an answer about a package knows which contract, which site and which schedule it belongs to.</p>
+          <div class="meta">Grounded · relationship-aware</div>
+        </article>
+
+        <article class="feature">
+          <div class="fh">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3l7.5 3v5.4c0 4.4-3.1 8.2-7.5 9.6-4.4-1.4-7.5-5.2-7.5-9.6V6z"></path><path d="M9.2 12.1l2 2 3.6-4"></path>
+            </svg>
+            <h3>Policy-enforced governance</h3>
+          </div>
+          <p>Sovereignty tiers, per-role model and connector permissions, guardrail confirmations and an audit trail on every turn — enforced by the platform, not by staff training.</p>
+          <div class="meta">Audit trail on every turn</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 · MODELS & COMPUTE ================= -->
+  <section class="section band" id="compute" aria-labelledby="cmp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">04 — Models &amp; compute</p>
+        <h2 id="cmp-h">Frontier open-weight models, hosted rather than called.</h2>
+        <p>
+          The models run on Magna silicon. There is no upstream provider in the request path, which
+          is why the residency claim survives contact with a security review.
+        </p>
+      </div>
+
+      <div class="two-col">
+        <ul class="model-list">
+          <li>
+            <span class="mn">Kimi K2 Instruct</span><span class="mp">1T MoE</span>
+            <span class="md">General reasoning and long-context synthesis across mixed document sets.</span>
+          </li>
+          <li>
+            <span class="mn">DeepSeek V3.1</span><span class="mp">671B MoE</span>
+            <span class="md">Strong analytical and code-adjacent work; efficient under mixture-of-experts routing.</span>
+          </li>
+          <li>
+            <span class="mn">Qwen 3 235B</span><span class="mp">235B</span>
+            <span class="md">Multilingual coverage including Arabic — a practical requirement, not a feature bullet.</span>
+          </li>
+          <li>
+            <span class="mn">NVIDIA Nemotron 120B</span><span class="mp">120B</span>
+            <span class="md">Tuned for enterprise assistant workloads on NVIDIA hardware.</span>
+          </li>
+        </ul>
+
+        <div class="spec">
+          <div class="spec-head">
+            <h3>MagnaREACTOR AI POD</h3>
+            <span class="tag">Reference configuration</span>
+          </div>
+          <div class="spec-rows">
+            <div><span class="spec-v">1.2 EF</span><span class="spec-k">Aggregate compute</span></div>
+            <div><span class="spec-v">28.4 TB</span><span class="spec-k">HBM3e memory</span></div>
+            <div><span class="spec-v">GB300 NVL72</span><span class="spec-k">NVIDIA liquid-cooled racks</span></div>
+            <div><span class="spec-v">800 Gbps</span><span class="spec-k">Per-node fabric</span></div>
+            <div><span class="spec-v">1.2 – 1.7</span><span class="spec-k">PUE range</span></div>
+            <div><span class="spec-v">8 × H200</span><span class="spec-k">Typical workspace tenancy</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 05 · SECURITY ================= -->
+  <section class="section" id="security" aria-labelledby="sec-h">
+    <div class="wrap">
+      <div class="sec-split">
+        <div>
+          <p class="eyebrow" style="margin-bottom:18px">05 — Security &amp; compliance</p>
+          <h2 id="sec-h" style="font-size:clamp(28px,3.6vw,44px);margin-bottom:20px">Built by the security half of the joint venture.</h2>
+          <blockquote class="ciso-quote">
+            “Name the machine that runs the prompt.<span> Everything else is a detail.”</span>
+          </blockquote>
+          <p class="lede">
+            Magna AI is a joint venture of <strong>Trend Micro</strong> and <strong>Wistron</strong>,
+            powered by NVIDIA. One partner has spent three decades in enterprise threat defence; the
+            other builds the hardware. That is an unusual pedigree for an AI workspace, and it shows
+            up in the controls rather than the marketing.
+          </p>
+          <div class="badge-row">
+            <span class="badge">ISO 27001 aligned</span>
+            <span class="badge">Red-team audited</span>
+            <span class="badge">Five global regions</span>
+            <span class="badge">24/7 managed operations</span>
+            <span class="badge">In-country residency</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10" width="15" height="10" rx="1.6"></rect><path d="M8 10V7.5a4 4 0 0 1 8 0V10"></path></svg>
+              Data residency, guaranteed
+            </h3>
+            <p>Inference and storage are pinned to a named in-country facility. The residency claim is a location, not a policy setting.</p>
+          </div>
+          <div class="control">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v13H4z"></path><path d="M7.5 9.5h9M7.5 13h6"></path></svg>
+              Audit trail on every turn
+            </h3>
+            <p>Who asked, which model answered, which sources were read, which tier was used and which policy applied — exportable for the regulator or the internal auditor.</p>
+          </div>
+          <div class="control">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.2"></circle><path d="M12 7.6v4.6l3 1.8"></path></svg>
+              Sovereignty tiers, enforced
+            </h3>
+            <p>Private is the default and blocks egress outright. Any public-tier route demands an explicit user confirmation and is recorded — no silent fallback.</p>
+          </div>
+          <div class="control">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l7 3.2v5c0 4.3-2.9 8-7 9.3-4.1-1.3-7-5-7-9.3v-5z"></path></svg>
+              Red-team audited platform
+            </h3>
+            <p>Prompt-injection, tool-abuse and data-exfiltration paths are tested adversarially, with connector scopes constrained to least privilege by default.</p>
+          </div>
+          <div class="control">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.2"></circle><path d="M3.8 12h16.4M12 3.8c2.2 2.4 3.3 5.2 3.3 8.2s-1.1 5.8-3.3 8.2c-2.2-2.4-3.3-5.2-3.3-8.2S9.8 6.2 12 3.8z"></path></svg>
+              Five global regions
+            </h3>
+            <p>For groups operating beyond the Kingdom, each region holds its own residency boundary. Multinational structure without a single global data pool.</p>
+          </div>
+          <div class="control">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19V9.5M12 19V5M19 19v-6.5"></path><path d="M3.5 21h17"></path></svg>
+              24/7 managed operations
+            </h3>
+            <p>Magna runs the POD, the models and the upgrades. Your team keeps the data, the policy and the audit record.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 06 · DEPLOYMENT ================= -->
+  <section class="section band" id="deployment" aria-labelledby="dep-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">06 — Deployment</p>
+        <h2 id="dep-h">Three ways to own the boundary.</h2>
+        <p>
+          The workspace is identical in all three. What changes is where the compute physically sits
+          and who racks it — which is usually the only question the security review actually has.
+        </p>
+      </div>
+
+      <div class="cmp-wrap">
+        <table class="cmp">
+          <caption class="visually-hidden" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Comparison of MagnaVERSE deployment options</caption>
+          <thead>
+            <tr>
+              <th scope="col"><span class="opt-sub">Attribute</span></th>
+              <th scope="col"><span class="opt-name">On-prem</span><span class="opt-sub">Your floor, your racks</span></th>
+              <th scope="col"><span class="opt-name">Sovereign cloud</span><span class="opt-sub">Magna in-country region</span></th>
+              <th scope="col"><span class="opt-name">Edge</span><span class="opt-sub">At the site</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Where inference runs</th>
+              <td data-opt="On-prem">Inside your own data centre, on a MagnaREACTOR AI POD you host.</td>
+              <td data-opt="Sovereign cloud">A Magna facility in-country — a typical tenancy is 8×H200 in Riyadh DC-1.</td>
+              <td data-opt="Edge">On the site itself: plant, yard, rig or remote project office.</td>
+            </tr>
+            <tr>
+              <th scope="row">Data residency</th>
+              <td data-opt="On-prem"><span class="yes">Your perimeter</span> — never crosses the building boundary.</td>
+              <td data-opt="Sovereign cloud"><span class="yes">In-country</span> — guaranteed, and named in the contract.</td>
+              <td data-opt="Edge"><span class="yes">On-site</span> — stays on the local network.</td>
+            </tr>
+            <tr>
+              <th scope="row">Network egress</th>
+              <td data-opt="On-prem">None on a private-tier turn. Suits isolated networks.</td>
+              <td data-opt="Sovereign cloud">None from the tenancy on a private-tier turn.</td>
+              <td data-opt="Edge">None locally; syncs back on the schedule you define.</td>
+            </tr>
+            <tr>
+              <th scope="row">Hardware</th>
+              <td data-opt="On-prem">NVIDIA GB300 NVL72 liquid-cooled racks, 800 Gbps/node fabric.</td>
+              <td data-opt="Sovereign cloud">Shared or dedicated tenancy on Magna's POD capacity.</td>
+              <td data-opt="Edge">Compact POD configuration sized to the site's power envelope.</td>
+            </tr>
+            <tr>
+              <th scope="row">Operations</th>
+              <td data-opt="On-prem">Your team, or Magna 24/7 managed operations on your floor.</td>
+              <td data-opt="Sovereign cloud">Magna 24/7 managed, across five global regions.</td>
+              <td data-opt="Edge">Magna managed with remote support to the site.</td>
+            </tr>
+            <tr>
+              <th scope="row">Facility profile</th>
+              <td data-opt="On-prem">Liquid cooling, 1.2–1.7 PUE. Requires a suitable hall.</td>
+              <td data-opt="Sovereign cloud">Already commissioned — no facility work on your side.</td>
+              <td data-opt="Edge">Sized for constrained power and cooling at the site.</td>
+            </tr>
+            <tr>
+              <th scope="row">Best fit</th>
+              <td data-opt="On-prem">Data classified so that it cannot leave the building.</td>
+              <td data-opt="Sovereign cloud">Fastest route to a working sovereign workspace; elastic capacity.</td>
+              <td data-opt="Edge">Latency- or connectivity-constrained operations far from the core.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 07 · PROTOTYPES ================= -->
+  <section class="section" id="prototypes" aria-labelledby="pro-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">07 — See it working</p>
+        <h2 id="pro-h">Six working prototypes. Open them now, no form first.</h2>
+        <p>
+          Each is a live front-end of the same sovereign workspace, exploring a different interface
+          posture. They run in the browser — nothing to install, nothing to sign.
+        </p>
+      </div>
+
+      <div class="proto-grid">
+        <a class="proto" href="apps/app-1-chatgpt.html">
+          <span class="pk"><span>Prototype 01</span><span>Familiar</span></span>
+          <h3>The known interface</h3>
+          <p>The workspace as your staff expect it to look. Zero training cost, sovereign underneath.</p>
+          <span class="go">Open →</span>
+        </a>
+        <a class="proto" href="apps/app-2-claude.html">
+          <span class="pk"><span>Prototype 02</span><span>Considered</span></span>
+          <h3>Reasoning made legible</h3>
+          <p>A calmer transcript that shows its working — for analysts who must defend the answer.</p>
+          <span class="go">Open →</span>
+        </a>
+        <a class="proto" href="apps/app-3-sovereign.html">
+          <span class="pk"><span>Prototype 03</span><span>Provable</span></span>
+          <h3>Residency in the foreground</h3>
+          <p>Every turn annotated with where it ran and what left. Built for the security review.</p>
+          <span class="go">Open →</span>
+        </a>
+        <a class="proto" href="apps/app-4-launchpad.html">
+          <span class="pk"><span>Prototype 04</span><span>Ready</span></span>
+          <h3>Agent launchpad</h3>
+          <p>The 80+ agent library as the entry point rather than an empty prompt box.</p>
+          <span class="go">Open →</span>
+        </a>
+        <a class="proto" href="apps/app-5-twin.html">
+          <span class="pk"><span>Prototype 05</span><span>Grounded</span></span>
+          <h3>Digital-twin context</h3>
+          <p>The context graph beside the conversation — assets, projects and documents in view.</p>
+          <span class="go">Open →</span>
+        </a>
+        <a class="proto" href="apps/app-6-horizon.html">
+          <span class="pk"><span>Prototype 06</span><span>Horizon</span></span>
+          <h3>Where this is going</h3>
+          <p>A forward look at the workspace as an operating surface for the whole enterprise.</p>
+          <span class="go">Open →</span>
+        </a>
+      </div>
+
+      <div class="proto-extra">
+        <a href="functionality-map.html">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7v5H4zM13 6h7v5h-7zM8.5 15h7v4h-7z"></path></svg>
+          Full functionality map
+        </a>
+        <a href="index.html">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5"></path><path d="M6.5 10.5V19h11v-8.5"></path></svg>
+          Project index
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 08 · CTA ================= -->
+  <section class="section cta" id="book" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-grid">
+        <div>
+          <p class="eyebrow" style="margin-bottom:18px">08 — Next step</p>
+          <h2 id="cta-h">Bring the CISO to the first meeting.</h2>
+          <ul class="cta-points">
+            <li>A 45-minute walkthrough of the live workspace on Magna hardware.</li>
+            <li>The residency architecture, drawn end to end, with your network in the diagram.</li>
+            <li>Deployment options costed against your actual data classification.</li>
+            <li>A shortlist of the validated use cases closest to your operation.</li>
+          </ul>
+          <p class="lede" style="margin-top:24px;color:var(--muted);font-size:14px">
+            Prefer to look before you talk? Every prototype above is open — no gate, no form.
+          </p>
+        </div>
+
+        <div class="form-card">
+          <h3>Book a walkthrough</h3>
+          <p class="form-note">Magna AI — a joint venture of Trend Micro &amp; Wistron.</p>
+          <form id="bookForm" novalidate>
+            <div class="field">
+              <label for="f-name">Name</label>
+              <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Your name">
+            </div>
+            <div class="field">
+              <label for="f-org">Organisation</label>
+              <input id="f-org" name="org" type="text" autocomplete="organization" placeholder="Company or entity">
+            </div>
+            <div class="field">
+              <label for="f-email">Work email</label>
+              <input id="f-email" name="email" type="email" autocomplete="email" placeholder="name@company.com">
+            </div>
+            <div class="field">
+              <label for="f-dep">Deployment of interest</label>
+              <select id="f-dep" name="deployment">
+                <option>On-prem</option>
+                <option selected>Sovereign cloud</option>
+                <option>Edge</option>
+                <option>Not decided yet</option>
+              </select>
+            </div>
+            <button class="btn btn--primary btn--wide" type="submit">Request the walkthrough</button>
+            <p class="form-legal">
+              This page is a prototype. The form does not transmit anything — no network request is
+              made and nothing is stored.
+            </p>
+          </form>
+          <div class="form-ok" id="formOk" hidden role="status" tabindex="-1">
+            <b>Prototype — nothing was sent</b>
+            No request left this page and no data was stored. In production this would reach the
+            Magna AI enterprise team; for now, treat it as a rehearsal of the flow.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand-lockup" href="#top" aria-label="MagnaVERSE — back to top">
+          <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+            <defs>
+              <linearGradient id="mgGB-ft" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+              </linearGradient>
+              <linearGradient id="mgR-ft" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+              </linearGradient>
+            </defs>
+            <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="wordmark">Magna<span>VERSE</span></span>
+        </a>
+        <p class="foot-about">
+          Sovereign enterprise AI for organisations that need the capability and cannot accept the
+          transfer. Built on the MagnaREACTOR AI POD, operated in-country.
+        </p>
+      </div>
+
+      <div>
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#sovereignty">Sovereignty</a></li>
+          <li><a href="#workspace">Workspace</a></li>
+          <li><a href="#compute">Models &amp; compute</a></li>
+          <li><a href="#security">Security</a></li>
+          <li><a href="#deployment">Deployment</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Prototypes</h4>
+        <ul>
+          <li><a href="apps/app-1-chatgpt.html">01 · Familiar</a></li>
+          <li><a href="apps/app-2-claude.html">02 · Considered</a></li>
+          <li><a href="apps/app-3-sovereign.html">03 · Provable</a></li>
+          <li><a href="apps/app-4-launchpad.html">04 · Ready</a></li>
+          <li><a href="apps/app-5-twin.html">05 · Grounded</a></li>
+          <li><a href="apps/app-6-horizon.html">06 · Horizon</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Reference</h4>
+        <ul>
+          <li><a href="functionality-map.html">Functionality map</a></li>
+          <li><a href="index.html">Project index</a></li>
+          <li><a href="#book">Book a walkthrough</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <span>Magna AI · Trend Micro × Wistron · Powered by NVIDIA</span>
+      <span>ISO 27001 aligned · Five global regions</span>
+      <span lang="ar" dir="rtl">الرياض · المملكة العربية السعودية</span>
+      <span>Prototype — illustrative interface, no live service behind it</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+  var KEY = 'magnaverse-theme';
+
+  /* ---------- Theme ---------- */
+  var toggle = document.getElementById('themeToggle');
+  var icon = document.getElementById('themeIcon');
+
+  var SUN = '<circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"></path>';
+  var MOON = '<path d="M20 14.4A8.4 8.4 0 0 1 9.6 4 8.4 8.4 0 1 0 20 14.4z"></path>';
+
+  function effectiveTheme() {
+    var set = root.getAttribute('data-theme');
+    if (set === 'dark' || set === 'light') return set;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function syncToggle() {
+    var t = effectiveTheme();
+    // Show the icon for the theme you would switch TO.
+    icon.innerHTML = t === 'dark' ? SUN : MOON;
+    toggle.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    toggle.setAttribute('title', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+
+  toggle.addEventListener('click', function () {
+    var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    syncToggle();
+  });
+
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onMq = function () { if (!root.getAttribute('data-theme')) syncToggle(); };
+    if (mq.addEventListener) mq.addEventListener('change', onMq);
+    else if (mq.addListener) mq.addListener(onMq);
+  }
+  syncToggle();
+
+  /* ---------- Mobile nav sheet ---------- */
+  var sheet = document.getElementById('navSheet');
+  var navToggle = document.getElementById('navToggle');
+  var lastFocus = null;
+
+  function openSheet() {
+    lastFocus = document.activeElement;
+    sheet.setAttribute('data-open', 'true');
+    navToggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    var first = sheet.querySelector('a, button');
+    if (first) first.focus();
+  }
+
+  function closeSheet() {
+    if (sheet.getAttribute('data-open') !== 'true') return;
+    sheet.setAttribute('data-open', 'false');
+    navToggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  navToggle.addEventListener('click', function () {
+    if (sheet.getAttribute('data-open') === 'true') closeSheet(); else openSheet();
+  });
+
+  sheet.addEventListener('click', function (e) {
+    if (e.target.closest('[data-close]') || e.target.closest('a')) closeSheet();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeSheet();
+    if (e.key === 'Tab' && sheet.getAttribute('data-open') === 'true') {
+      var items = sheet.querySelectorAll('a[href], button:not([disabled])');
+      if (!items.length) return;
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* Close the sheet if the viewport grows back to desktop. */
+  if (window.matchMedia) {
+    var wide = window.matchMedia('(min-width: 901px)');
+    var onWide = function (e) { if (e.matches) closeSheet(); };
+    if (wide.addEventListener) wide.addEventListener('change', onWide);
+    else if (wide.addListener) wide.addListener(onWide);
+  }
+
+  /* ---------- Prototype form: never submits ---------- */
+  var form = document.getElementById('bookForm');
+  var ok = document.getElementById('formOk');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    ok.hidden = false;
+    ok.focus && ok.focus();
+  });
+
+})();
+</script>
+</body>
+</html>

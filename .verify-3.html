@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>verify-3</title>
+<style>html,body{margin:0;background:#222;color:#eee;font:12px monospace;overflow:auto}
+#f{border:0;display:block;background:#fff}</style></head>
+<body>
+<iframe id="f" src="landing-3-technical.html" width="1440" height="900"></iframe>
+<script>
+window.setW = function(w,h){
+  var f=document.getElementById('f');
+  f.style.width=w+'px'; f.style.height=(h||900)+'px';
+  f.width=w; f.height=(h||900);
+  return w;
+};
+window.measure = function(){
+  var f=document.getElementById('f');
+  var d=f.contentDocument, w=f.contentWindow;
+  var de=d.documentElement;
+  var vw=de.clientWidth;
+  var bad=[];
+  d.querySelectorAll('body *').forEach(function(el){
+    if(el.classList && el.classList.contains('skip')) return;
+    var r=el.getBoundingClientRect();
+    if(r.right>vw+1 || r.left<-1){
+      var p=el.parentElement, inScroll=false;
+      while(p && p!==d.body){
+        var ov=w.getComputedStyle(p).overflowX;
+        if(ov==='auto'||ov==='scroll'||ov==='hidden'){inScroll=true;break;}
+        p=p.parentElement;
+      }
+      if(!inScroll){
+        var cn = el.className && el.className.baseVal!==undefined ? el.className.baseVal : el.className;
+        bad.push(el.tagName+'.'+cn+' ['+Math.round(r.left)+'→'+Math.round(r.right)+']');
+      }
+    }
+  });
+  return {
+    vw: vw,
+    innerW: w.innerWidth,
+    pageOverflow: de.scrollWidth - de.clientWidth,
+    bodyOverflow: d.body.scrollWidth - d.body.clientWidth,
+    offenders: bad.slice(0,10),
+    offenderCount: bad.length,
+    docH: de.scrollHeight
+  };
+};
+window.setTheme = function(t){
+  var d=document.getElementById('f').contentDocument;
+  if(t) d.documentElement.setAttribute('data-theme',t); else d.documentElement.removeAttribute('data-theme');
+};
+window.clickTheme = function(){
+  document.getElementById('f').contentDocument.getElementById('themeBtn').click();
+  var d=document.getElementById('f').contentDocument;
+  return {attr:d.documentElement.getAttribute('data-theme'), label:d.getElementById('themeLabel').textContent, ls:document.getElementById('f').contentWindow.localStorage.getItem('mv-theme')};
+};
+</script>
+</body></html>

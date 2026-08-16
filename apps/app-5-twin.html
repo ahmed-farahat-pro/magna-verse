@@ -1251,6 +1251,313 @@ body[data-mail="connected"] .mailboost{display:flex}
   .fchip{min-height:44px;min-width:44px;justify-content:center}
   .how-steps{grid-template-columns:1fr}
   .su-row{min-height:44px}
+  /* v4 touch-target sweep: text inputs and inline text buttons */
+  .search{height:44px}
+  .sel,select{min-height:44px}
+  .ta{min-height:44px;padding-top:11px}
+  .auth-foot button,.auth-legal button{min-height:44px;min-width:44px;display:inline-flex;
+    align-items:center;justify-content:center}
+  .mc-f input{height:44px}
+}
+
+/* v4 — 768px is a touch tablet too: every hit area gets 44px there as well,
+   without adopting the phone layout. Sizing only, no reflow. */
+@media (min-width:768px) and (max-width:1023px){
+  .act,.tool,.iconbtn,.btn,.btn.sm,.cbtn,.navitem,.conv,.sl-i,.pal-i,.mi,.srcline,.seg button,.userrow,
+  .newchat,.gchip,.reason,.src-main,.trayp,.roadrow,.set-nav button,.v-tab,.fchip,.su-row,.mailrow,
+  .auth-foot button,.auth-legal button,.wscard,.pv-dot,.pv-play,.dot-row button{min-height:44px}
+  .iconbtn,.pv-dot,.pv-play{width:44px;min-width:44px;flex:none}
+  .tsel{height:44px;min-width:44px}
+  .search,.ta,.field input,.mc-f input,.sel,select{min-height:44px}
+  .gchip,.reason,.trayp,.tray .trayp{height:auto;padding:0 12px}
+  .v-tab,.fchip{display:inline-flex;align-items:center}
+  .auth-foot button,.auth-legal button{min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+  .ground-h .n{min-height:44px;display:inline-flex;align-items:center}
+  .send{width:44px;height:44px;border-radius:12px}
+  /* switches keep their visual size but gain a full 44px hit area */
+  .sw{width:52px;height:44px;background:none;border:0;position:relative}
+  .sw::before{content:"";position:absolute;left:8px;top:11px;width:36px;height:22px;border-radius:99px;
+    background:var(--surface-3);border:1px solid var(--line-2)}
+  .sw::after{left:11px;top:14.5px;width:15px;height:15px}
+  .sw[aria-checked="true"]{background:none}
+  .sw[aria-checked="true"]::before{background:var(--ok-dim);border-color:color-mix(in srgb,var(--ok) 50%,transparent)}
+  .sw[aria-checked="true"]::after{transform:translateX(18px);background:var(--ok)}
+  .setsw{width:52px;height:44px;background:none;border:0}
+  .setsw::before{content:"";position:absolute;left:7px;top:11px;width:38px;height:22px;border-radius:99px;
+    background:var(--surface-3);border:1px solid var(--line-2)}
+  .setsw::after{left:10px;top:14px;width:16px;height:16px}
+  .setsw[aria-checked="true"]{background:none}
+  .setsw[aria-checked="true"]::before{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+  .setsw[aria-checked="true"]::after{transform:translateX(18px);background:var(--accent)}
+}
+</style>
+<style>
+/* ============================================================
+   v4 — GRAPH-FIRST LOGIN
+   The twin is the backdrop: 16 sources + the un-connected 17th,
+   wired to a central hub, edges drawing themselves in. The form
+   is a compact panel anchored bottom-right. Tokens only.
+   ============================================================ */
+.auth.open{display:flex;align-items:stretch}
+.auth::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 26% 46%,var(--bg-2) 0%,var(--bg) 62%)}
+
+/* ---------- the graph ---------- */
+/* the head block owns the top-left; the graph is padded clear of it */
+.auth-graph{position:absolute;left:0;top:0;bottom:0;width:66%;z-index:1;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;padding:clamp(150px,25vh,214px) 10px 22px 14px}
+.auth-graph svg{width:100%;height:100%;max-height:100%;overflow:visible}
+
+.tedge{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:var(--l);stroke-dashoffset:0;
+  transition:stroke-width .32s ease,opacity .32s ease}
+.tedge[data-state="connected"]{stroke:var(--ok);opacity:.52}
+.tedge[data-state="partial"]{stroke:var(--part);opacity:.44}
+.tedge[data-state="missing"]{stroke:var(--part);opacity:.2}
+.tedge[data-state="candidate"]{stroke:var(--miss);opacity:.22;stroke-dasharray:5 7}
+
+.tnode{opacity:1}
+.tnode .halo{fill:currentColor;opacity:0;transition:opacity .35s ease}
+.tnode .ring{fill:var(--bg);stroke:currentColor;stroke-width:1.9;transform-box:fill-box;transform-origin:center;
+  transition:stroke-width .3s ease}
+.tnode .core{fill:currentColor;stroke:none}
+.tnode .lbl{fill:var(--tx-2);font-size:13px;text-anchor:middle;font-weight:550;
+  font-family:var(--sans);transition:fill .3s ease}
+.tnode[data-state="connected"]{color:var(--ok)}
+.tnode[data-state="partial"]{color:var(--part)}
+.tnode[data-state="missing"]{color:var(--part)}
+.tnode[data-state="missing"] .ring{fill:none;stroke-dasharray:3.5 4.5;opacity:.9}
+.tnode[data-state="missing"] .lbl{fill:var(--tx-3)}
+.tnode[data-state="candidate"]{color:var(--miss)}
+.tnode[data-state="candidate"] .ring{fill:none;stroke-dasharray:3 5;opacity:.75}
+.tnode[data-state="candidate"] .lbl{fill:var(--tx-3);font-style:italic}
+
+/* a source that fed the answer currently streaming in the preview */
+.tnode.lit .halo{opacity:.2}
+.tnode.lit .ring{stroke-width:3.2}
+.tnode.lit .lbl{fill:var(--tx);font-weight:680}
+.tnode.lit[data-state="missing"],.tnode.lit[data-state="candidate"]{color:var(--accent)}
+.tnode.lit[data-state="candidate"] .lbl{font-style:normal}
+.tedge.lit{opacity:.95;stroke-width:3}
+.tedge.lit[data-state="missing"],.tedge.lit[data-state="candidate"]{stroke:var(--accent);stroke-dasharray:var(--l)}
+
+.thub-ring{fill:var(--surface);stroke:var(--line-2);stroke-width:1.5}
+.thub-halo{fill:var(--accent);opacity:.06}
+.thub-lbl{fill:var(--tx-3);font-size:10.5px;text-anchor:middle;letter-spacing:.13em;font-weight:700;
+  font-family:var(--sans)}
+.tgrp{fill:var(--tx-3);font-size:11px;text-anchor:middle;letter-spacing:.15em;font-weight:700;
+  font-family:var(--sans);opacity:.72}
+
+/* Edges draw themselves in. Under reduce, they are simply already drawn. */
+@media (prefers-reduced-motion: no-preference){
+  .tedge{animation:teDraw .95s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d)}
+  .tedge[data-state="candidate"]{animation:teFade .9s ease both;animation-delay:var(--d)}
+  .tnode{animation:tnIn .5s ease both;animation-delay:var(--d)}
+  .tnode .ring{animation:ringIn .55s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--d)}
+  .tnode.lit .halo{animation:haloP 1.9s ease-in-out infinite}
+  .thub-halo{animation:hubP 4.5s ease-in-out infinite}
+}
+@keyframes teDraw{from{stroke-dashoffset:var(--l)}to{stroke-dashoffset:0}}
+@keyframes teFade{from{opacity:0}to{opacity:.22}}
+@keyframes tnIn{from{opacity:0}to{opacity:1}}
+@keyframes ringIn{from{transform:scale(.35)}to{transform:scale(1)}}
+@keyframes haloP{0%,100%{opacity:.13}50%{opacity:.32}}
+@keyframes hubP{0%,100%{opacity:.05}50%{opacity:.13}}
+
+/* ---------- headline block, top-left over the graph ---------- */
+.auth-head{position:absolute;left:clamp(22px,3.6vw,54px);top:clamp(20px,3.4vh,42px);z-index:3;
+  width:min(40ch,42%);pointer-events:none}
+.auth-head > *{pointer-events:auto}
+.auth-head h2{font-size:clamp(21px,2.1vw,29px);line-height:1.2;font-weight:680;letter-spacing:-.022em;
+  margin:20px 0 11px}
+.auth-head p{font-size:13.4px;line-height:1.62;color:var(--tx-2);max-width:40ch}
+.auth-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.lgd{display:inline-flex;align-items:center;gap:6px;height:27px;padding:0 10px;border-radius:99px;
+  font-size:11.5px;font-weight:650;border:1px solid;white-space:nowrap}
+.lgd i{width:9px;height:9px;border-radius:99px;background:currentColor;flex:none;display:block}
+.lgd.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-dim)}
+.lgd.part{color:var(--part);border-color:color-mix(in srgb,var(--part) 40%,transparent);background:var(--part-dim)}
+.lgd.part i{background:linear-gradient(90deg,currentColor 50%,transparent 50%);box-shadow:inset 0 0 0 1px currentColor}
+.lgd.miss{color:var(--part);border-color:color-mix(in srgb,var(--part) 45%,transparent);background:transparent}
+.lgd.miss i{background:none;box-shadow:inset 0 0 0 1.5px currentColor}
+
+/* ---------- right rail: preview above, form anchored bottom ---------- */
+.auth-rail{margin-left:auto;position:relative;z-index:4;width:min(438px,100%);flex:none;
+  display:flex;flex-direction:column;gap:12px;padding:20px 26px 22px;
+  overflow-y:auto;overscroll-behavior:contain}
+.auth-rail::before{content:"";position:absolute;inset:0 0 0 -70px;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,transparent 0,var(--bg) 62%)}
+.auth-rail > *:first-child{margin-top:auto}
+.auth-main{flex:none;width:100%;display:block;padding:0;overflow:visible;min-width:0}
+.auth-card{width:100%;max-width:none;background:var(--surface);border:1px solid var(--line);
+  border-radius:18px;padding:18px 19px 16px;box-shadow:var(--shadow-2)}
+.auth-card h1{font-size:20.5px}
+.auth-card .sub{margin-bottom:15px}
+.auth-logo .magna-mark{width:30px}
+.auth-legal{margin-top:14px}
+.auth-foot{margin-top:12px}
+.auth-or{margin:11px 0}
+.demo-note{margin-bottom:14px}
+.auth-card .field{margin-bottom:11px}
+
+/* ---------- social sign-in (vendor conventions, simulated round-trip) ---------- */
+.auth-social{display:flex;flex-direction:column;gap:9px}
+.btn-oauth{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:44px;
+  padding:0 14px;border-radius:var(--r);border:1px solid;font-size:14px;font-weight:500;
+  font-family:Roboto,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",sans-serif;
+  letter-spacing:.15px;transition:background .12s,filter .12s;cursor:pointer}
+.btn-oauth:active{transform:translateY(1px)}
+.btn-oauth[disabled]{opacity:.72;cursor:default}
+.btn-oauth svg{flex:none}
+/* Google: white surface, #747775 hairline, four-colour G, never recoloured */
+.btn-google{background:#FFFFFF;border-color:#747775;color:#1F1F1F}
+.btn-google:hover:not([disabled]){background:#F5F6F7}
+/* Apple: solid black, white logotype */
+.btn-apple{background:#000000;border-color:#000000;color:#FFFFFF}
+.btn-apple:hover:not([disabled]){background:#1A1A1A}
+.apple-mark{fill:currentColor}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .btn-google{background:#131314;border-color:#8E918F;color:#E3E3E3}
+  :root:not([data-theme="light"]) .btn-google:hover:not([disabled]){background:#1D1E1F}
+  :root:not([data-theme="light"]) .btn-apple{background:#FFFFFF;border-color:#FFFFFF;color:#000000}
+  :root:not([data-theme="light"]) .btn-apple:hover:not([disabled]){background:#EDEDED}
+}
+:root[data-theme="dark"] .btn-google{background:#131314;border-color:#8E918F;color:#E3E3E3}
+:root[data-theme="dark"] .btn-google:hover:not([disabled]){background:#1D1E1F}
+:root[data-theme="dark"] .btn-apple{background:#FFFFFF;border-color:#FFFFFF;color:#000000}
+:root[data-theme="dark"] .btn-apple:hover:not([disabled]){background:#EDEDED}
+.oauth-note{font-size:11px;color:var(--tx-3);line-height:1.5;margin-top:9px;text-align:center}
+
+/* ---------- streamed demo preview ---------- */
+.auth-preview{border:1px solid var(--line);background:var(--surface);border-radius:18px;
+  box-shadow:var(--shadow-1);display:flex;flex-direction:column;overflow:hidden;flex:none}
+.auth:not([data-step="login"]) .auth-preview{display:none}
+.pv-hd{display:flex;align-items:center;gap:8px;padding:9px 10px 9px 13px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);flex:none}
+.pv-eyebrow{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--tx-3);flex:1}
+.pv-play{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--tx-2);
+  border:1px solid var(--line);background:var(--surface)}
+.pv-play:hover{background:var(--surface-3);color:var(--tx)}
+.pv-play[hidden]{display:none}
+.pv-body{flex:none;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:11px 13px 10px;
+  display:flex;flex-direction:column;gap:9px;height:clamp(132px,17vh,224px)}
+.pv-body > *{flex:0 0 auto}
+.pv-q{align-self:flex-end;max-width:88%;background:var(--accent-dim);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
+  border-radius:13px 13px 4px 13px;padding:7px 11px;font-size:12.6px;line-height:1.5;color:var(--tx);min-height:20px}
+.pv-caret{display:inline-block;width:1.5px;height:12px;background:var(--accent);vertical-align:-2px;margin-left:1px}
+@media (prefers-reduced-motion: no-preference){ .pv-caret{animation:pvBlink 1s steps(2,end) infinite} }
+@keyframes pvBlink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.pv-think{display:flex;align-items:center;gap:9px;padding:2px 0}
+.pv-think .magna-mark{width:26px}
+.pv-think span{font-size:12px;color:var(--tx-2)}
+.pv-a{display:flex;flex-direction:column;gap:8px}
+.pv-a p{font-size:12.7px;line-height:1.6;color:var(--tx)}
+.pv-a p b{font-weight:650}
+.pv-blk{animation:pvIn .34s ease both}
+@media (prefers-reduced-motion: reduce){ .pv-blk{animation:none} }
+@keyframes pvIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.pv-tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:var(--surface-2)}
+table.pv-tbl{width:100%;border-collapse:collapse;font-size:11.4px;min-width:290px}
+.pv-tbl th{text-align:left;padding:6px 8px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700;border-bottom:1px solid var(--line);white-space:nowrap}
+.pv-tbl td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--tx-2);white-space:nowrap}
+.pv-tbl tr:last-child td{border-bottom:0}
+.pv-tbl td.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--tx)}
+.pv-tbl td.late{color:var(--part);font-weight:650}
+.pv-cite{border-left:2px solid color-mix(in srgb,var(--accent) 55%,transparent);padding:2px 0 2px 9px;
+  font-size:12px;line-height:1.55;color:var(--tx-2)}
+.pv-note{display:flex;gap:7px;font-size:11.5px;line-height:1.5;color:var(--tx-2);background:var(--part-dim);
+  border:1px solid color-mix(in srgb,var(--part) 30%,transparent);border-radius:9px;padding:7px 9px}
+.pv-note svg{flex:none;margin-top:1px;color:var(--part)}
+.pv-mail{display:flex;gap:8px;border:1px solid var(--line);border-radius:9px;padding:7px 9px;background:var(--surface-2)}
+.pv-mail svg{flex:none;margin-top:2px;color:var(--accent)}
+.pv-mail b{font-size:12px;font-weight:650;display:block;color:var(--tx)}
+.pv-mail em{font-style:normal;font-size:10.8px;color:var(--tx-3);display:block;margin-top:1px}
+.pv-res{display:flex;align-items:center;gap:6px;font-size:10.8px;color:var(--tx-3);line-height:1.45}
+.pv-res svg{flex:none;color:var(--private)}
+.pv-chips{display:flex;flex-wrap:wrap;gap:5px}
+.pv-chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:99px;
+  font-size:10.6px;border:1px solid;font-weight:600}
+.pv-chip i{width:5px;height:5px;border-radius:99px;background:currentColor;flex:none;display:block}
+.pv-chip[data-s="connected"]{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-dim)}
+.pv-chip[data-s="partial"]{color:var(--part);border-color:color-mix(in srgb,var(--part) 40%,transparent);background:var(--part-dim)}
+.pv-chip[data-s="missing"],.pv-chip[data-s="candidate"]{color:var(--part);border-color:color-mix(in srgb,var(--part) 50%,transparent);background:transparent}
+.pv-ft{display:flex;align-items:center;gap:10px;padding:8px 12px 9px;border-top:1px solid var(--line);
+  background:var(--surface-2);flex:none}
+.pv-cap{flex:1;min-width:0;font-size:11px;line-height:1.45;color:var(--tx-3)}
+.pv-cap b{color:var(--tx-2);font-weight:650}
+.pv-dots{display:flex;gap:4px;flex:none}
+.pv-dot{width:28px;height:28px;display:grid;place-items:center;border-radius:7px;background:none;border:0}
+.pv-dot i{width:7px;height:7px;border-radius:99px;background:var(--line-3);display:block;transition:background .2s,width .2s}
+.pv-dot[aria-selected="true"] i{background:var(--accent);width:16px}
+.pv-dot:hover i{background:var(--tx-3)}
+
+/* ---------- tablet: graph narrows, rail keeps its width ---------- */
+@media (max-width:1100px){
+  .auth-graph{width:60%}
+  .auth-head{width:min(34ch,50%)}
+  .auth-head p{display:none}
+}
+@media (max-width:900px){
+  /* graph slides behind everything; head becomes a compact in-flow strip */
+  .auth.open{flex-direction:column}
+  .auth-graph{width:100%;opacity:.22;transform:scale(1.3);padding:0}
+  .auth-head{position:static;width:100%;padding:14px clamp(14px,4vw,22px) 0;flex:none;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .auth-head h2,.auth-head p{display:none}
+  .auth-head .auth-logo{margin-bottom:0}
+  .auth-legend{margin-top:0;margin-left:auto;gap:5px}
+  .lgd{height:24px;padding:0 8px;font-size:10.5px}
+  .auth-rail{margin:0;width:100%;flex:1;min-height:0;padding:12px clamp(14px,4vw,22px) 20px;
+    justify-content:flex-start}
+  .auth-rail::before{display:none}   /* the graph reads through as texture instead */
+  .auth-rail > *:first-child{margin-top:0}
+  /* the preview drops below the form, collapsed behind a disclosure */
+  .auth-main{order:1}
+  .auth-pvtoggle{order:2;display:flex}
+  .auth-preview{order:3}
+  .auth[data-pv="closed"] .auth-preview{display:none}
+}
+@media (min-width:901px){ .auth-pvtoggle{display:none} }
+.auth:not([data-step="login"]) .auth-pvtoggle{display:none}
+.auth-pvtoggle{align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;
+  border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);font-size:13px;
+  font-weight:600;color:var(--tx-2);order:2}
+.auth-pvtoggle:hover{background:var(--surface-2);color:var(--tx)}
+.auth-pvtoggle .chev{transition:transform .18s ease}
+.auth[data-pv="open"] .auth-pvtoggle .chev{transform:rotate(180deg)}
+
+@media (max-width:767px){
+  .auth-card{padding:16px 15px 15px;border-radius:16px}
+  .auth-card h1{font-size:19px}
+  .auth-card .sub{font-size:12.8px;margin-bottom:15px}
+  .demo-note b{white-space:nowrap}
+  .auth-main{padding:0}
+  .btn-oauth{height:46px}
+  .pv-play{width:44px;height:44px}
+  .pv-dot{width:44px;height:44px}
+  .pv-ft{flex-wrap:wrap;gap:4px}
+  .pv-cap{flex:1 0 100%;order:2}
+  .pv-dots{order:1;margin-left:auto}
+  .pv-body{height:clamp(210px,38vh,300px)}
+  .auth-legend{width:100%;margin-left:0}
+  .auth-head{gap:9px}
+}
+@media (max-width:400px){
+  .auth-rail{padding:10px 12px 18px}
+  .auth-card{padding:14px 13px 14px}
+  .lgd{font-size:10px;padding:0 7px;gap:5px}
+}
+/* short viewports: the form always wins the space; the preview gives it back */
+@media (min-width:901px) and (max-height:900px){
+  .pv-body{height:140px}
+  .auth-card{padding:16px 17px 14px}
+  .demo-note{margin-bottom:12px}
+}
+@media (min-width:901px) and (max-height:760px){
+  .pv-body{height:104px}
+  .auth-head h2{font-size:20px;margin:14px 0 8px}
+  .auth-head p{display:none}
+  .auth-card .sub{display:none}
 }
 </style>
 
@@ -1558,24 +1865,72 @@ body[data-mail="connected"] .mailboost{display:flex}
   <svg class="ico sm ic" viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7"/></svg><span id="toastText">Copied</span>
 </div>
 
-<!-- ============================== AUTH (login → register → workspace) -->
-<div class="auth" id="auth" data-step="login">
-  <div class="auth-brand">
-    <div class="bd-auth" aria-hidden="true">
-      <svg class="magna-mark" viewBox="0 0 640 440">
-        <defs>
-          <linearGradient id="mgGB-authbd" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
-          </linearGradient>
-          <linearGradient id="mgR-authbd" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
-          </linearGradient>
-        </defs>
-        <path class="w1" d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-authbd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-        <path class="w2" d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-authbd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
+<!-- ============================== AUTH (login → register → workspace)
+     v4 composition: GRAPH-FIRST. The twin source graph is the backdrop;
+     the form is a compact panel anchored bottom-right. -->
+<div class="auth" id="auth" data-step="login" data-pv="closed">
 
+  <!-- the 16 twin sources + the un-connected 17th, wired to the twin hub -->
+  <div class="auth-graph" id="authGraph">
+    <svg viewBox="0 0 880 660" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="The Agentic Twin: 16 enterprise context sources wired to MagnaVERSE — 7 connected, 6 partial, 3 missing, plus Magna Mail not yet connected.">
+      <g class="tedges">
+        <path class="tedge" id="te-org" data-state="connected" d="M410.4 367.8 Q328.4 429.3 288.5 523.9" style="--l:200.4;--d:0.28s"/>
+        <path class="tedge" id="te-proc" data-state="connected" d="M398.9 354.9 Q360.5 399.4 303.1 412.9" style="--l:113.9;--d:0.36s"/>
+        <path class="tedge" id="te-sap" data-state="connected" d="M392.8 338.7 Q290.6 330.2 198.0 374.4" style="--l:200.4;--d:0.43s"/>
+        <path class="tedge" id="te-p6" data-state="connected" d="M392.8 321.3 Q334.4 329.1 282.6 301.1" style="--l:113.9;--d:0.51s"/>
+        <path class="tedge" id="te-dfr" data-state="partial" d="M398.9 305.1 Q328.1 230.9 229.6 202.6" style="--l:200.4;--d:0.58s"/>
+        <path class="tedge" id="te-asset" data-state="partial" d="M410.4 292.2 Q361.6 259.3 341.5 203.9" style="--l:113.9;--d:0.66s"/>
+        <path class="tedge" id="te-co" data-state="connected" d="M423.6 284.9 Q421.2 224.0 383.9 175.9" style="--l:118.0;--d:0.73s"/>
+        <path class="tedge" id="te-appr" data-state="partial" d="M444.2 282.2 Q425.9 179.2 461.8 81.0" style="--l:204.4;--d:0.81s"/>
+        <path class="tedge" id="te-comms" data-state="partial" d="M464.0 288.4 Q509.1 247.5 522.0 188.0" style="--l:118.0;--d:0.88s"/>
+        <path class="tedge" id="te-labour" data-state="missing" d="M479.3 302.5 Q546.5 222.3 644.8 186.6" style="--l:204.4;--d:0.95s"/>
+        <path class="tedge" id="te-iot" data-state="missing" d="M487.3 321.7 Q549.7 330.0 605.4 300.8" style="--l:122.0;--d:1.03s"/>
+        <path class="tedge" id="te-obj" data-state="connected" d="M487.5 336.7 Q589.3 323.9 683.6 364.2" style="--l:200.4;--d:1.10s"/>
+        <path class="tedge" id="te-know" data-state="connected" d="M479.8 356.8 Q516.8 404.0 574.3 420.6" style="--l:115.9;--d:1.18s"/>
+        <path class="tedge" id="te-cost" data-state="partial" d="M464.0 371.6 Q538.1 445.4 565.0 546.5" style="--l:204.4;--d:1.25s"/>
+        <path class="tedge" id="te-risk" data-state="partial" d="M443.3 377.9 Q429.0 436.0 451.3 491.6" style="--l:115.9;--d:1.33s"/>
+        <path class="tedge" id="te-mkt" data-state="missing" d="M422.0 374.5 Q409.8 476.3 347.8 558.1" style="--l:200.4;--d:1.41s"/>
+        <path class="tedge" id="te-mail" data-state="candidate" d="M475.7 297.9 Q604.0 229.7 685.2 109.2" style="--l:284.9;--d:1.48s"/>
+      </g>
+
+      <text class="tgrp" x="95" y="330">STRUCTURAL</text>
+      <text class="tgrp" x="612" y="34">BEHAVIOURAL</text>
+      <text class="tgrp" x="615" y="634">DYNAMICS &amp; INTENT</text>
+
+      <g class="thub">
+        <circle class="thub-halo" cx="440" cy="330" r="70"/>
+        <circle class="thub-ring" cx="440" cy="330" r="48"/>
+        <g transform="translate(412 310.75) scale(0.0875)">
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <text class="thub-lbl" x="440" y="399">AGENTIC TWIN</text>
+      </g>
+
+      <g class="tnodes">
+        <g class="tnode" id="tn-org" data-state="connected" data-g="structural" transform="translate(275.0 541.2)" style="--d:0.45s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="35">Org chart</text></g>
+        <g class="tnode" id="tn-proc" data-state="connected" data-g="structural" transform="translate(284.3 424.3)" style="--d:0.53s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="35">Process maps</text></g>
+        <g class="tnode" id="tn-sap" data-state="connected" data-g="structural" transform="translate(176.4 378.4)" style="--d:0.60s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="35">SAP S/4HANA</text></g>
+        <g class="tnode" id="tn-p6" data-state="connected" data-g="structural" transform="translate(261.0 297.1)" style="--d:0.68s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="35">Primavera P6</text></g>
+        <g class="tnode" id="tn-dfr" data-state="partial" data-g="structural" transform="translate(210.8 191.2)" style="--d:0.75s"><circle class="halo" r="19"/><circle class="ring" r="19"/><path class="core" d="M0 -7 A7 7 0 0 1 0 7 Z"/><text class="lbl" y="35">Data-flow reg.</text></g>
+        <g class="tnode" id="tn-asset" data-state="partial" data-g="structural" transform="translate(327.9 186.6)" style="--d:0.82s"><circle class="halo" r="19"/><circle class="ring" r="19"/><path class="core" d="M0 -7 A7 7 0 0 1 0 7 Z"/><text class="lbl" y="35">Asset register</text></g>
+        <g class="tnode" id="tn-co" data-state="connected" data-g="behavioural" transform="translate(376.4 155.2)" style="--d:0.90s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="-25">Change orders</text></g>
+        <g class="tnode" id="tn-appr" data-state="partial" data-g="behavioural" transform="translate(463.7 59.0)" style="--d:0.98s"><circle class="halo" r="19"/><circle class="ring" r="19"/><path class="core" d="M0 -7 A7 7 0 0 1 0 7 Z"/><text class="lbl" y="35">Approvals</text></g>
+        <g class="tnode" id="tn-comms" data-state="partial" data-g="behavioural" transform="translate(533.0 168.9)" style="--d:1.05s"><circle class="halo" r="19"/><circle class="ring" r="19"/><path class="core" d="M0 -7 A7 7 0 0 1 0 7 Z"/><text class="lbl" y="35">Comms patterns</text></g>
+        <g class="tnode" id="tn-labour" data-state="missing" data-g="behavioural" transform="translate(662.8 174.0)" style="--d:1.12s"><circle class="halo" r="19"/><circle class="ring" r="19"/><text class="lbl" y="35">Labour returns</text></g>
+        <g class="tnode" id="tn-iot" data-state="missing" data-g="behavioural" transform="translate(627.1 297.0)" style="--d:1.20s"><circle class="halo" r="19"/><circle class="ring" r="19"/><text class="lbl" y="35">Site IoT</text></g>
+        <g class="tnode" id="tn-obj" data-state="connected" data-g="dynamics" transform="translate(705.4 367.3)" style="--d:1.27s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="35">FY26 objectives</text></g>
+        <g class="tnode" id="tn-know" data-state="connected" data-g="dynamics" transform="translate(592.5 432.9)" style="--d:1.35s"><circle class="halo" r="19"/><circle class="ring" r="19"/><circle class="core" r="7"/><text class="lbl" y="35">Knowledge</text></g>
+        <g class="tnode" id="tn-cost" data-state="partial" data-g="dynamics" transform="translate(576.0 565.6)" style="--d:1.43s"><circle class="halo" r="19"/><circle class="ring" r="19"/><path class="core" d="M0 -7 A7 7 0 0 1 0 7 Z"/><text class="lbl" y="35">Cost model</text></g>
+        <g class="tnode" id="tn-risk" data-state="partial" data-g="dynamics" transform="translate(452.8 513.6)" style="--d:1.50s"><circle class="halo" r="19"/><circle class="ring" r="19"/><path class="core" d="M0 -7 A7 7 0 0 1 0 7 Z"/><text class="lbl" y="35">Risk register</text></g>
+        <g class="tnode" id="tn-mkt" data-state="missing" data-g="dynamics" transform="translate(339.6 578.5)" style="--d:1.57s"><circle class="halo" r="19"/><circle class="ring" r="19"/><text class="lbl" y="35">Supplier signals</text></g>
+        <g class="tnode" id="tn-mail" data-state="candidate" data-g="behavioural" transform="translate(701.6 94.5)" style="--d:1.65s"><circle class="halo" r="19"/><circle class="ring" r="19"/><text class="lbl" y="35">Magna Mail</text></g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="auth-head">
     <div class="auth-logo">
       <svg class="magna-mark" id="authMark" viewBox="0 0 640 440" role="img" aria-label="Magna">
         <defs>
@@ -1592,22 +1947,38 @@ body[data-mail="connected"] .mailboost{display:flex}
       <span class="t"><b>Magna</b><span>VERSE</span></span>
     </div>
 
-    <h2>The answer, and where it came from.</h2>
-    <p>Runs on Magna GPUs in Riyadh. Your data never leaves your network — and every answer
-       tells you which of your systems it was grounded in, and which one it could not see.</p>
-    <div class="auth-facts">
-      <div class="f"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>Private tier · Riyadh DC-1 · 8×H200</div>
-      <div class="f"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></svg>Agentic Twin — 16 enterprise context sources</div>
-      <div class="f"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/></svg>Company Knowledge — 8,400 documents indexed on-prem</div>
-    </div>
+    <h2>It already knows your systems.</h2>
+    <p>Every answer names the systems it was grounded in — and the ones it could not see.
+       This is the twin as it stands today, before you sign in.</p>
+    <div class="auth-legend" id="authLegend"></div>
   </div>
 
-  <div class="auth-main">
+  <div class="auth-rail">
+    <!-- streamed demo preview: see what is inside before signing in -->
+    <div class="auth-preview" id="authPv">
+      <div class="pv-hd">
+        <span class="pv-eyebrow">A 20-second look inside</span>
+        <span class="pill sm private"><span class="dot"></span>Riyadh DC-1</span>
+        <button class="pv-play" id="pvPlay" aria-label="Pause the preview" title="Pause the preview"></button>
+      </div>
+      <div class="pv-body" id="pvBody"></div>
+      <div class="pv-ft">
+        <span class="pv-cap" id="pvCap"></span>
+        <span class="pv-dots" id="pvDots" role="tablist" aria-label="Preview scenarios"></span>
+      </div>
+    </div>
+
+    <button class="auth-pvtoggle" id="pvToggle" aria-expanded="false" aria-controls="authPv">
+      <svg class="ico sm" viewBox="0 0 24 24"><path d="M8 5.5 18 12 8 18.5Z"/></svg>
+      <span class="pvt-lbl">See a 20-second demo</span>
+      <svg class="ico sm chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+
+    <div class="auth-main">
     <!-- LOGIN -->
     <div class="auth-card" data-pane="login">
-      <span class="pill sm private" style="margin-bottom:14px"><span class="dot"></span>Private · Riyadh DC-1</span>
       <h1>Sign in to MagnaVERSE</h1>
-      <p class="sub">Use your Magna work account. This prototype keeps everything in your browser — nothing is sent anywhere.</p>
+      <p class="sub">Magna work account · Private tier, Riyadh DC-1</p>
       <div class="demo-note">
         <svg class="ico sm" viewBox="0 0 24 24" style="flex:none"><path d="M5 12.5 9.5 17 19 7"/></svg>
         Demo credentials filled — press <b style="margin:0 3px">Sign in</b>
@@ -1625,14 +1996,36 @@ body[data-mail="connected"] .mailboost{display:flex}
         </div>
         <button class="btn primary lg" id="signIn" type="submit">Sign in</button>
       </form>
-      <div class="auth-or">or</div>
-      <button class="btn lg" id="ssoBtn">
-        <svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        Continue with Magna SSO
-      </button>
+      <div class="auth-or">or continue with</div>
+      <div class="auth-social">
+        <button class="btn lg" id="ssoBtn" type="button">
+          <svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          Continue with Magna SSO
+        </button>
+
+        <!-- Google: vendor button conventions. Simulated round-trip only —
+             this never opens a Google screen and never asks for a Google password. -->
+        <button class="btn-oauth btn-google" id="googleBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19Z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/>
+          </svg>
+          <span class="lbl">Sign in with Google</span>
+        </button>
+
+        <!-- Apple: black in light, white in dark; logotype never recoloured beyond that. -->
+        <button class="btn-oauth btn-apple" id="appleBtn" type="button">
+          <svg class="apple-mark" width="15" height="18" viewBox="0 0 814 1000" aria-hidden="true" focusable="false">
+            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2Zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3Z"/>
+          </svg>
+          <span class="lbl">Sign in with Apple</span>
+        </button>
+      </div>
+      <p class="oauth-note">Google and Apple sign-in are <b>simulated</b> — no provider is contacted, and no provider
+        password is ever requested.</p>
       <p class="auth-foot">No account yet? <button id="toRegister">Create an account</button></p>
-      <p class="auth-legal">Prototype — never enter a real password. No credentials are stored or transmitted;
-        sign-in state lives only in this browser's local storage.</p>
     </div>
 
     <!-- REGISTER -->
@@ -1658,7 +2051,7 @@ body[data-mail="connected"] .mailboost{display:flex}
     </div>
 
     <!-- WORKSPACE PICKER -->
-    <div class="auth-card" data-pane="workspace" hidden style="max-width:460px">
+    <div class="auth-card" data-pane="workspace" hidden>
       <h1>Choose a workspace</h1>
       <p class="sub">Your workspace sets the default sovereignty tier for every new thread. You can change the tier per thread later.</p>
       <div class="ws-list">
@@ -1682,7 +2075,8 @@ body[data-mail="connected"] .mailboost{display:flex}
       <p class="auth-legal">You are signing in as <b id="wsWho">ahmad.farahat@magna.ai</b> ·
         <button id="backToLogin" style="color:var(--accent);font-weight:600">Not you?</button></p>
     </div>
-  </div>
+    </div><!-- /.auth-main -->
+  </div><!-- /.auth-rail -->
 </div>
 
 <!-- ============================== v2 dialogs -->
@@ -4168,9 +4562,11 @@ function showPane(p){
   $$("[data-pane]").forEach(function(el){ el.hidden = el.getAttribute("data-pane")!==p; });
   var f=$('[data-pane="'+p+'"]').querySelector("input,button");
   if(f) setTimeout(function(){ f.focus(); },30);
+  /* the preview is ambient — it only runs while the login pane is up */
+  if(p==="login") pvStart(); else pvStop();
 }
-function openAuth(p){ $("#auth").classList.add("open"); showPane(p||"login"); }
-function closeAuth(){ $("#auth").classList.remove("open"); }
+function openAuth(p){ $("#auth").classList.add("open"); renderAuthLegend(); showPane(p||"login"); }
+function closeAuth(){ pvStop(); $("#auth").classList.remove("open"); }
 function fieldErr(id,msg){
   var f=$("#"+id);
   if(msg){ f.classList.add("bad"); f.querySelector(".et").textContent=msg; f.querySelector("input").focus(); }
@@ -4209,6 +4605,35 @@ $("#ssoBtn").addEventListener("click",function(){
     showPane("workspace"); toast("Signed in through Magna SSO — no password was handled by MagnaVERSE.");
   },1200);
 });
+/* ---- Google / Apple: the provider round-trip is SIMULATED, never imitated.
+   No provider screen is ever rendered and no provider password is ever requested. ---- */
+function miniMark(){
+  return '<svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Working" style="width:20px">'+
+    '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function oauthDemo(btn,provider,note){
+  if(btn.disabled) return;
+  var keep=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML=miniMark()+'<span class="lbl">Authorising with '+provider+'…</span>';
+  setTimeout(function(){
+    btn.disabled=false; btn.innerHTML=keep;
+    pendingUser={email:"ahmad.farahat@magna.ai", name:"Ahmad Farahat", org:"Magna"};
+    $("#wsWho").textContent=pendingUser.email;
+    showPane("workspace");
+    toast(note);
+  },1100);
+}
+$("#googleBtn").addEventListener("click",function(){
+  oauthDemo(this,"Google",
+    "Simulated Google sign-in — this prototype never contacts Google and never asks for a Google password.");
+});
+$("#appleBtn").addEventListener("click",function(){
+  oauthDemo(this,"Apple",
+    "Simulated Apple sign-in — this prototype never contacts Apple and never asks for an Apple password.");
+});
+
 $("#regForm").addEventListener("submit",function(e){
   e.preventDefault();
   var n=$("#rgName").value.trim(), em=$("#rgEmail").value.trim(), pw=$("#rgPass").value, org=$("#rgOrg").value.trim();
@@ -4269,6 +4694,263 @@ function renderUserMenu(){
     '<button class="mi" data-act="um" data-id="signout"><span style="flex:1"><span class="nm">Sign out</span>'+
       '<span class="ds">Clears the local session and returns to the login screen</span></span></button>';
 }
+
+/* ============================================================
+   18b · v4 — graph-first login: coverage legend, the twin graph
+   and the streamed demo preview that lights it up.
+   ============================================================ */
+function renderAuthLegend(){
+  var c=counts(), el=$("#authLegend"); if(!el) return;
+  el.innerHTML=
+    '<span class="lgd ok"><i></i>'+c.connected+' connected</span>'+
+    '<span class="lgd part"><i></i>'+c.partial+' partial</span>'+
+    '<span class="lgd miss"><i></i>'+c.missing+' missing</span>';
+}
+
+/* --- lighting the backdrop graph in step with the preview --- */
+function graphLight(ids){
+  $$("#authGraph .tnode.lit,#authGraph .tedge.lit").forEach(function(el){ el.classList.remove("lit"); });
+  (ids||[]).forEach(function(id){
+    var n=document.getElementById("tn-"+id), e=document.getElementById("te-"+id);
+    if(n) n.classList.add("lit");
+    if(e) e.classList.add("lit");
+  });
+}
+
+var PV={q:[],qi:0,gen:0,timers:[],scen:0,running:false,paused:false,userPaused:false,reduce:false};
+var PV_RES='<span class="pv-res"><svg class="ico xs" viewBox="0 0 24 24"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>'+
+  'Ran on Magna GPUs in Riyadh — nothing left the network.</span>';
+
+function pvChips(list){
+  return '<span class="pv-chips">'+list.map(function(p){
+    return '<span class="pv-chip" data-s="'+p[1]+'"><i></i>'+p[0]+'</span>';
+  }).join("")+'</span>';
+}
+
+var PV_SCEN=[
+  {
+    q:"Which POs slipped past their promised date this month?",
+    lit:["sap","p6","co"],
+    stages:["Reading 16 twin sources","Querying SAP S/4HANA — live","Writing"],
+    cap:"<b>Connected enterprise data.</b> Read straight out of SAP, on your own cluster.",
+    parts:[
+      {t:"p",text:"Three purchase orders on Package 4 slipped past their promised date in August."},
+      {t:"html",html:'<div class="pv-tblwrap"><table class="pv-tbl"><thead><tr><th>PO</th><th>Vendor</th><th>Promised</th><th class="r">Days late</th></tr></thead><tbody>'+
+        '<tr><td>PO-4471</td><td>Gulf MEP Supply</td><td>04 Aug</td><td class="r late">+13</td></tr>'+
+        '<tr><td>PO-4488</td><td>Al-Rajhi Steel</td><td>09 Aug</td><td class="r late">+12</td></tr>'+
+        '<tr><td>PO-4502</td><td>Saudi Cable Co.</td><td>14 Aug</td><td class="r late">+2</td></tr>'+
+        '</tbody></table></div>'},
+      {t:"html",html:pvChips([["SAP S/4HANA","connected"],["Primavera P6","connected"],["Change orders","connected"]])},
+      {t:"html",html:PV_RES}
+    ]
+  },
+  {
+    q:"Summarise the change orders on Package 4 and who owns the risk.",
+    lit:["co","know","risk","appr","cost"],
+    stages:["Reading 16 twin sources","Checking which relevant sources are missing","Writing"],
+    cap:"<b>Provenance.</b> Every claim names its source — and the gaps are named too.",
+    parts:[
+      {t:"p",text:"Package 4 carries 11 open change orders worth SAR 4.2 m. Nine are structural; two are contractual and sit with Legal."},
+      {t:"html",html:'<div class="pv-cite">“Rebar substitution to B500B pending client approval — 6 days float remaining.”<br>'+
+        '<span style="font-size:11px;color:var(--tx-3)">CO-114 · Change-order log · raised 04 Aug by M. Idris</span></div>'},
+      {t:"html",html:'<div class="pv-note"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg>'+
+        '<span>Approval history is partial — Jira approvals are not indexed, so I cannot tell you how long two of these sat unactioned.</span></div>'},
+      {t:"html",html:pvChips([["Change orders","connected"],["Knowledge","connected"],["Risk register","partial"],["Approvals","partial"],["Cost model","partial"]])},
+      {t:"html",html:PV_RES}
+    ]
+  },
+  {
+    q:"What's in my inbox about the rebar delay?",
+    lit:["mail","p6","co"],
+    stages:["Searching Magna Mail — on-prem","Reading 2 matching messages","Reconciling with P6"],
+    cap:"<b>The magna-mail MCP.</b> Your mailbox, searched in place. Nothing is forwarded.",
+    parts:[
+      {t:"p",text:"Two messages this week, both naming the same cause."},
+      {t:"html",html:'<div class="pv-mail"><svg class="ico sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>'+
+        '<span><b>Re: Rebar B500B — revised delivery</b><em>Faisal Al-Harbi, Gulf MEP Supply · today 08:42</em></span></div>'+
+        '<div class="pv-mail" style="margin-top:6px"><svg class="ico sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>'+
+        '<span><b>Contract amendment #3 — Package 4 handover</b><em>Sarah Mansour, Legal · yesterday 16:40</em></span></div>'},
+      {t:"html",html:pvChips([["Magna Mail","candidate"],["Primavera P6","connected"],["Change orders","connected"]])},
+      {t:"html",html:'<span class="pv-res"><svg class="ico xs" viewBox="0 0 24 24"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>'+
+        'Mail indexed on Magna’s own cluster — no message left the network.</span>'}
+    ]
+  }
+];
+
+function pvKill(){ PV.timers.forEach(function(t){ clearTimeout(t); }); PV.timers=[]; }
+function pvBottom(){ var b=$("#pvBody"); if(b) b.scrollTop=b.scrollHeight; }
+
+function pvRenderDots(){
+  var d=$("#pvDots"); if(!d) return;
+  d.innerHTML=PV_SCEN.map(function(s,i){
+    return '<button class="pv-dot" role="tab" data-i="'+i+'" aria-selected="'+(i===PV.scen)+'" '+
+      'aria-label="Scenario '+(i+1)+' of '+PV_SCEN.length+'" title="'+s.q.replace(/"/g,"&quot;")+'"><i></i></button>';
+  }).join("");
+}
+function pvSyncDots(){
+  $$("#pvDots .pv-dot").forEach(function(b){
+    b.setAttribute("aria-selected", String(Number(b.getAttribute("data-i"))===PV.scen));
+  });
+}
+function pvPlayIcon(){
+  var b=$("#pvPlay"); if(!b) return;
+  b.innerHTML = PV.paused
+    ? '<svg class="ico sm" viewBox="0 0 24 24"><path d="M8 5.5 18 12 8 18.5Z"/></svg>'
+    : '<svg class="ico sm" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg>';
+  b.setAttribute("aria-label", PV.paused?"Play the preview":"Pause the preview");
+  b.setAttribute("title", b.getAttribute("aria-label"));
+}
+
+/* the sequencer: a queue of [delay, fn]. Pause clears the pending timer and
+   leaves the index where it is, so play picks the same step back up. */
+function pvNext(){
+  if(!PV.running || PV.paused) return;
+  if(PV.qi>=PV.q.length) return;
+  var g=PV.gen, it=PV.q[PV.qi];
+  var id=setTimeout(function(){
+    if(!PV.running || PV.paused || g!==PV.gen) return;
+    PV.qi++; it[1]();
+    if(g!==PV.gen) return;      /* that step started a new scenario — it owns the chain now */
+    pvNext();
+  }, it[0]);
+  PV.timers.push(id);
+}
+
+function pvShell(s){
+  var b=$("#pvBody"); if(!b) return;
+  b.innerHTML='<div class="pv-q" id="pvQ"><span id="pvQt"></span><span class="pv-caret"></span></div>';
+  $("#pvCap").innerHTML='<span style="color:var(--tx-3)">Scenario '+(PV.scen+1)+' of '+PV_SCEN.length+'</span>';
+  graphLight([]);
+  pvSyncDots();
+}
+function pvThink(s){
+  var b=$("#pvBody"); if(!b) return;
+  var q=$("#pvQ"); if(q){ var c=q.querySelector(".pv-caret"); if(c) c.remove(); }
+  b.insertAdjacentHTML("beforeend",
+    '<div class="pv-think"><svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna is working">'+
+      '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '</svg><span id="pvThinkT">'+s.stages[0]+'…</span></div>');
+  pvBottom();
+}
+function pvAnswerShell(){
+  var b=$("#pvBody"); if(!b) return;
+  var t=$(".pv-think",b); if(t) t.remove();
+  b.insertAdjacentHTML("beforeend",'<div class="pv-a" id="pvA"></div>');
+}
+
+/* build the whole scenario as micro-steps so pause lands exactly */
+function pvBuild(s){
+  var q=[];
+  q.push([260,function(){ pvShell(s); }]);
+  var txt=s.q, step=2;
+  for(var i=step;i<txt.length+step;i+=step){
+    (function(n){ q.push([26,function(){ var e=$("#pvQt"); if(e) e.textContent=txt.slice(0,n); }]); })(Math.min(i,txt.length));
+  }
+  q.push([420,function(){ pvThink(s); }]);
+  s.lit.forEach(function(id,i){
+    q.push([620,function(){
+      var e=$("#pvThinkT"); if(e && s.stages[Math.min(i+1,s.stages.length-1)]) e.textContent=s.stages[Math.min(i+1,s.stages.length-1)]+"…";
+      graphLight(s.lit.slice(0,i+1));
+    }]);
+  });
+  q.push([560,function(){ pvAnswerShell(); graphLight(s.lit); }]);
+  s.parts.forEach(function(p){
+    if(p.t==="p"){
+      q.push([120,function(){ var a=$("#pvA"); if(a) a.insertAdjacentHTML("beforeend",'<p id="pvP"></p>'); }]);
+      var st=3;
+      for(var i=st;i<p.text.length+st;i+=st){
+        (function(n){ q.push([18,function(){ var e=$("#pvP"); if(e){ e.textContent=p.text.slice(0,n); pvBottom(); } }]); })(Math.min(i,p.text.length));
+      }
+      q.push([60,function(){ var e=$("#pvP"); if(e) e.removeAttribute("id"); }]);
+    } else {
+      q.push([340,function(){
+        var a=$("#pvA"); if(!a) return;
+        var w=document.createElement("div"); w.className="pv-blk"; w.innerHTML=p.html;
+        a.appendChild(w); pvBottom();
+      }]);
+    }
+  });
+  q.push([260,function(){ $("#pvCap").innerHTML=s.cap; }]);
+  q.push([3400,function(){ PV.scen=(PV.scen+1)%PV_SCEN.length; pvPlayScenario(); }]);
+  return q;
+}
+
+function pvFinal(s){
+  /* reduced motion: the finished state, immediately */
+  var b=$("#pvBody"); if(!b) return;
+  b.innerHTML='<div class="pv-q">'+s.q+'</div><div class="pv-a">'+
+    s.parts.map(function(p){ return p.t==="p" ? '<p>'+p.text+'</p>' : p.html; }).join("")+'</div>';
+  $("#pvCap").innerHTML=s.cap;
+  graphLight(s.lit);
+  pvSyncDots();
+}
+
+function pvPlayScenario(){
+  pvKill(); PV.gen++;
+  var s=PV_SCEN[PV.scen];
+  pvSyncDots();
+  if(PV.reduce){ pvFinal(s); return; }
+  PV.q=pvBuild(s); PV.qi=0; pvNext();
+}
+
+function pvStart(){
+  var el=$("#authPv"); if(!el) return;
+  PV.reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!$("#pvDots").children.length) pvRenderDots();
+  pvPlayIcon();
+  $("#pvPlay").hidden=PV.reduce;
+  if(PV.running) return;
+  if(el.offsetParent===null) return;        /* collapsed on mobile — burn no timers */
+  PV.running=true; PV.paused=PV.userPaused;
+  if(PV.paused){ pvSyncDots(); pvFinal(PV_SCEN[PV.scen]); return; }
+  pvPlayScenario();
+}
+function pvStop(){
+  PV.running=false; PV.gen++; pvKill(); graphLight([]);
+}
+function pvSetScenario(i){
+  PV.scen=i; PV.qi=0; pvKill();
+  PV.running=true;
+  if(PV.paused && !PV.reduce){ PV.paused=false; PV.userPaused=false; pvPlayIcon(); }
+  pvPlayScenario();
+}
+function pvTogglePause(){
+  if(PV.reduce) return;
+  PV.paused=!PV.paused; PV.userPaused=PV.paused;
+  pvPlayIcon();
+  if(PV.paused){ pvKill(); return; }
+  if(!PV.q.length || PV.qi>=PV.q.length) pvPlayScenario(); else pvNext();
+}
+
+(function wirePreview(){
+  var play=$("#pvPlay"); if(!play) return;
+  play.addEventListener("click",pvTogglePause);
+  $("#pvDots").addEventListener("click",function(e){
+    var b=e.target.closest("[data-i]"); if(!b) return;
+    pvSetScenario(Number(b.getAttribute("data-i")));
+  });
+  /* mobile disclosure — the preview is collapsed below the form by default */
+  $("#pvToggle").addEventListener("click",function(){
+    var a=$("#auth"), open=a.getAttribute("data-pv")==="open";
+    a.setAttribute("data-pv", open?"closed":"open");
+    this.setAttribute("aria-expanded", String(!open));
+    $(".pvt-lbl",this).textContent = open?"See a 20-second demo":"Hide the demo";
+    if(!open){ PV.scen=0; pvStop(); pvStart(); }
+    else pvStop();
+  });
+  /* never leave timers running behind a hidden tab or a torn-down login */
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden){ pvKill(); }
+    else if(PV.running && !PV.paused && !PV.reduce){ pvNext(); }
+  });
+  window.addEventListener("pagehide",pvStop);
+  var mq=window.matchMedia("(prefers-reduced-motion: reduce)");
+  (mq.addEventListener?mq.addEventListener.bind(mq,"change"):mq.addListener.bind(mq))(function(){
+    PV.reduce=mq.matches;
+    if(PV.running){ pvKill(); $("#pvPlay").hidden=PV.reduce; pvPlayScenario(); }
+  });
+})();
 
 /* ============================================================
    19 · v3 — one guided stepper for every connector
