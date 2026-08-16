@@ -7962,8 +7962,10 @@ document.addEventListener("click",function(e){
   else if(a==="sw-trig"){ sw2.trigger=id; renderSkillWiz(); }
   else if(a==="sw-create"){
     if(!sw2.name.trim()||!sw2.what.trim()){ toast("Give it a name and say what it should do — both appear on the card."); return; }
-    SKILLCAT.unshift({id:sw2.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""), n:sw2.name, c:"Admin", on:true,
-      d:sw2.what, needs:sw2.needs.slice(), ex:"Run "+sw2.name+" for Package 4."});
+    SKILLCAT.unshift({id:sw2.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""), n:sw2.name, c:"Custom", on:true,
+      d:sw2.what, needs:sw2.needs.slice(), ex:"Run "+sw2.name+" for Package 4.",
+      src:{kind:"cus", when:"just now"}});
+    logAct("skills.create","Skills catalogue","You · Connections","ok",sw2.name+" · written in this workspace · trigger "+sw2.trigger);
     LS.set("mv5.skillOn","1"); sw2.route="done"; renderSkillWiz(); renderNav();
   }
   else if(a==="sw-validate"){
