@@ -1,8 +1,8 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MagnaVERSE — How to add a skill, connect an MCP server, add an agent, and call them</title>
-<meta name="description" content="A plain-language guide: what skills, MCP servers and agents are, how to add each one, and how to call them once they exist.">
+<title>MagnaVERSE — How to add a skill, a connector, an MCP server and an agent, and call them</title>
+<meta name="description" content="A plain-language guide: what skills, connectors, MCP servers and agents are, how to add each one — including mail and Jira in depth — and how to call them once they exist.">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -464,6 +464,123 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
 .foot-note{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
   font-size:12.4px;color:var(--tx-3);line-height:1.6}
 
+/* ══════════════════════════ connectors: chain nodes ══════════════════════════ */
+.chain-node.n-sys{border-color:var(--line-2);background:var(--surface-2)}
+.chain-node.n-sys .kind{color:var(--tx-3)}
+.chain-node.n-conn{border-color:var(--accent-bd);background:var(--accent-dim)}
+.chain-node.n-conn .kind{color:var(--accent)}
+
+/* ══════════════════════════ connectors: read / write tool chips ══════════════════════════ */
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tchip{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:3px 9px 3px 5px;
+  font-size:11.8px;font-weight:570;line-height:1.55;white-space:nowrap;
+  border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-2)}
+.tchip .rw{font-family:var(--mono);font-size:9.2px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;border-radius:4px;padding:2px 4px;border:1px solid transparent;flex:none}
+.tchip.read .rw{background:var(--ok-dim);border-color:var(--ok-bd);color:var(--ok)}
+.tchip.write{border-color:var(--warn-bd);background:var(--warn-dim);color:var(--tx)}
+.tchip.write .rw{background:var(--warn);border-color:var(--warn);color:var(--bg)}
+
+/* ══════════════════════════ connectors: catalogue card ══════════════════════════ */
+.cxcard{border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);padding:14px 15px}
+.cxcard+.cxcard{margin-top:11px}
+.cxcard .top{display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap}
+.cxcard .tile{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;
+  justify-content:center;background:var(--mcp-dim);border:1px solid var(--mcp-bd);color:var(--mcp)}
+.cxcard .tile svg{width:18px;height:18px}
+.cxcard .nm{font-size:15px;font-weight:650}
+.cxcard .id{font-family:var(--mono);font-size:11px;color:var(--tx-3);margin-top:2px}
+.cxcard .vl{font-size:13.2px;color:var(--tx-2);margin-top:6px;line-height:1.5}
+.cxcard .grp{font-size:10.4px;letter-spacing:.09em;text-transform:uppercase;font-weight:660;
+  color:var(--tx-3);margin-top:14px}
+.cxcard .foot{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:13px;
+  padding-top:11px;border-top:1px solid var(--line)}
+.cxcard .foot .sp{flex:1;min-width:0}
+
+/* ══════════════════════════ connectors: catalogue table ══════════════════════════ */
+table.cat{min-width:900px}
+table.cat td:first-child,table.cat th:first-child{width:15%}
+table.cat .cid{font-family:var(--mono);font-size:10.8px;color:var(--tx-3);display:block;
+  margin-top:3px;font-weight:500;white-space:nowrap}
+th.c-read{color:var(--ok)} th.c-write{color:var(--warn)}
+td.reads{color:var(--tx-2)}
+table.cat .none{color:var(--tx-3);font-style:italic}
+
+/* ══════════════════════════ mock: field rows (mail header, issue draft) ══════════════════════════ */
+.frows{border:1px solid var(--line);border-radius:9px;background:var(--surface);overflow:hidden}
+.frow{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:9px 12px;
+  border-top:1px solid var(--line);font-size:13.2px}
+@media (min-width:520px){ .frow{grid-template-columns:108px minmax(0,1fr);gap:14px;align-items:baseline} }
+.frow:first-child{border-top:0}
+.frow .fk{font-size:10.8px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);font-weight:640}
+.frow .fv{color:var(--tx);line-height:1.55;min-width:0;overflow-wrap:anywhere}
+.frow .fv .mu{color:var(--tx-2)}
+.mbody{padding:12px;border-top:1px solid var(--line);background:var(--surface-2);
+  font-size:13.2px;color:var(--tx-2);line-height:1.65}
+.mbody p+p{margin-top:9px}
+.mfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:11px 12px;
+  border-top:1px solid var(--line);background:var(--surface)}
+.mfoot .sp{flex:1;min-width:0}
+.fbtn.dis{opacity:.5}
+
+/* ══════════════════════════ mock: message / issue list ══════════════════════════ */
+.mlist{border:1px solid var(--line);border-radius:9px;background:var(--surface);overflow:hidden}
+.mrow{display:flex;gap:10px;padding:10px 12px;border-top:1px solid var(--line);align-items:flex-start}
+.mrow:first-child{border-top:0}
+.mrow .mmain{min-width:0;flex:1}
+.mrow .from{font-size:13.2px;font-weight:640}
+.mrow .subj{font-size:12.8px;color:var(--tx-2);margin-top:2px;line-height:1.5}
+.mrow .when{font-family:var(--mono);font-size:11px;color:var(--tx-3);flex:none;padding-left:6px}
+.mrow .un{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;
+  margin-right:7px;vertical-align:.09em;flex:none}
+
+/* ══════════════════════════ mock: two-action confirmation ══════════════════════════ */
+.acts{display:grid;gap:11px;margin-top:11px}
+.act{border:1px solid var(--line);background:var(--surface);border-radius:9px;overflow:hidden}
+.act>.hd{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);font-size:12.8px;font-weight:645}
+.act>.hd .n{font-family:var(--mono);font-size:10.6px;font-weight:700;color:var(--tx-3);
+  border:1px solid var(--line-2);border-radius:5px;width:21px;height:21px;flex:none;
+  display:inline-flex;align-items:center;justify-content:center}
+.act>.bd{padding:10px 12px;font-size:12.8px;color:var(--tx-2);line-height:1.65}
+.act>.bd b{color:var(--tx)}
+
+/* ══════════════════════════ mock: audit trail ══════════════════════════ */
+.audit{border:1px solid var(--line);border-radius:9px;background:var(--surface);overflow:hidden}
+.audit .ar{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:9px 12px;
+  border-top:1px solid var(--line);font-size:12.6px;color:var(--tx-2);line-height:1.6}
+.audit .ar:first-child{border-top:0}
+.audit .ar .tm{font-family:var(--mono);font-size:11px;color:var(--tx-3);flex:none;min-width:62px}
+.audit .ar b{color:var(--tx)}
+
+/* ══════════════════════════ mock: test-connection handshake ══════════════════════════ */
+.hshake{border:1px solid var(--line);border-radius:9px;background:var(--surface);overflow:hidden}
+.hrow{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-top:1px solid var(--line);font-size:12.8px}
+.hrow:first-child{border-top:0}
+.hrow .hi{width:18px;height:18px;flex:none;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;background:var(--ok-dim);border:1px solid var(--ok-bd);color:var(--ok);margin-top:2px}
+.hrow .hi svg{width:11px;height:11px}
+.hrow.bad .hi{background:var(--crit-dim);border-color:var(--crit-bd);color:var(--crit)}
+.hrow .ht{min-width:0;flex:1;color:var(--tx-2);line-height:1.55}
+.hrow .ht b{color:var(--tx)}
+.hrow .ms{font-family:var(--mono);font-size:11px;color:var(--tx-3);flex:none;padding-left:6px}
+
+/* ══════════════════════════ copyable config block ══════════════════════════ */
+.codeblk{border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);
+  overflow:hidden;margin-top:14px}
+.code-head{display:flex;align-items:center;gap:10px;padding:5px 6px 5px 14px;
+  background:var(--surface-2);border-bottom:1px solid var(--line)}
+.code-head .ttl{font-size:11.4px;font-weight:600;color:var(--tx-3);flex:1;min-width:0}
+.codeblk pre{margin:0;padding:14px 15px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  font-size:12.4px;line-height:1.65;color:var(--tx-2);background:var(--surface)}
+.codeblk pre code{background:none;border:0;padding:0;font-size:inherit;color:inherit;white-space:pre}
+.copybtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;
+  padding:0 13px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);
+  color:var(--tx);font:inherit;font-size:12.6px;font-weight:580;cursor:pointer;white-space:nowrap;flex:none}
+.copybtn:hover{background:var(--surface-2);border-color:var(--line-3)}
+.copybtn svg{width:14px;height:14px;flex:none}
+.copybtn[data-done]{color:var(--ok);border-color:var(--ok-bd);background:var(--ok-dim)}
+
 /* ══════════════════════════ mobile contents drawer ══════════════════════════ */
 .scrim{position:fixed;inset:0;z-index:80;background:rgba(10,14,20,.44);display:none}
 :root[data-theme="dark"] .scrim{background:rgba(0,0,0,.6)}
@@ -532,9 +649,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
       <li><a href="#three"><span class="n">00</span>The three things</a></li>
       <li><a href="#skill"><span class="n">01</span>Add a skill</a></li>
       <li><a href="#mcp"><span class="n">02</span>Connect an MCP server</a></li>
-      <li><a href="#agent"><span class="n">03</span>Add an agent</a></li>
-      <li><a href="#call"><span class="n">04</span>Call them</a></li>
-      <li><a href="#quick"><span class="n">05</span>Quick reference</a></li>
+      <li><a href="#connectors"><span class="n">03</span>Add a connector</a></li>
+      <li><a href="#mailjira"><span class="n">04</span>Mail and Jira, end to end</a></li>
+      <li><a href="#agent"><span class="n">05</span>Add an agent</a></li>
+      <li><a href="#call"><span class="n">06</span>Call them</a></li>
+      <li><a href="#quick"><span class="n">07</span>Quick reference</a></li>
     </ol>
     <p class="lbl-g" id="tocLbl2">Try it</p>
     <ol aria-labelledby="tocLbl2">
@@ -549,12 +668,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
     <!-- ═══════════════════ hero ═══════════════════ -->
     <section class="hero">
       <span class="eyebrow">MagnaVERSE · how-to</span>
-      <h1>Skills, MCP servers and agents — and how to call them</h1>
-      <p class="lede">Four questions, answered in order. No prior knowledge assumed. Every button
+      <h1>Skills, connectors, MCP servers and agents — and how to call them</h1>
+      <p class="lede">Six questions, answered in order. No prior knowledge assumed. Every button
         named here is a button that exists in the prototypes, spelled the same way.</p>
       <div class="hero-meta">
         <span>Written for a procurement or delivery lead</span><span aria-hidden="true">·</span>
-        <span>Takes about eight minutes</span><span aria-hidden="true">·</span>
+        <span>Takes about twelve minutes</span><span aria-hidden="true">·</span>
         <span>Nothing here requires an IT ticket</span>
       </div>
 
@@ -570,7 +689,14 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
           <li><span class="num">3</span><span><span class="q">Add an agent</span>
             <span class="a">Agents → <span class="ui pri">Create agent</span> → pick a template, name it,
             pick its access and its trigger, test it, save.</span></span></li>
-          <li><span class="num">4</span><span><span class="q">Call any of them</span>
+          <li><span class="num">4</span><span><span class="q">Add a connector</span>
+            <span class="a">Connections → Tools &amp; MCP → pick your system →
+            <span class="ui pri">Connect Jira</span>. Reading switches on. Writing stays
+            <b>off</b> until you tick it.</span></span></li>
+          <li><span class="num">5</span><span><span class="q">Send a mail, raise a Jira issue</span>
+            <span class="a">Just ask. Magna drafts it into a box you can edit, then shows you one
+            confirmation naming exactly what will go out. It never sends on its own.</span></span></li>
+          <li><span class="num">6</span><span><span class="q">Call any of them</span>
             <span class="a">Type <kbd>/</kbd> in the message box and pick from the list — or just ask
             in plain English and let Magna choose.</span></span></li>
         </ol>
@@ -598,7 +724,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
       <div class="note"><b>MCP</b> stands for Model Context Protocol. Ignore the words. It is a plug
         shape — an agreed way for one of your systems to offer its functions to an AI, so you connect
         SAP or your mail once instead of building an integration for every product you buy.
-        A <b>tool</b> is one single thing Magna can do inside that system.</div>
+        A <b>tool</b> is one single thing Magna can do inside that system.<br><br>
+        You will also see the word <b>connector</b>. It is the same object described from your side —
+        the link to one of your systems — and it is what the catalogue calls them.
+        <a href="#connectors">Section 03</a> untangles the two words properly and lists all ten.</div>
 
       <h3>How they fit together</h3>
       <figure class="mock">
@@ -821,7 +950,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
     <section id="mcp">
       <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">How do I connect an MCP server?</h2></div>
       <p class="sec-sub">Four steps, always the same four, whichever system you are connecting.
-        The worked example here is Magna Mail, because mail is the one everybody wants first.</p>
+        The worked example here is Magna Mail, because mail is the one everybody wants first.
+        <a href="#connectors">Section 03</a> is the list of every system you can point these four steps
+        at, and <a href="#mailjira">section 04</a> takes mail and Jira all the way through to sending.</p>
 
       <figure class="mock">
         <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">The four steps, every time</span></div>
@@ -962,6 +1093,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
         <li style="margin-top:6px"><b style="color:var(--tx)">Import a config</b> — paste an MCP config
           file. It is validated the same way a skill is, with the same readable error.</li>
       </ul>
+      <div class="note"><b>The full version of that middle route</b> — every field, both transports, the
+        visible handshake, and the JSON a developer would actually write, with a copy button — is in
+        <a href="#custom">section 03</a>.</div>
 
       <div class="changed"><span class="t">What this replaces today</span>
         Today there are four hard-coded MCP servers and no way at all to add a fifth — no
@@ -979,9 +1113,1135 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
       </div>
     </section>
 
-    <!-- ═══════════════════ 3 · add an agent ═══════════════════ -->
+    <!-- ═══════════════════ 3 · add a connector ═══════════════════ -->
+    <section id="connectors">
+      <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">How do I add a connector?</h2></div>
+      <p class="sec-sub">A <b>connector</b> is the link between MagnaVERSE and one of your business
+        systems — your mail, your Jira, your SAP. Connect one and Magna gains a small set of new
+        abilities inside that system. Ten are ready in the catalogue. Anything else, a developer adds.</p>
+
+      <h3>A connector and an MCP server — what the difference actually is</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">These two words get used for the same thing, which
+        is why they confuse people. Read the chain below left to right and the difference stops mattering.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Your system → the connector → what Magna can do</span></div>
+        <div class="mock-body">
+          <div class="chain">
+            <div class="chain-node n-sys">
+              <span class="chain-arrow" aria-hidden="true"></span>
+              <div class="kind">Your system</div>
+              <div class="nm">Jira</div>
+              <div class="ex">Where your delivery teams already raise and track issues. It sits on your
+                servers, or in Atlassian's cloud. Magna cannot see any of it yet.</div>
+              <div class="why">This is yours, and nothing here changes.</div>
+            </div>
+            <div class="chain-node n-conn">
+              <span class="chain-arrow" aria-hidden="true"></span>
+              <div class="kind">The connector</div>
+              <div class="nm">Jira <code style="font-size:.78em">magna-jira</code></div>
+              <div class="ex">The link. You set it up once: which Jira, which account, and exactly what
+                Magna is allowed to do in it.</div>
+              <div class="why">This is the thing you press <span class="ui pri">Connect</span> on.</div>
+            </div>
+            <div class="chain-node n-mcp">
+              <div class="kind">The MCP server</div>
+              <div class="nm">Ten named tools</div>
+              <div class="ex">How that link presents itself to Magna — search issues, read an issue,
+                create an issue — each one turning up as a row in the <kbd>/</kbd> menu.</div>
+              <div class="why">You never configure this part. It is the shape the connector arrives in.</div>
+            </div>
+          </div>
+          <p class="chain-legend"><b>Same object, two names.</b> "Connector" is the word for what it does
+            for you. "MCP server" is the word for how it is built. Section 02 taught you the four steps;
+            this section is the list of what you can point those four steps at.</p>
+        </div>
+        <figcaption>If you only remember one line: a connector is a link to a system, and the tools are
+          what that link lets Magna do inside it.</figcaption>
+      </figure>
+
+      <div class="note"><b>Built in, or built by you.</b> Ten connectors ship in the catalogue and take
+        about two minutes each — you press <span class="ui pri">Connect</span> and follow the four steps.
+        Anything not on that list is added once by a developer as a <b>custom MCP server</b>
+        (<a href="#custom">further down this section</a>). After that it behaves exactly like a
+        catalogue one: same card, same four steps, same permissions.</div>
+
+      <h3>What one connector looks like</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Every card in the catalogue is laid out the same way.
+        The tools are listed in plain language, and each one is marked <b>read</b> or <b>write</b> before
+        you connect anything — so you can see the consequences while you are still deciding.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Connections → Tools &amp; MCP → Jira</span></div>
+        <div class="mock-body">
+          <div class="cxcard">
+            <div class="top">
+              <span class="tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="m14.5 17 2 2 3.5-4"/></svg></span>
+              <div style="min-width:0;flex:1">
+                <div class="nm">Jira</div>
+                <div class="id">magna-jira</div>
+                <div class="vl">Search, read and raise issues on the project boards your delivery teams
+                  already use. Ten tools — four of them read, six of them write.</div>
+              </div>
+            </div>
+
+            <div class="grp">Reads — switched on the moment you connect</div>
+            <div class="tools">
+              <span class="tchip read"><span class="rw">read</span>Search issues</span>
+              <span class="tchip read"><span class="rw">read</span>Read an issue</span>
+              <span class="tchip read"><span class="rw">read</span>List boards and sprints</span>
+              <span class="tchip read"><span class="rw">read</span>List the statuses an issue can move to</span>
+            </div>
+
+            <div class="grp">Writes — off, until you tick them yourself</div>
+            <div class="tools">
+              <span class="tchip write"><span class="rw">write</span>Create an issue</span>
+              <span class="tchip write"><span class="rw">write</span>Comment on an issue</span>
+              <span class="tchip write"><span class="rw">write</span>Change an issue's status</span>
+              <span class="tchip write"><span class="rw">write</span>Assign an issue to someone</span>
+              <span class="tchip write"><span class="rw">write</span>Link two issues</span>
+              <span class="tchip write"><span class="rw">write</span>Log work against an issue</span>
+            </div>
+
+            <div class="foot">
+              <span class="chip ok"><span class="dot"></span>Data Center · on-prem</span>
+              <span class="chip warn"><span class="dot"></span>Cloud · leaves your network</span>
+              <span class="sp"></span>
+              <span class="fbtn ghost">What this gives me</span>
+              <span class="fbtn pri">Connect Jira</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>Amber is not a warning that something is broken. It marks the tools that
+          <em>change</em> something in Jira, so you know which ones need a deliberate decision.</figcaption>
+      </figure>
+
+      <div class="note ok"><b>A connector you have not connected still tells you what it would give you.</b>
+        The card above is a card for a system nobody in your workspace has set up yet. It still lists
+        every tool, still marks read and write, and still names where it runs. You never have to connect
+        something to find out what it does.</div>
+
+      <h3>The whole catalogue</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Ten systems, and everything each one can do. The
+        <b>reads</b> column is what turns on automatically. The <b>writes</b> column is what stays off
+        until you tick it — and every one of those, when it eventually runs, stops and shows you a
+        confirmation first.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Connector catalogue — 10 systems</span></div>
+        <div class="scrollx">
+          <table class="cat">
+            <thead><tr>
+              <th scope="col">Connector</th>
+              <th scope="col">Where it runs</th>
+              <th scope="col" class="c-read">Reads — on by default</th>
+              <th scope="col" class="c-write">Writes — off by default</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td class="rowh">Mail<span class="cid">magna-mail</span></td>
+                <td>On-prem for Magna Mail. Leaves your network for Microsoft 365 and Google Workspace.</td>
+                <td class="reads">Search mail · Read a message · List threads · Download an attachment · Draft a reply into the composer</td>
+                <td><div class="tools">
+                  <span class="tchip write"><span class="rw">write</span>Send mail</span>
+                  <span class="tchip write"><span class="rw">write</span>Reply</span>
+                  <span class="tchip write"><span class="rw">write</span>Forward</span>
+                  <span class="tchip write"><span class="rw">write</span>Flag or label</span>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="rowh">Jira<span class="cid">magna-jira</span></td>
+                <td>On-prem for Jira Data Center. Leaves your network for Jira Cloud.</td>
+                <td class="reads">Search issues · Read an issue · List boards and sprints · List available statuses</td>
+                <td><div class="tools">
+                  <span class="tchip write"><span class="rw">write</span>Create an issue</span>
+                  <span class="tchip write"><span class="rw">write</span>Comment</span>
+                  <span class="tchip write"><span class="rw">write</span>Change status</span>
+                  <span class="tchip write"><span class="rw">write</span>Assign</span>
+                  <span class="tchip write"><span class="rw">write</span>Link issues</span>
+                  <span class="tchip write"><span class="rw">write</span>Log work</span>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="rowh">Confluence<span class="cid">magna-confluence</span></td>
+                <td>Follows your Jira choice — Data Center on-prem, Cloud leaves your network.</td>
+                <td class="reads">Read a page · Search a space · List the spaces you can see</td>
+                <td><div class="tools">
+                  <span class="tchip write"><span class="rw">write</span>Create a page</span>
+                  <span class="tchip write"><span class="rw">write</span>Comment on a page</span>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="rowh">SAP S/4HANA<span class="cid">sap-po-lookup</span></td>
+                <td><span class="chip ok"><span class="dot"></span>on-prem</span> Your own SAP, inside the building.</td>
+                <td class="reads">Look up a purchase order · Goods-receipt status · Vendor master record</td>
+                <td><span class="none">None in this release — read-only by design.</span></td>
+              </tr>
+              <tr>
+                <td class="rowh">Primavera P6<span class="cid">p6-schedule</span></td>
+                <td><span class="chip ok"><span class="dot"></span>on-prem</span> Reads the nightly schedule snapshot.</td>
+                <td class="reads">Read a schedule · Critical path · Compare against baseline</td>
+                <td><span class="none">None in this release — read-only by design.</span></td>
+              </tr>
+              <tr>
+                <td class="rowh">SharePoint / Google Drive<span class="cid">magna-files</span></td>
+                <td>SharePoint on-prem stays inside. SharePoint Online and Google Drive leave your network.</td>
+                <td class="reads">List files in a folder · Read a document · Search by filename</td>
+                <td><span class="none">None in this release. Files arrive through Knowledge instead.</span></td>
+              </tr>
+              <tr>
+                <td class="rowh">Slack / Teams<span class="cid">magna-chat</span></td>
+                <td><span class="chip warn"><span class="dot"></span>leaves your network</span> Both are cloud services.</td>
+                <td class="reads">Read a channel · Search messages · List the channels you are in</td>
+                <td><div class="tools">
+                  <span class="tchip write"><span class="rw">write</span>Post a message</span>
+                  <span class="tchip write"><span class="rw">write</span>Reply in a thread</span>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="rowh">ServiceNow<span class="cid">magna-servicenow</span></td>
+                <td>Depends on your instance — your admin's endpoint decides.</td>
+                <td class="reads">Search incidents · Read an incident · Read a change record</td>
+                <td><div class="tools">
+                  <span class="tchip write"><span class="rw">write</span>Create an incident</span>
+                  <span class="tchip write"><span class="rw">write</span>Update an incident</span>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="rowh">Calendar<span class="cid">magna-calendar</span></td>
+                <td>Follows your mail choice. Exchange on-prem stays inside.</td>
+                <td class="reads">Read availability · Read a meeting's subject and attendees</td>
+                <td><div class="tools">
+                  <span class="tchip write"><span class="rw">write</span>Create an event</span>
+                  <span class="tchip write"><span class="rw">write</span>Send an invitation</span>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="rowh">HR system<span class="cid">magna-hr</span></td>
+                <td><span class="chip ok"><span class="dot"></span>on-prem</span> Restricted — your admin grants it per person.</td>
+                <td class="reads">Headcount by department · Org-chart lookup · Who reports to whom</td>
+                <td><span class="none">None. This connector can never write.</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>On a phone this table scrolls sideways inside its own box — the page itself does not
+          move. Four connectors have no write tools at all, and that is deliberate.</figcaption>
+      </figure>
+
+      <h3>Reading a connector's status</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">One status per card, and it means one thing. There is
+        never a green toggle sitting next to the words "no tools".</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Four honest states</span></div>
+        <div class="mock-body">
+          <div class="frows">
+            <div class="frow"><div class="fk">Not connected</div>
+              <div class="fv"><span class="chip off"><span class="dot"></span>Not connected</span>
+                <span class="mu"> — nobody has set it up. The card still lists every tool, so you can see
+                what you are missing. The button reads <span class="ui pri">Connect Jira</span>.</span></div></div>
+            <div class="frow"><div class="fk">Connected</div>
+              <div class="fv"><span class="chip ok"><span class="dot"></span>Connected · 10 tools · synced 4 min ago</span>
+                <span class="mu"> — working. The tool count is real; it comes from asking the server what
+                it has, not from a hard-coded number.</span></div></div>
+            <div class="frow"><div class="fk">Degraded</div>
+              <div class="fv"><span class="chip warn"><span class="dot"></span>Degraded · data 6 days old</span>
+                <span class="mu"> — it answers, but what it answers with is stale. Primavera P6's nightly
+                snapshot has not landed since Sunday. Every answer that used it is labelled with that date.</span></div></div>
+            <div class="frow"><div class="fk">Error</div>
+              <div class="fv"><span class="chip" style="color:var(--crit);background:var(--crit-dim);border-color:var(--crit-bd)"><span class="dot"></span>Error · token expired</span>
+                <span class="mu"> — with the cause in a sentence and a
+                <span class="ui">Reconnect</span> button, not a stack trace. Its tools grey out in the
+                <kbd>/</kbd> menu the moment it fails.</span></div></div>
+          </div>
+        </div>
+        <figcaption>Press <span class="ui">Test connection</span> on any card to force a fresh check.
+          It tells you which tools answered and how long they took.</figcaption>
+      </figure>
+
+      <h3>Connecting one — the same four steps, every time</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Section 02 walked these four steps with Magna Mail.
+        Here they are again with Jira, because the point is that they never change:
+        <b>Choose → Configure → Permissions → Done</b>.</p>
+
+      <ol class="steps">
+        <li><b>Step 1 — Choose the system, then the variant.</b>
+          <p>Pick Jira from the catalogue, then pick which Jira. This is the choice that decides where
+            your data goes, so the consequence is written on each option, not in a policy document.</p>
+          <ul>
+            <li><b>Jira Data Center</b> — your own installation, inside the building.
+              <span class="chip ok" style="margin-left:2px"><span class="dot"></span>on-prem · 0 bytes leave your network</span></li>
+            <li><b>Jira Cloud</b> — Atlassian's servers. Issue text is fetched from their region on every
+              request. <span class="chip warn" style="margin-left:2px"><span class="dot"></span>leaves your network</span></li>
+          </ul>
+          <p>Whichever you pick, you get the same ten tools. The only thing that changes is the residency
+            chip, and it is shown on every answer that used this connector afterwards.</p></li>
+
+        <li><b>Step 2 — Configure the account.</b>
+          <p>Your Jira site address and the account Magna should act as. <b>There is no password field,
+            and there never will be one.</b> Press <span class="ui pri">Authorise in Atlassian →</span>
+            and Atlassian's own sign-in window opens. You approve it there, in the window you already
+            recognise, and it hands back a token. MagnaVERSE never sees your password.</p>
+          <p>If your admin has already set the connector up centrally, this step is one line —
+            "Using the workspace connection your admin configured" — and you go straight to step 3.</p></li>
+
+        <li><b>Step 3 — Grant the scopes.</b>
+          <p>Plain-English checkboxes, never permission codes. Reading is ticked because nothing works
+            without it. <b>Every write is unticked</b>, and stays unticked unless you tick it yourself.
+            The panel below is exactly this step.</p></li>
+
+        <li><b>Step 4 — Done, and it tells you how to use it.</b>
+          <p>Not a "Success!" banner. It lists the account, the scopes you granted, the ten tool names,
+            the <kbd>/</kbd> commands they map to, and a <span class="ui">Try it</span> button that puts
+            a working example straight into the message box.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Step 3 of 4 — Permissions</span></div>
+        <div class="mock-body">
+          <div class="scrollx">
+            <div class="stepper">
+              <span class="s" data-done="1"><span class="n">✓</span><span class="lb">Choose</span></span><span class="bar"></span>
+              <span class="s" data-done="1"><span class="n">✓</span><span class="lb">Configure</span></span><span class="bar"></span>
+              <span class="s" data-on="1"><span class="n">3</span><span class="lb">Permissions</span></span><span class="bar"></span>
+              <span class="s"><span class="n">4</span><span class="lb">Done</span></span>
+            </div>
+          </div>
+          <div class="wizpanel">
+            <div class="wt">What may Magna do in Jira?</div>
+            <div class="ws">Reading is on because nothing else works without it. Everything that changes
+              Jira is off, and you have to tick it yourself. You can change all of this later without
+              disconnecting.</div>
+
+            <div class="scoperow">
+              <span class="box on" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+              <div><div class="sn">Read issues, boards and sprints
+                <span class="tchip read" style="margin-left:6px"><span class="rw">read</span>4 tools</span></div>
+                <div class="sd">Search and open anything you can already see in Jira yourself. Magna never
+                  sees a project you have no access to.</div></div>
+            </div>
+            <div class="scoperow">
+              <span class="box" aria-hidden="true"></span>
+              <div><div class="sn">Create and update issues
+                <span class="tchip write" style="margin-left:6px"><span class="rw">write</span>2 tools</span></div>
+                <div class="sd">Raise a new issue, or edit one that exists. Every single one shows you the
+                  filled-in issue and waits for you to press <span class="ui pri">Create issue</span>.</div></div>
+            </div>
+            <div class="scoperow">
+              <span class="box" aria-hidden="true"></span>
+              <div><div class="sn">Comment, assign and change status
+                <span class="tchip write" style="margin-left:6px"><span class="rw">write</span>3 tools</span></div>
+                <div class="sd">Other people get notified when this runs, so it is treated as a send.
+                  You see the exact comment text before it posts.</div></div>
+            </div>
+            <div class="scoperow">
+              <span class="box" aria-hidden="true"></span>
+              <div><div class="sn">Log work against an issue
+                <span class="tchip write" style="margin-left:6px"><span class="rw">write</span>1 tool</span></div>
+                <div class="sd">Writes hours into the worklog. If your team bills from Jira, leave this off
+                  unless you mean it.</div></div>
+            </div>
+
+            <div class="wizfoot">
+              <span class="fbtn">Back</span>
+              <span class="sp"></span>
+              <span class="chip ok"><span class="dot"></span>Data Center · 0 bytes leave your network</span>
+              <span class="fbtn pri">Connect Jira</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>Read on, write off. This is the single most important default in the product, and it
+          is the same on every connector in the catalogue.</figcaption>
+      </figure>
+
+      <h3>What visibly changes the moment you press Connect</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Connecting something is pointless if nothing happens.
+        Five things change, and you can see all five without leaving the screen.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">The / menu, before and after connecting Jira</span></div>
+        <div class="mock-body">
+          <div class="slashmenu">
+            <div class="grp">Tools · Jira — new</div>
+            <div class="srow" data-sel="1">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg></span>
+              <div style="min-width:0"><div class="sm">/magna-jira.search-issues</div>
+                <div class="sd">Find issues by project, status, assignee or text.
+                  <span class="tchip read" style="margin-left:4px"><span class="rw">read</span>read-only</span></div></div>
+            </div>
+            <div class="srow">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg></span>
+              <div style="min-width:0"><div class="sm">/magna-jira.read-issue</div>
+                <div class="sd">Open one issue in full, with its comments and history.
+                  <span class="tchip read" style="margin-left:4px"><span class="rw">read</span>read-only</span></div></div>
+            </div>
+            <div class="srow">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg></span>
+              <div style="min-width:0"><div class="sm">/magna-jira.create-issue</div>
+                <div class="sd">Raise a new issue. Drafts it for you and asks before it saves.
+                  <span class="tchip write" style="margin-left:4px"><span class="rw">write</span>asks first</span></div></div>
+            </div>
+            <div class="srow dis">
+              <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></span>
+              <div style="min-width:0"><div class="sm">/magna-jira.log-work</div>
+                <div class="sd">Scope not granted — <span style="color:var(--accent)">turn on "Log work against an issue"</span> in Permissions to use this.</div></div>
+            </div>
+            <div class="slashfoot">
+              <span class="g"><kbd>↑</kbd><kbd>↓</kbd> move</span>
+              <span class="g"><kbd>↵</kbd> insert</span>
+              <span class="g"><kbd>Esc</kbd> close</span>
+              <span class="g">Keep typing to filter</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>The last row is a real tool you own but have not granted. It tells you which tick box
+          to change, rather than pretending the tool does not exist.</figcaption>
+      </figure>
+
+      <div class="note ok"><b>The five visible changes.</b>
+        <ul style="margin:9px 0 0;padding-left:19px">
+          <li style="margin-top:4px">The Jira tools appear in the <kbd>/</kbd> menu. Before, they were
+            greyed with a <span class="ui">Connect Jira</span> label.</li>
+          <li style="margin-top:4px">The connection count in the sidebar goes up by one, and the card
+            now reads <span class="chip ok" style="font-size:10.6px"><span class="dot"></span>Connected · 10 tools</span>.</li>
+          <li style="margin-top:4px">Skills that said <span class="ui">Needs Jira</span> get a working
+            toggle. <code>jira-ticket-definer</code> becomes usable.</li>
+          <li style="margin-top:4px">The starter prompts on the home screen change to ones that use Jira.</li>
+          <li style="margin-top:4px">Agent creation now offers the Jira tools in
+            <span class="ui">Fine-tune permissions</span>.</li>
+        </ul></div>
+
+      <div class="note"><b>Disconnecting really disconnects.</b> <span class="ui">Disconnect</span> on the
+        card reverts the status, removes the tools from the <kbd>/</kbd> menu, re-greys anything that
+        depended on it, and drops the stored token. Nothing is left half-connected.</div>
+
+      <h3>The rules that apply to every connector, without exception</h3>
+      <ul style="margin-top:12px;padding-left:20px;color:var(--tx-2)">
+        <li style="margin-top:8px"><b style="color:var(--tx)">Writes are off by default.</b> Reading turns
+          on when you connect. Anything that sends, creates, changes or deletes is unticked, and needs a
+          deliberate tick in <span class="ui">Permissions</span>.</li>
+        <li style="margin-top:8px"><b style="color:var(--tx)">The first time a tool runs in a thread,
+          Magna asks.</b> An inline approval prompt names the exact tool, says whether it reads or writes,
+          and says where it runs. Four answers: <span class="ui">Allow once</span>,
+          <span class="ui">Allow for this thread</span>, <span class="ui">Always allow</span>,
+          <span class="ui">Don't allow</span>.</li>
+        <li style="margin-top:8px"><b style="color:var(--tx)">A write action always shows a confirmation
+          naming exactly what will change.</b> Not "Magna wants to act" — the actual recipient, the actual
+          subject, the actual issue summary and assignee. You can edit it, cancel it, or confirm it.</li>
+        <li style="margin-top:8px"><b style="color:var(--tx)">Magna can never see more than you can.</b>
+          A connector acts as your account. A Jira project you cannot open, Magna cannot open either.</li>
+        <li style="margin-top:8px"><b style="color:var(--tx)">Everything a write tool does is logged.</b>
+          Time, tool, what changed, and which conversation asked for it — in the audit trail, whether you
+          did it in chat or an agent did it at 06:00.</li>
+      </ul>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">The approval prompt, in the thread</span></div>
+        <div class="mock-body">
+          <div class="approve">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6.2v5.4c0 4.4 3.1 8.3 7.5 9.4 4.4-1.1 7.5-5 7.5-9.4V6.2z"/></svg>
+              Magna wants to run <code style="white-space:nowrap">magna-jira.create-issue</code></div>
+            <div class="summary">
+              <b>What it will do</b> — create one new issue in <b>Riyadh DC-2 Expansion (RDC2)</b>,
+              assigned to Faisal Al-Otaibi, priority High.<br>
+              <b>Access</b> — <span class="tchip write"><span class="rw">write</span>this changes Jira</span>
+              It cannot delete anything, and it cannot touch any other project.<br>
+              <b>What leaves</b> — the summary and description you are about to read, and nothing else.
+            </div>
+            <div class="res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+              Jira Data Center, on-prem in Riyadh DC-1. Nothing leaves your network.</div>
+            <div class="btns">
+              <span class="fbtn pri">Allow once</span>
+              <span class="fbtn">Allow for this thread</span>
+              <span class="fbtn">Always allow</span>
+              <span class="fbtn">Don't allow</span>
+            </div>
+            <p class="why">Allowing this is not the same as creating the issue. You still get to read the
+              drafted issue and press <span class="ui pri">Create issue</span> afterwards.</p>
+          </div>
+        </div>
+        <figcaption>Approval and confirmation are two different gates, on purpose. The first says "may I
+          use this tool"; the second says "here is exactly what I am about to do with it".</figcaption>
+      </figure>
+
+      <div class="note"><b>Where to revoke.</b> Three places, and they do different jobs.
+        <span class="ui">Permissions</span> on the connector's card unticks a scope — the tool disappears
+        from <kbd>/</kbd> and stays gone. <span class="ui">Settings → Permissions</span> holds the
+        Exceptions table, where every <span class="ui">Always allow</span> you ever pressed is a row with
+        a <span class="ui">Remove</span> action; removing it just means you get asked again.
+        <span class="ui">Disconnect</span> on the card removes the whole connector. Section 06 covers
+        the three permission tiers in full.</div>
+
+      <h3 id="custom">Adding a connector that is not in the catalogue</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">If the system you need is not one of the ten, someone
+        with developer access wires it up once as a <b>custom MCP server</b>, through
+        <span class="ui">+ Add server</span> → <span class="ui">Connect your own server</span>. This is
+        the part of the product you would hand to your integration team; the rest of this page needs
+        nobody technical.</p>
+
+      <p style="margin-top:12px;color:var(--tx-2)">The first question is how the server runs, because
+        every field after it depends on the answer.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Step 1 — How does the server run?</span></div>
+        <div class="scrollx">
+          <table>
+            <thead><tr><th scope="col">Transport</th><th scope="col">When to pick it</th><th scope="col">What you have to fill in</th></tr></thead>
+            <tbody>
+              <tr><td class="rowh">Local process</td>
+                <td>The server is a program that runs beside Magna on the cluster. Nothing goes over the
+                  network, so this stays on-prem.</td>
+                <td>Command — <code>npx</code><br>Arguments — <code>-y @magna/jira-mcp</code><br>
+                  Working directory<br>Environment variables</td></tr>
+              <tr><td class="rowh">Remote — HTTP or SSE</td>
+                <td>The server already runs somewhere with an address. On-prem if the address is inside
+                  your network; not, if it is not.</td>
+                <td>Server URL — <code>https://mcp.magna.internal/jira</code><br>
+                  Auth — none, bearer token, or OAuth 2.1<br>Any custom headers</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>Everything after this step is the same for both: a name and an icon, the secrets, a
+          test, the permissions, done.</figcaption>
+      </figure>
+
+      <ol class="steps" style="margin-top:22px">
+        <li value="2" style="counter-reset:st 1"><b>Identity.</b>
+          <p>A display name your colleagues will read, one line describing what it gives them, an icon
+            colour, and which workspace it belongs to. This is what turns a hostname into a card.</p></li>
+        <li><b>Secrets.</b>
+          <p>Environment variables and tokens as key/value rows you can add and remove. Values are masked
+            with a reveal toggle. They live in the workspace secret store and are never sent to the model.</p></li>
+        <li><b>Test connection — a visible handshake.</b>
+          <p>Not a spinner and a tick. You watch it happen, and if it fails you get told what to check.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Test connection</span></div>
+        <div class="mock-body">
+          <div class="hshake">
+            <div class="hrow"><span class="hi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+              <span class="ht"><b>Reached the server</b> — handshake accepted</span><span class="ms">62 ms</span></div>
+            <div class="hrow"><span class="hi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+              <span class="ht"><b>Protocol version agreed</b> — <code>2025-06-18</code></span><span class="ms">4 ms</span></div>
+            <div class="hrow"><span class="hi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+              <span class="ht"><b>Asked what tools it has</b> — 10 returned, each with its description and
+                the fields it needs. Every one gets its own on/off toggle on the next step, so you can
+                expose only what you want.</span><span class="ms">118 ms</span></div>
+          </div>
+          <div class="note warn" style="margin-top:14px"><b>And when it fails.</b> You get the real cause
+            and what to check, in that order:
+            <ul style="margin:8px 0 0;padding-left:19px">
+              <li style="margin-top:4px"><code>ECONNREFUSED</code> — nothing is listening on that address.
+                Check the port, and check the server is running.</li>
+              <li style="margin-top:4px"><code>401 Unauthorized</code> — the address is right, the token is
+                not. Check the token has not expired.</li>
+              <li style="margin-top:4px"><code>No tools returned</code> — it connected, but it offers
+                nothing. Usually the server started before its config was mounted.</li>
+              <li style="margin-top:4px"><code>Protocol version mismatch</code> — the server speaks an
+                older MCP. It names both versions so you know what to upgrade.</li>
+            </ul>
+            Nothing is saved while it is failing. You cannot end up with a card that looks connected and
+            is not — which is exactly what the live app does today.</div>
+        </div>
+        <figcaption>Three lines and a millisecond count. This is the answer to "is this server working?"
+          that the current build has no way to give.</figcaption>
+      </figure>
+
+      <ol class="steps" style="margin-top:22px">
+        <li value="5" style="counter-reset:st 4"><b>Permissions.</b>
+          <p>The discovered tools, each with a plain-language label and a toggle. Read-only tools are on.
+            Anything that writes, sends or deletes is off, and has to be ticked one at a time — the same
+            rule as every catalogue connector.</p></li>
+        <li><b>Done.</b>
+          <p>The server appears in the list as a normal card. Its tools appear in <kbd>/</kbd>. The
+            connection count increments. From this point on, nobody using it needs to know it was custom.</p></li>
+      </ol>
+
+      <h4>The config a developer would actually write</h4>
+      <p style="margin-top:8px;color:var(--tx-2)">On the last step, and on every server's detail view,
+        a <span class="ui">Config</span> disclosure shows the equivalent JSON with a copy button. If you
+        are handing this to your integration team, this is the part to send them.</p>
+
+      <div class="codeblk">
+        <div class="code-head">
+          <span class="ttl">Local process — stdio</span>
+          <button type="button" class="copybtn" data-copy="cfg-local">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+            <span class="cl">Copy</span>
+          </button>
+        </div>
+        <pre id="cfg-local"><code>{
+  "mcpServers": {
+    "magna-jira": {
+      "command": "npx",
+      "args": ["-y", "@magna/jira-mcp"],
+      "env": {
+        "JIRA_BASE_URL": "https://magna.atlassian.net",
+        "JIRA_TOKEN": "••••••"
+      }
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div class="codeblk">
+        <div class="code-head">
+          <span class="ttl">Remote — HTTP / SSE</span>
+          <button type="button" class="copybtn" data-copy="cfg-remote">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+            <span class="cl">Copy</span>
+          </button>
+        </div>
+        <pre id="cfg-remote"><code>{
+  "mcpServers": {
+    "magna-jira": {
+      "url": "https://mcp.magna.internal/jira",
+      "transport": "http",
+      "headers": {
+        "Authorization": "Bearer ••••••"
+      }
+    }
+  }
+}</code></pre>
+      </div>
+      <p class="sr-only" role="status" id="copyStatus"></p>
+
+      <div class="note warn"><b>The dots are not a placeholder to fill in here.</b> Secrets are entered
+        in the Secrets step, stored in the workspace secret store, and masked everywhere they are
+        displayed — including in this config view. Never paste a live token into a document, a chat
+        message, or a prototype.</div>
+
+      <div class="changed"><span class="t">What this replaces today</span>
+        Today there are four hard-coded servers and no way to add a fifth. The main text on every card
+        is a raw Kubernetes hostname —
+        <code>ms365-mcp.magna-system.svc.cluster.local:3000</code> — which tells a user nothing and an
+        attacker something. Each card shows an enabled blue toggle, <span class="ui">Sign-in required</span>
+        and <span class="ui">No tools</span> at the same time: three signals, no meaning.
+        <b>There is no way at all to tell a working server from a broken one</b> — no test, no tool count,
+        no last-sync time, no error text. Nothing anywhere says what connecting any of them would let you
+        do. And in the skills list next door, an entry called <code>salesforce-uat-api</code> carries a
+        UAT sandbox endpoint — <code>magnaai--uat.sandbox.my.salesforce.com</code> — as its description,
+        in a production screen.</div>
+
+      <div class="try"><span class="t">Walk this flow:</span>
+        <a href="apps/app-1-chatgpt.html">Familiar</a>
+        <a href="apps/app-3-sovereign.html">Provable</a>
+        <a href="apps/app-6-horizon.html">Horizon</a>
+        <span style="font-size:12.2px;color:var(--tx-3)">Connections → Tools &amp; MCP. Then + Add server → Connect your own server.</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 4 · mail and jira, end to end ═══════════════════ -->
+    <section id="mailjira">
+      <div class="sec-head"><span class="sec-num">04</span><h2 class="sec-title">Mail and Jira, end to end</h2></div>
+      <p class="sec-sub">The two connectors people ask for first — mail because everyone has one, Jira
+        because that is where the work is tracked. Then the thing this whole page has been building to:
+        one sentence that uses both.</p>
+
+      <h3>Mail — four variants, and what each means for your data</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">This is step 1 of the connect flow, and it is the only
+        decision in it that you cannot change later without disconnecting. So it is worth thirty seconds.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Step 1 — Choose your mail provider</span></div>
+        <div class="scrollx">
+          <table>
+            <thead><tr>
+              <th scope="col">Variant</th><th scope="col">Where your mail is indexed</th>
+              <th scope="col">What leaves your network</th><th scope="col">Pick it if</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="rowh">Magna Mail<br><span class="chip ok" style="margin-top:4px"><span class="dot"></span>on-prem</span></td>
+                <td>On the Magna cluster in Riyadh DC-1, on your own Exchange server.</td>
+                <td><b>Nothing. 0 bytes.</b> Search, summarising and drafting all happen inside the building.</td>
+                <td>Your mail is on Exchange in-house. This is the default, and the only one with a green chip.</td></tr>
+              <tr><td class="rowh">Microsoft 365<br><span class="chip warn" style="margin-top:4px"><span class="dot"></span>leaves your network</span></td>
+                <td>Nothing is indexed locally. Message bodies are fetched from Microsoft's cloud region
+                  on every single request.</td>
+                <td>Your search terms go out; message bodies come back. Every answer that used it carries
+                  an amber residency chip.</td>
+                <td>Your organisation already runs on Microsoft 365 and legal has signed that off.</td></tr>
+              <tr><td class="rowh">Google Workspace<br><span class="chip warn" style="margin-top:4px"><span class="dot"></span>leaves your network</span></td>
+                <td>Same as Microsoft 365, against Google's servers.</td>
+                <td>The same traffic, to a different company.</td>
+                <td>You are on Gmail. Same sign-off applies.</td></tr>
+              <tr><td class="rowh">IMAP<br><span class="chip off" style="margin-top:4px">depends</span></td>
+                <td>Wherever the address you type points. Magna cannot know in advance.</td>
+                <td>Whatever that endpoint does. The chip reads
+                  <span class="chip off">Residency depends on your endpoint</span> until an admin confirms it.</td>
+                <td>Anything else with an IMAP address — a legacy server, a project mailbox.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>Step 2 asks for your address and display name, and never for a password — you approve
+          it in your provider's own sign-in window. Step 3 is the scopes:
+          <span class="ui">Read mail</span> on, <span class="ui">Send mail as you</span> off.</figcaption>
+      </figure>
+
+      <div class="note"><b>Changing your mind later.</b> Scopes you can change any time from
+        <span class="ui">Permissions</span> on the card — turn <span class="ui">Send mail as you</span> on
+        or off without touching anything else. The <em>variant</em> you cannot: switching from Microsoft
+        365 to Magna Mail means <span class="ui">Disconnect</span> and connect again, because it is a
+        different mailbox and a different residency answer.</div>
+
+      <h3>Reading and searching your inbox from chat</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Once mail is connected you do not go to a mail screen.
+        You ask. There is a Mail view if you want one, but the point of the connector is that your inbox
+        becomes something you can ask questions about.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">"What's in my inbox about Package 4?"</span></div>
+        <div class="mock-body">
+          <div class="thinking">
+            <svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna is working">
+              <defs>
+                <linearGradient id="mgGB-ml" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                </linearGradient>
+                <linearGradient id="mgR-ml" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                </linearGradient>
+              </defs>
+              <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ml)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ml)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Running <b>magna-mail.search</b> · 3 threads, last 30 days…</span>
+          </div>
+
+          <div class="mlist" style="margin-top:14px">
+            <div class="mrow">
+              <div class="mmain">
+                <div class="from"><span class="un" aria-hidden="true"></span>Khalid Al-Rashid · Al-Rashid Steel</div>
+                <div class="subj">Package 4 — rebar delivery slipping to week 34</div>
+              </div>
+              <span class="when">09:14</span>
+            </div>
+            <div class="mrow">
+              <div class="mmain">
+                <div class="from">Noura Al-Sudairi · Legal</div>
+                <div class="subj">Package 4 contract amendment 2 — for your signature</div>
+              </div>
+              <span class="when">Yesterday</span>
+            </div>
+            <div class="mrow">
+              <div class="mmain">
+                <div class="from">Jira · RDC2 board</div>
+                <div class="subj">Daily digest — 4 issues touched on Package 4</div>
+              </div>
+              <span class="when">Mon</span>
+            </div>
+          </div>
+
+          <div class="note" style="margin-top:14px"><b>The answer above the list is the useful part.</b>
+            "Three threads. The one that matters is Al-Rashid at 09:14 — rebar for Package 4 slips from
+            week 31 to week 34, which is three weeks and puts C2 behind." Each claim is clickable and
+            opens the message it came from.</div>
+        </div>
+        <figcaption>The first time <code>magna-mail.search</code> runs in a conversation you get the
+          approval prompt from section 03. It is read-only and it runs on-prem, and the prompt says both.</figcaption>
+      </figure>
+
+      <div class="note ok"><b>What reading costs you: nothing.</b> Searching, opening a message,
+        summarising a thread and downloading an attachment are all read tools. They are on from the moment
+        you connect, they never ask again after the first approval, and on Magna Mail none of it leaves
+        Riyadh DC-1.</div>
+
+      <h3>Drafting a reply — it drafts, it does not send</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Say <em>"reply to Al-Rashid and ask for a revised
+        delivery schedule"</em> and a composer opens inside the conversation with the reply already
+        written in it. Every field is editable. Nothing has left your outbox.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Draft — editable, not sent</span></div>
+        <div class="mock-body">
+          <div class="frows">
+            <div class="frow"><div class="fk">From</div>
+              <div class="fv">Ahmad Farahat &lt;ahmad.farahat@magna.ai&gt; <span class="mu">· Magna Mail</span></div></div>
+            <div class="frow"><div class="fk">To</div>
+              <div class="fv">Khalid Al-Rashid &lt;k.alrashid@alrashidsteel.com&gt;</div></div>
+            <div class="frow"><div class="fk">Cc</div>
+              <div class="fv"><span class="mu">Faisal Al-Otaibi &lt;f.alotaibi@magna.ai&gt; — added because he owns C2</span></div></div>
+            <div class="frow"><div class="fk">Subject</div>
+              <div class="fv">Re: Package 4 — rebar delivery slipping to week 34</div></div>
+          </div>
+          <div class="mbody" style="border:1px solid var(--line);border-top:0;border-radius:0 0 9px 9px">
+            <p>Dear Khalid,</p>
+            <p>Thank you for the notice. A three-week slip on the rebar takes Package 4 past the C2
+              milestone, so I need to understand the recovery position before Thursday's review.</p>
+            <p>Could you send a revised delivery schedule by Wednesday, including the mill dates behind
+              week 34 and whether any part of the order can be released early?</p>
+            <p>Kind regards,<br>Ahmad</p>
+          </div>
+          <div class="mfoot" style="border:1px solid var(--line);border-top:0;border-radius:0 0 9px 9px;margin-top:-9px">
+            <span class="chip"><span class="dot"></span>Draft · not sent</span>
+            <span class="sp"></span>
+            <span class="fbtn ghost">Discard</span>
+            <span class="fbtn">Edit</span>
+            <span class="fbtn pri">Review and send</span>
+          </div>
+        </div>
+        <figcaption>The Cc line explains itself. Anything Magna added that you did not ask for is
+          annotated with why, so you can take it out in one click.</figcaption>
+      </figure>
+
+      <div class="note warn"><b>There is no path where mail leaves without you pressing something.</b>
+        Not from chat, not from a skill, not from an agent at 06:00. The most an agent can do unattended
+        is leave a draft waiting for you — and the digest tells you it is there.</div>
+
+      <h3>The send confirmation</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Press <span class="ui pri">Review and send</span> and
+        you get one last screen. It is not a "are you sure?" — it is the actual message, one more time,
+        with the things people get wrong pulled out and made obvious: who it is going to, which account
+        it is going out as, and what is attached.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Confirm before sending</span></div>
+        <div class="mock-body">
+          <div class="approve">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg>
+              This will send one email. Nothing has gone yet.</div>
+            <div class="summary" style="padding:0;overflow:hidden">
+              <div class="frows" style="border:0;border-radius:0">
+                <div class="frow"><div class="fk">Goes to</div>
+                  <div class="fv"><b>Khalid Al-Rashid</b> &lt;k.alrashid@alrashidsteel.com&gt;<br>
+                    <span class="mu">Cc: Faisal Al-Otaibi &lt;f.alotaibi@magna.ai&gt;</span></div></div>
+                <div class="frow"><div class="fk">Sends as</div>
+                  <div class="fv">ahmad.farahat@magna.ai <span class="mu">— your account, your name on it</span></div></div>
+                <div class="frow"><div class="fk">Subject</div>
+                  <div class="fv">Re: Package 4 — rebar delivery slipping to week 34</div></div>
+                <div class="frow"><div class="fk">Body</div>
+                  <div class="fv"><span class="mu">4 paragraphs, 86 words — scroll to read it in full</span></div></div>
+                <div class="frow"><div class="fk">Attachments</div>
+                  <div class="fv"><span class="mu">None</span></div></div>
+                <div class="frow"><div class="fk">Outside Magna</div>
+                  <div class="fv"><b>One recipient is external</b> — alrashidsteel.com. Everything in this
+                    message will be readable by them.</div></div>
+              </div>
+            </div>
+            <div class="res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+              Sent through your own Exchange server in Riyadh DC-1.</div>
+            <div class="btns">
+              <span class="fbtn">Edit</span>
+              <span class="fbtn ghost">Cancel</span>
+              <span class="fbtn pri">Send</span>
+            </div>
+            <p class="why">Uses <code>magna-mail.send</code> — one call, one message, logged with a
+              timestamp and a link back to this conversation.</p>
+          </div>
+        </div>
+        <figcaption>"One recipient is external" is the row that stops the mistakes. It names the domain,
+          not just the count.</figcaption>
+      </figure>
+
+      <div class="note ok"><b>After you press Send.</b> A success line appears in the conversation with the
+        time and a <span class="ui">View in Sent</span> link, the message appears in your Sent list, and
+        one row is written to the audit trail: <em>10:41 · magna-mail.send · 1 recipient external · from
+        this conversation</em>. Nothing about the send is invisible.</div>
+
+      <h3>If <span class="ui">Send mail as you</span> was never granted</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">You still get the draft, and you still get the
+        confirmation. What you do not get is a working Send button — because the scope you skipped in step
+        3 of the connect flow is the one that permits it. The screen tells you exactly which tick box, and
+        takes you to it.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Confirm — with the scope missing</span></div>
+        <div class="mock-body">
+          <div class="approve" style="border-color:var(--line-2);background:var(--surface-2)">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--tx-3)" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+              This draft is ready, but Magna is not allowed to send it</div>
+            <div class="summary">
+              <b>Why</b> — when you connected Magna Mail you left
+              <span class="ui">Send mail as you</span> unticked. That is the permission this needs.<br>
+              <b>What is not lost</b> — the draft. Grant the scope and come back, or copy it into your own
+              mail client and send it there.<br>
+              <b>Where to change it</b> — Connections → Tools &amp; MCP → Magna Mail →
+              <span class="ui">Permissions</span>. It takes one tick and no reconnection.
+            </div>
+            <div class="btns">
+              <span class="fbtn">Copy the draft</span>
+              <span class="fbtn ghost">Cancel</span>
+              <span class="fbtn pri">Grant "Send mail as you" →</span>
+              <span class="fbtn dis">Send</span>
+            </div>
+            <p class="why">The Send button stays visible and disabled on purpose — so you can see that
+              sending is a thing this product does, and that you turned it off.</p>
+          </div>
+        </div>
+        <figcaption>A disabled button with no explanation is a dead end. A disabled button that names the
+          missing permission and links to it is a route.</figcaption>
+      </figure>
+
+      <h3>If the thread is on the Public tier</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Every conversation carries a tier.
+        <span class="ui">Private</span> means everything stays on the Magna cluster in Riyadh.
+        <span class="ui">Public</span> means the conversation may use a model outside your network — which
+        is fine for general drafting, and not fine when the draft quotes your own documents. Sending from
+        a Public thread that quotes internal material trips a guardrail before anything goes out.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Guardrail — Public tier, internal content</span></div>
+        <div class="mock-body">
+          <div class="approve" style="border-color:var(--crit-bd);background:var(--crit-dim)">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--crit)" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9 2.6 17.4A2 2 0 0 0 4.3 20.4h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+              Held. This draft quotes two internal documents and this thread is Public.</div>
+            <div class="summary">
+              <b>What would leave your network</b>, named — not counted:
+              <ul style="margin:8px 0 0;padding-left:19px">
+                <li style="margin-top:4px">Two paragraphs from <b>Package 4 — Subcontract, Amendment 2</b>
+                  (clause 14.3, liquidated damages), classified <b>Confidential</b>.</li>
+                <li style="margin-top:4px">The milestone dates from <b>RDC2 baseline schedule, rev 6</b>
+                  — 2 lines, classified <b>Internal</b>.</li>
+              </ul>
+              <b>Where it would go</b> — to k.alrashid@alrashidsteel.com, and to the Public-tier model that
+              drafted it, which runs outside your network.
+            </div>
+            <div class="btns">
+              <span class="fbtn pri">Move this thread to Private and continue</span>
+              <span class="fbtn">Remove the quoted sections</span>
+              <span class="fbtn ghost">Cancel</span>
+            </div>
+            <p class="why">Moving to Private re-runs the draft on the on-prem cluster. The text you have
+              already written is kept.</p>
+          </div>
+        </div>
+        <figcaption>The guardrail names the documents, the clause and the classification. "This message
+          may contain sensitive data" is not a warning anybody can act on.</figcaption>
+      </figure>
+
+      <h3>Jira — reading first</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">The four read tools are on from the moment you connect.
+        You never type JQL — Jira's query language — unless you want to. Ask in English and Magna writes
+        the query, then shows you the query it wrote underneath the answer.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">"Anything open on RDC2 blocking the C2 milestone?"</span></div>
+        <div class="mock-body">
+          <div class="mlist">
+            <div class="mrow">
+              <div class="mmain">
+                <div class="from">RDC2-418 <span class="chip warn" style="margin-left:6px"><span class="dot"></span>In progress</span></div>
+                <div class="subj">Rebar delivery for Package 4 slipping — supplier confirmation outstanding
+                  · Faisal Al-Otaibi · High</div>
+              </div>
+              <span class="when">2d ago</span>
+            </div>
+            <div class="mrow">
+              <div class="mmain">
+                <div class="from">RDC2-402 <span class="chip" style="margin-left:6px"><span class="dot"></span>Blocked</span></div>
+                <div class="subj">Structural steel inspection sign-off waiting on third-party report
+                  · Noura Al-Sudairi · High</div>
+              </div>
+              <span class="when">5d ago</span>
+            </div>
+            <div class="mrow">
+              <div class="mmain">
+                <div class="from">RDC2-377 <span class="chip ok" style="margin-left:6px"><span class="dot"></span>In review</span></div>
+                <div class="subj">Revise C2 milestone dates against baseline rev 6 · Ahmad Farahat · Medium</div>
+              </div>
+              <span class="when">1w ago</span>
+            </div>
+          </div>
+          <div class="note" style="margin-top:14px"><b>Underneath, the query it used:</b>
+            <code>project = RDC2 AND status not in (Done, Closed) AND labels = c2-milestone ORDER BY priority DESC</code>
+            — shown so you can check it looked in the right place, and edit it if it did not.</div>
+        </div>
+        <figcaption>Reading Jira asks once, at the first tool call in the thread, and then stays quiet.
+          Read tools do not interrupt you.</figcaption>
+      </figure>
+
+      <h3>Jira — the six things it can write</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">Each of these is off until you tick its scope, and each
+        one shows you the filled-in change before it happens.</p>
+      <ul style="margin-top:12px;padding-left:20px;color:var(--tx-2)">
+        <li style="margin-top:7px"><b style="color:var(--tx)">Create an issue</b> — you see the whole issue
+          drafted: project, type, summary, description, priority, assignee, labels. Nothing is invented
+          silently; anything Magna guessed is marked.</li>
+        <li style="margin-top:7px"><b style="color:var(--tx)">Comment on an issue</b> — you see the exact
+          comment text and who gets notified by it.</li>
+        <li style="margin-top:7px"><b style="color:var(--tx)">Change an issue's status</b> — you see the
+          move written out: <em>RDC2-418 · In progress → Blocked</em>, and any field the transition forces
+          you to fill in.</li>
+        <li style="margin-top:7px"><b style="color:var(--tx)">Assign an issue</b> — you see the person's
+          full name, not an account id, and the fact that they will be emailed.</li>
+        <li style="margin-top:7px"><b style="color:var(--tx)">Link two issues</b> — you see both keys and
+          the link type: <em>RDC2-419 blocks RDC2-418</em>.</li>
+        <li style="margin-top:7px"><b style="color:var(--tx)">Log work</b> — you see the hours, the date
+          and the issue. If your team bills from Jira, this is the one to leave off.</li>
+      </ul>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Drafted issue — nothing exists in Jira yet</span></div>
+        <div class="mock-body">
+          <div class="frows">
+            <div class="frow"><div class="fk">Project</div>
+              <div class="fv">Riyadh DC-2 Expansion <code>RDC2</code></div></div>
+            <div class="frow"><div class="fk">Type</div>
+              <div class="fv">Task</div></div>
+            <div class="frow"><div class="fk">Summary</div>
+              <div class="fv">Package 4 rebar delivery slips to week 34 — recovery plan required</div></div>
+            <div class="frow"><div class="fk">Description</div>
+              <div class="fv">Al-Rashid Steel confirmed on 16 Aug that rebar for Package 4 moves from
+                week 31 to week 34. Three-week slip, affects the C2 milestone. Revised schedule requested
+                by Wednesday. <span class="mu">Source: mail thread of 16 Aug 09:14 — linked.</span></div></div>
+            <div class="frow"><div class="fk">Priority</div>
+              <div class="fv">High <span class="mu">— guessed from "three weeks" and the C2 link. Change it if that is wrong.</span></div></div>
+            <div class="frow"><div class="fk">Assignee</div>
+              <div class="fv">Faisal Al-Otaibi <span class="mu">— he owns C2 on this board. He will be emailed.</span></div></div>
+            <div class="frow"><div class="fk">Labels</div>
+              <div class="fv">package-4 · c2-milestone · supplier-delay</div></div>
+          </div>
+          <div class="mfoot" style="border:1px solid var(--line);border-top:0;border-radius:0 0 9px 9px;margin-top:-9px">
+            <span class="chip"><span class="dot"></span>Draft · nothing in Jira yet</span>
+            <span class="sp"></span>
+            <span class="fbtn ghost">Cancel</span>
+            <span class="fbtn">Edit</span>
+            <span class="fbtn pri">Create issue</span>
+          </div>
+        </div>
+        <figcaption>Two fields are annotated because Magna inferred them rather than being told. That is
+          the difference between a draft you can trust and one you have to re-check line by line.</figcaption>
+      </figure>
+
+      <h3>Two connectors, one instruction</h3>
+      <p style="margin-top:10px;color:var(--tx-2)">This is the payoff, and it is the example built into
+        all six prototypes. One sentence, two systems, one confirmation.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">What you type</span></div>
+        <div class="mock-body">
+          <div class="composer">
+            <div class="cin">Reply to Al-Rashid about the rebar slip and raise a Jira issue for the delay<span class="car" aria-hidden="true"></span></div>
+            <span class="send" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </div>
+        <figcaption>No slash commands, no tool names, no mention of MCP. Two systems, named the way you
+          would name them out loud.</figcaption>
+      </figure>
+
+      <ol class="steps" style="margin-top:26px">
+        <li><b>Magna asks permission — once, for both.</b>
+          <p>One approval prompt, naming both write tools rather than interrupting you twice.
+            <code>magna-mail.send</code> and <code>magna-jira.create-issue</code>, each with what it will
+            do and where it runs. Allowing this does not send anything — it lets Magna prepare both
+            drafts.</p></li>
+        <li><b>It reads before it writes.</b>
+          <p>The reasoning line names each read as it happens: the Al-Rashid thread from
+            <code>magna-mail.search</code>, the C2 milestone dates from <code>p6-schedule</code>, and the
+            open issues on the RDC2 board from <code>magna-jira.search-issues</code>. Reads never ask.</p></li>
+        <li><b>You get an editable mail draft.</b>
+          <p>The composer from earlier in this section, with the reply already written and the Cc
+            explained. Edit anything.</p></li>
+        <li><b>And a drafted Jira issue underneath it.</b>
+          <p>The issue card from earlier in this section — project, type, summary, description, priority,
+            assignee, labels — with the two inferred fields marked. Edit anything.</p></li>
+        <li><b>Then one confirmation, covering both.</b>
+          <p>Not two prompts in a row. One panel listing both actions in the order they will run, with a
+            single <span class="ui pri">Confirm both</span>. You can still peel one off and cancel it.</p></li>
+      </ol>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">One confirmation, two actions</span></div>
+        <div class="mock-body">
+          <div class="approve">
+            <div class="at"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/><path d="M20 12v7a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19V6.5A1.5 1.5 0 0 1 5.5 5H15"/></svg>
+              Two things will happen. Neither has happened yet.</div>
+
+            <div class="acts">
+              <div class="act">
+                <div class="hd"><span class="n">1</span>Send one email
+                  <span class="tchip write" style="margin-left:auto"><span class="rw">write</span>magna-mail.send</span></div>
+                <div class="bd">
+                  <b>To</b> Khalid Al-Rashid &lt;k.alrashid@alrashidsteel.com&gt; · <b>Cc</b> Faisal Al-Otaibi<br>
+                  <b>Subject</b> Re: Package 4 — rebar delivery slipping to week 34<br>
+                  <b>Body</b> 4 paragraphs, 86 words · no attachments<br>
+                  <b>Outside Magna</b> one external recipient — alrashidsteel.com
+                </div>
+              </div>
+              <div class="act">
+                <div class="hd"><span class="n">2</span>Create one Jira issue
+                  <span class="tchip write" style="margin-left:auto"><span class="rw">write</span>magna-jira.create-issue</span></div>
+                <div class="bd">
+                  <b>Project</b> Riyadh DC-2 Expansion (RDC2) · <b>Type</b> Task · <b>Priority</b> High<br>
+                  <b>Summary</b> Package 4 rebar delivery slips to week 34 — recovery plan required<br>
+                  <b>Assignee</b> Faisal Al-Otaibi — he will be emailed by Jira<br>
+                  <b>Linked to</b> the mail thread above, so the issue carries its source
+                </div>
+              </div>
+            </div>
+
+            <div class="res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+              Both run on-prem — your Exchange server and Jira Data Center, Riyadh DC-1.</div>
+            <div class="btns">
+              <span class="fbtn">Edit the email</span>
+              <span class="fbtn">Edit the issue</span>
+              <span class="fbtn ghost">Cancel both</span>
+              <span class="fbtn pri">Confirm both</span>
+            </div>
+            <p class="why">If the email fails, the issue is not created — you are told which one stopped
+              and why, and nothing is left half-done.</p>
+          </div>
+        </div>
+        <figcaption>One decision instead of two. The numbered blocks are the order they will run in, and
+          each names the tool it uses so the trail afterwards makes sense.</figcaption>
+      </figure>
+
+      <p style="margin-top:22px;color:var(--tx-2)">Press <span class="ui pri">Confirm both</span> and both
+        complete in a couple of seconds. The conversation gets a short result — <em>"Sent to Khalid
+        Al-Rashid. Created RDC2-419 and assigned it to Faisal."</em> — with RDC2-419 as a working link.
+        And two rows land in the audit trail.</p>
+
+      <figure class="mock">
+        <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">Audit trail — today</span></div>
+        <div class="mock-body">
+          <div class="audit">
+            <div class="ar"><span class="tm">10:41:08</span>
+              <span><b>magna-jira.create-issue</b> — created <b>RDC2-419</b> in Riyadh DC-2 Expansion,
+                assigned to Faisal Al-Otaibi. Confirmed by Ahmad Farahat. On-prem.</span></div>
+            <div class="ar"><span class="tm">10:41:06</span>
+              <span><b>magna-mail.send</b> — 1 message to k.alrashid@alrashidsteel.com, cc f.alotaibi@magna.ai.
+                1 external recipient. Confirmed by Ahmad Farahat. On-prem.</span></div>
+            <div class="ar"><span class="tm">10:40:31</span>
+              <span><b>magna-jira.search-issues</b> — read-only, 3 issues on RDC2. No approval needed.</span></div>
+            <div class="ar"><span class="tm">10:40:28</span>
+              <span><b>magna-mail.search</b> — read-only, 3 threads matching "Package 4". No approval needed.</span></div>
+          </div>
+        </div>
+        <figcaption>Reads are logged too, so you can reconstruct what an answer was based on — but only
+          writes ever needed your confirmation.</figcaption>
+      </figure>
+
+      <div class="note ok"><b>The same sentence works from an agent.</b> Give <em>Mail Triage</em> the mail
+        and Jira connectors and this becomes something that runs at 07:00. The difference is that an agent
+        stops at the confirmation and waits: you get one notification saying two actions are ready, and
+        pressing <span class="ui pri">Confirm both</span> from the notification does exactly what pressing
+        it here does. Section 05 covers agents.</div>
+
+      <div class="changed"><span class="t">What this replaces today</span>
+        Today none of this exists. There is no mail connector — the closest thing is a built-in tool called
+        <span class="ui">Email file</span> whose entire description is "Send a workspace file or artifact
+        as an email attachment", with no account behind it, no composer, no confirmation and no way to
+        read anything. Jira is not a connector either; it appears as a skill called
+        <code>jira-ticket-definer</code> with its description cut off mid-sentence, and an
+        <span class="ui">Atlassian</span> MCP card next door that shows
+        <span class="ui">Sign-in required</span> and <span class="ui">No tools</span> at once. Nothing in
+        the product distinguishes an action that reads from an action that sends, and the one switch that
+        would have made it ask — <span class="ui">Trust built-in tools and skills</span> — ships on.</div>
+
+      <div class="try"><span class="t">Walk this flow:</span>
+        <a href="apps/app-1-chatgpt.html">Familiar</a>
+        <a href="apps/app-2-claude.html">Considered</a>
+        <a href="apps/app-4-launchpad.html">Ready</a>
+        <a href="apps/app-5-twin.html">Grounded</a>
+        <span style="font-size:12.2px;color:var(--tx-3)">Connect Magna Mail and Jira, then paste the two-connector sentence into the composer.</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ 5 · add an agent ═══════════════════ -->
     <section id="agent">
-      <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">How do I add an agent?</h2></div>
+      <div class="sec-head"><span class="sec-num">05</span><h2 class="sec-title">How do I add an agent?</h2></div>
       <p class="sec-sub">An agent is a name, a model, a set of tools and a trigger — nothing more.
         If you can describe a colleague's job in two lines, you can make an agent.</p>
 
@@ -1093,9 +2353,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
       </div>
     </section>
 
-    <!-- ═══════════════════ 4 · call them ═══════════════════ -->
+    <!-- ═══════════════════ 6 · call them ═══════════════════ -->
     <section id="call">
-      <div class="sec-head"><span class="sec-num">04</span><h2 class="sec-title">How do I call them?</h2></div>
+      <div class="sec-head"><span class="sec-num">06</span><h2 class="sec-title">How do I call them?</h2></div>
       <p class="sec-sub">This is the question that matters, and the answer is short: type a slash,
         or just ask. Everything else on this page exists to make those two things work.</p>
 
@@ -1324,9 +2584,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
       </div>
     </section>
 
-    <!-- ═══════════════════ 5 · quick reference ═══════════════════ -->
+    <!-- ═══════════════════ 7 · quick reference ═══════════════════ -->
     <section id="quick">
-      <div class="sec-head"><span class="sec-num">05</span><h2 class="sec-title">Quick reference</h2></div>
+      <div class="sec-head"><span class="sec-num">07</span><h2 class="sec-title">Quick reference</h2></div>
       <p class="sec-sub">Print this bit, or keep the tab open. It is the whole page in one card.</p>
 
       <div class="qr">
@@ -1343,7 +2603,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
             <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-qr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-qr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="t">The four answers</span>
+          <span class="t">The six answers</span>
         </div>
         <div class="qr-body">
           <div class="qrow"><div class="q">Add a skill</div>
@@ -1354,6 +2614,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
             <div class="a">Connections → Tools &amp; MCP → <span class="ui pri">Connect Magna Mail</span> →
               <b>Choose</b> the provider, <b>Configure</b> the account in the provider's own window,
               tick the <b>Permissions</b> you want, <b>Done</b>. Then <span class="ui">Test connection</span>.</div></div>
+          <div class="qrow"><div class="q">Add a connector</div>
+            <div class="a">Connections → Tools &amp; MCP → pick the system → <span class="ui pri">Connect Jira</span> →
+              the same four steps. <b>Reading turns on. Writing stays off</b> until you tick it in
+              <span class="ui">Permissions</span>. Not in the catalogue? <span class="ui">+ Add server</span> →
+              <span class="ui">Connect your own server</span> — a developer job, once.</div></div>
+          <div class="qrow"><div class="q">Send a mail or raise a Jira issue</div>
+            <div class="a">Ask in plain English — <em>"reply to Al-Rashid and raise a Jira issue for the
+              delay"</em>. Magna drafts both into boxes you can edit, then shows <b>one</b> confirmation
+              naming the recipient, the subject, the project and the assignee.
+              <span class="ui pri">Confirm both</span> is the only thing that makes anything happen.</div></div>
           <div class="qrow"><div class="q">Add an agent</div>
             <div class="a">Agents → <span class="ui pri">Create agent</span> → pick a template → name it,
               choose an access preset, choose a trigger (on request / scheduled / called by another agent),
@@ -1433,6 +2703,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
         <ul>
           <li><a href="functionality-map.html">Functionality map <span class="k">— all 23 capabilities</span></a></li>
           <li><a href="index.html">All deliverables <span class="k">— the entry point</span></a></li>
+          <li><a href="#connectors">Connector catalogue <span class="k">— all 10, read vs write</span></a></li>
           <li><a href="#three">Back to the definitions</a></li>
           <li><a href="#quick">Back to the quick reference</a></li>
         </ul>
@@ -1457,9 +2728,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
     <a href="#three"><span class="n">00</span>The three things</a>
     <a href="#skill"><span class="n">01</span>Add a skill</a>
     <a href="#mcp"><span class="n">02</span>Connect an MCP server</a>
-    <a href="#agent"><span class="n">03</span>Add an agent</a>
-    <a href="#call"><span class="n">04</span>Call them</a>
-    <a href="#quick"><span class="n">05</span>Quick reference</a>
+    <a href="#connectors"><span class="n">03</span>Add a connector</a>
+    <a href="#mailjira"><span class="n">04</span>Mail and Jira, end to end</a>
+    <a href="#agent"><span class="n">05</span>Add an agent</a>
+    <a href="#call"><span class="n">06</span>Call them</a>
+    <a href="#quick"><span class="n">07</span>Quick reference</a>
     <hr style="border:0;border-top:1px solid var(--line);margin:10px 12px">
     <a href="apps/app-1-chatgpt.html">Prototype — Familiar</a>
     <a href="apps/app-4-launchpad.html">Prototype — Ready</a>
@@ -1562,6 +2835,47 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
     else if(wide.addListener) wide.addListener(onwide);
   }
 
+  /* ---------- copy the MCP config blocks ---------- */
+  var status = document.getElementById("copyStatus");
+  function flash(btn, msg){
+    var lbl = btn.querySelector(".cl");
+    var was = btn.getAttribute("data-was") || (lbl ? lbl.textContent : "Copy");
+    btn.setAttribute("data-was", was);
+    if(lbl) lbl.textContent = msg;
+    btn.setAttribute("data-done","1");
+    if(status) status.textContent = msg;
+    window.clearTimeout(btn._t);
+    btn._t = window.setTimeout(function(){
+      if(lbl) lbl.textContent = was;
+      btn.removeAttribute("data-done");
+    }, 2200);
+  }
+  function legacyCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly","");
+    ta.style.position = "fixed"; ta.style.top = "-1000px"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try{ ok = document.execCommand("copy"); }catch(e){ ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  [].slice.call(document.querySelectorAll(".copybtn")).forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var src = document.getElementById(btn.getAttribute("data-copy"));
+      if(!src) return;
+      var text = src.textContent;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){ flash(btn, "Copied"); },
+          function(){ flash(btn, legacyCopy(text) ? "Copied" : "Select it and copy"); });
+      }else{
+        flash(btn, legacyCopy(text) ? "Copied" : "Select it and copy");
+      }
+    });
+  });
+
   /* ---------- highlight the current section in the side contents ---------- */
   var links = [].slice.call(document.querySelectorAll(".toc a[href^='#']"));
   if(links.length && "IntersectionObserver" in window){
@@ -1579,7 +2893,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
         }
       });
     }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
-    ["three","skill","mcp","agent","call","quick"].forEach(function(id){
+    ["three","skill","mcp","connectors","mailjira","agent","call","quick"].forEach(function(id){
       var el = document.getElementById(id);
       if(el) io.observe(el);
     });
