@@ -80,6 +80,24 @@ h1{font-size:38px;line-height:1.12;font-weight:680;letter-spacing:-.025em;text-w
 .stat span{font-size:11.5px;color:var(--tx-3);display:block;margin-top:1px}
 .stat.bad b{color:var(--crit)}
 
+/* ---- hero CTAs ---- */
+.cta-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:26px}
+.cta{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;padding:15px 17px;
+  border:1px solid var(--line-2);border-radius:14px;background:var(--surface);
+  transition:border-color .15s,transform .15s,box-shadow .15s}
+.cta:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.07)}
+.cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cta-1{border-color:var(--accent);background:var(--accent-dim)}
+.cta-ic{width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--accent)}
+.cta-ic svg{width:19px;height:19px}
+.cta-1 .cta-ic{background:var(--accent);border-color:var(--accent);color:#fff}
+.cta-tx{flex:1;min-width:0}
+.cta-tx b{display:block;font-size:14.5px;font-weight:660;letter-spacing:-.01em;margin-bottom:2px}
+.cta-tx span{display:block;font-size:12.5px;line-height:1.45;color:var(--tx-2)}
+.cta-go{width:18px;height:18px;flex:none;color:var(--tx-3)}
+.cta:hover .cta-go{color:var(--accent)}
+
 /* ---- sections ---- */
 section{padding:44px 0;border-bottom:1px solid var(--line)}
 .sh{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
@@ -152,6 +170,8 @@ footer{padding:30px 0 50px;font-size:12.5px;color:var(--tx-3)}
   .stat{flex:1 1 calc(50% - 4px);min-width:0;padding:10px 12px}
   .stat b{font-size:20px}
   .apps{grid-template-columns:1fr;gap:12px}
+  .cta-row{grid-template-columns:1fr;margin-top:20px}
+  .cta{padding:14px}
   .boards{grid-template-columns:1fr}
   .thumb{height:104px}
   .tbtn{height:38px;padding:0 13px}
@@ -201,6 +221,37 @@ footer{padding:30px 0 50px;font-size:12.5px;color:var(--tx-3)}
     <div class="stat bad"><b>0</b><span>renderers for maths</span></div>
     <div class="stat bad"><b>0</b><span>copy buttons</span></div>
     <div class="stat"><b>6</b><span>apps delivered</span></div>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta cta-1" href="before-after.html">
+      <span class="cta-ic" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="8" height="14" rx="1.5"/><rect x="13" y="5" width="8" height="14" rx="1.5"/>
+          <path d="M12 3v18"/></svg>
+      </span>
+      <span class="cta-tx">
+        <b>Before &amp; after</b>
+        <span>The live app's screens beside the same moment redesigned — start here.</span>
+      </span>
+      <svg class="cta-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+    </a>
+    <a class="cta" href="how-to.html">
+      <span class="cta-ic" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.2 2.4c-.5.2-.8.7-.8 1.2v.4"/>
+          <path d="M12 17v.5"/></svg>
+      </span>
+      <span class="cta-tx">
+        <b>How to use it</b>
+        <span>Adding a skill, connecting an MCP, creating an agent — and how to call them.</span>
+      </span>
+      <svg class="cta-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+    </a>
   </div>
 </div></header>
 

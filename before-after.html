@@ -134,9 +134,9 @@ h2{font-size:clamp(18px,2.4vw,22px);font-weight:670;letter-spacing:-.018em}
 .chip.ref{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
 
 /* view switch */
-.switch{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line-2);border-radius:99px;
+.switch{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line-2);border-radius:99px;
   background:var(--surface-2);margin:14px 0 16px}
-.switch button{min-height:38px;padding:0 14px;border:0;border-radius:99px;background:transparent;
+.switch button{min-height:44px;padding:0 14px;border:0;border-radius:99px;background:transparent;
   color:var(--tx-3);font:inherit;font-size:12.5px;font-weight:550;cursor:pointer;white-space:nowrap}
 .switch button:hover{color:var(--tx)}
 .switch button[aria-pressed="true"]{background:var(--surface);color:var(--tx);
@@ -167,13 +167,20 @@ h2{font-size:clamp(18px,2.4vw,22px);font-weight:670;letter-spacing:-.018em}
 .shot.after .slab{color:var(--good);background:var(--good-dim)}
 .slab .src{margin-left:auto;color:var(--tx-3);letter-spacing:.05em;text-transform:none;
   font-size:10.5px;text-align:right}
-/* height comes from the image's own ratio (width/height attributes), capped by --mh —
-   so a thin strip stays a thin strip and a tall panel never runs away. No load-time jump. */
-.media{display:block;width:100%;padding:0;border:0;background:var(--surface-2);
-  cursor:zoom-in;overflow:hidden;line-height:0}
-.media img{display:block;width:100%;height:auto;
-  max-height:calc(var(--mh) * var(--mh-x,1));object-fit:contain}
-.media:hover{background:var(--surface-3)}
+/* Fixed-height frames so before and after sit at the same height and read as one row.
+   The image is contained inside, so a thin header strip stays a thin header strip.
+   Height is set in CSS, not by the image, so nothing jumps while the images load. */
+.media{display:block;width:100%;height:calc(var(--mh) * var(--mh-x,1));padding:0;border:0;
+  background:var(--surface);cursor:zoom-in;overflow:hidden;position:relative}
+.media img{width:100%;height:100%;object-fit:contain;display:block}
+.media::after{content:"";position:absolute;inset:0;background:var(--accent);opacity:0;
+  transition:opacity .15s;pointer-events:none}
+.media:hover::after{opacity:.06}
+.media::before{content:"⤢ Full size";position:absolute;right:9px;bottom:9px;z-index:1;
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 9px;border-radius:99px;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--tx-2);
+  opacity:.75;transition:opacity .15s;pointer-events:none}
+.media:hover::before,.media:focus-visible::before{opacity:1;color:var(--tx)}
 .cap{padding:11px 14px 13px;font-size:12.6px;line-height:1.55;color:var(--tx-2);
   border-top:1px solid var(--line)}
 
@@ -190,9 +197,9 @@ h2{font-size:clamp(18px,2.4vw,22px);font-weight:670;letter-spacing:-.018em}
 /* prose under each pair */
 .say{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
 .say div{min-width:0}
-.say h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+.say h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
   margin-bottom:7px}
-.say .w h4{color:var(--crit)} .say .c h4{color:var(--good)}
+.say .w h3{color:var(--crit)} .say .c h3{color:var(--good)}
 .say p{font-size:13.6px;line-height:1.62;color:var(--tx-2)}
 .say code{font-family:var(--mono);font-size:12.2px;background:var(--surface-2);
   border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--tx);
@@ -203,7 +210,7 @@ h2{font-size:clamp(18px,2.4vw,22px);font-weight:670;letter-spacing:-.018em}
 
 /* ============================ closing ============================ */
 .close{border-top:1px solid var(--line);padding:46px 0 20px}
-.protos{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:20px}
+.protos{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;margin-top:20px}
 .proto{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:13px;
   background:var(--surface);padding:15px 16px;transition:border-color .15s,transform .15s;min-width:0}
 .proto:hover{border-color:var(--accent);transform:translateY(-2px)}
@@ -251,9 +258,11 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
 
 /* ============================ responsive ============================ */
 @media (max-width:860px){
+  /* stacked: let each screenshot take its own natural height, no letterboxing */
   .cmp,.say{grid-template-columns:minmax(0,1fr)}
   .pair[data-show]{--mh-x:1}
-  .media img{max-height:none}
+  .media{height:auto;line-height:0}
+  .media img{height:auto;object-fit:fill}
   .noshot{height:auto;min-height:170px}
 }
 @media (max-width:560px){
@@ -374,7 +383,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
   <div class="wrap">
 
     <!-- ============ 1 ============ -->
-    <article class="pair" data-show="both" style="--mh:380px">
+    <article class="pair" data-show="both" style="--mh:230px">
       <div class="ph">
         <span class="pn">01</span>
         <h2 class="pt">A global header nobody could name</h2>
@@ -408,12 +417,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>A permanent app-wide bar holding seven unrelated controls, five of them unlabelled
              glyphs with no tooltips. Two of the four sovereignty tiers in its dropdown are dead
              ("coming soon"). Neither ChatGPT nor Claude ships an app-wide header, and the audit
              found nothing in this one that could not live in the sidebar or in context.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>Deleted. Everything global moved into the sidebar where it is labelled and always in the
              same place; everything per-thread moved into a slim thread bar. The command palette
              keeps its <code>⌘K</code> hint instead of hiding behind a bare magnifier.</p></div>
@@ -424,7 +433,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 2 ============ -->
-    <article class="pair" data-show="both" style="--mh:380px">
+    <article class="pair" data-show="both" style="--mh:250px">
       <div class="ph">
         <span class="pn">02</span>
         <h2 class="pt">One orphaned Share icon, and no way to copy</h2>
@@ -458,12 +467,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>Three unlabelled icons appear on some messages — Share, a recalled-memory readout that
              prints the raw key <code>memories:context/interest-learning-coding</code> with a
              relevance score, and a book. There is no copy button anywhere, and nothing at all that
              copies a whole answer.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>A single consistent row on every assistant message. Copy and Export do real work;
              the raw memory key and the relevance score are gone from the end-user surface. The
              transcript scrolls inside its own region, so the row stays where you expect it.</p></div>
@@ -475,7 +484,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 3 ============ -->
-    <article class="pair" data-show="both" style="--mh:380px">
+    <article class="pair" data-show="both" style="--mh:320px">
       <div class="ph">
         <span class="pn">03</span>
         <h2 class="pt">A 3D robot standing on the send button</h2>
@@ -509,12 +518,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>The 3D companion is rendered over the composer's model selector and send control. The
              bell menu offers ten alternatives — Fox, Wolf, Husky, Shiba Inu, Alpaca, Horse, Cow,
              Bull, Deer, Stag — and a "hide companion" item, none of which changes the fact that the
              default state occludes the primary action of the product.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>Removed from all six prototypes. Nothing floats over the composer. Where the app needs a
              mascot moment, the animated Magna mark does it — as the thinking indicator, with honest
              status text that changes as the turn progresses.</p></div>
@@ -525,7 +534,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 4 ============ -->
-    <article class="pair" data-show="both" style="--mh:360px">
+    <article class="pair" data-show="both" style="--mh:300px">
       <div class="ph">
         <span class="pn">04</span>
         <h2 class="pt">Developer telemetry above every answer</h2>
@@ -559,12 +568,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>Roughly 200&nbsp;px of trace sits expanded above every answer, pushing the answer below
              the fold — the audit had to scroll to read every single response. The trace panel is a
              deliberate product surface, but what it shows is staging exhaust: raw step names, a
              monthly budget of $5,000 and per-request costs visible to every seat.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>Collapsed to a single line that says something true and useful — how long it thought,
              how many tools it ran, how many documents it searched. Expanding it gives a
              plain-language breakdown. The Langfuse internals stay in the observability tool where
@@ -576,7 +585,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 5 ============ -->
-    <article class="pair" data-show="both" style="--mh:400px">
+    <article class="pair" data-show="both" style="--mh:340px">
       <div class="ph">
         <span class="pn">05</span>
         <h2 class="pt">"Latest Kimi" is not a model name</h2>
@@ -608,12 +617,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>"Latest Kimi" carries no weights, no version and no size. A buyer evaluating a sovereign
              stack cannot tell what they are being offered, and a user cannot tell why they would
              switch. The one differentiating fact — that these run on Magna's own hardware — is
              compressed into the word "private" repeated four times.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p><code>Kimi K2 Instruct · 1T MoE</code>, <code>DeepSeek V3.1 · 671B MoE</code>,
              <code>Qwen 3 · 235B</code>, <code>NVIDIA Nemotron · 120B</code> — each with a
              one-line "use this when", and a footer stating the cluster and the GPU count.</p></div>
@@ -624,7 +633,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 6 ============ -->
-    <article class="pair" data-show="both" style="--mh:540px">
+    <article class="pair" data-show="both" style="--mh:470px">
       <div class="ph">
         <span class="pn">06</span>
         <h2 class="pt">Code you cannot copy</h2>
@@ -658,12 +667,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>Nothing identifies the language, nothing names the file, nothing wraps long lines, and
              nothing copies the block. Body text renders over the default skyline wallpaper at 50%
              overlay, so contrast fails in the lower third of the viewport — there are eight sliders
              to tune the photograph and no plain-background option.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>Every code block carries a header and real controls, on a token-driven solid surface.
              The wallpaper is gone entirely; theme switching is pure CSS custom properties, so it is
              instant instead of stalling on a raster reload.</p></div>
@@ -674,7 +683,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 7 ============ -->
-    <article class="pair" data-show="both" style="--mh:640px">
+    <article class="pair" data-show="both" style="--mh:600px">
       <div class="ph">
         <span class="pn">07</span>
         <h2 class="pt">A "visual flowchart" drawn in keyboard characters</h2>
@@ -708,11 +717,11 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>There is no Mermaid or SVG renderer, so the "visual" version is byte-for-byte the same
              as the text version. It cannot be exported, cannot be dropped into a deck, and breaks
              the moment the window is resized or the answer is copied into anything proportional.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>Diagrams render as SVG and open in a panel beside the chat with Preview and Code tabs.
              Copy source hands back the Mermaid; Export SVG hands back a vector file that goes
              straight into a slide.</p></div>
@@ -723,7 +732,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 8 ============ -->
-    <article class="pair" data-show="both" style="--mh:520px">
+    <article class="pair" data-show="both" style="--mh:440px">
       <div class="ph">
         <span class="pn">08</span>
         <h2 class="pt">Twenty-five lines of raw LaTeX</h2>
@@ -757,12 +766,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>No math renderer at all. Every quantitative answer arrives as source. The delimiters are
              malformed too — <code>$\int x^3 , dx$</code> uses a bare comma where <code>\,</code> was
              intended — so shipping a renderer alone will not fix it; the prompt template needs
              correcting in the same change.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>Maths renders as notation, inline and in display blocks, hand-built in HTML and CSS with
              no external dependency. The block scrolls inside its own container on a phone rather
              than forcing the page sideways.</p></div>
@@ -773,7 +782,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 9 ============ -->
-    <article class="pair" data-show="both" style="--mh:420px">
+    <article class="pair" data-show="both" style="--mh:380px">
       <div class="ph">
         <span class="pn">09</span>
         <h2 class="pt">Sovereignty, stated before you sign in</h2>
@@ -809,12 +818,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>Nothing in the live app tells a user where their answer ran, and nothing warns them when
              a thread containing internal documents moves to the Public tier. For a sovereign
              deployment, "did this come from our data, and did it stay in the Kingdom?" is the
              question that matters most, and the product does not answer it.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>The claim is made concrete at every step: named cluster and region before sign-in, a
              pre-flight that shows public egress blocked, tiers that explain their trade-off, a
              guardrail that names the exact at-risk files before switching to Public, and a
@@ -826,7 +835,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 10 ============ -->
-    <article class="pair" data-show="both" style="--mh:480px">
+    <article class="pair" data-show="both" style="--mh:420px">
       <div class="ph">
         <span class="pn">10</span>
         <h2 class="pt">Connecting a mail server, in four steps</h2>
@@ -861,12 +870,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>MCP is one of the platform's genuine strengths and it is effectively undiscoverable. The
              one surface that exposes it — an 18-item skills checkbox list — shows internal names
              like <code>heartbeat</code> and <code>jira-ticket-definer</code>, with every skill on by
              default. Users are asked to make a decision they have no way to evaluate.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>A catalogue with a four-step wizard, plus typing <code>/</code> in the composer to open
              a filterable menu of 18 skills and 4 MCP servers, each with a plain-language
              description. Arrow keys navigate, Enter inserts, Escape returns focus to the composer.</p></div>
@@ -877,7 +886,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 11 ============ -->
-    <article class="pair" data-show="both" style="--mh:420px">
+    <article class="pair" data-show="both" style="--mh:380px">
       <div class="ph">
         <span class="pn">11</span>
         <h2 class="pt">Skills described in the user's language</h2>
@@ -914,12 +923,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>Eighteen checkboxes labelled with repository slugs and cut-off descriptions, all
              pre-enabled. The list mixes working skills with a broken one and a sandbox API — which
              is a governance problem as much as a usability one, since a user has no way to tell
              which is which.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>A catalogue rather than a settings list: what each skill does, what it needs, what to
              say to invoke it, and whether it is ready to use or waiting on a connection. Broken and
              UAT entries do not belong in a production workspace at all.</p></div>
@@ -930,7 +939,7 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
     </article>
 
     <!-- ============ 12 ============ -->
-    <article class="pair" data-show="both" style="--mh:640px">
+    <article class="pair" data-show="both" style="--mh:600px">
       <div class="ph">
         <span class="pn">12</span>
         <h2 class="pt">It works on a phone</h2>
@@ -964,11 +973,11 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
         </figure>
       </div>
       <div class="say">
-        <div class="w"><h4>What was wrong</h4>
+        <div class="w"><h3>What was wrong</h3>
           <p>The live build assumes a desktop. On a phone it is unusable — which matters for a
              product whose users are on sites, in vehicles and in meetings rather than at a desk for
              most of their working day.</p></div>
-        <div class="c"><h4>What changed</h4>
+        <div class="c"><h3>What changed</h3>
           <p>All six prototypes were built and checked at 320, 375, 414, 768, 1024 and 1440&nbsp;px
              with no horizontal page overflow at any width. Tables, code blocks, diagrams and maths
              scroll inside their own containers rather than moving the page. Keyboard-shortcut hints
@@ -1124,6 +1133,12 @@ footer .fb b{font-weight:650;font-size:13.5px;color:var(--tx-2)}
   var lbX   = document.getElementById("lbClose");
   var opener = null;
   var canModal = typeof lb.showModal === "function";
+
+  /* give every thumbnail button a name that says what activating it does */
+  Array.prototype.forEach.call(document.querySelectorAll("button.media"), function(b){
+    var im = b.querySelector("img");
+    if (im && im.alt) b.setAttribute("aria-label", "View full size — " + im.alt);
+  });
 
   function open(mediaBtn){
     var img = mediaBtn.querySelector("img");
