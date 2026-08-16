@@ -1,0 +1,335 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>MagnaVERSE — Concept 6: Answers That Render</title>
+<style>
+/* MagnaVERSE redesign — shared design tokens */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080A0F; --bg-2:#0D1119; --surface:#12161F; --surface-2:#171C27; --surface-3:#1E2432;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.13);
+  --tx:#EAEEF5; --tx-2:#98A3B6; --tx-3:#606B80;
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,.14);
+  --green:#22C55E; --green-dim:rgba(34,197,94,.12);
+  --amber:#F5A524; --amber-dim:rgba(245,165,36,.12);
+  --violet:#8B5CF6; --rose:#F43F5E;
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+}
+html,body{height:100%}
+body{
+  background:#05060A; color:var(--tx);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+/* page = product frame + spec column */
+.page{display:flex;height:100vh;width:100vw}
+.frame{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.frame-hd{height:34px;flex:none;display:flex;align-items:center;gap:9px;padding:0 16px;
+  background:#05060A;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--tx-3)}
+.frame-hd i{width:7px;height:7px;border-radius:99px;background:var(--blue);flex:none}
+.frame-hd em{font-style:normal;color:var(--tx);font-size:12.5px;font-weight:600}
+.app{flex:1;display:flex;min-height:0}
+/* spec column */
+.spec{width:296px;flex:none;background:#05060A;border-left:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;overflow:hidden}
+.spec-hd{padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.spec-hd h3{font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.spec-hd p{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.5}
+.spec-body{flex:1;overflow:hidden;padding:6px 18px 16px}
+.sitem{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.sitem:last-child{border-bottom:0}
+.sn{width:20px;height:20px;border-radius:99px;flex:none;display:grid;place-items:center;margin-top:1px;
+  background:var(--blue);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono)}
+.sitem h4{font-size:12.5px;font-weight:650;margin-bottom:3px;line-height:1.35}
+.sitem p{font-size:11.5px;line-height:1.5;color:var(--tx-2)}
+.sitem p .was{color:#F5A524}
+/* marker dropped onto the UI */
+.mk{position:absolute;z-index:50;width:21px;height:21px;border-radius:99px;background:var(--blue);
+  color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);display:grid;place-items:center;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22),0 3px 10px rgba(0,0,0,.6)}
+/* ---------- generic atoms ---------- */
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface-2);font-size:12px;color:var(--tx-2);white-space:nowrap}
+.pill.green{border-color:rgba(34,197,94,.35);background:var(--green-dim);color:#7EE2A8}
+.pill.blue{border-color:rgba(59,130,246,.35);background:var(--blue-dim);color:#93BBFB}
+.pill.amber{border-color:rgba(245,165,36,.35);background:var(--amber-dim);color:#F5C97B}
+.pill.sm{height:20px;font-size:10.5px;padding:0 8px}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;
+  border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);
+  font-size:13px;font-weight:500;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ico.sm{width:14px;height:14px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.muted{color:var(--tx-2)} .dim{color:var(--tx-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.kbd{font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.04);color:var(--tx-3)}
+</style>
+<style>
+.stage{flex:1;display:flex;gap:16px;padding:16px 18px;min-width:0}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.col.a{width:404px;flex:none}
+.col.b{flex:1}
+.hdr{display:flex;align-items:center;gap:9px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700}
+.hdr .ln{flex:1;height:1px;background:var(--line)}
+
+/* ---------- BEFORE: what ships today ---------- */
+.today{padding:12px 13px}
+.today h4{font-size:12px;font-weight:650;margin-bottom:8px;color:#F5C97B;display:flex;align-items:center;gap:7px}
+.raw{background:#0A0D13;border:1px solid rgba(245,165,36,.28);border-radius:9px;padding:10px 11px;
+  font-family:var(--mono);font-size:11.5px;line-height:1.85;color:#B9C3D2;overflow:hidden}
+.raw .lit{color:#F5A524}
+.ascii{background:#0A0D13;border:1px solid rgba(245,165,36,.28);border-radius:9px;padding:10px 11px;
+  font-family:var(--mono);font-size:10.5px;line-height:1.35;color:#B9C3D2;white-space:pre}
+.verdict{margin-top:8px;font-size:11px;color:var(--tx-3);line-height:1.5}
+.verdict b{color:#F5C97B}
+
+/* ---------- AFTER: the rendered answer ---------- */
+.answer{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.ai-head{display:flex;align-items:center;gap:8px;padding:11px 14px 0}
+.ai-mark{width:21px;height:21px;border-radius:6px;background:linear-gradient(135deg,#22C55E,#3B82F6);flex:none}
+.ai-name{font-size:12.5px;font-weight:650}
+.abody{padding:11px 16px 0;overflow:hidden;flex:1}
+.abody > p{font-size:13.6px;line-height:1.62;color:#DCE2EB;margin-bottom:11px}
+.abody h5{font-size:12.8px;font-weight:650;color:#fff;margin:0 0 8px}
+
+/* --- MATH --- */
+.mathblock{display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.mrow{display:flex;align-items:center;gap:8px;font-family:"Times New Roman",Georgia,serif;font-size:19px;color:#F2F5FA}
+.intg{font-size:30px;line-height:.8;font-family:"Times New Roman",serif}
+.var{font-style:italic}
+.sup{font-size:.62em;vertical-align:.62em;font-style:italic}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.12}
+.frac .num{padding:0 5px}
+.frac .den{padding:0 5px;border-top:1px solid #C6CFDC;margin-top:1px}
+.mathblock .tagn{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--tx-3)}
+.inlinemath{font-family:"Times New Roman",Georgia,serif;font-size:15px;color:#F2F5FA}
+
+/* --- CODE --- */
+.codeblk{border:1px solid var(--line-2);border-radius:11px;overflow:hidden;background:#0A0D13;margin-bottom:11px}
+.code-hd{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;background:var(--surface-2);
+  border-bottom:1px solid var(--line)}
+.code-hd .lang{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-2)}
+.code-hd .acts{margin-left:auto;display:flex;gap:4px}
+.cbtn{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:6px;
+  border:1px solid var(--line);background:var(--surface-3);color:var(--tx-2);font-size:10.5px}
+.cbtn.on{border-color:rgba(34,197,94,.45);background:var(--green-dim);color:#8FE3B2}
+pre.code{padding:10px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.65;overflow-x:auto;color:#C9D3E1}
+.k{color:#C792EA}.s{color:#8FE3B2}.f{color:#82AAFF}.c{color:#546178;font-style:italic}.n{color:#F5A524}
+
+/* --- DIAGRAM --- */
+.diagwrap{border:1px solid var(--line);border-radius:11px;background:var(--surface-2);margin-bottom:11px;overflow:hidden}
+.diag-hd{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-2)}
+.diag-hd .acts{margin-left:auto;display:flex;gap:4px}
+.diag{position:relative;height:186px}
+.dnode{position:absolute;border:1px solid var(--line-2);background:var(--surface-3);border-radius:9px;
+  padding:7px 11px;font-size:11.5px;font-weight:550;color:var(--tx);text-align:center;white-space:nowrap}
+.dnode.acc{border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.13);color:#B6D0FC}
+.dnode.ok{border-color:rgba(34,197,94,.45);background:var(--green-dim);color:#8FE3B2}
+.dlabel{position:absolute;font-family:var(--mono);font-size:9.5px;color:var(--tx-3);background:var(--surface-2);padding:0 4px}
+
+/* --- TABLE --- */
+.tbl{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  font-size:11.8px;margin-bottom:11px}
+.tbl th{background:var(--surface-2);text-align:left;padding:7px 10px;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--tx-2)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--tx)}
+
+/* --- message footer: ONE row --- */
+.mfoot{display:flex;align-items:center;gap:3px;padding:10px 16px 12px;border-top:1px solid var(--line);margin-top:auto}
+.act{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:8px;
+  border:1px solid transparent;color:var(--tx-3);font-size:11.5px}
+.act.hl{background:var(--surface-2);border-color:var(--line);color:var(--tx)}
+
+/* --- renderer support strip --- */
+.support{padding:11px 13px}
+.sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.si{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--tx-2);padding:5px 8px;
+  border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.si .st{width:14px;height:14px;border-radius:99px;display:grid;place-items:center;flex:none;
+  background:var(--green-dim);color:#7EE2A8;border:1px solid rgba(34,197,94,.45)}
+.si .kb{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--tx-3)}
+</style></head><body>
+<div class="page">
+<div class="frame">
+  <div class="frame-hd"><i></i><em>Concept 6 — Answers That Render</em> · the reply surface: math, code, diagrams, tables</div>
+  <div class="app"><div class="stage">
+
+    <!-- ========== LEFT: what ships today ========== -->
+    <div class="col a">
+      <div class="hdr">Shipping today<span class="ln"></span><span class="pill amber sm">from your screenshots</span></div>
+
+      <div class="card today">
+        <h4><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></svg>
+          Ask for integrals — LaTeX is never parsed</h4>
+        <div class="raw">Basic Indefinite Integrals<br>
+          <span class="lit">$\int x^3 , dx$</span><br>
+          <span class="lit">$\int \frac{1}{x^2} , dx$</span><br>
+          <span class="lit">$\int \sqrt{x} , dx$</span><br>
+          <span class="lit">$\int \frac{x}{\sqrt{x^2 + 4}} , dx$</span></div>
+        <div class="verdict">The model is emitting correct LaTeX. The client has <b>no math renderer</b>, so every formula ships as source. Note the delimiters are also malformed — <span class="mono">,</span> where <span class="mono">\,</span> was meant.</div>
+      </div>
+
+      <div class="card today">
+        <h4><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></svg>
+          Ask for a flow diagram — you get ASCII art</h4>
+        <div class="ascii">┌─────────────┐
+│ USER        │
+│ taps iPhone │
+└──────┬──────┘
+       │ NFC
+       ▼
+┌─────────────┐
+│ MERCHANT    │
+│ NFC TERMINAL│
+└──────┬──────┘
+       │ Encrypted Token
+       ▼</div>
+        <div class="verdict">The model announced <i>“I'll sketch both a visual flowchart and a text version”</i> — and then drew both in monospace. <b>No Mermaid or SVG renderer exists</b>, so it degrades to characters.</div>
+      </div>
+
+      <div class="card today">
+        <h4><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></svg>
+          Code blocks — no copy, no language, no frame</h4>
+        <div class="verdict" style="margin-top:2px">A bare dark rectangle with syntax colour and nothing else: no language label, <b>no copy button</b>, no wrap toggle, no line numbers. Below it, prose and <span class="mono">input()</span> run together with no spacing — <b>and there is no “copy full message” anywhere on the answer.</b></div>
+      </div>
+    </div>
+
+    <!-- ========== RIGHT: the fix ========== -->
+    <div class="col b">
+      <div class="hdr">Proposed — one renderer, four content types<span class="ln"></span></div>
+
+      <div class="card answer">
+        <div class="ai-head"><div class="ai-mark"></div><div class="ai-name">Magna</div>
+          <span class="pill sm">Kimi K2 Instruct · 1T MoE</span>
+          <span class="pill sm green"><span class="dot"></span>Private · Riyadh DC-1</span></div>
+
+        <div class="abody">
+          <p>Here are integral calculus practice questions, organised by topic and difficulty.</p>
+
+          <h5>Basic indefinite integrals</h5>
+          <div class="mathblock">
+            <span class="mrow"><span class="intg">∫</span><span class="var">x</span><span class="sup">3</span>&nbsp;<span class="var">dx</span></span>
+            <span class="mrow"><span class="intg">∫</span>
+              <span class="frac"><span class="num">1</span><span class="den"><span class="var">x</span><span class="sup">2</span></span></span>
+              &nbsp;<span class="var">dx</span></span>
+            <span class="mrow"><span class="intg">∫</span>√<span class="var" style="border-top:1px solid #C6CFDC;padding-top:1px">x</span>&nbsp;<span class="var">dx</span></span>
+            <span class="tagn">KaTeX</span>
+          </div>
+
+          <h5>u-substitution</h5>
+          <div class="mathblock">
+            <span class="mrow"><span class="intg">∫</span>
+              <span class="frac"><span class="num"><span class="var">x</span></span><span class="den">√<span class="var" style="border-top:1px solid #C6CFDC">x</span><span class="sup">2</span>+4</span></span>
+              &nbsp;<span class="var">dx</span></span>
+            <span class="mrow"><span class="intg">∫</span><span class="var">x</span>&nbsp;sin(<span class="var">x</span><span class="sup">2</span>)&nbsp;<span class="var">dx</span></span>
+            <span class="tagn">display mode</span>
+          </div>
+
+          <p style="margin-bottom:9px">Inline maths flows with the sentence — the exponent in
+            <span class="inlinemath"><span class="var">e</span><span class="sup">x</span></span> stays raised, and
+            <span class="inlinemath"><span class="frac" style="font-size:13px"><span class="num">d</span><span class="den">d<span class="var">x</span></span></span></span>
+            renders as a fraction, not as <span class="mono">\frac{d}{dx}</span>.</p>
+
+          <h5>Apple Pay — the same answer as a real diagram</h5>
+          <div class="diagwrap">
+            <div class="diag-hd">mermaid · flowchart
+              <span class="acts"><span class="cbtn">Copy source</span><span class="cbtn">Export SVG</span><span class="cbtn">Full screen</span></span></div>
+            <div class="diag">
+              <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 660 186" preserveAspectRatio="none">
+                <defs><marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                  <path d="M0 0 L7 3.5 L0 7Z" fill="#5B6A80"/></marker></defs>
+                <path d="M96 44 L176 44" stroke="#5B6A80" stroke-width="1.3" marker-end="url(#ah)"/>
+                <path d="M292 44 L372 44" stroke="#5B6A80" stroke-width="1.3" marker-end="url(#ah)"/>
+                <path d="M448 62 L448 108" stroke="#5B6A80" stroke-width="1.3" marker-end="url(#ah)"/>
+                <path d="M372 130 L292 130" stroke="#22C55E" stroke-width="1.3" marker-end="url(#ah)"/>
+                <path d="M176 130 L96 130" stroke="#22C55E" stroke-width="1.3" marker-end="url(#ah)"/>
+              </svg>
+              <div class="dnode acc" style="left:16px;top:30px">User taps iPhone</div>
+              <div class="dnode" style="left:180px;top:30px">Merchant NFC terminal</div>
+              <div class="dnode" style="left:376px;top:30px">Payment gateway</div>
+              <div class="dnode" style="left:376px;top:116px">Issuing bank</div>
+              <div class="dnode ok" style="left:180px;top:116px">Token approved</div>
+              <div class="dnode ok" style="left:16px;top:116px">Receipt shown</div>
+              <span class="dlabel" style="left:120px;top:34px">NFC</span>
+              <span class="dlabel" style="left:300px;top:34px">token</span>
+              <span class="dlabel" style="left:456px;top:78px">auth</span>
+              <span class="dlabel" style="left:308px;top:120px">approve</span>
+            </div>
+          </div>
+
+          <h5>Code gets a frame, a language and a copy button</h5>
+          <div class="codeblk">
+            <div class="code-hd"><span class="lang">Python</span><span class="dim" style="font-size:10.5px">subtract.py</span>
+              <span class="acts"><span class="cbtn on"><svg class="ico sm" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="m5 12 5 5L20 7"/></svg>Copied</span>
+                <span class="cbtn">Wrap</span><span class="cbtn">Run</span><span class="cbtn">Download</span></span></div>
+<pre class="code"><span class="c"># Get input from the user</span>
+num1 = <span class="f">float</span>(<span class="f">input</span>(<span class="s">"Enter first number: "</span>))
+num2 = <span class="f">float</span>(<span class="f">input</span>(<span class="s">"Enter second number: "</span>))
+
+result = num1 - num2
+<span class="f">print</span>(<span class="s">f"{num1} - {num2} = {result}"</span>)</pre>
+          </div>
+
+          <table class="tbl">
+            <thead><tr><th>Topic</th><th>Questions</th><th style="text-align:right">Avg. difficulty</th></tr></thead>
+            <tbody>
+              <tr><td>Basic indefinite</td><td>5</td><td class="num">1.2</td></tr>
+              <tr><td>u-substitution</td><td>5</td><td class="num">2.4</td></tr>
+              <tr><td>Integration by parts</td><td>5</td><td class="num">3.1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mfoot">
+          <span class="act hl"><svg class="ico sm" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>Copy full message</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>Retry</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v12M8 7l4-4 4 4"/></svg>Export</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Share</span>
+          <span style="flex:1"></span>
+          <span class="dim" style="font-size:10.5px">Markdown · KaTeX · Mermaid · Shiki</span>
+        </div>
+      </div>
+
+      <div class="card support">
+        <div class="sgrid">
+          <div class="si"><span class="st"><svg class="ico sm" viewBox="0 0 24 24" style="stroke-width:3"><path d="m5 12 5 5L20 7"/></svg></span>Math — inline &amp; display<span class="kb">KaTeX</span></div>
+          <div class="si"><span class="st"><svg class="ico sm" viewBox="0 0 24 24" style="stroke-width:3"><path d="m5 12 5 5L20 7"/></svg></span>Diagrams &amp; flowcharts<span class="kb">Mermaid</span></div>
+          <div class="si"><span class="st"><svg class="ico sm" viewBox="0 0 24 24" style="stroke-width:3"><path d="m5 12 5 5L20 7"/></svg></span>Code, 100+ languages<span class="kb">Shiki</span></div>
+          <div class="si"><span class="st"><svg class="ico sm" viewBox="0 0 24 24" style="stroke-width:3"><path d="m5 12 5 5L20 7"/></svg></span>Tables, sortable<span class="kb">GFM</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+  <span class="mk" style="left:426px;top:56px">1</span>
+  <span class="mk" style="left:426px;top:300px">2</span>
+  <span class="mk" style="left:426px;top:560px">3</span>
+  <span class="mk" style="left:1180px;top:640px">4</span>
+  <span class="mk" style="left:1180px;top:790px">5</span>
+</div>
+
+<aside class="spec">
+  <div class="spec-hd"><h3>What changed &amp; why</h3>
+    <p>The audit covered the shell. This covers the thing inside it — the answer itself, which is where the product currently breaks hardest.</p></div>
+  <div class="spec-body">
+    <div class="sitem"><span class="sn">1</span><div><h4>Render the maths</h4>
+      <p><span class="was">Today:</span> ask for integrals and you get <span class="mono">$\int x^3 , dx$</span> as literal text, twenty times in a row.<br>Now: KaTeX for inline and display maths. Any technical or engineering seat is unusable without this.</p></div></div>
+    <div class="sitem"><span class="sn">2</span><div><h4>Draw the diagram</h4>
+      <p><span class="was">Today:</span> “I'll sketch a visual flowchart” produces box-drawing characters that break on any width change.<br>Now: Mermaid → real SVG, with copy-source, export and full-screen.</p></div></div>
+    <div class="sitem"><span class="sn">3</span><div><h4>Frame the code</h4>
+      <p><span class="was">Today:</span> a bare rectangle — no language, no filename, <b>no copy</b>.<br>Now: language header, copy, wrap, run, download. Copy is the most-pressed button in every chat product.</p></div></div>
+    <div class="sitem"><span class="sn">4</span><div><h4>One action row, at the bottom</h4>
+      <p><span class="was">Today:</span> a lone share icon floats on its own line below the bubble and collides with the scroll.<br>Now: Copy full message · Retry · Export · Share, in a single anchored row.</p></div></div>
+    <div class="sitem"><span class="sn">5</span><div><h4>Name the models properly</h4>
+      <p><span class="was">Today:</span> “Latest Kimi”, “Latest Qwen”, “Latest DeepSeek”.<br>Now: <span class="mono">Kimi K2 Instruct · 1T MoE</span>. Buyers evaluating a sovereign stack need the actual weights, version and size.</p></div></div>
+  </div>
+</aside>
+</div>
+</body></html>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" role="img" aria-label="Magna">
+  <defs>
+    <linearGradient id="mgGB" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+    </linearGradient>
+    <linearGradient id="mgR" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+    </linearGradient>
+  </defs>
+  <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

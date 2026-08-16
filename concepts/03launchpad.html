@@ -1,0 +1,257 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>MagnaVERSE — Concept 3: The Launchpad</title>
+<style>
+/* MagnaVERSE redesign — shared design tokens */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080A0F; --bg-2:#0D1119; --surface:#12161F; --surface-2:#171C27; --surface-3:#1E2432;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.13);
+  --tx:#EAEEF5; --tx-2:#98A3B6; --tx-3:#606B80;
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,.14);
+  --green:#22C55E; --green-dim:rgba(34,197,94,.12);
+  --amber:#F5A524; --amber-dim:rgba(245,165,36,.12);
+  --violet:#8B5CF6; --rose:#F43F5E;
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+}
+html,body{height:100%}
+body{
+  background:#05060A; color:var(--tx);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+/* page = product frame + spec column */
+.page{display:flex;height:100vh;width:100vw}
+.frame{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.frame-hd{height:34px;flex:none;display:flex;align-items:center;gap:9px;padding:0 16px;
+  background:#05060A;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--tx-3)}
+.frame-hd i{width:7px;height:7px;border-radius:99px;background:var(--blue);flex:none}
+.frame-hd em{font-style:normal;color:var(--tx);font-size:12.5px;font-weight:600}
+.app{flex:1;display:flex;min-height:0}
+/* spec column */
+.spec{width:296px;flex:none;background:#05060A;border-left:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;overflow:hidden}
+.spec-hd{padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.spec-hd h3{font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.spec-hd p{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.5}
+.spec-body{flex:1;overflow:hidden;padding:6px 18px 16px}
+.sitem{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.sitem:last-child{border-bottom:0}
+.sn{width:20px;height:20px;border-radius:99px;flex:none;display:grid;place-items:center;margin-top:1px;
+  background:var(--blue);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono)}
+.sitem h4{font-size:12.5px;font-weight:650;margin-bottom:3px;line-height:1.35}
+.sitem p{font-size:11.5px;line-height:1.5;color:var(--tx-2)}
+.sitem p .was{color:#F5A524}
+/* marker dropped onto the UI */
+.mk{position:absolute;z-index:50;width:21px;height:21px;border-radius:99px;background:var(--blue);
+  color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);display:grid;place-items:center;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22),0 3px 10px rgba(0,0,0,.6)}
+/* ---------- generic atoms ---------- */
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface-2);font-size:12px;color:var(--tx-2);white-space:nowrap}
+.pill.green{border-color:rgba(34,197,94,.35);background:var(--green-dim);color:#7EE2A8}
+.pill.blue{border-color:rgba(59,130,246,.35);background:var(--blue-dim);color:#93BBFB}
+.pill.amber{border-color:rgba(245,165,36,.35);background:var(--amber-dim);color:#F5C97B}
+.pill.sm{height:20px;font-size:10.5px;padding:0 8px}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;
+  border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);
+  font-size:13px;font-weight:500;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ico.sm{width:14px;height:14px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.muted{color:var(--tx-2)} .dim{color:var(--tx-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.kbd{font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.04);color:var(--tx-3)}
+
+</style>
+<style>
+.rail{width:56px;flex:none;background:var(--bg-2);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}
+.rail .mrk{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#22C55E,#3B82F6 55%,#F43F5E);
+  display:grid;place-items:center;font-weight:800;font-size:12px;color:#06080C;margin-bottom:10px}
+.ri{width:36px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--tx-3)}
+.ri.on{background:var(--surface-2);color:var(--blue)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.lp{flex:1;overflow:hidden;padding:24px 30px 0;max-width:700px}
+.hi{font-size:22px;font-weight:600;letter-spacing:-.015em;margin-bottom:4px}
+.hi span{color:var(--tx-3)}
+.hi-sub{font-size:12.5px;color:var(--tx-3);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.big{border:1px solid var(--line-2);background:var(--surface);border-radius:15px;padding:14px 15px 10px;
+  box-shadow:0 12px 44px rgba(0,0,0,.5);margin-bottom:14px}
+.big .ph{font-size:15px;color:var(--tx-3);padding-bottom:13px}
+.cbar{display:flex;align-items:center;gap:6px}
+.tool{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:8px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--tx-2);font-size:11.5px}
+.tool.on{border-color:rgba(59,130,246,.4);background:var(--blue-dim);color:#9CC3FC}
+.send{margin-left:auto;width:30px;height:30px;border-radius:9px;background:var(--blue);display:grid;place-items:center;color:#fff}
+.intents{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:18px}
+.intent{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px}
+.intent.hot{border-color:rgba(59,130,246,.45);background:linear-gradient(180deg,rgba(59,130,246,.1),var(--surface))}
+.intent .ih{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:650;margin-bottom:5px}
+.intent p{font-size:11px;line-height:1.45;color:var(--tx-3)}
+.sec-h{display:flex;align-items:center;gap:9px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700;margin-bottom:9px}
+.sec-h .ln{flex:1;height:1px;background:var(--line)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.rc{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px}
+.rc .t{font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc .m{font-size:10.5px;color:var(--tx-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rc .cta{margin-top:8px;font-size:11.5px;color:#93BBFB}
+.srcgrid{display:grid;grid-template-columns:repeat(1,1fr);gap:7px}
+.sp{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);
+  border-radius:11px;padding:9px 11px}
+.sp .logo{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;font-size:10px;font-weight:800}
+.sp .tx{flex:1;min-width:0}
+.sp .tx b{display:block;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp .tx span{font-size:10.5px;color:var(--tx-3)}
+/* overlay: what a chip actually does */
+.overlay{position:absolute;right:22px;top:64px;width:352px;z-index:40;
+  border:1px solid var(--line-2);background:#0F1319;border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.75);overflow:hidden}
+.ov-h{padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:650}
+.ov-b{padding:13px 14px}
+.draft{border:1px solid rgba(59,130,246,.35);background:var(--surface);border-radius:11px;padding:11px 12px;
+  font-size:12.5px;line-height:1.6;color:#DCE2EB}
+.slot{display:inline-block;padding:1px 7px;border-radius:6px;background:var(--blue-dim);
+  border:1px dashed rgba(59,130,246,.55);color:#9CC3FC;font-size:11.5px}
+.ov-note{font-size:11px;color:var(--tx-3);margin-top:9px;line-height:1.5}
+.ov-f{display:flex;gap:7px;padding:11px 14px;border-top:1px solid var(--line)}
+/* palette */
+.pal{position:absolute;right:22px;bottom:22px;width:352px;z-index:40;border:1px solid var(--line-2);
+  background:#0F1319;border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.75);overflow:hidden}
+.pal-in{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--line);
+  font-size:13px;color:var(--tx-2)}
+.pal-g{padding:7px 0}
+.pal-l{padding:3px 14px 5px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--tx-3);font-weight:700}
+.pal-i{display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:12.5px;color:var(--tx-2)}
+.pal-i.on{background:var(--surface-2);color:var(--tx)}
+.pal-i .k{margin-left:auto}
+</style></head><body>
+<div class="page">
+<div class="frame">
+  <div class="frame-hd"><i></i><em>Concept 3 — The Launchpad</em> · replace the marketing hero with the first useful minute</div>
+  <div class="app">
+    <div class="rail">
+      <div class="mrk">M</div>
+      <div class="ri on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg></div>
+      <div class="ri"><svg class="ico" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></div>
+      <div class="ri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+      <div class="ri"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></div>
+    </div>
+
+    <div class="main"><div class="lp">
+      <div class="hi">Good afternoon, Ahmad. <span>What are we working on?</span></div>
+      <div class="hi-sub"><span class="pill green" style="height:22px;font-size:11px"><span class="dot"></span>Private · Riyadh DC-1</span>
+        <span>6 systems connected · 18 skills ready · 2 tasks ran overnight</span></div>
+
+      <div class="big">
+        <div class="ph">Ask anything, or describe what you want done…</div>
+        <div class="cbar">
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></svg>Attach</span>
+          <span class="tool on"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>Company knowledge</span>
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Tools</span>
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/></svg>Auto <span class="dim">picks the model</span></span>
+          <span class="send"><svg class="ico" viewBox="0 0 24 24"><path d="m4 12 16-8-6 8 6 8Z"/></svg></span>
+        </div>
+      </div>
+
+      <div class="intents">
+        <div class="intent hot"><div class="ih"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Analyse</div>
+          <p>Point me at a file, a system or a question. Fills an editable brief — never sends on its own.</p></div>
+        <div class="intent"><div class="ih"><svg class="ico sm" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6Z"/></svg>Automate</div>
+          <p>Turn something you do weekly into a scheduled task.</p></div>
+        <div class="intent"><div class="ih"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg>Create</div>
+          <p>Draft a memo, deck, spec or report in your house format.</p></div>
+        <div class="intent"><div class="ih"><svg class="ico sm" viewBox="0 0 24 24"><path d="M6 3h12l-2 7 2 11H6l2-11Z"/></svg>Simulate</div>
+          <p>Model a what-if against your live operational data.</p></div>
+      </div>
+
+      <div class="sec-h">Pick up where you left off<span class="ln"></span></div>
+      <div class="cards">
+        <div class="rc"><div class="t">Operational risk — KSA construction</div>
+          <div class="m"><span class="pill sm green"><span class="dot"></span>Private</span>12 min ago · 4 messages</div>
+          <div class="cta">Continue ›</div></div>
+        <div class="rc"><div class="t">Vendor spend variance — Q3</div>
+          <div class="m"><span class="pill sm amber">needs you</span>paused on a missing SAP export</div>
+          <div class="cta">Resolve &amp; resume ›</div></div>
+        <div class="rc"><div class="t">Nightly HSE digest</div>
+          <div class="m"><span class="pill sm blue">task</span>ran 06:00 · 3 incidents flagged</div>
+          <div class="cta">Read result ›</div></div>
+      </div>
+
+      <div class="sec-h">Starters built from what <i style="font-style:normal;color:var(--tx-2)">you</i> have connected<span class="ln"></span>
+        <span class="pill sm" >Procurement lead</span></div>
+      <div class="srcgrid">
+        <div class="sp"><span class="logo" style="background:#0B5CAB;color:#fff">SAP</span>
+          <span class="tx"><b>“Which POs slipped past their promised date this month?”</b><span>SAP S/4HANA · 2.1M records indexed</span></span>
+          <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="m9 6 6 6-6 6"/></svg></div>
+        <div class="sp"><span class="logo" style="background:#1E2432;color:#7EE2A8">KB</span>
+          <span class="tx"><b>“Summarise every change order raised on Package 4.”</b><span>Company knowledge · 8,400 documents</span></span>
+          <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="m9 6 6 6-6 6"/></svg></div>
+        <div class="sp"><span class="logo" style="background:#0052CC;color:#fff">J</span>
+          <span class="tx"><b>“What is blocking the Riyadh Metro delivery sprint?”</b><span>Jira · 3 projects</span></span>
+          <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="m9 6 6 6-6 6"/></svg></div>
+        <div class="sp" style="border-style:dashed;opacity:.72"><span class="logo" style="background:#1E2432;color:var(--tx-3)">+</span>
+          <span class="tx"><b>Connect Salesforce to unlock 6 more starters</b><span>Not connected · 2-minute setup</span></span>
+          <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="m9 6 6 6-6 6"/></svg></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="overlay">
+    <div class="ov-h"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+      Clicking “Analyse” — the fixed behaviour</div>
+    <div class="ov-b">
+      <div class="draft">Analyse <span class="slot">this file ⌄</span> and tell me <span class="slot">what changed vs last quarter ⌄</span>.
+        Focus on <span class="slot">cost drivers</span>. Return a <span class="slot">short summary + table ⌄</span>.</div>
+      <div class="ov-note"><b style="color:#F5A524">Today:</b> the chip instantly sends a long question you never wrote (“Walk me through your data, document and pattern analysis capabilities…”) and you watch it burn 12 seconds.<br>
+        <b style="color:#7EE2A8">Proposed:</b> it drafts an editable brief with slots. Cursor lands in the first slot. Nothing is sent until you press ↵.</div>
+    </div>
+    <div class="ov-f"><span class="btn primary" style="height:31px;flex:1">Send</span>
+      <span class="btn" style="height:31px">Edit</span><span class="btn" style="height:31px">Discard</span></div>
+  </div>
+
+  <div class="pal">
+    <div class="pal-in"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span style="flex:1">vendor</span><span class="kbd">esc</span></div>
+    <div class="pal-g"><div class="pal-l">Conversations</div>
+      <div class="pal-i on"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg>Q3 vendor spend variance<span class="k dim">today</span></div>
+      <div class="pal-i"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg>Vendor risk register review<span class="k dim">Tue</span></div>
+    </div>
+    <div class="pal-g" style="border-top:1px solid var(--line)"><div class="pal-l">Documents · company knowledge</div>
+      <div class="pal-i"><svg class="ico sm" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/></svg>Vendor-Risk-Register-Q2.xlsx<span class="k pill sm green">internal</span></div>
+    </div>
+    <div class="pal-g" style="border-top:1px solid var(--line)"><div class="pal-l">Actions</div>
+      <div class="pal-i"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New chat about vendors<span class="k kbd">⏎</span></div>
+    </div>
+  </div>
+
+  <span class="mk" style="left:736px;top:74px">1</span>
+  <span class="mk" style="left:736px;top:238px">2</span>
+  <span class="mk" style="left:736px;top:410px">3</span>
+  <span class="mk" style="left:736px;top:560px">4</span>
+  <span class="mk" style="left:736px;top:706px">5</span>
+</div>
+
+<aside class="spec">
+  <div class="spec-hd"><h3>What changed &amp; why</h3>
+    <p>The current home screen is a poster. This one is a place to start work.</p></div>
+  <div class="spec-body">
+    <div class="sitem"><span class="sn">1</span><div><h4>Status, not slogan</h4>
+      <p><span class="was">Today:</span> a giant “MagnaVERSE — your enterprise operational brain” over a city photo.<br>Now: where you are, what’s connected, what ran while you slept. The tagline belongs on the marketing site.</p></div></div>
+    <div class="sitem"><span class="sn">2</span><div><h4>Chips draft, they don’t fire</h4>
+      <p><span class="was">Today:</span> clicking <i>Analyze</i> silently sends a 30-word question on your behalf. That is the single most surprising thing in the app.<br>Now: it fills an editable brief with slots.</p></div></div>
+    <div class="sitem"><span class="sn">3</span><div><h4>Resume beats restart</h4>
+      <p>Threads, paused tasks and overnight scheduler results share one row. Today an overnight “Heartbeat” run is invisible unless you go hunting for it.</p></div></div>
+    <div class="sitem"><span class="sn">4</span><div><h4>Starters from real connections</h4>
+      <p>Generic prompt suggestions teach nothing. Suggestions generated from <i>your</i> SAP, KB and Jira teach people what an on-prem brain is actually for — and each unconnected slot becomes a sales hook.</p></div></div>
+    <div class="sitem"><span class="sn">5</span><div><h4>Promote the command palette</h4>
+      <p>It already exists behind an unlabelled magnifier and is the best thing in the product. Give it a visible ⌘K entry point and let it search documents and actions, not just page names.</p></div></div>
+    <div class="sitem"><span class="sn">6</span><div><h4>Make MCPs discoverable with <span class="mono">/</span></h4>
+      <p><span class="was">Today:</span> MCP servers are reachable only through <i>Tools → {} MCP</i>, with no explanation of what any of them do or when they fire.<br>Now: typing <span class="mono">/</span> in the composer opens one filterable menu of skills <b>and</b> MCP servers — <span class="mono">sap-po-lookup</span>, <span class="mono">jira-search</span>, <span class="mono">p6-schedule</span> — each with a plain-language description. Arrow keys navigate, ↵ inserts, Esc closes and returns focus to the composer.</p></div></div>
+  </div>
+</aside>
+</div>
+</body></html>

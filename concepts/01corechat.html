@@ -1,0 +1,249 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>MagnaVERSE — Concept 1: The Calm Thread</title>
+<style>
+/* MagnaVERSE redesign — shared design tokens */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080A0F; --bg-2:#0D1119; --surface:#12161F; --surface-2:#171C27; --surface-3:#1E2432;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.13);
+  --tx:#EAEEF5; --tx-2:#98A3B6; --tx-3:#606B80;
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,.14);
+  --green:#22C55E; --green-dim:rgba(34,197,94,.12);
+  --amber:#F5A524; --amber-dim:rgba(245,165,36,.12);
+  --violet:#8B5CF6; --rose:#F43F5E;
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+}
+html,body{height:100%}
+body{
+  background:#05060A; color:var(--tx);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+/* page = product frame + spec column */
+.page{display:flex;height:100vh;width:100vw}
+.frame{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.frame-hd{height:34px;flex:none;display:flex;align-items:center;gap:9px;padding:0 16px;
+  background:#05060A;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--tx-3)}
+.frame-hd i{width:7px;height:7px;border-radius:99px;background:var(--blue);flex:none}
+.frame-hd em{font-style:normal;color:var(--tx);font-size:12.5px;font-weight:600}
+.app{flex:1;display:flex;min-height:0}
+/* spec column */
+.spec{width:296px;flex:none;background:#05060A;border-left:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;overflow:hidden}
+.spec-hd{padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.spec-hd h3{font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.spec-hd p{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.5}
+.spec-body{flex:1;overflow:hidden;padding:6px 18px 16px}
+.sitem{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.sitem:last-child{border-bottom:0}
+.sn{width:20px;height:20px;border-radius:99px;flex:none;display:grid;place-items:center;margin-top:1px;
+  background:var(--blue);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono)}
+.sitem h4{font-size:12.5px;font-weight:650;margin-bottom:3px;line-height:1.35}
+.sitem p{font-size:11.5px;line-height:1.5;color:var(--tx-2)}
+.sitem p .was{color:#F5A524}
+/* marker dropped onto the UI */
+.mk{position:absolute;z-index:50;width:21px;height:21px;border-radius:99px;background:var(--blue);
+  color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);display:grid;place-items:center;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22),0 3px 10px rgba(0,0,0,.6)}
+/* ---------- generic atoms ---------- */
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface-2);font-size:12px;color:var(--tx-2);white-space:nowrap}
+.pill.green{border-color:rgba(34,197,94,.35);background:var(--green-dim);color:#7EE2A8}
+.pill.blue{border-color:rgba(59,130,246,.35);background:var(--blue-dim);color:#93BBFB}
+.pill.amber{border-color:rgba(245,165,36,.35);background:var(--amber-dim);color:#F5C97B}
+.pill.sm{height:20px;font-size:10.5px;padding:0 8px}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;
+  border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);
+  font-size:13px;font-weight:500;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ico.sm{width:14px;height:14px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.muted{color:var(--tx-2)} .dim{color:var(--tx-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.kbd{font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.04);color:var(--tx-3)}
+
+</style>
+<style>
+.side{width:250px;flex:none;background:var(--bg-2);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.side-top{padding:14px 12px 8px}
+.logo{display:flex;align-items:center;gap:9px;margin-bottom:14px;padding:0 4px}
+.logo-mark{width:25px;height:25px;border-radius:7px;background:linear-gradient(135deg,#22C55E,#3B82F6 55%,#F43F5E);
+  display:grid;place-items:center;font-weight:800;font-size:13px;color:#06080C}
+.logo-txt{font-weight:700;font-size:14px}.logo-txt span{color:var(--tx-3);font-weight:500}
+.new-chat{width:100%;height:36px;border-radius:var(--r);background:var(--blue);border:none;color:#fff;
+  font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.side-search{margin-top:8px;height:32px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--tx-3);font-size:12px}
+.side-scroll{flex:1;overflow:hidden;padding:4px 8px 0}
+.grp{margin-top:12px}
+.grp-h{padding:0 8px 5px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--tx-3);font-weight:700}
+.row{display:flex;align-items:center;gap:9px;height:31px;padding:0 8px;border-radius:8px;color:var(--tx-2);font-size:12.5px}
+.row.on{background:var(--surface-2);color:var(--tx)}
+.row .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sov{width:5px;height:5px;border-radius:99px;flex:none;background:var(--green)}
+.row .sov.pub{background:var(--amber)}
+.proj{display:flex;align-items:center;gap:9px;height:30px;padding:0 8px;border-radius:8px;font-size:12.5px;color:var(--tx-2)}
+.side-foot{border-top:1px solid var(--line);padding:9px 11px;display:flex;align-items:center;gap:10px}
+.av{width:27px;height:27px;border-radius:8px;background:linear-gradient(140deg,#3B82F6,#8B5CF6);display:grid;
+  place-items:center;font-size:11px;font-weight:700;color:#fff;flex:none}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:48px;flex:none;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px}
+.thread-title{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thread{flex:1;overflow:hidden;padding:20px 0 0}
+.wrap{width:100%;max-width:660px;margin:0 auto;padding:0 20px}
+.msg-user{display:flex;justify-content:flex-end;margin-bottom:18px}
+.bubble{max-width:80%;background:var(--surface-2);border:1px solid var(--line);border-radius:14px 14px 4px 14px;
+  padding:10px 14px;font-size:13.5px;line-height:1.5}
+.ai-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.ai-mark{width:21px;height:21px;border-radius:6px;background:linear-gradient(135deg,#22C55E,#3B82F6);flex:none}
+.ai-name{font-size:12.5px;font-weight:650}
+.trace-chip{display:inline-flex;align-items:center;gap:7px;height:27px;padding:0 11px;border-radius:99px;
+  border:1px solid var(--line);background:var(--surface);color:var(--tx-2);font-size:11.5px;margin-bottom:12px}
+.trace-chip .sep{width:1px;height:11px;background:var(--line-2)}
+.body p{margin-bottom:11px;font-size:13.8px;line-height:1.62;color:#DCE2EB}
+.body h4{font-size:13.5px;font-weight:650;margin:14px 0 6px;color:#fff}
+.body strong{color:#fff;font-weight:650}
+.cite{display:inline-flex;align-items:center;justify-content:center;min-width:15px;height:15px;padding:0 4px;
+  border-radius:4px;background:var(--blue-dim);border:1px solid rgba(59,130,246,.3);color:#93BBFB;
+  font-size:9.5px;font-family:var(--mono);vertical-align:2px;margin-left:2px}
+.sources{margin-top:13px;border:1px solid var(--line);border-radius:11px;background:var(--surface);overflow:hidden}
+.sources-h{padding:8px 12px;border-bottom:1px solid var(--line);font-size:10px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700;display:flex;justify-content:space-between}
+.src{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:12px}
+.src+.src{border-top:1px solid var(--line)}
+.src .n{width:16px;height:16px;border-radius:4px;background:var(--surface-3);display:grid;place-items:center;
+  font-family:var(--mono);font-size:9.5px;color:var(--tx-2);flex:none}
+.src .nm{flex:1;color:var(--tx-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions{display:flex;align-items:center;gap:3px;margin-top:12px}
+.act{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:8px;
+  border:1px solid transparent;color:var(--tx-3);font-size:11.5px}
+.act.hl{background:var(--surface-2);border-color:var(--line);color:var(--tx)}
+.composer-zone{flex:none;padding:10px 0 16px;background:linear-gradient(to top,var(--bg) 62%,transparent)}
+.composer{border:1px solid var(--line-2);background:var(--surface);border-radius:15px;padding:12px 13px 8px;
+  box-shadow:0 10px 40px rgba(0,0,0,.55)}
+.composer .ph{font-size:13.5px;color:var(--tx-3);padding-bottom:11px}
+.comp-bar{display:flex;align-items:center;gap:6px}
+.tool{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:8px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--tx-2);font-size:11.5px}
+.tool.on{border-color:rgba(59,130,246,.4);background:var(--blue-dim);color:#9CC3FC}
+.send{margin-left:auto;width:30px;height:30px;border-radius:9px;background:var(--blue);display:grid;place-items:center;color:#fff}
+.hint{display:flex;justify-content:center;gap:14px;margin-top:8px;font-size:10.5px;color:var(--tx-3)}
+</style></head><body>
+<div class="page">
+<div class="frame">
+  <div class="frame-hd"><i></i><em>Concept 1 — The Calm Thread</em> · the core chat, rebuilt for readability &amp; trust</div>
+  <div class="app">
+  <aside class="side">
+    <div class="side-top">
+      <div class="logo"><div class="logo-mark">M</div><div class="logo-txt">Magna<span>VERSE</span></div></div>
+      <button class="new-chat"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New chat</button>
+      <div class="side-search"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span style="flex:1">Search chats &amp; docs</span><span class="kbd">⌘K</span></div>
+    </div>
+    <div class="side-scroll">
+      <div class="proj"><svg class="ico" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Projects<span class="pill sm" style="margin-left:auto">4</span></div>
+      <div class="proj"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Tasks &amp; schedules</div>
+      <div class="grp"><div class="grp-h">Today</div>
+        <div class="row on"><span class="sov"></span><span class="t">Operational risk — KSA construction</span></div>
+        <div class="row"><span class="sov"></span><span class="t">Q3 vendor spend variance</span></div>
+        <div class="row"><span class="sov pub"></span><span class="t">Market scan: modular building</span></div></div>
+      <div class="grp"><div class="grp-h">Yesterday</div>
+        <div class="row"><span class="sov"></span><span class="t">Riyadh Metro contract clauses</span></div>
+        <div class="row"><span class="sov"></span><span class="t">HSE incident summary — July</span></div>
+        <div class="row"><span class="sov"></span><span class="t">Payroll headcount reconciliation</span></div></div>
+      <div class="grp"><div class="grp-h">Last week</div>
+        <div class="row"><span class="sov"></span><span class="t">Draft board memo — capex</span></div>
+        <div class="row"><span class="sov pub"></span><span class="t">Competitor pricing benchmark</span></div></div>
+    </div>
+    <div class="side-foot"><div class="av">AF</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">Ahmad Farahat</div>
+      <div style="font-size:10.5px" class="dim">Magna · Riyadh</div></div>
+      <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="m6 9 6 6 6-6"/></svg></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="thread-title">Operational risk — KSA construction</div>
+      <div class="pill green"><span class="dot"></span>Private · Riyadh DC-1</div>
+      <div class="pill"><svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/></svg>Kimi K2 Instruct · 1T MoE</div>
+      <div class="pill"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>6 systems</div>
+    </div>
+    <div class="thread"><div class="wrap">
+      <div class="msg-user"><div class="bubble">What are the top 3 operational risks for a construction company in Saudi Arabia?</div></div>
+      <div class="ai-head"><div class="ai-mark"></div><div class="ai-name">Magna</div><span class="dim" style="font-size:11px">12:04</span></div>
+      <div class="trace-chip"><svg class="ico sm" viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+        Reasoned for 10s <span class="sep"></span> searched web · read 2 docs <span class="sep"></span>
+        <span class="dim">Show steps</span><svg class="ico sm" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="body">
+        <p>Three risks dominate the Saudi market right now — supply chain, cash flow, and scope volatility.</p>
+        <h4>1 · Supply chain &amp; procurement disruption</h4>
+        <p>The sector leans on imported materials across multi-tier supplier chains. Supplier delivery failure carries a risk index of <strong>0.397</strong><span class="cite">1</span>, and with a $1.5T pipeline any bottleneck cascades into schedule and cost overruns.</p>
+        <h4>2 · Financial instability &amp; cash flow</h4>
+        <p>The <strong>#1 risk factor</strong> at 0.432<span class="cite">1</span>. Regional contractors claim costs averaging 34% of budgeted capex<span class="cite">2</span>.</p>
+        <h4>3 · Scope change &amp; design delays</h4>
+        <p>Affects <strong>52.9%</strong> of Saudi projects vs a 31.8% global average<span class="cite">2</span>.</p>
+        <div class="sources">
+          <div class="sources-h"><span>Sources</span><span style="text-transform:none;letter-spacing:0;font-weight:400">2 web · 1 internal</span></div>
+          <div class="src"><span class="n">1</span><span class="nm">Scientific Reports (2026) — Saudi construction supply-chain risk</span><span class="pill sm">web</span></div>
+          <div class="src"><span class="n">2</span><span class="nm">HKA CRUX Insight 2025 — Claims &amp; disputes, Middle East</span><span class="pill sm">web</span></div>
+          <div class="src"><span class="n">3</span><span class="nm">Magna KB › Procurement / Vendor-Risk-Register-Q2.xlsx</span><span class="pill green sm">internal</span></div>
+        </div>
+        <div class="actions">
+          <span class="act hl"><svg class="ico sm" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>Copy</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>Retry</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><path d="M5 4h14v16l-7-4-7 4Z"/></svg>Save</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 12v7h16v-7M12 3v12M8 7l4-4 4 4"/></svg>Export</span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Share</span>
+          <span style="flex:1"></span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24"><path d="M7 10v10M7 10l4-7a2 2 0 0 1 3 2l-1 5h5a2 2 0 0 1 2 2.4l-1.3 6A2 2 0 0 1 16.7 20H7"/></svg></span>
+          <span class="act"><svg class="ico sm" viewBox="0 0 24 24" style="transform:rotate(180deg)"><path d="M7 10v10M7 10l4-7a2 2 0 0 1 3 2l-1 5h5a2 2 0 0 1 2 2.4l-1.3 6A2 2 0 0 1 16.7 20H7"/></svg></span>
+        </div>
+      </div>
+    </div></div>
+    <div class="composer-zone"><div class="wrap">
+      <div class="composer">
+        <div class="ph">Reply, or ask something new…</div>
+        <div class="comp-bar">
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></svg>Attach</span>
+          <span class="tool on"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>Company knowledge</span>
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Tools <span class="dim">3</span></span>
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/></svg>Kimi K2 Instruct</span>
+          <span class="tool"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10V6Z"/></svg>Private</span>
+          <span class="send"><svg class="ico" viewBox="0 0 24 24"><path d="m4 12 16-8-6 8 6 8Z"/></svg></span>
+        </div>
+      </div>
+      <div class="hint"><span><span class="kbd">↵</span> send</span><span><span class="kbd">⇧↵</span> new line</span><span><span class="kbd">⌘K</span> search everything</span><span><span class="kbd">/</span> run a skill</span></div>
+    </div></div>
+  </div>
+  </div>
+  <span class="mk" style="left:229px;top:246px">1</span>
+  <span class="mk" style="left:352px;top:216px">2</span>
+  <span class="mk" style="left:352px;top:550px">3</span>
+  <span class="mk" style="left:352px;top:704px">4</span>
+  <span class="mk" style="left:352px;top:790px">5</span>
+</div>
+
+<aside class="spec">
+  <div class="spec-hd"><h3>What changed &amp; why</h3>
+    <p>Five fixes to the highest-frequency screen in the product.</p></div>
+  <div class="spec-body">
+    <div class="sitem"><span class="sn">1</span><div><h4>History becomes furniture</h4>
+      <p><span class="was">Today:</span> chats hide behind Chat → History → expand, in a 150px box with titles cut to 18 characters. <br>Now: a permanent rail, full titles, date groups, and a dot per thread showing which sovereignty tier it ran in.</p></div></div>
+    <div class="sitem"><span class="sn">2</span><div><h4>Reasoning collapses to one line</h4>
+      <p><span class="was">Today:</span> a Langfuse-style step table (<span class="mono">FINAL RETURN · model · 7.8s</span>) sits expanded above every answer and pushes it below the fold.<br>Now: one chip, expandable.</p></div></div>
+    <div class="sitem"><span class="sn">3</span><div><h4>Citations, split web vs internal</h4>
+      <p><span class="was">Today:</span> answers name studies in prose with no links.<br>Now: numbered inline cites and a source list that visibly separates public web from your own KB — the whole point of a sovereign deployment.</p></div></div>
+    <div class="sitem"><span class="sn">4</span><div><h4>Message actions people expect</h4>
+      <p><span class="was">Today:</span> three unlabelled icons, no tooltips, and <b>no copy button</b>.<br>Now: Copy, Retry, Save, Export, Share, feedback — labelled.</p></div></div>
+    <div class="sitem"><span class="sn">5</span><div><h4>One readable surface</h4>
+      <p><span class="was">Today:</span> body text sits on a Riyadh skyline photo at 50% overlay; the robot companion overlaps the send button.<br>Now: flat surface, labelled composer chips, visible shortcut hints.</p></div></div>
+    <div class="sitem"><span class="sn">6</span><div><h4>No global header</h4>
+      <p><span class="was">Today:</span> a full-width bar carries logo, search, sovereignty, bank, bell, info and gear.<br>Now: it is gone. Search moves into the sidebar, sovereignty and model become per-thread controls — the ChatGPT/Claude pattern. Model names are written in full: <span class="mono">Kimi K2 Instruct · 1T MoE</span>, never “Latest Kimi”.</p></div></div>
+  </div>
+</aside>
+</div>
+</body></html>

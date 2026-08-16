@@ -1,0 +1,251 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>MagnaVERSE — Concept 2: Sovereignty You Can See</title>
+<style>
+/* MagnaVERSE redesign — shared design tokens */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080A0F; --bg-2:#0D1119; --surface:#12161F; --surface-2:#171C27; --surface-3:#1E2432;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.13);
+  --tx:#EAEEF5; --tx-2:#98A3B6; --tx-3:#606B80;
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,.14);
+  --green:#22C55E; --green-dim:rgba(34,197,94,.12);
+  --amber:#F5A524; --amber-dim:rgba(245,165,36,.12);
+  --violet:#8B5CF6; --rose:#F43F5E;
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+}
+html,body{height:100%}
+body{
+  background:#05060A; color:var(--tx);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+/* page = product frame + spec column */
+.page{display:flex;height:100vh;width:100vw}
+.frame{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.frame-hd{height:34px;flex:none;display:flex;align-items:center;gap:9px;padding:0 16px;
+  background:#05060A;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--tx-3)}
+.frame-hd i{width:7px;height:7px;border-radius:99px;background:var(--blue);flex:none}
+.frame-hd em{font-style:normal;color:var(--tx);font-size:12.5px;font-weight:600}
+.app{flex:1;display:flex;min-height:0}
+/* spec column */
+.spec{width:296px;flex:none;background:#05060A;border-left:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;overflow:hidden}
+.spec-hd{padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.spec-hd h3{font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.spec-hd p{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.5}
+.spec-body{flex:1;overflow:hidden;padding:6px 18px 16px}
+.sitem{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.sitem:last-child{border-bottom:0}
+.sn{width:20px;height:20px;border-radius:99px;flex:none;display:grid;place-items:center;margin-top:1px;
+  background:var(--blue);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono)}
+.sitem h4{font-size:12.5px;font-weight:650;margin-bottom:3px;line-height:1.35}
+.sitem p{font-size:11.5px;line-height:1.5;color:var(--tx-2)}
+.sitem p .was{color:#F5A524}
+/* marker dropped onto the UI */
+.mk{position:absolute;z-index:50;width:21px;height:21px;border-radius:99px;background:var(--blue);
+  color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);display:grid;place-items:center;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22),0 3px 10px rgba(0,0,0,.6)}
+/* ---------- generic atoms ---------- */
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface-2);font-size:12px;color:var(--tx-2);white-space:nowrap}
+.pill.green{border-color:rgba(34,197,94,.35);background:var(--green-dim);color:#7EE2A8}
+.pill.blue{border-color:rgba(59,130,246,.35);background:var(--blue-dim);color:#93BBFB}
+.pill.amber{border-color:rgba(245,165,36,.35);background:var(--amber-dim);color:#F5C97B}
+.pill.sm{height:20px;font-size:10.5px;padding:0 8px}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;
+  border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);
+  font-size:13px;font-weight:500;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ico.sm{width:14px;height:14px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.muted{color:var(--tx-2)} .dim{color:var(--tx-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.kbd{font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.04);color:var(--tx-3)}
+
+</style>
+<style>
+.app{padding:0;position:relative}
+.stage{flex:1;display:flex;gap:18px;padding:20px;min-width:0}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.col.a{width:452px;flex:none}
+.col.b{flex:1}
+.hdr{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-3);font-weight:700;padding-left:2px}
+/* --- residency picker --- */
+.picker{padding:16px}
+.picker h2{font-size:15px;font-weight:650;margin-bottom:3px}
+.picker .sub{font-size:12px;color:var(--tx-2);margin-bottom:14px}
+.tier{border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:9px;background:var(--surface-2)}
+.tier.sel{border-color:rgba(34,197,94,.5);background:linear-gradient(180deg,rgba(34,197,94,.09),transparent)}
+.tier-top{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.radio{width:15px;height:15px;border-radius:99px;border:1.5px solid var(--line-2);flex:none}
+.radio.on{border-color:var(--green);box-shadow:inset 0 0 0 3.5px var(--green);background:#06080C}
+.tier-top .nm{font-size:13.5px;font-weight:650;flex:1}
+.facts{display:grid;grid-template-columns:76px 1fr;gap:5px 10px;font-size:11.5px;line-height:1.45}
+.facts dt{color:var(--tx-3)} .facts dd{color:var(--tx-2)}
+.facts dd b{color:var(--tx);font-weight:600}
+.roadmap{margin-top:4px;padding:9px 12px;border:1px dashed var(--line-2);border-radius:10px;
+  font-size:11.5px;color:var(--tx-3);display:flex;align-items:center;gap:8px}
+/* --- receipt --- */
+.receipt{padding:0;overflow:hidden}
+.rc-h{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+.rc-h .t{flex:1;font-size:13px;font-weight:650}
+.rline{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.05)}
+.rline:last-child{border-bottom:0}
+.rline .k{width:112px;flex:none;color:var(--tx-3)}
+.rline .v{flex:1;color:var(--tx)}
+.chk{width:15px;height:15px;border-radius:99px;background:var(--green-dim);border:1px solid rgba(34,197,94,.45);
+  display:grid;place-items:center;flex:none;color:#7EE2A8}
+/* --- guardrail --- */
+.guard{border:1px solid rgba(245,165,36,.4);background:linear-gradient(180deg,rgba(245,165,36,.11),var(--surface));
+  border-radius:14px;padding:15px 16px}
+.guard h3{font-size:13.5px;font-weight:650;margin-bottom:5px;display:flex;align-items:center;gap:8px;color:#F7D08A}
+.guard p{font-size:12.5px;color:var(--tx-2);line-height:1.55;margin-bottom:11px}
+.leak{background:#0B0E14;border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:12px}
+.leak .li{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--tx-2);padding:3px 0}
+.leak .li .tag{margin-left:auto}
+.guard-act{display:flex;gap:8px}
+/* --- chat strip showing the badge in situ --- */
+.strip{padding:14px 16px}
+.strip .q{font-size:13px;color:var(--tx-2);margin-bottom:11px}
+.ans{border-left:2px solid var(--green);padding-left:12px;font-size:13px;line-height:1.6;color:#DCE2EB}
+.badge-row{display:flex;align-items:center;gap:7px;margin-top:12px;flex-wrap:wrap}
+/* --- map --- */
+.map{position:relative;height:150px;border-radius:12px;overflow:hidden;background:
+  radial-gradient(120% 100% at 30% 0%,rgba(34,197,94,.14),transparent 60%),var(--surface-2);border:1px solid var(--line)}
+.node{position:absolute;display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tx-2)}
+.node .b{width:26px;height:26px;border-radius:8px;background:var(--surface-3);border:1px solid var(--line-2);
+  display:grid;place-items:center;color:var(--tx-2)}
+.node.on .b{border-color:rgba(34,197,94,.5);background:var(--green-dim);color:#7EE2A8}
+.wire{position:absolute;height:1px;background:linear-gradient(90deg,rgba(34,197,94,.55),rgba(34,197,94,.15))}
+.boundary{position:absolute;inset:12px 290px 12px 12px;border:1px dashed rgba(34,197,94,.4);border-radius:10px}
+.boundary span{position:absolute;top:-8px;left:12px;background:#12161F;padding:0 6px;font-size:9.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:#7EE2A8}
+</style></head><body>
+<div class="page">
+<div class="frame">
+  <div class="frame-hd"><i></i><em>Concept 2 — Sovereignty You Can See</em> · turn the differentiator into a visible, provable guarantee</div>
+  <div class="app"><div class="stage">
+
+    <div class="col a">
+      <div class="hdr">Choosing where a thread runs</div>
+      <div class="card picker">
+        <h2>Where should this run?</h2>
+        <div class="sub">This decides which GPUs answer you and where your data is allowed to travel.</div>
+
+        <div class="tier sel">
+          <div class="tier-top"><span class="radio on"></span><span class="nm">Private</span>
+            <span class="pill green sm"><span class="dot"></span>current</span></div>
+          <dl class="facts">
+            <dt>Runs on</dt><dd><b>Magna cluster · Riyadh DC-1</b> — 8×H200, your tenancy</dd>
+            <dt>Data leaves</dt><dd><b>Never.</b> Prompts, files and outputs stay inside your network</dd>
+            <dt>Models</dt><dd>Kimi K2 Instruct (1T MoE) · DeepSeek V3.1 · Qwen 3 235B · NVIDIA Nemotron 120B</dd>
+            <dt>You can use</dt><dd>Company knowledge, ERP &amp; HR connectors, internal files</dd>
+            <dt>Trade-off</dt><dd>No live web unless an approved proxy is on</dd>
+          </dl>
+        </div>
+
+        <div class="tier">
+          <div class="tier-top"><span class="radio"></span><span class="nm">Public</span>
+            <span class="pill amber sm">leaves your network</span></div>
+          <dl class="facts">
+            <dt>Runs on</dt><dd>Global public cloud inference</dd>
+            <dt>Data leaves</dt><dd><b>Yes</b> — anything in the thread is sent to a third party</dd>
+            <dt>You can use</dt><dd>Live web, frontier models, larger context</dd>
+            <dt>Blocked</dt><dd>Company knowledge and any connector marked restricted</dd>
+          </dl>
+        </div>
+
+        <div class="roadmap"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+          <span><b style="color:var(--tx-2)">Personal</b> (on-device) and <b style="color:var(--tx-2)">In-Country</b> arrive in Q4 — shown here, not as dead menu items.</span></div>
+      </div>
+
+      <div class="hdr">Blocking a mistake before it happens</div>
+      <div class="guard">
+        <h3><svg class="ico" viewBox="0 0 24 24"><path d="M12 3 4 6.5v6c0 5 3.4 8.7 8 9.9 4.6-1.2 8-4.9 8-9.9v-6Z"/><path d="M12 9v4M12 16.5v.5"/></svg>
+          Switching to Public would expose 3 internal items</h3>
+        <p>This thread already contains company data. Public inference sends the whole thread outside your network.</p>
+        <div class="leak">
+          <div class="li"><svg class="ico sm" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/></svg>Vendor-Risk-Register-Q2.xlsx<span class="pill sm amber tag">restricted</span></div>
+          <div class="li"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8"/></svg>Answer quoting SAP purchase-order data<span class="pill sm amber tag">restricted</span></div>
+          <div class="li"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>2 employee names detected by PII scan<span class="pill sm amber tag">PII</span></div>
+        </div>
+        <div class="guard-act">
+          <span class="btn" style="height:33px">Keep this thread Private</span>
+          <span class="btn" style="height:33px">Start a clean Public thread</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col b">
+      <div class="hdr">How it reads inside the answer</div>
+      <div class="card strip">
+        <div class="q">“Summarise our top vendor risks and compare to the market.”</div>
+        <div class="ans">Three vendors account for 61% of Q2 exposure. Two of them also appear in the regional delivery-failure cohort reported by HKA…</div>
+        <div class="badge-row">
+          <span class="pill green"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10V6Z"/></svg>Ran Private · Riyadh DC-1</span>
+          <span class="pill">Kimi K2 Instruct</span>
+          <span class="pill">3 internal sources</span>
+          <span class="pill">0 bytes left your network</span>
+          <span class="pill" style="border-style:dashed">View residency receipt ›</span>
+        </div>
+      </div>
+
+      <div class="hdr">The receipt — one click from any answer</div>
+      <div class="card receipt">
+        <div class="rc-h"><span class="chk"><svg class="ico sm" viewBox="0 0 24 24" style="stroke-width:2.6"><path d="m5 12 5 5L20 7"/></svg></span>
+          <span class="t">Residency receipt</span><span class="pill sm mono">TR-8842-A</span></div>
+        <div class="rline"><span class="k">Inference</span><span class="v">Kimi K2 Instruct · Magna cluster <span class="dim">node r1-h200-04, Riyadh</span></span><span class="pill green sm">in-tenancy</span></div>
+        <div class="rline"><span class="k">Egress</span><span class="v">0 bytes to external endpoints</span><span class="pill green sm">verified</span></div>
+        <div class="rline"><span class="k">Tools run</span><span class="v">knowledge_search, sap_po_lookup <span class="dim">— both on-prem</span></span><span class="pill green sm">local</span></div>
+        <div class="rline"><span class="k">Data touched</span><span class="v">3 documents · Procurement space</span><span class="pill sm">logged</span></div>
+        <div class="rline"><span class="k">PII handling</span><span class="v">2 names redacted before model call</span><span class="pill green sm">masked</span></div>
+        <div class="rline"><span class="k">Retention</span><span class="v">Thread 90 days · prompt logs 30 days · no training use</span></div>
+        <div class="rline"><span class="k">Audit</span><span class="v">Exportable to Compliance · signed <span class="mono">sha256:9f2c…c41b</span></span></div>
+      </div>
+
+      <div class="hdr">Where the work physically happened</div>
+      <div class="card" style="padding:14px">
+        <div class="map">
+          <div class="boundary"><span>Your network — KSA</span></div>
+          <div class="wire" style="left:120px;top:52px;width:250px"></div>
+          <div class="wire" style="left:120px;top:100px;width:250px"></div>
+          <div class="node on" style="left:28px;top:40px"><span class="b"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span>You · Riyadh</div>
+          <div class="node on" style="left:28px;top:88px"><span class="b"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v6H4zM4 13h16v6H4z"/></svg></span>SAP · KB</div>
+          <div class="node on" style="left:376px;top:58px"><span class="b"><svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9h6v6H9z"/></svg></span><span><span style="display:block">Magna GPU cluster</span><span class="dim">8×H200 · Riyadh DC-1</span></span></div>
+          <div class="node" style="right:24px;top:58px;opacity:.5"><span class="b"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg></span><span><span style="display:block">Public cloud</span><span class="dim">not contacted</span></span></div>
+          <div style="position:absolute;left:560px;top:66px;width:100px;border-top:1px dashed rgba(255,255,255,.14)"></div>
+          <div style="position:absolute;left:596px;top:56px;width:22px;height:22px;border-radius:99px;background:#0B0E14;border:1px solid rgba(244,63,94,.5);display:grid;place-items:center;color:#F43F5E;font-size:13px;line-height:1">✕</div>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+  <span class="mk" style="left:440px;top:54px">1</span>
+  <span class="mk" style="left:440px;top:578px">2</span>
+  <span class="mk" style="left:1092px;top:54px">3</span>
+  <span class="mk" style="left:1092px;top:270px">4</span>
+  <span class="mk" style="left:1092px;top:632px">5</span>
+</div>
+
+<aside class="spec">
+  <div class="spec-hd"><h3>What changed &amp; why</h3>
+    <p>Sovereignty is the reason to buy Magna instead of ChatGPT. Right now it is a dropdown.</p></div>
+  <div class="spec-body">
+    <div class="sitem"><span class="sn">1</span><div><h4>Tiers explain themselves</h4>
+      <p><span class="was">Today:</span> four options, two of them dead “Coming soon” rows, described in one abstract line each.<br>Now: only real choices, each stating where it runs, what leaves, which models and what you give up.</p></div></div>
+    <div class="sitem"><span class="sn">2</span><div><h4>The guardrail is the feature</h4>
+      <p>Nothing today stops a user moving a thread full of SAP data to Public. A pre-flight check that names the exact files at risk is more valuable than any settings page.</p></div></div>
+    <div class="sitem"><span class="sn">3</span><div><h4>Per-answer provenance</h4>
+      <p><span class="was">Today:</span> a global “Private” pill in the header, repeated twice, that tells you nothing about a given answer.<br>Now: every answer carries where it ran and what it touched.</p></div></div>
+    <div class="sitem"><span class="sn">4</span><div><h4>A receipt you can hand to audit</h4>
+      <p>Node, egress bytes, tools, PII masking, retention, signed hash. This is what a CISO signs off on — and it costs nothing to show, because the platform already logs it in Langfuse.</p></div></div>
+    <div class="sitem"><span class="sn">5</span><div><h4>Show the boundary</h4>
+      <p>One small diagram does more for trust than the word “Private”. Public cloud is drawn and visibly <i>not contacted</i>.</p></div></div>
+  </div>
+</aside>
+</div>
+</body></html>

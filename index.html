@@ -1,0 +1,424 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MagnaVERSE — UX redesign deliverables</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10);
+  --private:#15803D; --private-dim:rgba(21,128,61,.10);
+  --public:#B45309; --public-dim:rgba(180,83,9,.10);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10);
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788;
+    --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16);
+    --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+    --public:#E0A33C; --public-dim:rgba(224,163,60,.14);
+    --crit:#F97066; --crit-dim:rgba(249,112,102,.14);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+  --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788;
+  --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16);
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C; --public-dim:rgba(224,163,60,.14);
+  --crit:#F97066; --crit-dim:rgba(249,112,102,.14);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10);
+  --private:#15803D; --private-dim:rgba(21,128,61,.10);
+  --public:#B45309; --public-dim:rgba(180,83,9,.10);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10);
+}
+body{background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;
+  overflow-x:hidden}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+/* ---- top bar ---- */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14.5px;letter-spacing:-.01em}
+.brand span{color:var(--tx-3);font-weight:450}
+.mark{width:30px;height:auto;flex:none;display:block}
+.mark .w{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion:no-preference){
+  .mark .w{animation:draw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .mark .w:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes draw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+.tbtn{margin-left:auto;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;
+  border-radius:99px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-2);
+  font:inherit;font-size:12.5px;cursor:pointer}
+.tbtn:hover{color:var(--tx)}
+.tbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- hero ---- */
+.hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:14px}
+h1{font-size:38px;line-height:1.12;font-weight:680;letter-spacing:-.025em;text-wrap:balance;max-width:20ch}
+.lede{margin-top:14px;font-size:16.5px;line-height:1.6;color:var(--tx-2);max-width:62ch}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:11px 15px;background:var(--surface-2);min-width:132px}
+.stat b{display:block;font-size:23px;font-weight:680;letter-spacing:-.02em;font-variant-numeric:tabular-nums;
+  line-height:1.2}
+.stat span{font-size:11.5px;color:var(--tx-3);display:block;margin-top:1px}
+.stat.bad b{color:var(--crit)}
+
+/* ---- sections ---- */
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+.sh{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+h2{font-size:20px;font-weight:670;letter-spacing:-.015em}
+.sh .n{font-family:var(--mono);font-size:11px;color:var(--tx-3);letter-spacing:.1em}
+.sub{font-size:14px;color:var(--tx-2);margin-bottom:22px;max-width:66ch}
+
+/* ---- app cards ---- */
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.appcard{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:14px;
+  background:var(--surface);overflow:hidden;transition:border-color .15s,transform .15s}
+.appcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+.appcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.thumb{height:120px;border-bottom:1px solid var(--line);position:relative;overflow:hidden;
+  background:var(--surface-2)}
+.thumb .bar{position:absolute;background:var(--surface-3);border-radius:3px}
+.thumb .acc{background:var(--accent);opacity:.5}
+.thumb .gr{background:var(--private);opacity:.5}
+.thumb .am{background:var(--public);opacity:.55}
+.appbody{padding:14px 15px 15px}
+.appbody .row1{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.appbody h3{font-size:15px;font-weight:660;letter-spacing:-.01em}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 7px;border-radius:99px;border:1px solid var(--line-2);color:var(--tx-3);margin-left:auto}
+.appbody p{font-size:12.8px;line-height:1.55;color:var(--tx-2)}
+.appbody .sig{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--tx-3)}
+.appbody .sig b{color:var(--tx-2);font-weight:600}
+
+/* ---- board list ---- */
+.boards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.board{display:flex;align-items:flex-start;gap:11px;text-decoration:none;color:inherit;
+  border:1px solid var(--line);border-radius:11px;padding:11px 13px;background:var(--surface)}
+.board:hover{border-color:var(--accent)}
+.board:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.board .idx{font-family:var(--mono);font-size:11px;color:var(--tx-3);padding-top:2px;flex:none}
+.board b{display:block;font-size:13.2px;font-weight:620;margin-bottom:2px}
+.board span{font-size:11.8px;color:var(--tx-2);line-height:1.5}
+
+/* ---- fix table ---- */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:620px}
+th{background:var(--surface-2);text-align:left;padding:9px 13px;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700;border-bottom:1px solid var(--line)}
+td{padding:9px 13px;border-bottom:1px solid var(--line);color:var(--tx-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--mono);font-size:11.5px;color:var(--tx);white-space:nowrap}
+.sev{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 7px;border-radius:99px;white-space:nowrap}
+.sev.c{background:var(--crit-dim);color:var(--crit)}
+.sev.h{background:var(--public-dim);color:var(--public)}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px;
+  border:1px solid var(--line)}
+footer{padding:30px 0 50px;font-size:12.5px;color:var(--tx-3)}
+
+/* ---- responsive ---- */
+@media (max-width:900px){
+  h1{font-size:31px}
+  .lede{font-size:15.5px}
+  .hero{padding:40px 0 28px}
+  section{padding:34px 0}
+}
+@media (max-width:600px){
+  .wrap{padding:0 18px}
+  .top .wrap{height:54px}
+  .brand{font-size:13.5px}
+  h1{font-size:25px;max-width:none}
+  .lede{font-size:14.5px}
+  .hero{padding:30px 0 24px}
+  .stats{gap:8px}
+  .stat{flex:1 1 calc(50% - 4px);min-width:0;padding:10px 12px}
+  .stat b{font-size:20px}
+  .apps{grid-template-columns:1fr;gap:12px}
+  .boards{grid-template-columns:1fr}
+  .thumb{height:104px}
+  .tbtn{height:38px;padding:0 13px}
+  .board{padding:13px}
+}
+@media (max-width:380px){
+  .wrap{padding:0 14px}
+  h1{font-size:22px}
+  .brand span{display:none}
+}
+</style></head><body>
+
+<div class="top"><div class="wrap">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+      <defs>
+        <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+        </linearGradient>
+        <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+        </linearGradient>
+      </defs>
+      <path class="w" d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)"
+        stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="w" d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)"
+        stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>Magna<span>VERSE</span> · UX redesign</div>
+  </div>
+  <button class="tbtn" id="themeBtn" aria-label="Switch colour theme">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+    <span id="themeLabel">System</span>
+  </button>
+</div></div>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">app.stag.magna.ai · v1.0.491 · 16 Aug 2026</div>
+  <h1>Five ways to make MagnaVERSE feel like a product people already know.</h1>
+  <p class="lede">A hands-on audit of the staging build, plus the client's own review notes, turned
+    into five complete interactive prototypes. The answer quality underneath is good — every problem
+    below is in the shell around it, or in the renderer that displays it.</p>
+  <div class="stats">
+    <div class="stat"><b>26</b><span>navigation destinations</span></div>
+    <div class="stat bad"><b>13</b><span>of them disabled</span></div>
+    <div class="stat bad"><b>0</b><span>renderers for maths</span></div>
+    <div class="stat bad"><b>0</b><span>copy buttons</span></div>
+    <div class="stat"><b>5</b><span>apps delivered</span></div>
+  </div>
+</div></header>
+
+<section><div class="wrap">
+  <div class="sh"><span class="n">01</span><h2>The five app designs</h2></div>
+  <p class="sub">Complete single-file prototypes. Light and dark, keyboard and mouse, responsive from
+    320&nbsp;px to desktop, no build step — double-click any of them. These are five different products,
+    not five colour schemes: the point is to pick a direction.
+    <a href="CHANGELOG.md" style="color:var(--accent)">What changed in each&nbsp;›</a></p>
+  <div class="apps">
+
+    <a class="appcard" href="apps/app-1-chatgpt.html">
+      <div class="thumb">
+        <span class="bar" style="left:0;top:0;width:64px;height:120px;border-radius:0"></span>
+        <span class="bar" style="left:10px;top:12px;width:44px;height:9px" ></span>
+        <span class="bar acc" style="left:10px;top:12px;width:44px;height:9px"></span>
+        <span class="bar" style="left:10px;top:29px;width:40px;height:5px"></span>
+        <span class="bar" style="left:10px;top:39px;width:36px;height:5px"></span>
+        <span class="bar" style="left:10px;top:49px;width:42px;height:5px"></span>
+        <span class="bar" style="right:52px;top:20px;width:96px;height:20px;border-radius:9px"></span>
+        <span class="bar" style="left:82px;top:52px;width:130px;height:5px"></span>
+        <span class="bar" style="left:82px;top:62px;width:150px;height:5px"></span>
+        <span class="bar" style="left:82px;top:72px;width:110px;height:5px"></span>
+        <span class="bar" style="left:82px;bottom:14px;width:170px;height:22px;border-radius:11px"></span>
+      </div>
+      <div class="appbody">
+        <div class="row1"><h3>Familiar</h3><span class="tag">ChatGPT</span></div>
+        <p>The layout everyone in the building already knows. Narrow sidebar, centred transcript,
+          pill composer, model picker where ChatGPT puts it.</p>
+        <div class="sig"><b>Signature:</b> zero learning curve — and no global header at all.</div>
+      </div>
+    </a>
+
+    <a class="appcard" href="apps/app-2-claude.html">
+      <div class="thumb">
+        <span class="bar" style="left:0;top:0;width:58px;height:120px;border-radius:0"></span>
+        <span class="bar" style="left:9px;top:12px;width:40px;height:8px"></span>
+        <span class="bar" style="left:9px;top:28px;width:36px;height:5px"></span>
+        <span class="bar" style="left:9px;top:38px;width:40px;height:5px"></span>
+        <span class="bar" style="left:70px;top:16px;width:96px;height:5px"></span>
+        <span class="bar" style="left:70px;top:26px;width:80px;height:5px"></span>
+        <span class="bar" style="left:70px;top:36px;width:90px;height:5px"></span>
+        <span class="bar" style="right:0;top:0;width:118px;height:120px;border-radius:0;opacity:.55"></span>
+        <span class="bar acc" style="right:10px;top:12px;width:44px;height:8px"></span>
+        <span class="bar" style="right:10px;top:30px;width:98px;height:5px"></span>
+        <span class="bar" style="right:10px;top:40px;width:86px;height:5px"></span>
+        <span class="bar gr" style="right:10px;top:56px;width:98px;height:40px;border-radius:6px"></span>
+      </div>
+      <div class="appbody">
+        <div class="row1"><h3>Considered</h3><span class="tag">Claude</span></div>
+        <p>Warm paper light mode, soft charcoal dark, editorial spacing. Projects sit above history
+          in the sidebar.</p>
+        <div class="sig"><b>Signature:</b> a split artifact panel — diagrams, docs and code open beside the chat.</div>
+      </div>
+    </a>
+
+    <a class="appcard" href="apps/app-3-sovereign.html">
+      <div class="thumb">
+        <span class="bar" style="left:0;top:0;width:52px;height:120px;border-radius:0"></span>
+        <span class="bar" style="left:64px;top:14px;width:110px;height:5px"></span>
+        <span class="bar" style="left:64px;top:24px;width:132px;height:5px"></span>
+        <span class="bar gr" style="left:64px;top:38px;width:74px;height:13px;border-radius:99px"></span>
+        <span class="bar" style="left:64px;top:60px;width:120px;height:5px"></span>
+        <span class="bar" style="left:64px;top:70px;width:96px;height:5px"></span>
+        <span class="bar" style="right:0;top:0;width:126px;height:120px;border-radius:0;opacity:.5"></span>
+        <span class="bar" style="right:12px;top:14px;width:102px;height:6px"></span>
+        <span class="bar gr" style="right:12px;top:28px;width:102px;height:5px"></span>
+        <span class="bar gr" style="right:12px;top:40px;width:88px;height:5px"></span>
+        <span class="bar am" style="right:12px;top:52px;width:94px;height:5px"></span>
+        <span class="bar gr" style="right:12px;top:64px;width:78px;height:5px"></span>
+        <span class="bar" style="right:12px;top:76px;width:102px;height:5px"></span>
+        <span class="bar" style="right:12px;top:88px;width:66px;height:5px"></span>
+      </div>
+      <div class="appbody">
+        <div class="row1"><h3>Provable</h3><span class="tag">Sovereignty</span></div>
+        <p>The reason to buy Magna instead of ChatGPT, made visible. Instrument-panel density,
+          semantic green and amber doing real work.</p>
+        <div class="sig"><b>Signature:</b> click any answer → its residency receipt, down to the signed hash.</div>
+      </div>
+    </a>
+
+    <a class="appcard" href="apps/app-4-launchpad.html">
+      <div class="thumb">
+        <span class="bar" style="left:0;top:0;width:50px;height:120px;border-radius:0"></span>
+        <span class="bar" style="left:62px;top:12px;width:120px;height:7px"></span>
+        <span class="bar gr" style="left:62px;top:25px;width:56px;height:9px;border-radius:99px"></span>
+        <span class="bar" style="left:62px;top:42px;width:180px;height:22px;border-radius:10px"></span>
+        <span class="bar acc" style="left:62px;top:72px;width:86px;height:20px;border-radius:7px"></span>
+        <span class="bar" style="left:156px;top:72px;width:86px;height:20px;border-radius:7px"></span>
+        <span class="bar" style="left:62px;top:98px;width:86px;height:14px;border-radius:7px"></span>
+        <span class="bar" style="left:156px;top:98px;width:86px;height:14px;border-radius:7px"></span>
+        <span class="bar" style="right:14px;top:24px;width:96px;height:76px;border-radius:9px"></span>
+        <span class="bar acc" style="right:20px;top:32px;width:84px;height:8px;border-radius:4px"></span>
+      </div>
+      <div class="appbody">
+        <div class="row1"><h3>Ready</h3><span class="tag">Launchpad</span></div>
+        <p>The home screen is the product. Status not slogan, resume cards, starters built from what
+          you have actually connected.</p>
+        <div class="sig"><b>Signature:</b> the <code>/</code> menu for skills and MCPs, and a real ⌘K palette.</div>
+      </div>
+    </a>
+
+    <a class="appcard" href="apps/app-5-twin.html">
+      <div class="thumb">
+        <span class="bar" style="left:0;top:0;width:50px;height:120px;border-radius:0"></span>
+        <span class="bar gr" style="left:62px;top:14px;width:38px;height:11px;border-radius:99px"></span>
+        <span class="bar gr" style="left:106px;top:14px;width:44px;height:11px;border-radius:99px"></span>
+        <span class="bar am" style="left:156px;top:14px;width:50px;height:11px;border-radius:99px"></span>
+        <span class="bar" style="left:62px;top:38px;width:140px;height:5px"></span>
+        <span class="bar" style="left:62px;top:48px;width:120px;height:5px"></span>
+        <span class="bar" style="left:62px;top:58px;width:132px;height:5px"></span>
+        <span class="bar am" style="left:62px;top:76px;width:150px;height:24px;border-radius:8px"></span>
+        <span class="bar" style="right:0;top:0;width:120px;height:120px;border-radius:0;opacity:.5"></span>
+        <span class="bar gr" style="right:12px;top:14px;width:60px;height:6px;border-radius:99px"></span>
+        <span class="bar am" style="right:12px;top:14px;width:0;height:6px"></span>
+        <span class="bar" style="right:12px;top:30px;width:96px;height:5px"></span>
+        <span class="bar" style="right:12px;top:42px;width:84px;height:5px"></span>
+        <span class="bar" style="right:12px;top:54px;width:92px;height:5px"></span>
+        <span class="bar" style="right:12px;top:66px;width:70px;height:5px"></span>
+      </div>
+      <div class="appbody">
+        <div class="row1"><h3>Grounded</h3><span class="tag">Digital twin</span></div>
+        <p>Provenance first. Every answer states which of your systems fed it — and which relevant
+          one stayed silent.</p>
+        <div class="sig"><b>Signature:</b> the context rail — 7 connected · 6 partial · 3 missing, live.</div>
+      </div>
+    </a>
+
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sh"><span class="n">02</span><h2>Concept boards</h2></div>
+  <p class="sub">The argument behind each move: today's screen on the left, the proposal on the right,
+    and a numbered rationale column. Use these in the review; use the apps in the demo.</p>
+  <div class="boards">
+    <a class="board" href="concepts/01corechat.html"><span class="idx">01</span>
+      <span><b>The Calm Thread</b><span>History rail, collapsed reasoning, real citations, labelled actions.</span></span></a>
+    <a class="board" href="concepts/02sovereignty.html"><span class="idx">02</span>
+      <span><b>Sovereignty You Can See</b><span>Self-explaining tiers, the guardrail, the residency receipt.</span></span></a>
+    <a class="board" href="concepts/03launchpad.html"><span class="idx">03</span>
+      <span><b>The Launchpad</b><span>Chips that draft instead of fire; ⌘K and <code>/</code> promoted.</span></span></a>
+    <a class="board" href="concepts/04contextrail.html"><span class="idx">04</span>
+      <span><b>Bring the Twin Into the Room</b><span>16 sources, coverage as a number, gaps as the CTA.</span></span></a>
+    <a class="board" href="concepts/05twomodes.html"><span class="idx">05</span>
+      <span><b>Two Doors</b><span>Work / Build / Govern. Six nav items instead of twenty-six.</span></span></a>
+    <a class="board" href="concepts/06richanswers.html"><span class="idx">06</span>
+      <span><b>Answers That Render</b><span>Maths, diagrams, code and tables — the round-two findings.</span></span></a>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sh"><span class="n">03</span><h2>What every app fixes</h2></div>
+  <p class="sub">The launch-blocking items. <a href="MagnaVERSEUXAudit.md" style="color:var(--accent)">The full
+    audit</a> lists 20 more at medium severity; <a href="BRIEF.md" style="color:var(--accent)">BRIEF.md</a>
+    is the shared build contract the five apps were held to, and
+    <a href="BRIEF-ADDENDUM.md" style="color:var(--accent)">BRIEF-ADDENDUM.md</a> covers the real Magna
+    mark, the responsive breakpoints and the interaction checklist.</p>
+  <div class="tblwrap"><table>
+    <thead><tr><th style="width:74px">ID</th><th style="width:96px">Severity</th><th>Today</th><th>In all five apps</th></tr></thead>
+    <tbody>
+      <tr><td class="id">R1</td><td><span class="sev c">Blocker</span></td>
+        <td>Maths ships as literal <code>$\int x^3 , dx$</code> — 25 lines of it</td>
+        <td>Rendered display and inline equations</td></tr>
+      <tr><td class="id">R2</td><td><span class="sev c">Blocker</span></td>
+        <td>“I'll sketch a visual flowchart” → box-drawing characters</td>
+        <td>Real flowcharts drawn in SVG</td></tr>
+      <tr><td class="id">R3</td><td><span class="sev c">Blocker</span></td>
+        <td>Code blocks: no language, no filename, no copy</td>
+        <td>Framed blocks with a working Copy button</td></tr>
+      <tr><td class="id">R4</td><td><span class="sev c">Blocker</span></td>
+        <td>No way to copy a whole answer</td>
+        <td>Copy full message in the action row</td></tr>
+      <tr><td class="id">S1</td><td><span class="sev h">High</span></td>
+        <td>A global header spans the app</td>
+        <td>Removed — sidebar and in-context controls only</td></tr>
+      <tr><td class="id">S3 · S4</td><td><span class="sev h">High</span></td>
+        <td>Body text over a skyline photo; theme switch reloads it</td>
+        <td>Token-driven surfaces, instant switch, no raster</td></tr>
+      <tr><td class="id">S5</td><td><span class="sev h">High</span></td>
+        <td>A 3D robot covers the send button</td>
+        <td>Gone</td></tr>
+      <tr><td class="id">S6</td><td><span class="sev h">High</span></td>
+        <td><code>Latest Kimi</code>, <code>Latest Qwen</code></td>
+        <td><code>Kimi K2 Instruct · 1T MoE</code></td></tr>
+      <tr><td class="id">S7</td><td><span class="sev h">High</span></td>
+        <td>Settings ends in raw HSL sliders and film grain</td>
+        <td>A plain modal in the Claude idiom</td></tr>
+      <tr><td class="id">S9</td><td><span class="sev h">High</span></td>
+        <td><code>FINAL RETURN</code> expanded above every answer</td>
+        <td>One quiet line, expandable</td></tr>
+      <tr><td class="id">S10</td><td><span class="sev h">High</span></td>
+        <td>No discoverable way to use MCP servers</td>
+        <td><code>/</code> opens a filterable skills + MCP menu</td></tr>
+      <tr><td class="id">A3</td><td><span class="sev h">High</span></td>
+        <td>Prompt chips silently send a question you never wrote</td>
+        <td>Chips pre-fill an editable draft</td></tr>
+      <tr><td class="id">A6</td><td><span class="sev h">High</span></td>
+        <td>Nothing stops internal data moving to Public</td>
+        <td>A guardrail naming the exact files at risk</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<footer><div class="wrap">Prepared for Magna · staging build v1.0.491 · answer quality was not the problem.</div></footer>
+
+<script>
+(function(){
+  var order=["system","light","dark"], label={system:"System",light:"Light",dark:"Dark"};
+  var btn=document.getElementById("themeBtn"), out=document.getElementById("themeLabel");
+  var cur=localStorage.getItem("mv-theme")||"system";
+  function apply(t){
+    if(t==="system"){document.documentElement.removeAttribute("data-theme");}
+    else{document.documentElement.setAttribute("data-theme",t);}
+    out.textContent=label[t]; localStorage.setItem("mv-theme",t); cur=t;
+  }
+  apply(cur);
+  btn.addEventListener("click",function(){ apply(order[(order.indexOf(cur)+1)%order.length]); });
+})();
+</script>
+</body></html>

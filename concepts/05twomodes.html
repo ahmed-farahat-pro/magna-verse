@@ -1,0 +1,239 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>MagnaVERSE — Concept 5: Two Doors</title>
+<style>
+/* MagnaVERSE redesign — shared design tokens */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080A0F; --bg-2:#0D1119; --surface:#12161F; --surface-2:#171C27; --surface-3:#1E2432;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.13);
+  --tx:#EAEEF5; --tx-2:#98A3B6; --tx-3:#606B80;
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,.14);
+  --green:#22C55E; --green-dim:rgba(34,197,94,.12);
+  --amber:#F5A524; --amber-dim:rgba(245,165,36,.12);
+  --violet:#8B5CF6; --rose:#F43F5E;
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+}
+html,body{height:100%}
+body{
+  background:#05060A; color:var(--tx);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+/* page = product frame + spec column */
+.page{display:flex;height:100vh;width:100vw}
+.frame{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.frame-hd{height:34px;flex:none;display:flex;align-items:center;gap:9px;padding:0 16px;
+  background:#05060A;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--tx-3)}
+.frame-hd i{width:7px;height:7px;border-radius:99px;background:var(--blue);flex:none}
+.frame-hd em{font-style:normal;color:var(--tx);font-size:12.5px;font-weight:600}
+.app{flex:1;display:flex;min-height:0}
+/* spec column */
+.spec{width:296px;flex:none;background:#05060A;border-left:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;overflow:hidden}
+.spec-hd{padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.spec-hd h3{font-size:12.5px;font-weight:700;letter-spacing:.02em}
+.spec-hd p{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.5}
+.spec-body{flex:1;overflow:hidden;padding:6px 18px 16px}
+.sitem{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.sitem:last-child{border-bottom:0}
+.sn{width:20px;height:20px;border-radius:99px;flex:none;display:grid;place-items:center;margin-top:1px;
+  background:var(--blue);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono)}
+.sitem h4{font-size:12.5px;font-weight:650;margin-bottom:3px;line-height:1.35}
+.sitem p{font-size:11.5px;line-height:1.5;color:var(--tx-2)}
+.sitem p .was{color:#F5A524}
+/* marker dropped onto the UI */
+.mk{position:absolute;z-index:50;width:21px;height:21px;border-radius:99px;background:var(--blue);
+  color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);display:grid;place-items:center;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22),0 3px 10px rgba(0,0,0,.6)}
+/* ---------- generic atoms ---------- */
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface-2);font-size:12px;color:var(--tx-2);white-space:nowrap}
+.pill.green{border-color:rgba(34,197,94,.35);background:var(--green-dim);color:#7EE2A8}
+.pill.blue{border-color:rgba(59,130,246,.35);background:var(--blue-dim);color:#93BBFB}
+.pill.amber{border-color:rgba(245,165,36,.35);background:var(--amber-dim);color:#F5C97B}
+.pill.sm{height:20px;font-size:10.5px;padding:0 8px}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;
+  border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);
+  font-size:13px;font-weight:500;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ico.sm{width:14px;height:14px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.muted{color:var(--tx-2)} .dim{color:var(--tx-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.kbd{font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.04);color:var(--tx-3)}
+
+</style>
+<style>
+.stage{flex:1;display:flex;gap:16px;padding:18px;min-width:0}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column;gap:11px}
+.hdr{display:flex;align-items:center;gap:9px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700}
+.hdr .ln{flex:1;height:1px;background:var(--line)}
+/* --- BEFORE: nav inventory --- */
+.inv{padding:13px 14px;flex:1;display:flex;flex-direction:column}
+.inv-t{display:flex;align-items:baseline;gap:8px;margin-bottom:11px}
+.inv-t b{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.inv-t span{font-size:11.5px;color:var(--tx-2)}
+.navgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.nsec{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface-2)}
+.nsec h5{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx-2);font-weight:700;
+  margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.nsec h5 .c{margin-left:auto;font-size:10px;letter-spacing:0;text-transform:none;color:var(--tx-3);font-weight:500}
+.nitem{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--tx-2);padding:2.5px 0}
+.nitem.dead{color:#3E4757;text-decoration:line-through;text-decoration-color:rgba(255,255,255,.14)}
+.nitem .d{width:5px;height:5px;border-radius:99px;background:var(--green);flex:none}
+.nitem.dead .d{background:#333B49}
+.tally{display:flex;gap:8px;margin-top:auto;padding-top:14px}
+.tbox{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2)}
+.tbox b{display:block;font-size:17px;font-weight:700;line-height:1.2}
+.tbox span{font-size:10.5px;color:var(--tx-3)}
+.tbox.bad b{color:#F5A524} .tbox.ok b{color:#7EE2A8}
+/* --- AFTER --- */
+.modes{display:flex;gap:9px}
+.mode{flex:1;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:var(--surface)}
+.mode.sel{border-color:rgba(59,130,246,.5);background:linear-gradient(180deg,rgba(59,130,246,.11),var(--surface))}
+.mode .mh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:650;margin-bottom:5px}
+.mode p{font-size:11px;line-height:1.45;color:var(--tx-3);margin-bottom:8px}
+.mode .who{font-size:10.5px;color:var(--tx-2)}
+.chev{display:flex;flex-direction:column;gap:3px;margin-top:8px}
+.chev div{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx-2)}
+/* proposed nav preview */
+.prev{display:flex;flex:1;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface)}
+.pside{width:176px;flex:none;background:var(--bg-2);border-right:1px solid var(--line);padding:11px 9px;
+  display:flex;flex-direction:column;gap:2px}
+.pl{padding:5px 8px 4px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--tx-3);font-weight:700}
+.pr{display:flex;align-items:center;gap:8px;height:29px;padding:0 8px;border-radius:8px;font-size:12px;color:var(--tx-2)}
+.pr.on{background:var(--surface-2);color:var(--tx)}
+.pr .b{margin-left:auto}
+.pmain{flex:1;padding:12px 14px;min-width:0}
+.pmain h4{font-size:12.5px;font-weight:650;margin-bottom:3px}
+.pmain .s{font-size:11px;color:var(--tx-3);margin-bottom:10px}
+.adm{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.acard{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface-2)}
+.acard b{display:block;font-size:11.5px;font-weight:600;margin-bottom:2px}
+.acard span{font-size:10.5px;color:var(--tx-3);line-height:1.4;display:block}
+.moved{margin-top:10px;border:1px dashed var(--line-2);border-radius:10px;padding:9px 11px}
+.moved h6{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3);font-weight:700;margin-bottom:6px}
+.mv{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tx-2);padding:2px 0}
+.mv .from{color:#F5A524} .mv .to{color:#7EE2A8;margin-left:auto}
+</style></head><body>
+<div class="page">
+<div class="frame">
+  <div class="frame-hd"><i></i><em>Concept 5 — Two Doors</em> · one product, two audiences: separate using it from building it</div>
+  <div class="app"><div class="stage">
+
+    <div class="pane">
+      <div class="hdr">Today — one navigation for everyone<span class="ln"></span><span class="pill amber sm">audited live</span></div>
+      <div class="card inv">
+        <div class="inv-t"><b>26</b><span>navigation destinations · <b style="color:#F5A524">13 of them do nothing</b></span></div>
+        <div class="navgrid">
+          <div class="nsec"><h5>Chat<span class="c">3/3</span></h5>
+            <div class="nitem"><i class="d"></i>New Chat</div><div class="nitem"><i class="d"></i>Projects</div><div class="nitem"><i class="d"></i>History</div></div>
+          <div class="nsec"><h5>Tasks<span class="c">3/3</span></h5>
+            <div class="nitem"><i class="d"></i>Tasks</div><div class="nitem"><i class="d"></i>Heartbeat</div><div class="nitem"><i class="d"></i>Schedulers</div></div>
+          <div class="nsec"><h5>Workspace<span class="c">1/4</span></h5>
+            <div class="nitem"><i class="d"></i>Artifacts</div><div class="nitem dead"><i class="d"></i>Document</div>
+            <div class="nitem dead"><i class="d"></i>Image</div><div class="nitem dead"><i class="d"></i>Code</div></div>
+          <div class="nsec"><h5>Apps<span class="c">1/5</span></h5>
+            <div class="nitem"><i class="d"></i>All Apps</div><div class="nitem dead"><i class="d"></i>Magna</div>
+            <div class="nitem dead"><i class="d"></i>Company</div><div class="nitem dead"><i class="d"></i>User</div>
+            <div class="nitem dead"><i class="d"></i>Default</div></div>
+          <div class="nsec"><h5>Governance<span class="c">1/6</span></h5>
+            <div class="nitem"><i class="d"></i>Security</div><div class="nitem dead"><i class="d"></i>PII Detection</div>
+            <div class="nitem dead"><i class="d"></i>Guardrails</div><div class="nitem dead"><i class="d"></i>Access Control</div>
+            <div class="nitem dead"><i class="d"></i>Benchmarks</div><div class="nitem dead"><i class="d"></i>Sovereignty</div></div>
+          <div class="nsec" style="border-color:rgba(245,165,36,.35)"><h5 style="color:#F5C97B">Upcoming<span class="c" style="color:#F5A524">0/5</span></h5>
+            <div class="nitem dead"><i class="d"></i>Code</div><div class="nitem dead"><i class="d"></i>Simulations</div>
+            <div class="nitem dead"><i class="d"></i>Agentic Twins</div><div class="nitem dead"><i class="d"></i>Use Cases</div>
+            <div class="nitem dead"><i class="d"></i>Marketplace</div></div>
+        </div>
+        <div class="tally">
+          <div class="tbox ok"><b>13</b><span>destinations that work</span></div>
+          <div class="tbox bad"><b>13</b><span>greyed-out or “Coming soon”</span></div>
+          <div class="tbox bad"><b>5</b><span>dead items in the section highlighted by default</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="hdr">Proposed — separate the doors<span class="ln"></span></div>
+      <div class="modes">
+        <div class="mode sel"><div class="mh"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg>Work</div>
+          <p>Ask, read, delegate. Everything else is out of the way.</p>
+          <div class="who">Default for 95% of seats</div>
+          <div class="chev"><div><i style="width:4px;height:4px;border-radius:9px;background:var(--green)"></i>Chat · Projects · Tasks · Files</div></div></div>
+        <div class="mode"><div class="mh"><svg class="ico sm" viewBox="0 0 24 24"><path d="m9 6-6 6 6 6M15 6l6 6-6 6"/></svg>Build</div>
+          <p>Skills, agents, tools, connections, evals.</p>
+          <div class="who">Opt-in per user</div>
+          <div class="chev"><div><i style="width:4px;height:4px;border-radius:9px;background:var(--blue)"></i>18 skills · MCPs · agents</div></div></div>
+        <div class="mode"><div class="mh"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10V6Z"/></svg>Govern</div>
+          <p>Residency, guardrails, usage, audit, traces.</p>
+          <div class="who">Admins &amp; compliance only</div>
+          <div class="chev"><div><i style="width:4px;height:4px;border-radius:9px;background:#F5A524"></i>Separate console</div></div></div>
+      </div>
+
+      <div class="prev">
+        <div class="pside">
+          <div class="pl">Work</div>
+          <div class="pr on"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg>Chat</div>
+          <div class="pr"><svg class="ico sm" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Projects<span class="b pill sm">4</span></div>
+          <div class="pr"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Tasks<span class="b pill sm">2</span></div>
+          <div class="pr"><svg class="ico sm" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/></svg>Files</div>
+          <div class="pl" style="margin-top:8px">Build <span class="dim" style="letter-spacing:0;text-transform:none">· optional</span></div>
+          <div class="pr"><svg class="ico sm" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6Z"/></svg>Skills &amp; agents</div>
+          <div class="pr"><svg class="ico sm" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M6 9h12v5a6 6 0 0 1-12 0Z"/></svg>Connections</div>
+          <div style="flex:1"></div>
+          <div class="pr"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10V6Z"/></svg>Admin console<svg class="ico sm b" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></div>
+        </div>
+        <div class="pmain">
+          <h4>Admin console <span class="pill sm amber" style="vertical-align:2px">not in the user’s way</span></h4>
+          <div class="s">Everything an operator needs, nothing a procurement lead should ever see.</div>
+          <div class="adm">
+            <div class="acard"><b>Residency &amp; guardrails</b><span>Tiers, PII rules, per-space policy</span></div>
+            <div class="acard"><b>Usage &amp; budget</b><span>$5,000/mo · 174k tokens · per model</span></div>
+            <div class="acard"><b>Traces &amp; evals</b><span>Langfuse sessions, latency, failures</span></div>
+            <div class="acard"><b>Access control</b><span>Spaces, roles, connector scopes</span></div>
+          </div>
+          <div class="moved"><h6>Moved out of the chat surface</h6>
+            <div class="mv"><span class="from">Composer “Show traces”</span><svg class="ico sm" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg><span class="to">Admin › Traces</span></div>
+            <div class="mv"><span class="from">18-skill checkbox list</span><svg class="ico sm" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg><span class="to">Build › Skills (auto by default)</span></div>
+            <div class="mv"><span class="from">Raw memory keys &amp; scores</span><svg class="ico sm" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg><span class="to">“What Magna remembers” page</span></div>
+            <div class="mv"><span class="from">Hue / saturation / film grain</span><svg class="ico sm" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg><span class="to">Deleted — settings rebuilt</span></div>
+            <div class="mv"><span class="from">“Upcoming” nav section</span><svg class="ico sm" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg><span class="to">Roadmap link in Help</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+  <span class="mk" style="left:424px;top:52px">1</span>
+  <span class="mk" style="left:420px;top:440px">2</span>
+  <span class="mk" style="left:1074px;top:54px">3</span>
+  <span class="mk" style="left:1074px;top:250px">4</span>
+  <span class="mk" style="left:1080px;top:482px">5</span>
+</div>
+
+<aside class="spec">
+  <div class="spec-hd"><h3>What changed &amp; why</h3>
+    <p>Half of MagnaVERSE’s navigation is currently a promise, and the developer tooling is in the user’s face.</p></div>
+  <div class="spec-body">
+    <div class="sitem"><span class="sn">1</span><div><h4>Count the dead ends</h4>
+      <p>Clicking through every flyout: 26 destinations, 13 disabled. A new user’s first impression is a product that mostly doesn’t work yet — even though the parts that do work are strong.</p></div></div>
+    <div class="sitem"><span class="sn">2</span><div><h4>“Upcoming” is highlighted by default</h4>
+      <p>The one nav section boxed and accented on load contains five items, all disabled. Roadmap belongs in Help or a changelog, never in primary navigation.</p></div></div>
+    <div class="sitem"><span class="sn">3</span><div><h4>Three modes, not one menu</h4>
+      <p>A procurement lead and a platform engineer are being shown the same 26 items. Work / Build / Govern lets each see a product sized for them.</p></div></div>
+    <div class="sitem"><span class="sn">4</span><div><h4>Six items beats twenty-six</h4>
+      <p>Also fixes concrete confusions found in testing: Workspace and Apps share an identical cube icon; the page titled <i>Tasks</i> is subtitled “custom roles for delegation” and its button says <i>+ New agent</i>; the account menu hides behind a gear.</p></div></div>
+    <div class="sitem"><span class="sn">5</span><div><h4>Move the dev tooling out</h4>
+      <p>Langfuse trace IDs, <span class="mono">FINAL RETURN</span>, a broken <span class="mono">elon-musk-perspective-en (failed to parse SKILL…)</span> entry, raw memory keys and HSL sliders are all shipping to end users today. They belong behind Admin.</p></div></div>
+    <div class="sitem"><span class="sn">6</span><div><h4>Settings, rebuilt plainly</h4>
+      <p><span class="was">Today:</span> Appearance ends in raw <span class="mono">hsl(210, 67%, 47%)</span> sliders, film grain, vignette, wallpaper zoom and seven background animations.<br>Now: the Claude/ChatGPT idiom — a modal, categories on the left, plain rows on the right. It does not need to look fascinating; it needs to be understood. Anything a user cannot evaluate moves to Admin or goes away.</p></div></div>
+  </div>
+</aside>
+</div>
+</body></html>

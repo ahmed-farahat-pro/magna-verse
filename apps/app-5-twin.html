@@ -1,0 +1,2714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MagnaVERSE — Grounded</title>
+<meta name="description" content="MagnaVERSE enterprise AI workspace — provenance-first chat with the Agentic Twin context rail.">
+<style>
+/* ============================================================
+   MagnaVERSE — "Grounded"  (app-5-twin)
+   Tokens first. Components read tokens only, never raw colour,
+   so light/dark is a variable swap with zero asset loading.
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#FFFFFF; --bg-2:#F5F7F9; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E7EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18); --line-3:rgba(16,22,30,.28);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#78849A;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-tx:#FFFFFF;
+  --private:#15803D; --private-dim:rgba(21,128,61,.10);
+  --public:#B45309;  --public-dim:rgba(180,83,9,.10);
+  --ok:#0E7A4F;   --ok-dim:rgba(14,122,79,.10);      /* twin coverage: connected */
+  --part:#A15C07; --part-dim:rgba(161,92,7,.10);     /* twin coverage: partial / gap */
+  --miss:#8792A4; --miss-dim:rgba(135,146,164,.12);  /* twin coverage: missing */
+  --code-bg:#F7F8FA; --code-tx:#243040;
+  --sy-key:#8250DF; --sy-str:#0A6E4A; --sy-fn:#1F5FCC; --sy-com:#7B8798; --sy-num:#A15C07;
+  --shadow-1:0 1px 2px rgba(16,22,30,.06),0 4px 14px rgba(16,22,30,.07);
+  --shadow-2:0 12px 40px rgba(16,22,30,.16),0 2px 8px rgba(16,22,30,.08);
+  --scrim:rgba(16,22,30,.34);
+  --r:10px; --r-lg:16px; --r-sm:7px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --rail-w:342px; --side-w:270px;
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0B0E13; --bg-2:#0F131A; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+    --line:rgba(255,255,255,.085); --line-2:rgba(255,255,255,.15); --line-3:rgba(255,255,255,.26);
+    --tx:#E9EEF5; --tx-2:#9AA5B8; --tx-3:#6E7A8C;
+    --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-tx:#08111F;
+    --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+    --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+    --ok:#54D18E;   --ok-dim:rgba(84,209,142,.13);
+    --part:#E3A94F; --part-dim:rgba(227,169,79,.13);
+    --miss:#79859A; --miss-dim:rgba(121,133,154,.14);
+    --code-bg:#0A0D13; --code-tx:#C9D3E1;
+    --sy-key:#C792EA; --sy-str:#8FE3B2; --sy-fn:#82AAFF; --sy-com:#5A6678; --sy-num:#F5A524;
+    --shadow-1:0 1px 2px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.4);
+    --shadow-2:0 18px 50px rgba(0,0,0,.62),0 2px 10px rgba(0,0,0,.5);
+    --scrim:rgba(3,5,9,.62);
+  }
+}
+
+/* explicit choice must beat the media query in BOTH directions */
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F5F7F9; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E7EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18); --line-3:rgba(16,22,30,.28);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#78849A;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-tx:#FFFFFF;
+  --private:#15803D; --private-dim:rgba(21,128,61,.10);
+  --public:#B45309;  --public-dim:rgba(180,83,9,.10);
+  --ok:#0E7A4F;   --ok-dim:rgba(14,122,79,.10);
+  --part:#A15C07; --part-dim:rgba(161,92,7,.10);
+  --miss:#8792A4; --miss-dim:rgba(135,146,164,.12);
+  --code-bg:#F7F8FA; --code-tx:#243040;
+  --sy-key:#8250DF; --sy-str:#0A6E4A; --sy-fn:#1F5FCC; --sy-com:#7B8798; --sy-num:#A15C07;
+  --shadow-1:0 1px 2px rgba(16,22,30,.06),0 4px 14px rgba(16,22,30,.07);
+  --shadow-2:0 12px 40px rgba(16,22,30,.16),0 2px 8px rgba(16,22,30,.08);
+  --scrim:rgba(16,22,30,.34);
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E13; --bg-2:#0F131A; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+  --line:rgba(255,255,255,.085); --line-2:rgba(255,255,255,.15); --line-3:rgba(255,255,255,.26);
+  --tx:#E9EEF5; --tx-2:#9AA5B8; --tx-3:#6E7A8C;
+  --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-tx:#08111F;
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+  --ok:#54D18E;   --ok-dim:rgba(84,209,142,.13);
+  --part:#E3A94F; --part-dim:rgba(227,169,79,.13);
+  --miss:#79859A; --miss-dim:rgba(121,133,154,.14);
+  --code-bg:#0A0D13; --code-tx:#C9D3E1;
+  --sy-key:#C792EA; --sy-str:#8FE3B2; --sy-fn:#82AAFF; --sy-com:#5A6678; --sy-num:#F5A524;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.4);
+  --shadow-2:0 18px 50px rgba(0,0,0,.62),0 2px 10px rgba(0,0,0,.5);
+  --scrim:rgba(3,5,9,.62);
+}
+
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--tx);
+  font:14px/1.55 var(--sans);
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  overflow:hidden;
+}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;color:inherit}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+::selection{background:var(--accent-dim)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* scrollbars */
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:99px;border:3px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-thumb:hover{background:var(--line-3);background-clip:content-box}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- atoms ---------- */
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ico.sm{width:14px;height:14px}
+.ico.xs{width:12px;height:12px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.dim{color:var(--tx-3)}
+.muted{color:var(--tx-2)}
+.kbd{font-family:var(--mono);font-size:10.5px;line-height:1;padding:4px 5px;border-radius:5px;
+  border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-3);white-space:nowrap}
+.eyebrow{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--tx-3)}
+
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface);font-size:12px;color:var(--tx-2);white-space:nowrap}
+.pill.sm{height:21px;font-size:11px;padding:0 8px;gap:5px}
+.pill.private{border-color:color-mix(in srgb,var(--private) 42%,transparent);background:var(--private-dim);color:var(--private)}
+.pill.public{border-color:color-mix(in srgb,var(--public) 45%,transparent);background:var(--public-dim);color:var(--public)}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 13px;
+  border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface);color:var(--tx);
+  font-size:13px;font-weight:500;transition:background .12s,border-color .12s,transform .08s}
+.btn:hover{background:var(--surface-2)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-tx);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07);background:var(--accent)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--tx-2)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--tx)}
+.btn.sm{height:28px;padding:0 10px;font-size:12px;border-radius:var(--r-sm)}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.iconbtn{width:30px;height:30px;border-radius:var(--r-sm);display:grid;place-items:center;color:var(--tx-2);
+  border:1px solid transparent;transition:background .12s,color .12s}
+.iconbtn:hover{background:var(--surface-2);color:var(--tx)}
+.iconbtn.on{background:var(--surface-3);color:var(--tx)}
+
+/* ---------- app frame: NO global header bar ---------- */
+.app{display:flex;height:100vh;min-height:100vh;width:100%;overflow:hidden;background:var(--bg)}
+@supports (height:100dvh){ .app{height:100dvh;min-height:100dvh} }
+html{overflow-x:hidden}
+
+/* ---------- sidebar ---------- */
+.side{width:var(--side-w);flex:none;background:var(--bg-2);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden;
+  transition:width .18s ease}
+body[data-side="collapsed"] .side{width:0;border-right-color:transparent}
+.side-in{width:var(--side-w);flex:none;display:flex;flex-direction:column;min-height:0;height:100%;position:relative;z-index:1}
+.side-top{padding:12px 12px 8px;flex:none}
+.brandrow{display:flex;align-items:center;gap:10px;padding:4px 4px 12px}
+.magna-mark{width:26px;height:auto;flex:none;display:block}
+/* the mark draws itself in — open paths, so stroke-dashoffset works directly */
+.magna-mark path{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+.brand-t{display:flex;align-items:baseline;gap:10px;flex:1;min-width:0;font-size:15px;line-height:1}
+.brand-t b{font-weight:650;letter-spacing:-.01em}
+.brand-t .wm{color:var(--tx-3);font-weight:600;letter-spacing:.06em;font-size:13px}
+.newchat{display:flex;align-items:center;gap:8px;width:100%;height:36px;padding:0 11px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface);font-size:13px;font-weight:600;box-shadow:var(--shadow-1)}
+.newchat:hover{background:var(--surface-2)}
+.searchwrap{position:relative;margin-top:9px}
+.searchwrap .ico{position:absolute;left:10px;top:9px;color:var(--tx-3);pointer-events:none}
+.search{width:100%;height:33px;padding:0 42px 0 32px;border-radius:var(--r);border:1px solid var(--line);
+  background:var(--surface-2);font-size:12.5px;color:var(--tx)}
+.search::placeholder{color:var(--tx-3)}
+.search:focus{border-color:var(--line-3);background:var(--surface)}
+.searchwrap .kbd{position:absolute;right:7px;top:8px}
+
+.side-nav{display:flex;flex-direction:column;gap:1px;padding:10px 12px 4px;flex:none}
+.navitem{display:flex;align-items:center;gap:9px;height:31px;padding:0 9px;border-radius:var(--r-sm);
+  font-size:12.8px;color:var(--tx-2);width:100%;text-align:left}
+.navitem:hover{background:var(--surface-2);color:var(--tx)}
+.navitem.on{background:var(--surface-3);color:var(--tx);font-weight:600}
+.navitem .tail{margin-left:auto;font-size:11px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+
+.side-scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:6px 12px 12px;min-height:0}
+.grp{padding:14px 6px 5px;display:flex;align-items:center;gap:8px}
+.grp .ln{flex:1;height:1px;background:var(--line)}
+.conv{display:block;width:100%;text-align:left;padding:7px 9px;border-radius:var(--r-sm);
+  font-size:12.8px;line-height:1.42;color:var(--tx-2);border:1px solid transparent;position:relative}
+.conv:hover{background:var(--surface-2);color:var(--tx)}
+.conv.on{background:var(--surface);border-color:var(--line-2);color:var(--tx);font-weight:600;box-shadow:var(--shadow-1)}
+.conv .meta{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:10.5px;color:var(--tx-3);font-weight:500}
+.conv .cdot{width:5px;height:5px;border-radius:99px;flex:none}
+.emptyside{padding:16px 10px;border:1px dashed var(--line-2);border-radius:var(--r);margin-top:10px}
+.emptyside p{font-size:12px;color:var(--tx-2);line-height:1.5;margin-bottom:9px}
+
+.side-foot{flex:none;border-top:1px solid var(--line);padding:9px 12px 11px;background:var(--bg-2)}
+.userrow{display:flex;align-items:center;gap:9px;width:100%;padding:6px 7px;border-radius:var(--r-sm);text-align:left}
+.userrow:hover{background:var(--surface-2)}
+.avatar{width:27px;height:27px;border-radius:99px;flex:none;display:grid;place-items:center;
+  background:var(--surface-3);border:1px solid var(--line-2);font-size:11px;font-weight:700;color:var(--tx-2)}
+.userrow .un{font-size:12.5px;font-weight:600;line-height:1.25}
+.userrow .uo{font-size:10.5px;color:var(--tx-3)}
+.seg{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);margin-top:8px}
+.seg button{flex:1;height:26px;border-radius:7px;font-size:11.5px;color:var(--tx-3);display:flex;align-items:center;
+  justify-content:center;gap:5px;font-weight:500}
+.seg button:hover{color:var(--tx)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--tx);font-weight:600;box-shadow:var(--shadow-1)}
+
+/* animated Magna backdrop (D11) — sidebar + empty state only, never behind body text */
+.bd{position:absolute;pointer-events:none;opacity:0;transition:opacity .3s}
+body[data-backdrop="magna"] .bd{opacity:.13}
+.bd-side{inset:auto -80px -40px auto;width:290px;z-index:0}
+.bd .magna-mark{width:100%;height:auto}
+@media (prefers-reduced-motion: no-preference){
+  .bd .w1{transform-origin:50% 50%;animation:mgDraw 2.2s cubic-bezier(.16,1,.3,1) both,drift 26s ease-in-out infinite}
+  .bd .w2{transform-origin:50% 50%;animation:mgDraw 2.2s cubic-bezier(.16,1,.3,1) .18s both,drift 26s ease-in-out infinite reverse}
+}
+@keyframes drift{0%,100%{transform:rotate(-3deg) scale(1)}50%{transform:rotate(3deg) scale(1.05)}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+</style>
+<style>
+/* ---------- centre column ---------- */
+.mid{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);position:relative}
+
+/* slim per-thread bar — not an app-wide chrome bar (D1) */
+.tbar{flex:none;height:46px;display:flex;align-items:center;gap:8px;padding:0 12px 0 10px;
+  border-bottom:1px solid var(--line);background:var(--bg)}
+.tbar .tt{font-size:13px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tbar .ts{font-size:11px;color:var(--tx-3);white-space:nowrap;flex:none}
+.tbar .sp{flex:1;min-width:8px}
+.tsel{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 9px;border-radius:var(--r-sm);
+  border:1px solid transparent;font-size:12.2px;color:var(--tx-2);white-space:nowrap;flex:none}
+.tsel span{white-space:nowrap}
+.tbar .tt{flex:1 1 auto;min-width:70px}
+@media (max-width:1320px){ .tsel .dim{display:none} }
+@media (max-width:1200px){ .tbar .ts{display:none} }
+/* both panels stay visible at 1024 — narrow them so the transcript keeps a usable measure */
+@media (min-width:1024px) and (max-width:1279px){
+  :root{--side-w:238px;--rail-w:296px}
+  .stream{padding:18px 18px 22px}
+  .compwrap{padding:0 18px 12px}
+}
+.tsel:hover{background:var(--surface-2);color:var(--tx)}
+.tsel[aria-expanded="true"]{background:var(--surface-2);border-color:var(--line-2);color:var(--tx)}
+.tsel b{font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tsel .chev{color:var(--tx-3)}
+.tsel.priv{color:var(--private)} .tsel.priv b{color:var(--private)}
+.tsel.pub{color:var(--public)} .tsel.pub b{color:var(--public)}
+
+/* ---------- transcript: scrolling contained here only (D2) ---------- */
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.stream{max-width:820px;margin:0 auto;padding:22px 28px 26px;display:flex;flex-direction:column;gap:26px}
+.stream > *{min-width:0;max-width:100%}
+
+/* user turn */
+.turn-user{display:flex;justify-content:flex-end}
+.ubub{max-width:78%;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:14px 14px 5px 14px;padding:10px 14px;font-size:13.8px;line-height:1.55}
+.ubub .attach{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+
+/* assistant turn */
+.turn-ai{display:flex;flex-direction:column;gap:11px}
+.ai-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ai-mark{width:22px;height:auto;flex:none}
+.ai-name{font-size:12.5px;font-weight:650}
+
+/* reasoning: one quiet line (D6) */
+.reason{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 9px;
+  border-radius:99px;border:1px solid var(--line);background:var(--surface-2);font-size:11.5px;color:var(--tx-3)}
+.reason:hover{color:var(--tx-2);border-color:var(--line-2)}
+.reason .chev{transition:transform .15s}
+.reason[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.reason-body{display:none;border-left:2px solid var(--line-2);margin-left:4px;padding:2px 0 2px 13px;
+  font-size:12px;color:var(--tx-2);line-height:1.75}
+.reason-body.open{display:block}
+.reason-body .st{display:flex;gap:9px}
+.reason-body .st .t{color:var(--tx-3);font-family:var(--mono);font-size:10.5px;font-variant-numeric:tabular-nums;
+  padding-top:2px;flex:none;width:44px;text-align:right}
+
+/* ---------- GROUNDED IN strip — the signature (per answer) ---------- */
+.ground{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 11px;
+  box-shadow:var(--shadow-1)}
+.ground-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ground-h .n{margin-left:auto;font-size:10.5px;color:var(--tx-3);font-variant-numeric:tabular-nums;
+  border:1px solid transparent;border-radius:99px;padding:4px 8px}
+button.ground-h .n,.ground-h button.n:hover{background:var(--surface-2);border-color:var(--line);color:var(--tx-2)}
+.gchips{display:flex;flex-wrap:wrap;gap:6px}
+.gchip{display:inline-flex;align-items:center;gap:6px;height:25px;padding:0 9px;border-radius:99px;
+  font-size:11.5px;border:1px solid;transition:background .15s,border-color .15s,color .15s;max-width:100%}
+.gchip .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gchip[data-state="connected"]{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-dim);color:var(--ok)}
+.gchip[data-state="partial"]{border-color:color-mix(in srgb,var(--part) 40%,transparent);background:var(--part-dim);color:var(--part)}
+.gchip[data-state="missing"]{border-color:color-mix(in srgb,var(--part) 55%,transparent);background:var(--part-dim);color:var(--part);font-weight:600}
+button.gchip:hover{filter:brightness(1.05);border-color:currentColor}
+
+/* ---------- answer body ---------- */
+.body{font-size:14.4px;line-height:1.68;color:var(--tx)}
+.body > p{margin-bottom:13px}
+.body > p:last-child{margin-bottom:0}
+.body h4{font-size:13.6px;font-weight:680;margin:19px 0 8px;letter-spacing:-.005em}
+.body h4:first-child{margin-top:0}
+.body strong{font-weight:650}
+.body ul{margin:0 0 13px;padding-left:19px}
+.body li{margin-bottom:6px}
+.body li::marker{color:var(--tx-3)}
+.lead{font-size:15.2px;line-height:1.6}
+
+/* numbered inline citations (A4) */
+.cite{display:inline-block;min-width:16px;height:16px;padding:0 4px;margin:0 1px;border-radius:5px;
+  background:var(--surface-3);border:1px solid var(--line);color:var(--tx-2);font-size:10px;font-weight:700;
+  line-height:14px;text-align:center;vertical-align:1px;font-variant-numeric:tabular-nums}
+.cite:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+/* honest confidence note */
+.conf{display:flex;gap:10px;border-radius:12px;padding:11px 13px;font-size:12.8px;line-height:1.6;
+  border:1px solid;margin-top:4px}
+.conf[data-level="medium"]{border-color:color-mix(in srgb,var(--part) 42%,transparent);background:var(--part-dim);color:var(--tx-2)}
+.conf[data-level="medium"] .cl{color:var(--part)}
+.conf[data-level="high"]{border-color:color-mix(in srgb,var(--ok) 42%,transparent);background:var(--ok-dim);color:var(--tx-2)}
+.conf[data-level="high"] .cl{color:var(--ok)}
+.conf[data-level="low"]{border-color:color-mix(in srgb,var(--miss) 55%,transparent);background:var(--miss-dim);color:var(--tx-2)}
+.conf[data-level="low"] .cl{color:var(--tx)}
+.conf b{font-weight:650}
+.conf .cl{flex:none;margin-top:1px}
+
+/* sources: web vs internal split (A4) */
+.srcs{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.srcs-h{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--surface-2);
+  border-bottom:1px solid var(--line)}
+.srcs-h .n{margin-left:auto;font-size:10.5px;color:var(--tx-3)}
+.srcs-sec{padding:7px 11px 9px}
+.srcs-sec + .srcs-sec{border-top:1px solid var(--line)}
+.srcs-lb{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.srcs-lb .tag{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:2px 6px;
+  border-radius:5px;border:1px solid var(--line-2);color:var(--tx-3)}
+.srcs-lb .tag.int{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-dim)}
+.srcs-lb .tag.web{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent);background:var(--accent-dim)}
+.srcline{display:flex;gap:9px;align-items:baseline;padding:4px 0;font-size:12.2px;color:var(--tx-2);
+  width:100%;text-align:left;line-height:1.5}
+.srcline:hover{color:var(--tx)}
+.srcline .i{flex:none;width:17px;height:17px;border-radius:5px;background:var(--surface-3);border:1px solid var(--line);
+  font-size:9.5px;font-weight:700;color:var(--tx-3);display:grid;place-items:center;font-variant-numeric:tabular-nums;
+  align-self:flex-start}
+.srcline .w{flex:1;min-width:0}
+.srcline .w em{font-style:normal;color:var(--tx-3);font-size:11px;display:block;margin-top:1px}
+
+/* ---------- ONE anchored action row (D2) ---------- */
+.mfoot{display:flex;align-items:center;gap:2px;flex-wrap:wrap;padding-top:2px;border-top:1px solid var(--line);
+  margin-top:2px;padding-top:9px}
+.act{display:inline-flex;align-items:center;gap:6px;height:29px;padding:0 9px;border-radius:var(--r-sm);
+  font-size:11.8px;color:var(--tx-3);border:1px solid transparent}
+.act:hover{background:var(--surface-2);color:var(--tx);border-color:var(--line)}
+.act.done{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent);background:var(--ok-dim)}
+.mfoot .stamp{margin-left:auto;font-size:10.5px;color:var(--tx-3);font-variant-numeric:tabular-nums;padding-left:8px}
+
+/* ---------- rich rendering: MATH (hand-built, no CDN) ---------- */
+.mathblk{position:relative;border:1px solid var(--line);background:var(--surface-2);border-radius:12px;
+  padding:16px 15px 14px;margin:2px 0 14px;overflow-x:auto}
+.mathblk .tagn{position:absolute;right:9px;top:7px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.06em;color:var(--tx-3);text-transform:uppercase}
+.meq{display:flex;align-items:center;justify-content:center;gap:5px;font-family:var(--serif);
+  font-size:21px;line-height:1.1;color:var(--tx);white-space:nowrap;min-width:max-content}
+.meq + .meq{margin-top:14px}
+.mv{font-style:italic}
+.mop{margin:0 6px;font-style:normal}
+.msub{font-size:.62em;vertical-align:-.35em;font-style:italic;margin-left:-2px}
+.sup{font-size:.62em;vertical-align:.65em;font-style:italic}
+.intg{font-size:1.85em;line-height:.7;font-family:var(--serif);font-style:italic;padding:0 1px}
+.lims{display:inline-flex;flex-direction:column;justify-content:space-between;height:1.5em;
+  font-size:.5em;line-height:1;margin:0 3px 0 -3px;vertical-align:middle;font-style:italic}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;
+  line-height:1.15;font-size:.86em}
+.frac .fn{padding:0 5px}
+.frac .fd{padding:1px 5px 0;border-top:1px solid currentColor;margin-top:2px}
+.sqrt{border-top:1px solid currentColor;padding:1px 2px 0;margin-left:-1px}
+.brk{font-size:1.5em;line-height:.8;font-family:var(--serif)}
+.imath{font-family:var(--serif);font-size:1.06em;white-space:nowrap}
+.mnote{font-size:11.5px;color:var(--tx-3);text-align:center;margin-top:11px;font-family:var(--sans)}
+
+/* ---------- rich rendering: CODE ---------- */
+.codeblk{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--code-bg);margin:2px 0 14px}
+.code-hd{display:flex;align-items:center;gap:8px;min-height:34px;padding:4px 8px 4px 11px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);flex-wrap:wrap}
+.code-hd .lang{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx-2);font-weight:600}
+.code-hd .fname{font-family:var(--mono);font-size:10.5px;color:var(--tx-3)}
+.code-hd .acts{margin-left:auto;display:flex;gap:3px}
+.cbtn{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:6px;
+  border:1px solid var(--line);background:var(--surface);color:var(--tx-2);font-size:11px}
+.cbtn:hover{background:var(--surface-3);color:var(--tx)}
+.cbtn.done{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-dim);color:var(--ok)}
+.cbtn.on{border-color:var(--line-3);background:var(--surface-3);color:var(--tx)}
+pre.code{padding:12px 13px;font-family:var(--mono);font-size:12px;line-height:1.68;overflow-x:auto;
+  color:var(--code-tx);tab-size:4}
+pre.code.wrap{white-space:pre-wrap;word-break:break-word;overflow-x:hidden}
+.k{color:var(--sy-key)}.s{color:var(--sy-str)}.f{color:var(--sy-fn)}.c{color:var(--sy-com);font-style:italic}
+.n{color:var(--sy-num)}
+
+/* ---------- rich rendering: DIAGRAM (inline SVG, never ASCII) ---------- */
+.diagwrap{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:2px 0 14px;overflow:hidden}
+.diag-hd{display:flex;align-items:center;gap:8px;min-height:32px;padding:3px 8px 3px 11px;
+  border-bottom:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.diag-hd .lang{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2);font-weight:600}
+.diag-hd .acts{margin-left:auto;display:flex;gap:3px}
+.diagbox{padding:6px 8px 4px;overflow-x:auto}
+.diagbox svg{display:block;width:100%;min-width:640px;height:auto}
+.fc-node{fill:var(--surface-2);stroke:var(--line-2);stroke-width:1}
+.fc-node.acc{fill:var(--accent-dim);stroke:color-mix(in srgb,var(--accent) 55%,transparent)}
+.fc-node.ok{fill:var(--ok-dim);stroke:color-mix(in srgb,var(--ok) 50%,transparent)}
+.fc-node.gap{fill:var(--part-dim);stroke:color-mix(in srgb,var(--part) 55%,transparent);stroke-dasharray:4 3}
+.fc-t{fill:var(--tx);font:600 11.5px var(--sans);text-anchor:middle;dominant-baseline:middle}
+.fc-t.sub{fill:var(--tx-3);font:500 10px var(--sans)}
+.fc-t.gapt{fill:var(--part)}
+.fc-e{stroke:var(--line-3);stroke-width:1.3;fill:none}
+.fc-e.gap{stroke:color-mix(in srgb,var(--part) 70%,transparent);stroke-dasharray:4 3}
+.fc-l{fill:var(--tx-3);font:500 9.5px var(--mono);text-anchor:middle}
+.fc-cap{padding:2px 11px 9px;font-size:11.5px;color:var(--tx-3)}
+
+/* ---------- rich rendering: TABLE ---------- */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:2px 0 14px;background:var(--surface)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.6px;min-width:440px}
+.tbl th{background:var(--surface-2);text-align:left;padding:8px 11px;font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:8px 11px;border-bottom:1px solid var(--line);color:var(--tx-2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr:last-child td{font-weight:600;color:var(--tx)}
+.tbl th.r,.tbl td.r{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);color:var(--tx)}
+.tbl td.warn{color:var(--part)}
+
+/* pending-response indicator — the Magna mark, drawing itself, plus honest status text */
+.mg-think{display:flex;align-items:center;gap:12px;align-self:flex-start;padding:2px 0}
+.mg-think .magna-mark{width:32px}
+.think-t{font-size:13px;color:var(--tx-2);letter-spacing:-.005em}
+.think-t .el{display:inline-block;width:14px;text-align:left}
+@media (prefers-reduced-motion: no-preference){
+  .mg-thinking path{animation:mgLoop 1.9s ease-in-out infinite}
+  .mg-thinking path:nth-of-type(2){animation-delay:.22s}
+}
+@keyframes mgLoop{
+  0%   {stroke-dashoffset:1200;opacity:.35}
+  45%  {stroke-dashoffset:0;opacity:1}
+  100% {stroke-dashoffset:-1200;opacity:.35}
+}
+</style>
+<style>
+/* ---------- empty state (A8) ---------- */
+.empty{max-width:760px;width:100%;min-width:0;margin:0 auto;padding:52px 28px 20px;position:relative}
+.empty .bd-empty{position:absolute;inset:-20px -40px auto auto;width:330px;max-width:70%;z-index:0}
+.empty > *:not(.bd){position:relative;z-index:1}
+.empty h1{font-size:25px;font-weight:680;letter-spacing:-.02em;margin-bottom:8px}
+.empty .sub{font-size:14px;color:var(--tx-2);line-height:1.65;max-width:64ch;margin-bottom:16px}
+.covstrip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--line);
+  background:var(--surface);border-radius:12px;padding:10px 12px;margin-bottom:20px;box-shadow:var(--shadow-1)}
+.covstrip .lbl{font-size:12.2px;color:var(--tx-2)}
+.covstrip .lbl b{color:var(--tx);font-weight:650}
+.chips-h{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:9px}
+.chip{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:11px 12px;
+  border-radius:12px;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--shadow-1);
+  transition:border-color .12s,transform .1s}
+.chip:hover{border-color:var(--line-3);transform:translateY(-1px)}
+.chip .ct{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:650}
+.chip .cd{font-size:11.6px;color:var(--tx-3);line-height:1.5}
+.chip .cf{font-size:10.5px;color:var(--tx-3);display:flex;align-items:center;gap:5px;margin-top:2px}
+.chip .cf b{color:var(--accent);font-weight:600}
+
+/* ---------- composer ---------- */
+.compwrap{flex:none;padding:0 28px 16px;position:relative;background:var(--bg)}
+.compinner{max-width:820px;margin:0 auto;position:relative}
+.comp{border:1px solid var(--line-2);background:var(--surface);border-radius:16px;padding:10px 11px 8px;
+  box-shadow:var(--shadow-1);transition:border-color .15s,box-shadow .15s}
+.comp:focus-within{border-color:var(--line-3);box-shadow:var(--shadow-2)}
+.tray{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tray:empty{display:none}
+.trayp{display:inline-flex;align-items:center;gap:6px;height:25px;padding:0 5px 0 9px;border-radius:99px;
+  border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:var(--accent-dim);
+  color:var(--accent);font-size:11.5px;font-weight:600}
+.trayp .x{width:17px;height:17px;border-radius:99px;display:grid;place-items:center;color:inherit;opacity:.7}
+.trayp .x:hover{opacity:1;background:var(--surface)}
+.ta{width:100%;border:0;background:none;resize:none;font-size:14.4px;line-height:1.55;color:var(--tx);
+  max-height:190px;min-height:26px;padding:2px 2px 6px;display:block}
+.ta::placeholder{color:var(--tx-3)}
+.cbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tool{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:8px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--tx-2);font-size:11.5px}
+.tool:hover{color:var(--tx);border-color:var(--line-2)}
+.tool.on{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-dim);color:var(--ok);font-weight:600}
+.slashhint{font-size:11px;color:var(--tx-3);display:inline-flex;align-items:center;gap:5px;margin-left:2px}
+.send{margin-left:auto;width:31px;height:31px;border-radius:9px;background:var(--accent);color:var(--accent-tx);
+  display:grid;place-items:center;flex:none}
+.send:hover{filter:brightness(1.08)}
+.send[disabled]{background:var(--surface-3);color:var(--tx-3);cursor:not-allowed;filter:none}
+.compfoot{display:flex;align-items:center;gap:8px;justify-content:center;padding:7px 4px 0;font-size:10.8px;color:var(--tx-3)}
+
+/* ---------- slash menu (D12) ---------- */
+.slash{position:absolute;left:0;right:0;bottom:calc(100% + 8px);max-height:340px;overflow-y:auto;
+  border:1px solid var(--line-2);background:var(--surface);border-radius:14px;box-shadow:var(--shadow-2);
+  padding:6px;z-index:40;display:none}
+.slash.open{display:block}
+.sl-h{display:flex;align-items:center;gap:8px;padding:8px 9px 6px}
+.sl-h .n{margin-left:auto;font-size:10.5px;color:var(--tx-3)}
+.sl-i{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:8px 9px;border-radius:9px;
+  border:1px solid transparent}
+.sl-i:hover{background:var(--surface-2)}
+.sl-i.sel{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.sl-i .ib{width:24px;height:24px;border-radius:7px;flex:none;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--tx-2)}
+.sl-i.mcp .ib{color:var(--accent);background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.sl-i .nm{font-size:12.8px;font-weight:600;font-family:var(--mono);letter-spacing:-.01em}
+.sl-i .ds{font-size:11.5px;color:var(--tx-3);line-height:1.45;margin-top:1px}
+.sl-i .tag{margin-left:auto;flex:none;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  color:var(--tx-3);border:1px solid var(--line);border-radius:5px;padding:2px 5px}
+.sl-i.mcp .tag{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.sl-f{display:flex;align-items:center;gap:8px;padding:8px 10px 5px;border-top:1px solid var(--line);margin-top:4px;
+  font-size:11px;color:var(--tx-3)}
+.sl-empty{padding:16px 12px;font-size:12.3px;color:var(--tx-2);line-height:1.6}
+
+/* ---------- context rail — THE signature move ---------- */
+.rail{width:var(--rail-w);flex:none;border-left:1px solid var(--line);background:var(--bg-2);
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;transition:width .18s ease}
+body[data-rail="collapsed"] .rail{width:0;border-left-color:transparent}
+.rail-in{width:var(--rail-w);flex:none;display:flex;flex-direction:column;min-height:0;height:100%}
+.rail-h{flex:none;padding:12px 14px 13px;border-bottom:1px solid var(--line)}
+.rail-h .r1{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.rail-h .r1 .t{font-size:13px;font-weight:680;flex:1;min-width:0}
+.meter{height:7px;border-radius:99px;background:var(--miss-dim);overflow:hidden;display:flex;gap:2px;margin-bottom:8px}
+.meter i{display:block;height:100%;border-radius:99px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.meter .m-ok{background:var(--ok)}
+.meter .m-part{background:var(--part)}
+.mleg{display:flex;gap:13px;font-size:11px;color:var(--tx-3);flex-wrap:wrap}
+.mleg span{display:inline-flex;align-items:center;gap:5px}
+.mleg b{font-weight:700;font-variant-numeric:tabular-nums;font-size:12px}
+.mleg .k{width:7px;height:7px;border-radius:2px;flex:none}
+.mleg .k.ok{background:var(--ok)} .mleg .k.part{background:var(--part)} .mleg .k.miss{background:var(--miss)}
+.mleg .ok-t{color:var(--ok)} .mleg .part-t{color:var(--part)} .mleg .miss-t{color:var(--tx-2)}
+.rail-used{display:flex;align-items:center;gap:7px;margin-top:10px;padding:7px 9px;border-radius:9px;
+  background:var(--surface);border:1px solid var(--line);font-size:11.5px;color:var(--tx-2)}
+.rail-used b{color:var(--tx);font-variant-numeric:tabular-nums}
+
+.rail-b{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 11px 14px}
+.cg{margin-top:13px}
+.cg-h{display:flex;align-items:center;gap:8px;padding:0 4px 7px;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700}
+.cg-h .n{margin-left:auto;letter-spacing:0;text-transform:none;font-weight:600;font-size:11px;
+  font-variant-numeric:tabular-nums;color:var(--tx-3)}
+.src{border:1px solid transparent;border-radius:10px;margin-bottom:2px;background:transparent;transition:background .12s}
+.src.used{background:var(--surface);border-color:var(--line)}
+.src.off{opacity:.55}
+.src-row{display:flex;align-items:center;gap:9px;padding:7px 8px}
+.src-main{display:flex;align-items:center;gap:9px;flex:1;min-width:0;text-align:left;padding:1px 0}
+.st{width:15px;height:15px;border-radius:99px;flex:none;display:grid;place-items:center;border:1px solid}
+.st.ok{background:var(--ok-dim);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+.st.part{background:var(--part-dim);color:var(--part);border-color:color-mix(in srgb,var(--part) 50%,transparent)}
+.st.miss{background:var(--miss-dim);color:var(--tx-3);border-color:var(--line-2)}
+.st .bar{width:7px;height:1.6px;background:currentColor;border-radius:2px}
+.st .half{width:7px;height:7px;border-radius:99px;background:currentColor;
+  -webkit-mask-image:linear-gradient(90deg,#000 50%,transparent 50%);mask-image:linear-gradient(90deg,#000 50%,transparent 50%)}
+.src .nm{flex:1;min-width:0;font-size:12.2px;color:var(--tx-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.src.used .nm{color:var(--tx);font-weight:600}
+.src .usedtag{flex:none;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--ok);
+  border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);background:var(--ok-dim);border-radius:5px;padding:2px 5px}
+.sw{width:32px;height:19px;border-radius:99px;flex:none;background:var(--surface-3);border:1px solid var(--line-2);
+  position:relative;transition:background .15s,border-color .15s}
+.sw::after{content:"";position:absolute;left:2px;top:1.5px;width:13px;height:13px;border-radius:99px;
+  background:var(--tx-3);transition:transform .15s,background .15s}
+.sw[aria-checked="true"]{background:var(--ok-dim);border-color:color-mix(in srgb,var(--ok) 50%,transparent)}
+.sw[aria-checked="true"]::after{transform:translateX(13px);background:var(--ok)}
+.sw[disabled]{opacity:.45;cursor:not-allowed}
+.src-det{display:none;padding:0 10px 10px 32px;font-size:11.4px;color:var(--tx-3);line-height:1.55}
+.src-det.open{display:block}
+.src-det .mt{display:flex;align-items:center;gap:6px;margin-top:6px;font-family:var(--mono);font-size:10px}
+.src-det .cbtn{margin-top:8px}
+
+.gapbox{margin-top:14px;border:1px solid color-mix(in srgb,var(--part) 42%,transparent);background:var(--part-dim);
+  border-radius:12px;padding:12px}
+.gapbox.done{border-color:color-mix(in srgb,var(--ok) 42%,transparent);background:var(--ok-dim)}
+.gapbox h5{font-size:12.3px;font-weight:680;color:var(--part);margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.gapbox.done h5{color:var(--ok)}
+.gapbox p{font-size:11.6px;line-height:1.55;color:var(--tx-2);margin-bottom:10px}
+.gapbox ul{margin:0 0 10px;padding-left:16px;font-size:11.5px;color:var(--tx-2)}
+.gapbox li{margin-bottom:3px}
+.rail-f{flex:none;border-top:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--tx-3);line-height:1.45}
+.railbanner{margin:11px 11px 0;border:1px solid color-mix(in srgb,var(--public) 45%,transparent);
+  background:var(--public-dim);border-radius:11px;padding:10px 11px;font-size:11.6px;line-height:1.55;color:var(--tx-2);display:none}
+body[data-tier="public"] .railbanner{display:block}
+body[data-tier="public"] .rail-b .cg,body[data-tier="public"] .rail-b .gapbox{opacity:.4;pointer-events:none}
+.railbanner b{color:var(--public)}
+</style>
+<style>
+/* ---------- dropdown menus ---------- */
+.menu{position:absolute;z-index:60;min-width:300px;max-width:min(94vw,420px);border:1px solid var(--line-2);
+  background:var(--surface);border-radius:14px;box-shadow:var(--shadow-2);padding:6px;display:none}
+.menu.open{display:block}
+.menu-h{padding:8px 9px 6px;display:flex;align-items:center;gap:8px}
+.mi{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:9px;border-radius:10px;
+  border:1px solid transparent}
+.mi:hover{background:var(--surface-2)}
+.mi.on{background:var(--surface-2);border-color:var(--line-2)}
+.mi .nm{font-size:13px;font-weight:620;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mi .ds{font-size:11.4px;color:var(--tx-3);line-height:1.5;margin-top:2px}
+.mi .chk{margin-left:auto;color:var(--accent);flex:none;opacity:0}
+.mi.on .chk{opacity:1}
+.mi .badge{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:2px 5px;border-radius:5px;
+  border:1px solid var(--line-2);color:var(--tx-3)}
+.mi .badge.priv{color:var(--private);border-color:color-mix(in srgb,var(--private) 40%,transparent);background:var(--private-dim)}
+.mi .badge.pub{color:var(--public);border-color:color-mix(in srgb,var(--public) 45%,transparent);background:var(--public-dim)}
+.mi.road{opacity:1}
+.mi.road .nm{color:var(--tx-2)}
+.menu-sec{padding:9px 9px 5px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;color:var(--tx-3);
+  border-top:1px solid var(--line);margin-top:5px}
+.menu-sec:first-child{border-top:0;margin-top:0}
+.roadrow{display:flex;align-items:center;gap:9px;padding:9px;border-radius:10px}
+.roadrow .w{flex:1;min-width:0}
+.roadrow .nm{font-size:12.6px;font-weight:600;color:var(--tx-2)}
+.roadrow .ds{font-size:11.2px;color:var(--tx-3);line-height:1.45;margin-top:2px}
+.roadrow .when{flex:none;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);background:var(--accent-dim);border-radius:5px;padding:3px 6px}
+
+/* ---------- overlays ---------- */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:80;display:none;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.scrim.open{display:block}
+.dialog{position:fixed;z-index:90;left:50%;transform:translateX(-50%);background:var(--surface);
+  border:1px solid var(--line-2);border-radius:var(--r-lg);box-shadow:var(--shadow-2);display:none;overflow:hidden}
+.dialog.open{display:flex}
+
+/* command palette */
+#palette{top:12vh;width:min(660px,94vw);flex-direction:column;max-height:70vh}
+.pal-in{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.pal-in input{flex:1;border:0;background:none;font-size:15px;color:var(--tx)}
+.pal-in input::placeholder{color:var(--tx-3)}
+.pal-b{flex:1;overflow-y:auto;padding:6px}
+.pal-sec{padding:9px 10px 5px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;color:var(--tx-3)}
+.pal-i{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:9px;border:1px solid transparent}
+.pal-i:hover{background:var(--surface-2)}
+.pal-i.sel{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.pal-i .ib{width:24px;height:24px;border-radius:7px;flex:none;display:grid;place-items:center;background:var(--surface-2);
+  border:1px solid var(--line);color:var(--tx-2)}
+.pal-i .w{flex:1;min-width:0}
+.pal-i .nm{font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-i .ds{font-size:11.2px;color:var(--tx-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.pal-i .tag{flex:none;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--tx-3);
+  border:1px solid var(--line);border-radius:5px;padding:2px 5px}
+.pal-f{flex:none;border-top:1px solid var(--line);padding:8px 13px;display:flex;align-items:center;gap:12px;
+  font-size:10.8px;color:var(--tx-3);flex-wrap:wrap}
+.pal-empty{padding:22px 16px;text-align:center}
+.pal-empty p{font-size:12.8px;color:var(--tx-2);line-height:1.6;margin-bottom:12px}
+
+/* settings modal (D8) */
+#settings{top:8vh;width:min(880px,94vw);height:min(620px,80vh);flex-direction:column}
+.set-hd{flex:none;display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.set-hd h2{font-size:14.5px;font-weight:680;flex:1}
+.set-body{flex:1;display:flex;min-height:0}
+.set-nav{width:198px;flex:none;border-right:1px solid var(--line);padding:9px;overflow-y:auto;background:var(--bg-2)}
+.set-nav button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 10px;border-radius:9px;
+  font-size:12.8px;color:var(--tx-2);margin-bottom:1px}
+.set-nav button:hover{background:var(--surface-2);color:var(--tx)}
+.set-nav button.on{background:var(--surface);color:var(--tx);font-weight:650;border:1px solid var(--line);box-shadow:var(--shadow-1)}
+.set-pane{flex:1;min-width:0;overflow-y:auto;padding:18px 22px 26px}
+.set-pane h3{font-size:15px;font-weight:680;margin-bottom:3px}
+.set-pane .lead2{font-size:12.5px;color:var(--tx-3);margin-bottom:16px;line-height:1.55}
+.row{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .w{flex:1;min-width:0}
+.row .rt{font-size:13px;font-weight:550}
+.row .rd{font-size:11.6px;color:var(--tx-3);line-height:1.5;margin-top:2px}
+.row .ctl{flex:none}
+select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);padding:0 8px;font-size:12.5px}
+.setsw{width:38px;height:22px;border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);position:relative;flex:none;padding:0}
+.setsw::after{content:"";position:absolute;left:2px;top:1.5px;width:16px;height:16px;border-radius:99px;background:var(--tx-3);transition:transform .15s,background .15s}
+.setsw[aria-checked="true"]{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+.setsw[aria-checked="true"]::after{transform:translateX(16px);background:var(--accent)}
+.note{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:11.8px;
+  color:var(--tx-2);line-height:1.55;margin-top:14px}
+.kbtable{width:100%;border-collapse:collapse;font-size:12.5px}
+.kbtable td{padding:8px 0;border-top:1px solid var(--line);color:var(--tx-2)}
+.kbtable td:last-child{text-align:right}
+.kbtable tr:first-child td{border-top:0}
+
+/* guardrail modal (A6) */
+#guard{top:16vh;width:min(560px,94vw);flex-direction:column}
+.g-hd{display:flex;gap:12px;padding:16px 17px 12px}
+.g-ic{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;color:var(--public);
+  background:var(--public-dim);border:1px solid color-mix(in srgb,var(--public) 45%,transparent)}
+.g-hd h2{font-size:15px;font-weight:680;margin-bottom:4px}
+.g-hd p{font-size:12.8px;color:var(--tx-2);line-height:1.6}
+.g-list{margin:0 17px;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.g-list .gl{display:flex;align-items:center;gap:10px;padding:9px 11px;font-size:12.3px;border-top:1px solid var(--line)}
+.g-list .gl:first-child{border-top:0}
+.g-list .gl .w{flex:1;min-width:0}
+.g-list .gl .w em{font-style:normal;display:block;font-size:10.8px;color:var(--tx-3);margin-top:1px}
+.g-list .gl .sz{font-family:var(--mono);font-size:10.8px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+.g-ft{display:flex;align-items:center;gap:9px;padding:14px 17px 16px;flex-wrap:wrap}
+.g-ft .sp{flex:1}
+.btn.danger{background:var(--public);border-color:var(--public);color:#FFFFFF;font-weight:600}
+:root[data-theme="dark"] .btn.danger{color:#1A1206}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.danger{color:#1A1206}}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);z-index:120;display:flex;align-items:center;gap:9px;
+  padding:10px 14px;border-radius:11px;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--shadow-2);
+  font-size:12.6px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;max-width:min(520px,92vw)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .ic{color:var(--ok);flex:none}
+
+/* first-run tour (D10) */
+.tour{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:min(430px,calc(100% - 12px));
+  border:1px solid var(--line-2);background:var(--surface);border-radius:14px;box-shadow:var(--shadow-2);padding:14px 15px 12px;z-index:30}
+.tour[hidden]{display:none}
+.tour .th{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.tour .th h4{font-size:13.2px;font-weight:680;flex:1}
+.tour p{font-size:12.5px;color:var(--tx-2);line-height:1.6;margin-bottom:12px}
+.tour .tf{display:flex;align-items:center;gap:8px}
+.dots{display:flex;gap:5px;flex:1}
+.dots i{width:6px;height:6px;border-radius:99px;background:var(--line-3)}
+.dots i.on{background:var(--accent);width:16px;border-radius:99px}
+
+/* ============================================================
+   responsive — desktop ≥1024 · tablet 768–1023 · mobile <768
+   ============================================================ */
+.sidescrim{position:fixed;inset:0;background:var(--scrim);z-index:84;display:none}
+.sidescrim.open{display:block}
+.rt-badge{display:none;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.only-sm{display:none !important}
+
+@media (max-width:1240px){
+  :root{--rail-w:316px}
+}
+
+/* ---- tablet + mobile: side and rail become overlays ---- */
+@media (max-width:1023px){
+  .side{position:fixed;top:0;left:0;bottom:0;z-index:88;width:min(300px,86vw);
+    transform:translateX(-100%);transition:transform .22s ease;box-shadow:var(--shadow-2);border-right:1px solid var(--line)}
+  body[data-side="collapsed"] .side{width:min(300px,86vw);transform:translateX(-100%);border-right-color:var(--line)}
+  body[data-side="expanded"] .side{transform:none}
+  .side-in{width:100%}
+
+  .rail{position:fixed;top:0;right:0;bottom:0;z-index:86;width:min(390px,90vw);
+    transform:translateX(100%);transition:transform .22s ease;box-shadow:var(--shadow-2);border-left:1px solid var(--line)}
+  body[data-rail="collapsed"] .rail{width:min(390px,90vw);transform:translateX(100%);border-left-color:var(--line)}
+  body[data-rail="open"] .rail{transform:none}
+  .rail-in{width:100%}
+
+  .rt-badge{display:inline}
+  #railToggle{width:auto;padding:0 9px;gap:6px;display:inline-flex;align-items:center}
+  .stream{padding:20px 20px 24px}
+  .compwrap{padding:0 20px 14px}
+}
+
+/* ---- mobile ---- */
+@media (max-width:767px){
+  .rail{width:100vw;max-width:100vw;border-left:0}
+  body[data-rail="collapsed"] .rail{width:100vw}
+  .tbar{height:52px;padding:0 8px 0 6px;gap:4px}
+  .tbar .tt{font-size:12.8px}
+  .tbar .ts{display:none}
+  #modelBtn b,#modelBtn .chev{display:none}
+  #modelBtn{padding:0 8px}
+  .stream{padding:14px 13px 18px;gap:22px}
+  .compwrap{padding:0 12px 10px}
+  .empty{padding:24px 13px 12px}
+  .empty h1{font-size:21px}
+  .empty .sub{font-size:13.2px}
+  .chips{grid-template-columns:1fr}
+  .ubub{max-width:93%;font-size:14px}
+  .body{font-size:14.6px}
+  .compfoot span:nth-child(n+2){display:none}
+  .slashhint,.searchwrap .kbd,.newchat .kbd,.pal-f{display:none}
+
+  /* 44px minimum touch targets */
+  .act,.tool,.iconbtn,.btn,.btn.sm,.cbtn,.navitem,.conv,.sl-i,.pal-i,.mi,.srcline,.seg button,.userrow,
+  .newchat,.gchip,.reason,.src-main,.trayp,.roadrow,.set-nav button{min-height:44px}
+  .iconbtn{width:44px;min-width:44px;flex:none}
+  .tsel{height:44px;min-width:44px;flex:none;justify-content:center}
+  .act.only-sm{min-width:44px;justify-content:center}
+  #railToggle{min-width:44px}
+  .reason{height:auto;padding:0 12px}
+  .gchip{padding:0 13px;font-size:12.5px}
+  .gchips{gap:8px}
+  .ground-h .n{min-height:44px;display:inline-flex;align-items:center}
+  .trayp{padding:0 6px 0 12px}
+  .trayp .x{width:32px;height:32px}
+  .cbtn{padding:0 12px}
+  .code-hd,.diag-hd{padding:6px 8px}
+  .send{width:44px;height:44px;border-radius:12px}
+  /* the switch keeps its visual size but gets a full 44px hit area */
+  .sw{width:52px;height:44px;background:none;border:0;position:relative}
+  .sw::before{content:"";position:absolute;left:8px;top:11px;width:36px;height:22px;border-radius:99px;
+    background:var(--surface-3);border:1px solid var(--line-2)}
+  .sw::after{left:11px;top:14.5px;width:15px;height:15px}
+  .sw[aria-checked="true"]{background:none}
+  .sw[aria-checked="true"]::before{background:var(--ok-dim);border-color:color-mix(in srgb,var(--ok) 50%,transparent)}
+  .sw[aria-checked="true"]::after{transform:translateX(18px);background:var(--ok)}
+  .setsw{width:52px;height:44px;background:none;border:0}
+  .setsw::before{content:"";position:absolute;left:7px;top:11px;width:38px;height:22px;border-radius:99px;
+    background:var(--surface-3);border:1px solid var(--line-2)}
+  .setsw::after{left:10px;top:14px;width:16px;height:16px}
+  .setsw[aria-checked="true"]::before{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+  .setsw[aria-checked="true"]::after{transform:translateX(18px);background:var(--accent)}
+  .src-row{padding:8px}
+  .gchip{height:32px;font-size:12px}
+  .tray .trayp{height:32px}
+
+  /* message action row: 2 actions + overflow */
+  .mfoot .act.hide-sm{display:none}
+  .mfoot.open .act.hide-sm{display:inline-flex}
+  .only-sm{display:inline-flex !important}
+  .mfoot .stamp{display:none}
+
+  /* overlays become full-screen sheets */
+  .dialog{left:0;right:0;transform:none;top:0;width:100vw;max-width:100vw;
+    height:100dvh;max-height:100dvh;border-radius:0;border:0}
+  #palette,#settings,#guard{top:0;width:100vw;height:100dvh;max-height:100dvh}
+  #guard{height:auto;max-height:100dvh;top:auto;bottom:0;border-radius:18px 18px 0 0}
+  .set-body{flex-direction:column}
+  .set-nav{width:100%;flex:none;display:flex;gap:6px;overflow-x:auto;border-right:0;
+    border-bottom:1px solid var(--line);padding:8px}
+  .set-nav button{width:auto;white-space:nowrap;margin-bottom:0}
+  .set-pane{padding:16px 14px 30px}
+  .row{flex-wrap:wrap;gap:8px}
+  .row .ctl{width:100%}
+  .row .ctl .btn,.row .ctl select{width:100%}
+  .g-ft{flex-direction:column-reverse;align-items:stretch}
+  .g-ft .btn{width:100%}
+  .menu{max-width:calc(100vw - 16px);min-width:0;width:calc(100vw - 16px);left:8px !important}
+  .toast{left:10px;right:10px;bottom:12px;transform:translateY(14px);max-width:none}
+  .toast.show{transform:translateY(0)}
+  .tour{width:calc(100% - 8px)}
+  .diagbox svg{min-width:540px}
+  table.tbl{min-width:400px}
+}
+@media (max-width:400px){
+  .tbar{gap:2px}
+  .tbar .tt{flex:1 1 auto;min-width:44px}
+  .tsel.priv,.tsel.pub{padding:0 6px}
+  .empty h1{font-size:19px}
+  .diagbox svg{min-width:470px}
+}
+</style>
+</head>
+<body data-side="expanded" data-rail="open" data-tier="private" data-backdrop="off">
+
+<!-- one shared gradient definition for the repeated in-transcript marks (no duplicate IDs) -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;left:-9999px"><defs>
+  <linearGradient id="mgGB-app" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+  </linearGradient>
+  <linearGradient id="mgR-app" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+  </linearGradient>
+</defs></svg>
+
+<div class="app">
+
+<!-- ============================== SIDEBAR (all app-level nav lives here — no global header) -->
+<aside class="side" id="side" aria-label="Navigation and conversations">
+  <div class="bd bd-side" aria-hidden="true">
+    <svg class="magna-mark" viewBox="0 0 640 440">
+      <defs>
+        <linearGradient id="mgGB-bd" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+        </linearGradient>
+        <linearGradient id="mgR-bd" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+        </linearGradient>
+      </defs>
+      <path class="w1" d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-bd)"
+            stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="w2" d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-bd)"
+            stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="side-in">
+    <div class="side-top">
+      <div class="brandrow">
+        <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+          <defs>
+            <linearGradient id="mgGB-side" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+            </linearGradient>
+            <linearGradient id="mgR-side" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+            </linearGradient>
+          </defs>
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-side)"
+                stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-side)"
+                stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-t"><b>Magna</b><span class="wm">VERSE</span></span>
+        <button class="iconbtn" id="collapseSide" aria-label="Collapse sidebar" title="Collapse sidebar">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg>
+        </button>
+      </div>
+      <button class="newchat" id="newChat">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New chat
+        <span class="kbd" style="margin-left:auto">⌘N</span>
+      </button>
+      <div class="searchwrap">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input class="search" id="convSearch" type="search" placeholder="Search conversations" aria-label="Search conversations">
+        <span class="kbd">⌘K</span>
+      </div>
+    </div>
+
+    <nav class="side-nav" aria-label="Sections">
+      <button class="navitem on" data-nav="chats"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg>Chats<span class="tail" id="navConvCount">6</span></button>
+      <button class="navitem" data-nav="twin"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/></svg>Twin sources<span class="tail" id="navTwinCount">7/16</span></button>
+      <button class="navitem" data-nav="skills"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3l2.4 5.2L20 9.3l-4 4 1 5.7-5-2.8-5 2.8 1-5.7-4-4 5.6-1.1Z"/></svg>Skills &amp; MCP<span class="tail">18 · 4</span></button>
+      <button class="navitem" data-nav="knowledge"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M8 7h7"/></svg>Knowledge<span class="tail">8,400</span></button>
+      <button class="navitem" data-nav="help"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5v.4M12 17v.5"/></svg>Help &amp; roadmap</button>
+    </nav>
+
+    <div class="side-scroll" id="convList"></div>
+
+    <div class="side-foot">
+      <button class="userrow" id="openSettingsUser">
+        <span class="avatar">AF</span>
+        <span style="flex:1;min-width:0">
+          <span class="un" style="display:block">Ahmad Farahat</span>
+          <span class="uo" style="display:block">Magna · Riyadh · Delivery</span>
+        </span>
+        <svg class="ico sm dim" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.4-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      </button>
+      <div class="seg" role="group" aria-label="Theme">
+        <button data-theme-set="light" aria-pressed="false"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>Light</button>
+        <button data-theme-set="dark" aria-pressed="false"><svg class="ico xs" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>Dark</button>
+        <button data-theme-set="system" aria-pressed="true"><svg class="ico xs" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>System</button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============================== CENTRE -->
+<main class="mid">
+  <!-- slim per-thread bar: per-thread state only -->
+  <div class="tbar">
+    <button class="iconbtn" id="expandSide" aria-label="Open navigation and conversations" aria-expanded="false" aria-controls="side" title="Menu" hidden>
+      <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg>
+    </button>
+    <span class="tt" id="threadTitle">Package 4 handover — schedule exposure and risk owner</span>
+    <span class="ts dim" id="threadMeta">· 6 messages · today 14:08</span>
+    <span class="sp"></span>
+
+    <button class="tsel" id="modelBtn" aria-haspopup="menu" aria-expanded="false">
+      <svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9h6v6H9z"/></svg>
+      <b id="modelLabel">Kimi K2 Instruct</b><span class="dim">· 1T MoE</span>
+      <svg class="ico xs chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+
+    <button class="tsel priv" id="tierBtn" aria-haspopup="menu" aria-expanded="false">
+      <svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>
+      <b id="tierLabel">Private</b><span class="dim" id="tierSub">· Riyadh DC-1</span>
+      <svg class="ico xs chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+
+    <button class="iconbtn" id="railToggle" aria-label="Toggle the Agentic Twin context rail" aria-expanded="true" title="Twin context rail (⌘J)">
+      <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M15 4v16"/></svg>
+      <span class="rt-badge" id="railBadge">7/16</span>
+    </button>
+  </div>
+
+  <!-- transcript: the only scrolling region in the centre column -->
+  <div class="scroll" id="scroll">
+    <div class="stream" id="stream" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+
+  <!-- composer -->
+  <div class="compwrap">
+    <div class="compinner">
+
+      <!-- first-run tour (D10) -->
+      <div class="tour" id="tour" role="dialog" aria-label="First-run tour" hidden>
+        <div class="th">
+          <svg class="ico" viewBox="0 0 24 24" style="color:var(--accent)"><circle cx="12" cy="12" r="9"/><path d="M12 8v.5M11.3 12h.7v4h.7"/></svg>
+          <h4 id="tourTitle">Everything lives in the sidebar</h4>
+          <button class="iconbtn" id="tourSkip" aria-label="Dismiss tour">
+            <svg class="ico sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+        <p id="tourText">There is no top bar. New chat, search and your full conversation history sit on the left and stay there — no more Chat → History → expand.</p>
+        <div class="tf">
+          <span class="dots" id="tourDots"><i class="on"></i><i></i><i></i></span>
+          <button class="btn sm" id="tourBack">Back</button>
+          <button class="btn sm primary" id="tourNext">Next</button>
+        </div>
+      </div>
+
+      <!-- slash menu (D12) -->
+      <div class="slash" id="slash" role="listbox" aria-label="Skills and MCP servers"></div>
+
+      <div class="comp">
+        <div class="tray" id="tray"></div>
+        <label class="sr" for="ta">Message MagnaVERSE</label>
+        <textarea class="ta" id="ta" rows="1" placeholder="Ask about the programme — type / for skills and MCP servers"></textarea>
+        <div class="cbar">
+          <button class="tool" id="attachBtn" aria-label="Attach a file">
+            <svg class="ico sm" viewBox="0 0 24 24"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></svg>Attach
+          </button>
+          <button class="tool on" id="twinToggle" aria-pressed="true">
+            <svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>
+            Twin context: <span id="twinToolCount">4</span> sources
+          </button>
+          <button class="tool on" id="kbToggle" aria-pressed="true">
+            <svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/></svg>Company Knowledge
+          </button>
+          <span class="slashhint"><span class="kbd">/</span>skills &amp; MCP</span>
+          <button class="send" id="send" aria-label="Send message" disabled>
+            <svg class="ico" viewBox="0 0 24 24"><path d="M4.5 12 20 4.5 14 12l6 7.5Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="compfoot">
+        <span>Runs on Magna GPUs · Riyadh DC-1 · 8×H200</span><span>·</span>
+        <span>Enter sends · Shift+Enter new line</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ============================== CONTEXT RAIL (signature) -->
+<aside class="rail" id="rail" aria-label="Agentic Twin context sources">
+  <div class="rail-in">
+    <div class="rail-h">
+      <div class="r1">
+        <svg class="ico" viewBox="0 0 24 24" style="color:var(--accent)"><circle cx="12" cy="12" r="2.6"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5M5.6 5.6 9 9M15 15l3.4 3.4M18.4 5.6 15 9M9 15l-3.4 3.4"/></svg>
+        <span class="t">Agentic Twin</span>
+        <span class="pill sm">TrendIQ</span>
+        <button class="iconbtn" id="railClose" aria-label="Close context rail">
+          <svg class="ico sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="meter" role="img" aria-label="Twin coverage" id="meter">
+        <i class="m-ok" style="width:44%"></i><i class="m-part" style="width:37%"></i>
+      </div>
+      <div class="mleg" id="meterLegend">
+        <span><i class="k ok"></i><b class="ok-t" id="cOk">7</b> connected</span>
+        <span><i class="k part"></i><b class="part-t" id="cPart">6</b> partial</span>
+        <span><i class="k miss"></i><b class="miss-t" id="cMiss">3</b> missing</span>
+      </div>
+      <div class="rail-used">
+        <svg class="ico sm" viewBox="0 0 24 24" style="color:var(--ok)"><path d="M5 12.5 9.5 17 19 7"/></svg>
+        <span>This answer used <b id="usedCount">4</b> of 16 sources</span>
+      </div>
+    </div>
+
+    <div class="railbanner">
+      <b>Twin context is withheld on the Public tier.</b> The 16 sources are sovereign — they never leave your
+      network, so they are not attached to a Public-tier thread. Switch back to Private to ground answers again.
+    </div>
+
+    <div class="rail-b" id="railBody"></div>
+
+    <div class="rail-f">
+      <svg class="ico sm" viewBox="0 0 24 24" style="color:var(--private)"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>
+      <span>Sovereign mode — the twin is indexed and queried inside Magna's network only.</span>
+    </div>
+  </div>
+</aside>
+
+</div><!-- /.app -->
+
+<div class="sidescrim" id="sideScrim"></div>
+
+<!-- ============================== menus / overlays -->
+<div class="menu" id="modelMenu" role="menu" aria-label="Model"></div>
+<div class="menu" id="tierMenu" role="menu" aria-label="Sovereignty tier"></div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="dialog" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="pal-in">
+    <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-3)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+    <input id="palInput" type="text" placeholder="Search conversations, documents and actions" autocomplete="off" spellcheck="false">
+    <span class="kbd">esc</span>
+  </div>
+  <div class="pal-b" id="palBody"></div>
+  <div class="pal-f">
+    <span><span class="kbd">↑</span> <span class="kbd">↓</span> navigate</span>
+    <span><span class="kbd">↵</span> open</span>
+    <span><span class="kbd">esc</span> close and return to composer</span>
+  </div>
+</div>
+
+<div class="dialog" id="settings" role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="set-hd">
+    <svg class="ico" viewBox="0 0 24 24" style="color:var(--tx-2)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9M4.6 9a1.7 1.7 0 0 0-.3-1.9"/><circle cx="12" cy="12" r="9"/></svg>
+    <h2>Settings</h2>
+    <button class="iconbtn" id="setClose" aria-label="Close settings">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="set-body">
+    <nav class="set-nav" id="setNav" aria-label="Settings categories"></nav>
+    <div class="set-pane" id="setPane"></div>
+  </div>
+</div>
+
+<div class="dialog" id="guard" role="dialog" aria-modal="true" aria-labelledby="guardTitle">
+  <div class="g-hd">
+    <span class="g-ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19Z"/><path d="M12 10v4.5M12 17.5v.5"/></svg></span>
+    <div>
+      <h2 id="guardTitle">This thread contains internal data</h2>
+      <p>Switching to <b>Public</b> sends the next message to a third-party cloud model outside Magna's network.
+         These items are attached to the thread and would leave with it:</p>
+    </div>
+  </div>
+  <div class="g-list">
+    <div class="gl">
+      <svg class="ico sm dim" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>
+      <span class="w">P4_baseline_r7.xer<em>Primavera P6 export · attached 14:02 today</em></span><span class="sz">2.4 MB</span>
+    </div>
+    <div class="gl">
+      <svg class="ico sm dim" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h5"/></svg>
+      <span class="w">CO-118 … CO-121 change orders<em>Jira · commercially sensitive</em></span><span class="sz">4 items</span>
+    </div>
+    <div class="gl">
+      <svg class="ico sm dim" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/></svg>
+      <span class="w">Company Knowledge passages<em>Delegation of Authority v4, MEP method statement</em></span><span class="sz">12 quotes</span>
+    </div>
+    <div class="gl">
+      <svg class="ico sm dim" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></svg>
+      <span class="w">Agentic Twin context<em>Withheld automatically — sovereign sources never leave the network</em></span><span class="sz">0 of 16</span>
+    </div>
+  </div>
+  <div class="g-ft">
+    <span class="dim" style="font-size:11.5px;flex:1">Your admin logs every tier change. Retention on Public is set by the provider, not by Magna.</span>
+    <button class="btn" id="guardCancel">Stay on Private</button>
+    <button class="btn danger" id="guardGo">Switch to Public</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg class="ico sm ic" viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7"/></svg><span id="toastText">Copied</span>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   0 · helpers
+   ============================================================ */
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+var LS = {
+  get:function(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+function toast(msg){
+  var t=$("#toast"); $("#toastText").textContent=msg;
+  t.classList.add("show"); clearTimeout(toast._t);
+  toast._t=setTimeout(function(){ t.classList.remove("show"); },2200);
+}
+function copyText(text,done){
+  function ok(){ if(done) done(true); }
+  function fail(){
+    try{
+      var ta=document.createElement("textarea");
+      ta.value=text; ta.setAttribute("readonly","");
+      ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove(); ok();
+    }catch(e){ if(done) done(false); }
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok,fail);
+  } else { fail(); }
+}
+function download(name,text,mime){
+  try{
+    var blob=new Blob([text],{type:mime||"text/plain;charset=utf-8"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url; a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); },2500);
+    return true;
+  }catch(e){ return false; }
+}
+function flash(btn,label){
+  var old=btn.innerHTML;
+  btn.classList.add("done");
+  btn.innerHTML='<svg class="ico xs" viewBox="0 0 24 24" style="stroke-width:2.6"><path d="M5 12.5 9.5 17 19 7"/></svg>'+(label||"Copied");
+  setTimeout(function(){ btn.innerHTML=old; btn.classList.remove("done"); },1500);
+}
+var I = {
+  check:'<svg class="ico xs" viewBox="0 0 24 24" style="stroke-width:2.6"><path d="M5 12.5 9.5 17 19 7"/></svg>',
+  copy:'<svg class="ico sm" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5.5A2.5 2.5 0 0 1 7.5 3H15"/></svg>',
+  retry:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1M20 4v5h-5"/></svg>',
+  exp:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M4 13v6h16v-6M12 3v12M8 7l4-4 4 4"/></svg>',
+  share:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.4 13.4 7.2 4.2M15.6 6.4 8.4 10.6"/></svg>',
+  skill:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3.5 14.2 8l5 .8-3.6 3.5.9 5-4.5-2.4L7.5 17.3l.9-5L4.8 8.8 9.8 8Z"/></svg>',
+  mcp:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M7 8 3.5 12 7 16M17 8l3.5 4-3.5 4M14 5l-4 14"/></svg>',
+  chat:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4Z"/></svg>',
+  doc:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 16h4"/></svg>',
+  bolt:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M13 3 5 13h6l-1 8 8-10h-6Z"/></svg>',
+  twin:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5M5.6 5.6 9 9M15 15l3.4 3.4M18.4 5.6 15 9M9 15l-3.4 3.4"/></svg>',
+  warn:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19Z"/><path d="M12 10v4.5M12 17.5v.5"/></svg>',
+  plug:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M6 9h12v3a6 6 0 0 1-12 0ZM12 18v3"/></svg>'
+};
+
+/* ============================================================
+   1 · theme (tokens only — instant, no image load)
+   ============================================================ */
+var theme = LS.get("mv5.theme","system");
+function applyTheme(t){
+  theme=t; LS.set("mv5.theme",t);
+  if(t==="system"){ document.documentElement.removeAttribute("data-theme"); }
+  else { document.documentElement.setAttribute("data-theme",t); }
+  $$("[data-theme-set]").forEach(function(b){
+    b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-set")===t));
+  });
+  var sel=$("#setThemeSel"); if(sel) sel.value=t;
+}
+$$("[data-theme-set]").forEach(function(b){
+  b.addEventListener("click",function(){ applyTheme(b.getAttribute("data-theme-set")); });
+});
+applyTheme(theme);
+
+/* backdrop (D11) */
+var backdrop = LS.get("mv5.backdrop","off");
+function applyBackdrop(v){ backdrop=v; LS.set("mv5.backdrop",v); document.body.setAttribute("data-backdrop",v); }
+applyBackdrop(backdrop);
+
+/* ============================================================
+   2 · the twin — 16 context sources
+   ============================================================ */
+var GROUPS=[
+  {id:"structural",  label:"Structural"},
+  {id:"behavioural", label:"Behavioural"},
+  {id:"dynamics",    label:"Dynamics &amp; intent"}
+];
+var SOURCES=[
+  {id:"org",   g:"structural", n:"Org chart &amp; reporting lines", short:"Org chart",
+   s:"connected", on:true, meta:"HR system · synced 14:02 today",
+   d:"2,140 positions, delegation of authority and approval thresholds."},
+  {id:"proc",  g:"structural", n:"Process maps &amp; SOPs", short:"Process maps",
+   s:"connected", on:true, meta:"confluence MCP · synced 08:15 today",
+   d:"62 mapped processes, including the change-order approval route."},
+  {id:"sap",   g:"structural", n:"SAP S/4HANA — finance &amp; procurement", short:"SAP S/4HANA",
+   s:"connected", on:true, meta:"Live · 4 min lag",
+   d:"Purchase orders, goods receipt, cost centres and vendor master."},
+  {id:"p6",    g:"structural", n:"Primavera P6 — schedule graph", short:"Primavera P6",
+   s:"connected", on:true, meta:"Baseline r7 · progress 6 days old",
+   d:"11,400 activities across 7 packages, with logic links and float."},
+  {id:"dfr",   g:"structural", n:"Data-flow registry", short:"Data-flow registry",
+   s:"partial", on:true, meta:"3 of 11 systems mapped",
+   d:"Which system is authoritative for which field. Incomplete, so I cannot always resolve conflicts between SAP and P6."},
+  {id:"asset", g:"structural", n:"Asset &amp; equipment register", short:"Asset register",
+   s:"partial", on:true, meta:"Plant only · fixed assets missing",
+   d:"Cranes, batching plant and formwork sets, with availability windows."},
+
+  {id:"co",    g:"behavioural", n:"Change-order log", short:"Change-order log",
+   s:"connected", on:true, meta:"jira-search MCP · live",
+   d:"CO-001 to CO-121 with raised date, approver and cost/time impact."},
+  {id:"appr",  g:"behavioural", n:"Approval &amp; decision history", short:"Approval history",
+   s:"partial", on:true, meta:"SAP only · Jira approvals not indexed",
+   d:"Who approved what and how long each step took. Half the record is missing."},
+  {id:"comms", g:"behavioural", n:"Communication patterns", short:"Comms patterns",
+   s:"partial", on:true, meta:"Metadata only · no message bodies",
+   d:"Who coordinates with whom and response latency between functions."},
+  {id:"labour",g:"behavioural", n:"Daily labour returns", short:"Labour returns",
+   s:"missing", on:false, meta:"Not connected",
+   d:"Crew hours booked against each activity, daily. The ground truth for progress rate."},
+  {id:"iot",   g:"behavioural", n:"Site IoT &amp; progress telemetry", short:"Site IoT telemetry",
+   s:"missing", on:false, meta:"Not connected",
+   d:"Gate counts, crane cycles and concrete pour volumes, matched to P6 activity IDs."},
+
+  {id:"obj",   g:"dynamics", n:"Corporate objectives FY26", short:"FY26 objectives",
+   s:"connected", on:true, meta:"Reviewed 2 Jul 2026",
+   d:"The targets every recommendation is scored against."},
+  {id:"know",  g:"dynamics", n:"Company Knowledge — 8,400 docs", short:"Company Knowledge",
+   s:"connected", on:true, meta:"Re-indexed 06:00 today",
+   d:"Contracts, standards, method statements, HSE and policy."},
+  {id:"cost",  g:"dynamics", n:"Cost &amp; cash-flow model", short:"Cost model",
+   s:"partial", on:true, meta:"Packages 1–3 only",
+   d:"Committed vs forecast cost and the drawdown curve. Package 4 is not loaded."},
+  {id:"risk",  g:"dynamics", n:"Risk register &amp; mitigations", short:"Risk register",
+   s:"partial", on:true, meta:"Updated monthly · last 31 Jul",
+   d:"Owners, likelihood, impact and mitigation status."},
+  {id:"mkt",   g:"dynamics", n:"Market &amp; supplier signals", short:"Supplier signals",
+   s:"missing", on:false, meta:"Not connected",
+   d:"Lead times, price indices and subcontractor capacity in the region."}
+];
+var SRC={}; SOURCES.forEach(function(s){ SRC[s.id]=s; });
+
+function eff(s){ return s.on ? s.s : "missing"; }
+function counts(){
+  var c={connected:0,partial:0,missing:0};
+  SOURCES.forEach(function(s){ c[eff(s)]++; });
+  return c;
+}
+function statusMark(st){
+  if(st==="connected") return '<span class="st ok">'+I.check.replace("ico xs","ico xs")+'</span>';
+  if(st==="partial")   return '<span class="st part"><span class="half"></span></span>';
+  return '<span class="st miss"><span class="bar"></span></span>';
+}
+
+/* ============================================================
+   3 · rail rendering
+   ============================================================ */
+function renderRail(){
+  var conv=CONVS[active], used=(conv&&conv.used)||[];
+  var body=$("#railBody"), html="";
+  GROUPS.forEach(function(g){
+    var list=SOURCES.filter(function(s){ return s.g===g.id; });
+    var okN=list.filter(function(s){ return eff(s)==="connected"; }).length;
+    html+='<section class="cg"><div class="cg-h">'+g.label+
+          '<span class="n">'+okN+' / '+list.length+' connected</span></div>';
+    list.forEach(function(s){
+      var st=eff(s), isUsed=used.indexOf(s.id)>-1 && st!=="missing";
+      html+='<div class="src'+(isUsed?" used":"")+(s.on?"":" off")+'" data-src="'+s.id+'">'+
+        '<div class="src-row">'+
+          '<button class="src-main" data-act="src-detail" data-id="'+s.id+'" aria-expanded="false" '+
+            'aria-label="'+s.short+' — '+st+'. Show details">'+
+            statusMark(st)+
+            '<span class="nm">'+s.n+'</span>'+
+            (isUsed?'<span class="usedtag">used</span>':'')+
+            '<svg class="ico xs dim" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>'+
+          '</button>'+
+          (s.s==="missing" && !s.on
+            ? '<button class="cbtn" data-act="connect-one" data-id="'+s.id+'">Connect</button>'
+            : '<button class="sw" role="switch" data-act="src-toggle" data-id="'+s.id+'" aria-checked="'+(s.on?"true":"false")+
+              '" aria-label="Include '+s.short+' in twin context"></button>')+
+        '</div>'+
+        '<div class="src-det" id="det-'+s.id+'">'+s.d+
+          '<div class="mt"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>'+s.meta+'</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</section>';
+  });
+
+  var gaps=SOURCES.filter(function(s){ return s.s==="missing"; });
+  if(gaps.length>=2){
+    html+='<div class="gapbox">'+
+      '<h5>'+I.warn+'Two gaps are capping this answer</h5>'+
+      '<p>Site telemetry and daily labour returns would move schedule answers from <b>planned</b> to <b>measured</b>, and lift confidence from medium to high.</p>'+
+      '<ul><li>Site IoT &amp; progress telemetry</li><li>Daily labour returns</li></ul>'+
+      '<button class="btn primary full sm" id="connect2">'+I.plug+'Connect these 2 sources</button>'+
+      '</div>';
+  } else {
+    html+='<div class="gapbox done">'+
+      '<h5>'+I.check.replace("ico xs","ico sm")+'Coverage improved</h5>'+
+      '<p>Site telemetry and labour returns are connected, so progress is now measured rather than inferred. '+
+      (gaps.length? 'One gap remains: <b>market &amp; supplier signals</b> — connect it to forecast lead-time risk.' : 'All 16 sources are attached.')+'</p>'+
+      (gaps.length?'<button class="btn full sm" data-act="connect-one" data-id="mkt">'+I.plug+'Connect market &amp; supplier signals</button>':'')+
+      '</div>';
+  }
+  body.innerHTML=html;
+
+  var c=counts();
+  $("#cOk").textContent=c.connected; $("#cPart").textContent=c.partial; $("#cMiss").textContent=c.missing;
+  $("#meter").innerHTML='<i class="m-ok" style="width:'+(c.connected/16*100).toFixed(1)+'%"></i>'+
+                        '<i class="m-part" style="width:'+(c.partial/16*100).toFixed(1)+'%"></i>';
+  $("#meter").setAttribute("aria-label", c.connected+" connected, "+c.partial+" partial, "+c.missing+" missing, of 16 twin sources");
+  $("#navTwinCount").textContent=c.connected+"/16";
+  $("#railBadge").textContent=c.connected+"/16";
+  var liveUsed=used.filter(function(id){ return SRC[id] && eff(SRC[id])!=="missing"; }).length;
+  $("#usedCount").textContent=liveUsed;
+  $("#twinToolCount").textContent=liveUsed;
+}
+
+/* ============================================================
+   4 · answer component builders (every answer is built the same way)
+   ============================================================ */
+function gchip(id){
+  var s=SRC[id];
+  return '<button class="gchip" data-src="'+id+'" data-act="goto-src" data-state="connected" title="Show this source in the context rail">'+
+         '<span class="dot"></span><span class="t">'+s.short+'</span></button>';
+}
+function ground(ids){
+  return '<div class="ground" data-ground>'+
+    '<div class="ground-h">'+I.twin+'<span class="eyebrow">Grounded in</span>'+
+      '<button class="n" data-act="open-rail" title="Open the twin context rail">'+
+        '<b data-gcount>'+ids.length+'</b> of 16 twin sources ›</button></div>'+
+    '<div class="gchips">'+ids.map(gchip).join("")+'</div></div>';
+}
+function reason(summary,steps){
+  return '<button class="reason" data-act="reason" aria-expanded="false">'+
+      '<svg class="ico xs chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>'+summary+
+    '</button>'+
+    '<div class="reason-body">'+steps.map(function(s){
+      return '<div class="st"><span class="t">'+s[0]+'</span><span>'+s[1]+'</span></div>';
+    }).join("")+'</div>';
+}
+function conf(boost,req){
+  return '<div class="conf" data-conf data-boost="'+boost.join(",")+'" data-req="'+req.join(",")+'" data-level="medium">'+
+    '<span class="cl">'+I.warn+'</span><span class="ct"></span></div>';
+}
+function foot(stamp){
+  return '<div class="mfoot">'+
+    '<button class="act" data-act="copy-msg">'+I.copy+'<span class="lbl">Copy full message</span></button>'+
+    '<button class="act" data-act="retry">'+I.retry+'Retry</button>'+
+    '<button class="act hide-sm" data-act="export">'+I.exp+'Export</button>'+
+    '<button class="act hide-sm" data-act="share">'+I.share+'Share</button>'+
+    '<button class="act only-sm" data-act="more-actions" aria-label="More message actions" aria-expanded="false">'+
+      '<svg class="ico sm" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></button>'+
+    '<span class="stamp">'+stamp+'</span></div>';
+}
+function aiTop(extra){
+  return '<div class="ai-top">'+
+    '<svg class="magna-mark ai-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">'+
+      '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-app)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-app)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+    '<span class="ai-name">MagnaVERSE</span>'+
+    '<span class="pill sm"><span data-modelname>Kimi K2 Instruct</span> · <span data-modelspec>1T MoE</span></span>'+
+    '<span class="pill sm private"><span class="dot"></span>Private · Riyadh DC-1</span>'+(extra||"")+'</div>';
+}
+
+/* code + mermaid sources kept verbatim for the Copy / Download buttons */
+var PY_SRC = [
+'# p6_slip_forecast.py - reproduce the 17-day figure from the P6 export',
+'from datetime import date',
+'import pandas as pd',
+'',
+'BASELINE  = "P4_baseline_r7.xer"',
+'DATA_DATE = date(2026, 8, 10)        # last progress update: 6 days old',
+'FLOAT_D   = 5.0                      # float already absorbed on the MEP path',
+'',
+'def spi(row):',
+'    """Schedule performance index for one activity path."""',
+'    return row["earned_days"] / row["planned_days"]',
+'',
+'def forecast_slip(df, float_days: float) -> float:',
+'    df["spi"]   = df.apply(spi, axis=1)',
+'    df["drift"] = df["remaining_days"] * (1 / df["spi"] - 1)',
+'    return round(df["drift"].sum() - float_days, 1)',
+'',
+'paths = pd.read_parquet("p6/package4_paths.parquet")',
+'print(forecast_slip(paths, FLOAT_D))  # -> 17.0'
+].join("\n");
+
+var MERMAID_SRC = [
+'flowchart LR',
+'  A[P6 baseline r7] -->|actual dates| B[Progress update<br/>6 days old]',
+'  B -->|earned value| C[SPI per path]',
+'  C --> E[Slip model]',
+'  D[Change orders<br/>CO-118 to CO-121] -->|+22 d rework| E',
+'  E -->|forecast| F[Handover 17 d late]',
+'  G[Site IoT telemetry]:::gap -.->|not connected| E',
+'  classDef gap stroke-dasharray: 4 3;'
+].join("\n");
+
+/* ============================================================
+   5 · conversations
+   ============================================================ */
+var C1_A1 =
+  reason("Thought for 6s · read 4 twin sources · searched 2 documents",[
+    ["0.4s","Resolved <b>Package 4</b> to programme RUH-P4, handover milestone 12 Oct 2026."],
+    ["1.9s","Read the Primavera P6 schedule graph — baseline r7, progress data 6 days old."],
+    ["3.1s","Pulled CO-118 to CO-121 from the change-order log via the jira-search MCP server."],
+    ["4.6s","Checked schedule authority against the org chart and the change-order process map."],
+    ["5.8s","Looked for measured progress. No site telemetry or labour returns are connected — flagged."]
+  ])+
+  ground(["p6","co","org","proc","iot","labour"])+
+  '<div class="body">'+
+    '<p class="lead">Yes — on the current trend Package 4 hands over <strong>17 days late</strong> (29 Oct instead of 12 Oct), and accountability for the slip is split between two owners, which is why nobody has re-baselined it.</p>'+
+    '<h4>Where the slip sits</h4>'+
+    '<div class="tblwrap"><table class="tbl">'+
+      '<caption class="sr">Forecast slip by path on Package 4</caption>'+
+      '<thead><tr><th scope="col">Path</th><th scope="col">Baseline finish</th><th scope="col">Forecast</th><th scope="col" class="r">Slip (d)</th></tr></thead>'+
+      '<tbody>'+
+        '<tr><td>Structural — topping out</td><td>02 Sep 2026</td><td>04 Sep 2026</td><td class="r">2</td></tr>'+
+        '<tr><td>Façade panels</td><td>18 Sep 2026</td><td>22 Sep 2026</td><td class="r">4</td></tr>'+
+        '<tr><td>MEP first fix <em class="dim">driving path</em></td><td>24 Sep 2026</td><td>11 Oct 2026</td><td class="r warn">17</td></tr>'+
+        '<tr><td>Handover — Package 4</td><td>12 Oct 2026</td><td>29 Oct 2026</td><td class="r warn">17</td></tr>'+
+      '</tbody></table></div>'+
+    '<p>Three change orders raised after the 12 June design freeze added 22 days of rework to the MEP path<span class="cite">1</span>. P6 shows only 5 days of float absorbed so far<span class="cite">2</span>, so 17 days land directly on the handover milestone.</p>'+
+    '<h4>Who owns it</h4>'+
+    '<p>The org chart puts schedule authority with <strong>M. Al-Otaibi (Delivery)</strong>, but your change-order process map routes commercial impact approval to <strong>Commercial</strong><span class="cite">3</span>. Neither owner can re-baseline alone, and the register still shows this risk as <em>open, unassigned</em> since 31 July<span class="cite">4</span>.</p>'+
+    '<h4>What I would do this week</h4>'+
+    '<ul>'+
+      '<li>Re-baseline the MEP path with Delivery and Commercial in the same review — the decision needs both signatures.</li>'+
+      '<li>Ask for a 6-day acceleration quote on first fix; the cost index suggests roughly SAR 40k per day of MEP acceleration<span class="cite">5</span>.</li>'+
+      '<li>Connect site telemetry so the next answer is measured, not inferred.</li>'+
+    '</ul>'+
+    conf(["iot","labour"],["p6","co"])+
+  '</div>'+
+  '<div class="srcs">'+
+    '<div class="srcs-h">'+I.doc+'<span class="eyebrow">Sources</span><span class="n">5 · internal 4 · web 1</span></div>'+
+    '<div class="srcs-sec">'+
+      '<div class="srcs-lb"><span class="tag int">Internal knowledge</span><span class="dim" style="font-size:11px">Never left your network</span></div>'+
+      '<button class="srcline" data-act="src-open"><span class="i">1</span><span class="w">CO-118, CO-119, CO-121 — MEP rework change orders<em>Jira · jira-search MCP · raised 14–27 Jun 2026</em></span></button>'+
+      '<button class="srcline" data-act="src-open"><span class="i">2</span><span class="w">P4_baseline_r7.xer — activity float report<em>Primavera P6 · progress data dated 10 Aug 2026</em></span></button>'+
+      '<button class="srcline" data-act="src-open"><span class="i">3</span><span class="w">Delegation of Authority v4, §4.2 — schedule vs commercial approval<em>Company Knowledge · 8,400-doc index</em></span></button>'+
+      '<button class="srcline" data-act="src-open"><span class="i">4</span><span class="w">Programme risk register — RUH-P4-R17<em>Risk register · partial source · last updated 31 Jul 2026</em></span></button>'+
+    '</div>'+
+    '<div class="srcs-sec">'+
+      '<div class="srcs-lb"><span class="tag web">Web</span><span class="dim" style="font-size:11px">Retrieved 12 Aug on the Public tier, cached — no thread data was sent</span></div>'+
+      '<button class="srcline" data-act="src-open"><span class="i">5</span><span class="w">GASTAT construction cost index — July 2026 release<em>Public source · used only for the acceleration rate of thumb</em></span></button>'+
+    '</div>'+
+  '</div>'+
+  foot("14:08 · 6.2s · 2,140 tokens");
+
+var C1_A2 =
+  reason("Thought for 4s · read 2 twin sources · ran 1 skill",[
+    ["0.3s","Loaded the maturity model referenced in the MEP method statement (Company Knowledge)."],
+    ["1.5s","Re-derived the slip figure from the P6 activity paths."],
+    ["3.2s","Ran <b>p6-rebaseline</b> skill in read-only mode to render the derivation chain."]
+  ])+
+  ground(["p6","know","sap","iot"])+
+  '<div class="body">'+
+    '<h4>The maturity model behind the concrete dates</h4>'+
+    '<p>Structural finish dates come from equivalent age at 20 °C — the Arrhenius form in your MEP method statement, not a fixed cure duration:</p>'+
+    '<div class="mathblk"><span class="tagn">KaTeX · display</span>'+
+      '<div class="meq">'+
+        '<span class="mv">t</span><span class="msub">e</span><span class="mop">=</span>'+
+        '<span class="intg">∫</span><span class="lims"><span>t</span><span>0</span></span>'+
+        '<span class="mv">k</span>(<span class="mv">T</span>)&nbsp;<span class="mv">d</span><span class="mv">τ</span>'+
+        '<span class="mop">,</span>'+
+        '<span class="mv">k</span>(<span class="mv">T</span>)<span class="mop">=</span>'+
+        '<span class="mv">e</span><span class="sup">−<span class="frac" style="font-size:.82em"><span class="fn">E</span><span class="fd">R</span></span>'+
+        '<span class="brk" style="font-size:1.1em">(</span><span class="frac" style="font-size:.82em"><span class="fn">1</span><span class="fd">T</span></span>'+
+        '−<span class="frac" style="font-size:.82em"><span class="fn">1</span><span class="fd">T<span style="font-size:.7em;vertical-align:-.25em">ref</span></span></span>'+
+        '<span class="brk" style="font-size:1.1em">)</span></span>'+
+      '</div>'+
+      '<div class="meq" style="font-size:19px">'+
+        '<span class="mv">slip</span><span class="mop">=</span>'+
+        '<span style="font-size:1.5em;line-height:.8">Σ</span>'+
+        '<span class="mv">d</span><span class="msub">i</span>'+
+        '<span class="brk">(</span>'+
+        '<span class="frac"><span class="fn">1</span><span class="fd"><span class="mv">SPI</span><span class="msub">i</span></span></span>'+
+        '<span class="mop">−</span>1'+
+        '<span class="brk">)</span>'+
+        '<span class="mop">−</span><span class="mv">F</span><span class="msub">abs</span>'+
+      '</div>'+
+      '<p class="mnote">E/R = 4,200 K for the CEM II mix on this site; T<span class="sup" style="font-style:normal">ref</span> = 293 K.</p>'+
+    '</div>'+
+    '<p>For the MEP path the measured index is <span class="imath"><span class="mv">SPI</span> = 0.86</span> with <span class="imath"><span class="mv">d</span> = 41</span> days remaining, so <span class="imath"><span class="mv">d</span>(<span class="frac" style="font-size:.8em"><span class="fn">1</span><span class="fd">SPI</span></span> − 1) ≈ 6.7</span> days of drift per remaining month — 22 days of rework less 5 days of absorbed float gives the 17.</p>'+
+    '<h4>How the figure is derived</h4>'+
+    '<div class="diagwrap">'+
+      '<div class="diag-hd"><span class="lang">mermaid · flowchart LR</span>'+
+        '<span class="acts">'+
+          '<button class="cbtn" data-act="copy-mermaid">'+I.copy+'Copy source</button>'+
+          '<button class="cbtn" data-act="export-svg">Export SVG</button>'+
+        '</span></div>'+
+      '<div class="diagbox">'+
+      '<svg viewBox="0 0 760 268" role="img" aria-label="Flowchart: P6 baseline and change orders feed a slip model that forecasts a 17-day late handover; site IoT telemetry is not connected">'+
+        '<defs><marker id="ah5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">'+
+          '<path d="M0 0 L8 4 L0 8 Z" fill="currentColor"/></marker></defs>'+
+        '<g class="fc-e" color="var(--line-3)" style="color:var(--line-3)">'+
+          '<path d="M168 48 H206" marker-end="url(#ah5)"/>'+
+          '<path d="M382 48 H420" marker-end="url(#ah5)"/>'+
+          '<path d="M496 74 V128" marker-end="url(#ah5)"/>'+
+          '<path d="M382 152 H420" marker-end="url(#ah5)"/>'+
+          '<path d="M572 152 H600 V74" marker-end="url(#ah5)"/>'+
+        '</g>'+
+        '<g class="fc-e gap"><path d="M330 216 C 400 216 430 200 470 178" marker-end="url(#ah5)"/></g>'+
+        '<rect class="fc-node" x="18" y="24" width="150" height="48" rx="9"/>'+
+        '<text class="fc-t" x="93" y="42">P6 baseline r7</text><text class="fc-t sub" x="93" y="58">11,400 activities</text>'+
+        '<rect class="fc-node" x="206" y="24" width="176" height="48" rx="9"/>'+
+        '<text class="fc-t" x="294" y="42">Progress update</text><text class="fc-t sub" x="294" y="58">6 days old</text>'+
+        '<rect class="fc-node acc" x="420" y="24" width="152" height="48" rx="9"/>'+
+        '<text class="fc-t" x="496" y="42">SPI per path</text><text class="fc-t sub" x="496" y="58">MEP = 0.86</text>'+
+        '<rect class="fc-node" x="206" y="128" width="176" height="48" rx="9"/>'+
+        '<text class="fc-t" x="294" y="146">Change orders</text><text class="fc-t sub" x="294" y="162">CO-118 … CO-121</text>'+
+        '<rect class="fc-node acc" x="420" y="128" width="152" height="48" rx="9"/>'+
+        '<text class="fc-t" x="496" y="146">Slip model</text><text class="fc-t sub" x="496" y="162">float 5 d absorbed</text>'+
+        '<rect class="fc-node ok" x="600" y="24" width="142" height="48" rx="9"/>'+
+        '<text class="fc-t" x="671" y="42">Handover</text><text class="fc-t sub" x="671" y="58">17 d late · 29 Oct</text>'+
+        '<rect class="fc-node gap" x="150" y="216" width="180" height="42" rx="9"/>'+
+        '<text class="fc-t gapt" x="240" y="232">Site IoT telemetry</text><text class="fc-t sub gapt" x="240" y="247">not connected</text>'+
+        '<text class="fc-l" x="187" y="40">actual</text>'+
+        '<text class="fc-l" x="401" y="40">earned</text>'+
+        '<text class="fc-l" x="521" y="104">index</text>'+
+        '<text class="fc-l" x="401" y="144">+22 d</text>'+
+        '<text class="fc-l" x="586" y="112">forecast</text>'+
+        '<text class="fc-l" x="404" y="196" style="fill:var(--part)">would replace inference</text>'+
+      '</svg>'+
+      '</div>'+
+      '<p class="fc-cap">Rendered from Mermaid to SVG — scales, selects and prints. Amber node = a source the twin does not have.</p>'+
+    '</div>'+
+    '<h4>Reproduce it yourself</h4>'+
+    '<div class="codeblk">'+
+      '<div class="code-hd"><span class="lang">Python</span><span class="fname">p6_slip_forecast.py</span>'+
+        '<span class="acts">'+
+          '<button class="cbtn" data-act="copy-code">'+I.copy+'Copy</button>'+
+          '<button class="cbtn" data-act="wrap">Wrap</button>'+
+          '<button class="cbtn" data-act="download-code">Download</button>'+
+        '</span></div>'+
+      '<pre class="code"><span class="c"># p6_slip_forecast.py - reproduce the 17-day figure from the P6 export</span>\n'+
+'<span class="k">from</span> datetime <span class="k">import</span> date\n'+
+'<span class="k">import</span> pandas <span class="k">as</span> pd\n\n'+
+'BASELINE  = <span class="s">"P4_baseline_r7.xer"</span>\n'+
+'DATA_DATE = <span class="f">date</span>(<span class="n">2026</span>, <span class="n">8</span>, <span class="n">10</span>)        <span class="c"># last progress update: 6 days old</span>\n'+
+'FLOAT_D   = <span class="n">5.0</span>                      <span class="c"># float already absorbed on the MEP path</span>\n\n'+
+'<span class="k">def</span> <span class="f">spi</span>(row):\n'+
+'    <span class="s">"""Schedule performance index for one activity path."""</span>\n'+
+'    <span class="k">return</span> row[<span class="s">"earned_days"</span>] / row[<span class="s">"planned_days"</span>]\n\n'+
+'<span class="k">def</span> <span class="f">forecast_slip</span>(df, float_days: <span class="k">float</span>) -&gt; <span class="k">float</span>:\n'+
+'    df[<span class="s">"spi"</span>]   = df.<span class="f">apply</span>(spi, axis=<span class="n">1</span>)\n'+
+'    df[<span class="s">"drift"</span>] = df[<span class="s">"remaining_days"</span>] * (<span class="n">1</span> / df[<span class="s">"spi"</span>] - <span class="n">1</span>)\n'+
+'    <span class="k">return</span> <span class="f">round</span>(df[<span class="s">"drift"</span>].<span class="f">sum</span>() - float_days, <span class="n">1</span>)\n\n'+
+'paths = pd.<span class="f">read_parquet</span>(<span class="s">"p6/package4_paths.parquet"</span>)\n'+
+'<span class="f">print</span>(<span class="f">forecast_slip</span>(paths, FLOAT_D))  <span class="c"># -&gt; 17.0</span></pre>'+
+    '</div>'+
+    conf(["iot","labour"],["p6","know"])+
+  '</div>'+
+  foot("14:12 · 4.1s · 3,480 tokens");
+
+var CONVS={
+  c1:{ id:"c1", title:"Package 4 handover — schedule exposure and risk owner", when:"today", time:"14:08",
+    tag:"6 sources", used:["p6","co","org","proc"], msgs:[
+      {r:"u",h:"Are we going to miss the Package 4 handover on 12 October, and who actually owns the risk?"},
+      {r:"a",h:C1_A1},
+      {r:"u",h:"Show me the maturity model behind the 17-day figure, and a script that pulls the same numbers out of P6."},
+      {r:"a",h:C1_A2}
+    ]},
+
+  c2:{ id:"c2", title:"Vendor prequalification pack — Riyadh Metro Phase 3 civils", when:"today", time:"11:20",
+    used:["sap","know","co","risk"], msgs:[
+      {r:"u",h:"Which three civils subcontractors should go into the Metro Phase 3 prequalification pack?"},
+      {r:"a",h:
+        reason("Thought for 5s · read 4 twin sources · searched 9 documents",[
+          ["1.1s","Pulled 3-year spend and on-time delivery from SAP S/4HANA vendor master."],
+          ["2.8s","Scored against the prequalification criteria in Company Knowledge."],
+          ["4.4s","Cross-checked open change orders and the risk register for each vendor."]
+        ])+
+        ground(["sap","know","co","risk","mkt"])+
+        '<div class="body">'+
+          '<p class="lead">Three vendors clear every mandatory gate. A fourth, Al-Rajhi Civil, fails only on bonding capacity and could be added if the surety limit is raised.</p>'+
+          '<div class="tblwrap"><table class="tbl">'+
+            '<thead><tr><th scope="col">Vendor</th><th scope="col">On-time (3 yr)</th><th scope="col">Open COs</th><th scope="col" class="r">Score</th></tr></thead>'+
+            '<tbody>'+
+              '<tr><td>Nesma &amp; Partners</td><td>94%</td><td>1</td><td class="r">88</td></tr>'+
+              '<tr><td>Al-Bawani</td><td>91%</td><td>2</td><td class="r">84</td></tr>'+
+              '<tr><td>Saudi Arabian Baytur</td><td>88%</td><td>0</td><td class="r">81</td></tr>'+
+              '<tr><td>Al-Rajhi Civil <em class="dim">bonding gate failed</em></td><td>93%</td><td>1</td><td class="r warn">—</td></tr>'+
+            '</tbody></table></div>'+
+          '<p>Scores weight on-time delivery 40%, HSE record 25%, commercial exposure 20% and local content 15%, as set out in the prequalification standard<span class="cite">1</span>.</p>'+
+          conf(["mkt"],["sap","know"])+
+        '</div>'+
+        '<div class="srcs"><div class="srcs-h">'+I.doc+'<span class="eyebrow">Sources</span><span class="n">2 · internal 2 · web 0</span></div>'+
+          '<div class="srcs-sec"><div class="srcs-lb"><span class="tag int">Internal knowledge</span></div>'+
+            '<button class="srcline" data-act="src-open"><span class="i">1</span><span class="w">Subcontractor prequalification standard v6<em>Company Knowledge · approved 14 Feb 2026</em></span></button>'+
+            '<button class="srcline" data-act="src-open"><span class="i">2</span><span class="w">Vendor performance extract, FY23–FY26<em>SAP S/4HANA · live connector</em></span></button>'+
+          '</div>'+
+          '<div class="srcs-sec"><div class="srcs-lb"><span class="tag web">Web</span><span class="dim" style="font-size:11px">No web sources — this thread stayed on the Private tier</span></div></div>'+
+        '</div>'+
+        foot("11:20 · 5.0s · 1,860 tokens")}
+    ]},
+
+  c3:{ id:"c3", title:"HSE digest — week 33 incident summary for the steering pack", when:"yesterday", time:"16:45",
+    used:["know","org","comms"], msgs:[
+      {r:"u",h:"/hse-digest Summarise week 33 HSE incidents for the steering pack."},
+      {r:"a",h:
+        reason("Thought for 3s · ran skill hse-digest · read 2 twin sources",[
+          ["0.6s","Ran <b>hse-digest</b> over the week 33 incident log."],
+          ["2.1s","Mapped each incident to its responsible supervisor via the org chart."]
+        ])+
+        ground(["know","org","comms"])+
+        '<div class="body">'+
+          '<p class="lead">Week 33 closed with <strong>zero lost-time injuries</strong>, four first-aid cases and one high-potential near miss that needs a written response before Thursday.</p>'+
+          '<ul>'+
+            '<li><strong>HPNM-33-02</strong> — suspended load passed over an occupied walkway at Grid F. Lifting plan was not re-issued after the crane moved. Owner: A. Nasser (Lifting).</li>'+
+            '<li>Four first-aid cases, all hand injuries during formwork strip-out; the toolbox talk has been reissued.</li>'+
+            '<li>Permit compliance held at 97.4%, above the 95% programme threshold.</li>'+
+          '</ul>'+
+          conf(["iot"],["know","org"])+
+        '</div>'+
+        foot("16:45 · 3.2s · 940 tokens")}
+    ]},
+
+  c4:{ id:"c4", title:"SAP PO 4500091237 — three-way match exception", when:"yesterday", time:"09:12",
+    used:["sap","proc","appr"], msgs:[
+      {r:"u",h:"Why is PO 4500091237 blocked for payment?"},
+      {r:"a",h:
+        reason("Thought for 2s · ran sap-po-lookup · read 2 twin sources",[
+          ["0.5s","Called the <b>sap-po-lookup</b> MCP server for PO 4500091237."],
+          ["1.4s","Compared goods receipt, invoice and PO quantity against the three-way match rule."]
+        ])+
+        ground(["sap","proc","appr"])+
+        '<div class="body">'+
+          '<p class="lead">Quantity mismatch. The invoice bills 480 units; goods receipt confirms 460. The 20-unit gap exceeds the 2% tolerance, so the block is correct.</p>'+
+          '<div class="tblwrap"><table class="tbl">'+
+            '<thead><tr><th scope="col">Document</th><th scope="col">Reference</th><th scope="col" class="r">Quantity</th><th scope="col" class="r">Value (SAR)</th></tr></thead>'+
+            '<tbody>'+
+              '<tr><td>Purchase order</td><td>4500091237</td><td class="r">480</td><td class="r">312,000</td></tr>'+
+              '<tr><td>Goods receipt</td><td>5001824411</td><td class="r">460</td><td class="r">299,000</td></tr>'+
+              '<tr><td>Invoice</td><td>INV-2026-08841</td><td class="r">480</td><td class="r">312,000</td></tr>'+
+              '<tr><td>Exception</td><td>Qty tolerance 2%</td><td class="r warn">−20</td><td class="r warn">13,000</td></tr>'+
+            '</tbody></table></div>'+
+            '<p>Your process map routes this to the site materials controller for a GR correction, not to Finance<span class="cite">1</span>. Median clearance time for this exception type is 2.4 days.</p>'+
+          conf([],["sap","proc"])+
+        '</div>'+
+        foot("09:12 · 2.3s · 720 tokens")}
+    ]},
+
+  c5:{ id:"c5", title:"Nitaqat compliance — headcount forecast for the Q4 hiring plan", when:"lastweek", time:"Tue 10:31",
+    used:["org","obj","know","appr"], msgs:[
+      {r:"u",h:"Does the Q4 hiring plan keep us in the Nitaqat green band?"},
+      {r:"a",h:
+        reason("Thought for 4s · read 3 twin sources",[
+          ["1.2s","Read current headcount and nationality split from the HR-fed org chart."],
+          ["3.0s","Applied the Q4 hiring plan and the attrition rate from FY26 objectives."]
+        ])+
+        ground(["org","obj","know","appr"])+
+        '<div class="body">'+
+          '<p class="lead">Yes, but with only 1.4 percentage points of headroom by December — thin enough that two senior resignations would put the entity at the band boundary.</p>'+
+          '<p>The plan adds 46 roles, of which 19 are earmarked Saudi national. Holding the green band through Q4 needs at least 17 of those 19 to close before 30 November<span class="cite">1</span>.</p>'+
+          conf(["labour"],["org","know"])+
+        '</div>'+
+        foot("Tue 10:31 · 4.4s · 1,120 tokens")}
+    ]},
+
+  c6:{ id:"c6", title:"p6-schedule MCP connector — dry-run results before enabling", when:"lastweek", time:"Mon 08:05",
+    used:["p6","dfr"], msgs:[
+      {r:"u",h:"Run the p6-schedule MCP connector in dry-run mode and tell me what it would expose."},
+      {r:"a",h:
+        reason("Thought for 3s · ran p6-schedule (dry run)",[
+          ["0.8s","Connected to the <b>p6-schedule</b> MCP server in read-only dry-run mode."],
+          ["2.4s","Enumerated tools and the fields each one returns. Nothing was written."]
+        ])+
+        ground(["p6","dfr"])+
+        '<div class="body">'+
+          '<p class="lead">The connector exposes four read-only tools and no write path. It stays inside the network — the server runs on the same cluster as inference.</p>'+
+          '<div class="codeblk">'+
+            '<div class="code-hd"><span class="lang">JSON</span><span class="fname">p6-schedule.dryrun.json</span>'+
+              '<span class="acts"><button class="cbtn" data-act="copy-code">'+I.copy+'Copy</button>'+
+              '<button class="cbtn" data-act="wrap">Wrap</button></span></div>'+
+            '<pre class="code">{\n'+
+'  <span class="s">"server"</span>: <span class="s">"p6-schedule"</span>,\n'+
+'  <span class="s">"transport"</span>: <span class="s">"stdio"</span>,\n'+
+'  <span class="s">"egress"</span>: <span class="s">"none (cluster-local)"</span>,\n'+
+'  <span class="s">"tools"</span>: [\n'+
+'    { <span class="s">"name"</span>: <span class="s">"list_activities"</span>,  <span class="s">"write"</span>: <span class="k">false</span> },\n'+
+'    { <span class="s">"name"</span>: <span class="s">"critical_path"</span>,   <span class="s">"write"</span>: <span class="k">false</span> },\n'+
+'    { <span class="s">"name"</span>: <span class="s">"float_report"</span>,    <span class="s">"write"</span>: <span class="k">false</span> },\n'+
+'    { <span class="s">"name"</span>: <span class="s">"baseline_diff"</span>,   <span class="s">"write"</span>: <span class="k">false</span> }\n'+
+'  ]\n}</pre>'+
+          '</div>'+
+          conf([],["p6"])+
+        '</div>'+
+        foot("Mon 08:05 · 3.1s · 660 tokens")}
+    ]}
+};
+var ORDER=["c1","c2","c3","c4","c5","c6"];
+var active="c1";
+
+/* ---------- empty state (A8) ---------- */
+var PREFILLS=[
+  {t:"Analyse", d:"Read a programme signal and explain what changed and why.",
+   f:"Analyse the schedule exposure on [package] using P6 and the change-order log. Tell me the driving path, the forecast slip in days, and who owns the decision."},
+  {t:"Automate", d:"Turn a repeating manual task into a scheduled skill.",
+   f:"Draft a weekly job that pulls [system] every Sunday 06:00, summarises exceptions over [threshold], and posts the digest to [channel]. Show me the steps before it runs."},
+  {t:"Create", d:"Draft a document grounded in your own standards.",
+   f:"Draft a [document type] for [package] using our approved template and the standards in Company Knowledge. Cite the clause behind every requirement."},
+  {t:"Simulate", d:"Test a decision against the twin before you take it.",
+   f:"Simulate accelerating [activity] by [n] days. Show cost, resource clash and the effect on the handover milestone, and say which twin sources you could not see."}
+];
+function emptyHTML(){
+  var c=counts();
+  return '<div class="empty">'+
+    '<div class="bd bd-empty" aria-hidden="true"><svg class="magna-mark" viewBox="0 0 640 440">'+
+      '<defs><linearGradient id="mgGB-empty" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
+        '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/></linearGradient>'+
+      '<linearGradient id="mgR-empty" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
+        '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient></defs>'+
+      '<path class="w1" d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-empty)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<path class="w2" d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-empty)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'+
+    '<h1>Good afternoon, Ahmad.</h1>'+
+    '<p class="sub">Ask anything about the programme. Every answer opens with the systems it was grounded in, '+
+      'and says plainly which relevant source it could not see. Nothing leaves Riyadh DC-1 on the Private tier.</p>'+
+    '<div class="covstrip">'+I.twin+
+      '<span class="lbl">Agentic Twin coverage — <b>'+c.connected+'</b> connected · <b>'+c.partial+'</b> partial · <b>'+c.missing+'</b> missing</span>'+
+      '<button class="btn sm" id="emptyOpenRail" style="margin-left:auto">Open the context rail</button></div>'+
+    '<div class="chips-h"><span class="eyebrow">Start from an intent</span>'+
+      '<span class="dim" style="font-size:11.5px">— these fill the composer with an editable draft. Nothing sends until you press send.</span></div>'+
+    '<div class="chips">'+PREFILLS.map(function(p,i){
+      return '<button class="chip" data-prefill="'+i+'">'+
+        '<span class="ct">'+I.bolt+p.t+'</span>'+
+        '<span class="cd">'+p.d+'</span>'+
+        '<span class="cf">'+I.exp.replace("ico sm","ico xs")+'Drafts <b>an editable prompt</b> with slots to fill</span></button>';
+    }).join("")+'</div>'+
+  '</div>';
+}
+
+/* ---------- canned replies for live sends ---------- */
+function replyFor(q){
+  var t=q.toLowerCase(), stamp=nowStamp();
+  if(/cost|budget|spend|sar|cash|price/.test(t)){
+    return reason("Thought for 5s · read 3 twin sources",[
+      ["1.0s","Read committed vs forecast cost from SAP S/4HANA."],
+      ["2.6s","Checked the cash-flow model — Package 4 is not loaded, so the drawdown is extrapolated."],
+      ["4.3s","Cross-referenced change orders CO-118 to CO-121 for commercial impact."]
+    ])+ground(["sap","cost","co","mkt"])+
+    '<div class="body">'+
+      '<p class="lead">Committed cost on Package 4 is SAR 41.2m against a forecast final of SAR 44.6m — a 8.3% overrun, of which SAR 2.1m is the MEP rework already approved.</p>'+
+      '<p>The cost model only holds Packages 1 to 3, so the Package 4 drawdown curve here is extrapolated from the P6 resource loading rather than read from finance. Treat the monthly split as indicative and the total as firm.</p>'+
+      conf(["mkt"],["sap"])+
+    '</div>'+foot(stamp);
+  }
+  if(/hse|safety|incident|injur|permit/.test(t)){
+    return reason("Thought for 3s · ran skill hse-digest · read 2 twin sources",[
+      ["0.7s","Ran <b>hse-digest</b> over the last 7 days of the incident log."],
+      ["2.2s","Mapped each open action to its owner through the org chart."]
+    ])+ground(["know","org","comms"])+
+    '<div class="body">'+
+      '<p class="lead">No lost-time injuries in the last 7 days. Two open high-potential near-miss actions are past their due date, both on lifting operations at Grid F.</p>'+
+      '<p>Permit compliance is 97.4%. The two overdue actions sit with A. Nasser (Lifting) and have been open 11 and 6 days respectively.</p>'+
+      conf(["iot"],["know","org"])+
+    '</div>'+foot(stamp);
+  }
+  if(/vendor|supplier|procure|purchase|po |contract/.test(t)){
+    return reason("Thought for 4s · ran sap-po-lookup · read 3 twin sources",[
+      ["0.9s","Queried SAP S/4HANA through the <b>sap-po-lookup</b> MCP server."],
+      ["3.1s","Scored vendors against the prequalification standard in Company Knowledge."]
+    ])+ground(["sap","know","risk","mkt"])+
+    '<div class="body">'+
+      '<p class="lead">Here is what the twin can support on that. Vendor master and three years of delivery performance are live from SAP; commercial risk is scored from the register, which was last updated on 31 July.</p>'+
+      '<p>Market lead times are the gap — supplier signals are not connected, so I cannot tell you whether a quoted 14-week delivery is normal or optimistic for this region right now.</p>'+
+      conf(["mkt"],["sap","know"])+
+    '</div>'+foot(stamp);
+  }
+  return reason("Thought for 4s · read 4 twin sources · searched 2 documents",[
+    ["0.8s","Resolved the question against the active programme, RUH-P4."],
+    ["2.3s","Read the Primavera P6 schedule graph and the change-order log."],
+    ["3.6s","Checked ownership through the org chart and the approval process map."]
+  ])+ground(["p6","co","org","know","iot"])+
+  '<div class="body">'+
+    '<p class="lead">Here is the grounded answer, with the same caveat as the rest of this thread: the schedule view is planned, not measured.</p>'+
+    '<p>P6 baseline r7 and the change-order log agree on scope and dates; the org chart and your approval process map resolve who can decide. What I still cannot see is actual progress on site, so anything I say about rate of work is inferred from a progress update that is 6 days old.</p>'+
+    '<p>Connect the two behavioural sources in the rail and I can answer the same question from measured reality.</p>'+
+    conf(["iot","labour"],["p6","co"])+
+  '</div>'+foot(stamp);
+}
+function nowStamp(){
+  var d=new Date();
+  var hh=String(d.getHours()).padStart(2,"0"), mm=String(d.getMinutes()).padStart(2,"0");
+  return hh+":"+mm+" · 3.8s · just now";
+}
+
+/* ============================================================
+   6 · rendering
+   ============================================================ */
+var DATEGRP=[{k:"today",l:"Today"},{k:"yesterday",l:"Yesterday"},{k:"lastweek",l:"Last week"}];
+function renderConvList(filter){
+  var q=(filter||"").trim().toLowerCase(), host=$("#convList"), html="", shown=0;
+  DATEGRP.forEach(function(g){
+    var list=ORDER.map(function(id){return CONVS[id];})
+      .filter(function(c){ return c.when===g.k && (!q || c.title.toLowerCase().indexOf(q)>-1); });
+    if(!list.length) return;
+    html+='<div class="grp"><span class="eyebrow">'+g.l+'</span><span class="ln"></span></div>';
+    list.forEach(function(c){
+      shown++;
+      var live=(c.used||[]).filter(function(id){ return SRC[id] && eff(SRC[id])!=="missing"; }).length;
+      html+='<button class="conv'+(c.id===active?" on":"")+'" data-conv="'+c.id+'">'+c.title+
+        '<span class="meta"><i class="cdot" style="background:var(--ok)"></i>'+live+' twin sources · '+c.time+'</span></button>';
+    });
+  });
+  if(!shown){
+    html+='<div class="emptyside"><p><b>No conversation matches “'+ (q||"") +'”.</b><br>Chat titles are searchable in full — and ⌘K also searches documents and actions.</p>'+
+      '<button class="btn sm full" id="startFromSearch">Start a new chat about it</button></div>';
+  }
+  host.innerHTML=html;
+  $("#navConvCount").textContent=ORDER.length;
+}
+
+function msgHTML(m){
+  if(m.r==="u") return '<div class="turn-user"><div class="ubub">'+m.h+'</div></div>';
+  return '<div class="turn-ai">'+aiTop()+m.h+'</div>';
+}
+function renderConv(){
+  var c=CONVS[active], s=$("#stream");
+  if(!c){ s.innerHTML=emptyHTML(); }
+  else { s.innerHTML=c.msgs.map(msgHTML).join(""); }
+  $("#threadTitle").textContent=c?c.title:"New chat";
+  $("#threadMeta").textContent=c?("· "+c.msgs.length+" messages · "+c.time):"· nothing sent yet";
+  $$("[data-modelname]").forEach(function(el){ el.textContent=MODELS[model].name; });
+  $$("[data-modelspec]").forEach(function(el){ el.textContent=MODELS[model].spec; });
+  syncTwin();
+  renderRail();
+  renderConvList($("#convSearch").value);
+  requestAnimationFrame(function(){
+    if(c) toBottom(); else $("#scroll").scrollTop=0;
+  });
+}
+
+/* the transcript reflects live twin state — toggling a source updates every answer */
+function syncTwin(){
+  $$("[data-src].gchip").forEach(function(el){
+    var s=SRC[el.getAttribute("data-src")]; if(!s) return;
+    var st=eff(s);
+    el.setAttribute("data-state",st);
+    el.querySelector(".t").textContent =
+      st==="connected" ? s.short :
+      st==="partial"   ? s.short+" · partial" :
+                         s.short+" — not connected";
+  });
+  $$("[data-ground]").forEach(function(g){
+    var live=$$(".gchip",g).filter(function(el){ return el.getAttribute("data-state")!=="missing"; }).length;
+    var n=$("[data-gcount]",g); if(n) n.textContent=live;
+  });
+  $$("[data-conf]").forEach(function(el){
+    var boost=(el.getAttribute("data-boost")||"").split(",").filter(Boolean);
+    var req=(el.getAttribute("data-req")||"").split(",").filter(Boolean);
+    var reqGone=req.filter(function(id){ return SRC[id] && eff(SRC[id])==="missing"; });
+    var boostGone=boost.filter(function(id){ return SRC[id] && eff(SRC[id])!=="connected"; });
+    var lvl,txt;
+    if(reqGone.length){
+      lvl="low";
+      txt="<b>Confidence low — I lost a source this answer depends on.</b> "+
+          reqGone.map(function(id){return SRC[id].short;}).join(" and ")+
+          " is switched off in the context rail, so the figures above are held from the previous run rather than re-derived. Switch it back on to trust them.";
+    } else if(boostGone.length){
+      lvl="medium";
+      txt="<b>Confidence capped at medium — I could not see "+
+          boostGone.map(function(id){return SRC[id].short.toLowerCase();}).join(" or ")+
+          ".</b> Progress is therefore inferred from P6 data that is 6 days old, not measured on site. "+
+          "Connecting those sources would let me answer this from measured reality instead of the plan.";
+    } else {
+      lvl="high";
+      txt="<b>Confidence high.</b> Site telemetry and daily labour returns are now connected, so progress is measured rather than inferred. "+
+          "Measured output agrees with the P6 update to within one day, and no relevant source is missing from this answer.";
+    }
+    el.setAttribute("data-level",lvl);
+    el.querySelector(".cl").innerHTML = lvl==="high" ? I.check.replace("ico xs","ico sm") : I.warn;
+    el.querySelector(".ct").innerHTML = txt;
+  });
+}
+
+/* ============================================================
+   7 · message + rail actions (delegated)
+   ============================================================ */
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-act]");
+
+  /* conversation switch */
+  var cv=e.target.closest("[data-conv]");
+  if(cv){
+    active=cv.getAttribute("data-conv"); renderConv();
+    if(narrow()){ setSide(false); ta.focus(); }        /* drawer closes on select */
+    return;
+  }
+
+  /* prefill chips (A3) — draft into composer, never send */
+  var pf=e.target.closest("[data-prefill]");
+  if(pf){
+    var p=PREFILLS[+pf.getAttribute("data-prefill")];
+    ta.value=p.f; autoGrow(); ta.focus();
+    var i=p.f.indexOf("["); if(i>-1) ta.setSelectionRange(i,p.f.indexOf("]",i)+1);
+    updateSend(); toast("Draft loaded into the composer — edit the slots, then press send.");
+    return;
+  }
+  if(e.target.closest("#startFromSearch")){
+    ta.value=$("#convSearch").value; newChat(); ta.focus(); autoGrow(); updateSend(); return;
+  }
+  if(e.target.closest("#emptyOpenRail")){ setRail(true); return; }
+  if(e.target.closest("#connect2")){ connectSources(["iot","labour"]); return; }
+
+  if(!t) return;
+  var act=t.getAttribute("data-act");
+
+  if(act==="reason"){
+    var open=t.getAttribute("aria-expanded")==="true";
+    t.setAttribute("aria-expanded",String(!open));
+    t.nextElementSibling.classList.toggle("open",!open);
+  }
+  else if(act==="copy-msg"){
+    var body=t.closest(".turn-ai");
+    copyText(body.innerText.replace(/\n{3,}/g,"\n\n").trim(),function(){ flash(t,"Copied"); toast("Full message copied as text."); });
+  }
+  else if(act==="copy-code"){
+    copyText(t.closest(".codeblk").querySelector("pre").innerText,function(){ flash(t,"Copied"); });
+  }
+  else if(act==="wrap"){
+    var pre=t.closest(".codeblk").querySelector("pre");
+    pre.classList.toggle("wrap"); t.classList.toggle("on",pre.classList.contains("wrap"));
+  }
+  else if(act==="download-code"){
+    download("p6_slip_forecast.py",PY_SRC,"text/x-python");
+    toast("p6_slip_forecast.py downloaded.");
+  }
+  else if(act==="copy-mermaid"){
+    copyText(MERMAID_SRC,function(){ flash(t,"Copied"); toast("Mermaid source copied — paste it into any Mermaid renderer."); });
+  }
+  else if(act==="export-svg"){
+    var svg=t.closest(".diagwrap").querySelector("svg");
+    download("package4-slip-derivation.svg",'<?xml version="1.0" encoding="UTF-8"?>\n'+svg.outerHTML,"image/svg+xml");
+    toast("Diagram exported as SVG.");
+  }
+  else if(act==="retry"){
+    var turn=t.closest(".turn-ai"); var stamp=turn.querySelector(".stamp");
+    t.classList.add("done"); toast("Regenerating with "+MODELS[model].name+"…");
+    setTimeout(function(){
+      t.classList.remove("done");
+      if(stamp) stamp.textContent=nowStamp().replace("just now","regenerated");
+      toast("Regenerated. Same 4 twin sources, same conclusion.");
+    },900);
+  }
+  else if(act==="export"){
+    var md=t.closest(".turn-ai").innerText.replace(/\n{3,}/g,"\n\n").trim();
+    download("magnaverse-answer.md","# MagnaVERSE — "+(CONVS[active]?CONVS[active].title:"Answer")+"\n\n"+md,"text/markdown");
+    toast("Answer exported as Markdown.");
+  }
+  else if(act==="share"){
+    copyText("https://magnaverse.magna.sa/t/"+(active||"new")+"#internal-only",function(){
+      flash(t,"Link copied"); toast("Internal share link copied. Visible to Magna accounts only.");
+    });
+  }
+  else if(act==="more-actions"){
+    var f=t.closest(".mfoot"), o=f.classList.toggle("open");
+    t.setAttribute("aria-expanded",String(o));
+  }
+  else if(act==="open-rail"){ setRail(true); }
+  else if(act==="src-open"){ toast("Opening the cited document in Knowledge — internal source, stays on Private."); }
+  else if(act==="goto-src"){
+    setRail(true);
+    var id=t.getAttribute("data-src");
+    var row=$('[data-src="'+id+'"].src');
+    if(row){
+      row.scrollIntoView({block:"center",behavior:reduceMotion()?"auto":"smooth"});
+      row.style.transition="box-shadow .3s";
+      row.style.boxShadow="0 0 0 2px var(--accent)";
+      setTimeout(function(){ row.style.boxShadow=""; },1400);
+    }
+  }
+  else if(act==="src-detail"){
+    var id2=t.getAttribute("data-id");
+    var det=$("#det-"+id2), o=t.getAttribute("aria-expanded")==="true";
+    t.setAttribute("aria-expanded",String(!o)); det.classList.toggle("open",!o);
+  }
+  else if(act==="src-toggle"){
+    var s=SRC[t.getAttribute("data-id")];
+    s.on=!s.on; renderRail(); syncTwin();
+    toast(s.short+(s.on?" re-attached to the twin.":" detached — coverage and confidence updated."));
+  }
+  else if(act==="connect-one"){ connectSources([t.getAttribute("data-id")]); }
+});
+
+function connectSources(ids){
+  ids.forEach(function(id){ var s=SRC[id]; if(s){ s.s="connected"; s.on=true; } });
+  ORDER.forEach(function(cid){
+    var c=CONVS[cid];
+    ids.forEach(function(id){ if(c.used && c.used.indexOf(id)===-1 && cid==="c1") c.used.push(id); });
+  });
+  renderRail(); syncTwin(); renderConvList($("#convSearch").value);
+  var names=ids.map(function(id){ return SRC[id].short; }).join(" and ");
+  var c=counts();
+  toast(names+" connected — coverage now "+c.connected+" connected · "+c.partial+" partial · "+c.missing+" missing.");
+}
+
+/* ============================================================
+   8 · composer + send
+   ============================================================ */
+var ta=$("#ta");
+function autoGrow(){ ta.style.height="auto"; ta.style.height=Math.min(ta.scrollHeight,190)+"px"; }
+function updateSend(){ $("#send").disabled = ta.value.trim().length===0; }
+function newChat(){
+  if(narrow()) setSide(false);
+  active=null; $("#stream").innerHTML=emptyHTML();
+  $("#threadTitle").textContent="New chat";
+  $("#threadMeta").textContent="· nothing sent yet";
+  renderConvList($("#convSearch").value);
+  $("#scroll").scrollTop=0; ta.focus();
+}
+function pushMsg(html){ $("#stream").insertAdjacentHTML("beforeend",html); }
+function reduceMotion(){ return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+function toBottom(smooth){
+  var s=$("#scroll");
+  try{ s.scrollTo({top:s.scrollHeight,behavior:(smooth && !reduceMotion())?"smooth":"auto"}); }
+  catch(e){ s.scrollTop=s.scrollHeight; }
+  /* guarantee arrival even if a smooth animation is suppressed by the environment */
+  setTimeout(function(){
+    if(s.scrollHeight - s.scrollTop - s.clientHeight > 8) s.scrollTop=s.scrollHeight;
+  },400);
+}
+
+function send(){
+  var text=ta.value.trim(); if(!text) return;
+  var attach=$$(".trayp").map(function(p){ return p.getAttribute("data-tool"); });
+  if(!active){
+    var id="n"+Date.now();
+    CONVS[id]={id:id,title:text.length>62?text.slice(0,62)+"…":text,when:"today",
+      time:new Date().toTimeString().slice(0,5),used:["p6","co","org","know"],msgs:[]};
+    ORDER.unshift(id); active=id;
+    $("#stream").innerHTML=""; $("#threadTitle").textContent=CONVS[id].title;
+  }
+  var attachHTML = attach.length
+    ? '<div class="attach">'+attach.map(function(a){ return '<span class="pill sm">'+a+'</span>'; }).join("")+'</div>' : "";
+  var um={r:"u",h:attachHTML+escapeHTML(text)};
+  CONVS[active].msgs.push(um); pushMsg(msgHTML(um));
+  ta.value=""; autoGrow(); updateSend(); $("#tray").innerHTML=""; toBottom();
+
+  var live=(CONVS[active].used||[]).filter(function(id){ return SRC[id] && eff(SRC[id])!=="missing"; }).length;
+  pushMsg(
+    '<div class="turn-ai" id="pending">'+
+      '<div class="mg-think" role="status" aria-live="polite">'+
+        '<svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna is working">'+
+          '<defs>'+
+            '<linearGradient id="mgGB-think" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
+              '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>'+
+            '</linearGradient>'+
+            '<linearGradient id="mgR-think" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
+              '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>'+
+            '</linearGradient>'+
+          '</defs>'+
+          '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-think)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+          '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-think)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '</svg>'+
+        '<span class="think-t" id="thinkText">Thinking<span class="el">…</span></span>'+
+      '</div>'+
+    '</div>');
+  toBottom();
+
+  var stages=[
+    [900,  "Reading "+live+" of 16 twin sources"],
+    [1750, "Checking which relevant sources are missing"],
+    [2450, "Writing"]
+  ];
+  var timers=stages.map(function(s){
+    return setTimeout(function(){
+      var el=$("#thinkText");
+      if(el) el.innerHTML=s[1]+'<span class="el">…</span>';
+    },s[0]);
+  });
+  setTimeout(function(){
+    timers.forEach(clearTimeout);
+    var pend=$("#pending"); if(pend) pend.remove();
+    var am={r:"a",h:replyFor(text)};
+    CONVS[active].msgs.push(am); pushMsg(msgHTML(am));
+    syncTwin(); renderConvList($("#convSearch").value);
+    $("#threadMeta").textContent="· "+CONVS[active].msgs.length+" messages · just now";
+    toBottom(true);
+  },3050);
+}
+function escapeHTML(s){ return s.replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+ta.addEventListener("input",function(){ autoGrow(); updateSend(); slashInput(); });
+ta.addEventListener("keydown",function(e){
+  if(slashOpen && (e.key==="ArrowDown"||e.key==="ArrowUp"||e.key==="Enter"||e.key==="Tab")){ slashKey(e); return; }
+  if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+});
+$("#send").addEventListener("click",send);
+$("#newChat").addEventListener("click",newChat);
+$("#convSearch").addEventListener("input",function(){ renderConvList(this.value); });
+$("#attachBtn").addEventListener("click",function(){ toast("File picker — attachments stay on the Private tier and are indexed locally."); });
+$("#twinToggle").addEventListener("click",function(){
+  var on=this.getAttribute("aria-pressed")!=="true";
+  this.setAttribute("aria-pressed",String(on)); this.classList.toggle("on",on);
+  toast(on?"Twin context attached to this thread.":"Twin context detached — answers will not be grounded.");
+});
+$("#kbToggle").addEventListener("click",function(){
+  var on=this.getAttribute("aria-pressed")!=="true";
+  this.setAttribute("aria-pressed",String(on)); this.classList.toggle("on",on);
+  toast(on?"Company Knowledge search on.":"Company Knowledge search off for this thread.");
+});
+
+/* ============================================================
+   9 · slash menu — skills AND MCP servers (D12)
+   ============================================================ */
+var SKILLS=[
+  {n:"heartbeat", d:"Scheduled pulse check across connected systems; posts a digest when a threshold trips."},
+  {n:"hse-digest", d:"Summarise HSE incidents, near misses and permit compliance for a date range."},
+  {n:"jira-ticket-definer", d:"Turn a loose request into a well-formed Jira ticket with acceptance criteria."},
+  {n:"p6-rebaseline", d:"Read-only rebaseline preview: shows float, driving path and the milestone impact."},
+  {n:"po-exception-triage", d:"Classify blocked purchase orders and route each to the owner who can clear it."},
+  {n:"tender-comparator", d:"Score bids against your prequalification standard and show the gaps."},
+  {n:"nitaqat-forecast", d:"Project the Saudisation band from the current headcount and hiring plan."},
+  {n:"doc-redliner", d:"Compare a draft against the approved template and mark every deviation."},
+  {n:"meeting-actions", d:"Extract owners, dates and decisions from meeting notes into a tracked list."},
+  {n:"risk-register-sync", d:"Reconcile the risk register against live schedule and cost signals."}
+];
+var MCPS=[
+  {n:"sap-po-lookup", d:"Read purchase orders, goods receipts and three-way match exceptions from SAP S/4HANA."},
+  {n:"jira-search", d:"Search Jira issues, change orders and comments across programme projects."},
+  {n:"p6-schedule", d:"Query Primavera P6 activities, float, critical path and baseline differences."},
+  {n:"confluence", d:"Search and read Confluence spaces, including process maps and method statements."}
+];
+var slashOpen=false, slashItems=[], slashIdx=0, slashToken=null;
+
+function slashInput(){
+  var pre=ta.value.slice(0,ta.selectionStart);
+  var m=pre.match(/(^|\s)\/([\w-]*)$/);
+  if(!m){ closeSlash(); return; }
+  slashToken={start:pre.length-m[2].length-1, q:m[2].toLowerCase()};
+  openSlash(m[2].toLowerCase());
+}
+function openSlash(q){
+  var sk=SKILLS.filter(function(s){ return (s.n+" "+s.d).toLowerCase().indexOf(q)>-1; });
+  var mc=MCPS.filter(function(s){ return (s.n+" "+s.d).toLowerCase().indexOf(q)>-1; });
+  slashItems=sk.map(function(s){ return {k:"skill",s:s}; }).concat(mc.map(function(s){ return {k:"mcp",s:s}; }));
+  slashIdx=0;
+  var html="";
+  if(!slashItems.length){
+    html='<div class="sl-empty"><b>Nothing matches “'+q+'”.</b><br>Skills are reusable prompts your team has published; '+
+         'MCP servers are live connections to SAP, Jira, P6 and Confluence. '+
+         'Clear the text after / to see all 18 skills and 4 servers.</div>';
+  } else {
+    if(sk.length){
+      html+='<div class="sl-h">'+I.skill+'<span class="eyebrow">Skills</span><span class="n">'+sk.length+' of 18 shown</span></div>';
+      sk.forEach(function(s,i){ html+=slItem({k:"skill",s:s},i); });
+    }
+    if(mc.length){
+      html+='<div class="sl-h">'+I.mcp+'<span class="eyebrow">MCP servers</span><span class="n">'+mc.length+' of 4 · all cluster-local</span></div>';
+      mc.forEach(function(s,i){ html+=slItem({k:"mcp",s:s},sk.length+i); });
+    }
+    html+='<div class="sl-f"><span class="kbd">↑</span><span class="kbd">↓</span> move · <span class="kbd">↵</span> insert · '+
+          '<span class="kbd">esc</span> close and keep typing</div>';
+  }
+  var box=$("#slash"); box.innerHTML=html; box.classList.add("open"); slashOpen=true; markSlash();
+}
+function slItem(it,i){
+  return '<button class="sl-i '+(it.k==="mcp"?"mcp":"")+'" data-slash="'+i+'" role="option">'+
+    '<span class="ib">'+(it.k==="mcp"?I.mcp:I.skill)+'</span>'+
+    '<span style="flex:1;min-width:0"><span class="nm">/'+it.s.n+'</span><span class="ds">'+it.s.d+'</span></span>'+
+    '<span class="tag">'+(it.k==="mcp"?"MCP":"Skill")+'</span></button>';
+}
+function markSlash(){
+  $$(".sl-i",$("#slash")).forEach(function(el,i){
+    el.classList.toggle("sel", i===slashIdx);
+    if(i===slashIdx) el.scrollIntoView({block:"nearest"});
+  });
+}
+function closeSlash(){ slashOpen=false; $("#slash").classList.remove("open"); }
+function slashKey(e){
+  if(e.key==="ArrowDown"){ e.preventDefault(); slashIdx=(slashIdx+1)%slashItems.length; markSlash(); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); slashIdx=(slashIdx-1+slashItems.length)%slashItems.length; markSlash(); }
+  else if(e.key==="Enter"||e.key==="Tab"){ e.preventDefault(); insertSlash(slashIdx); }
+}
+function insertSlash(i){
+  var it=slashItems[i]; if(!it) return;
+  var pre=ta.value.slice(0,ta.selectionStart), post=ta.value.slice(ta.selectionStart);
+  var cut=pre.replace(/(^|\s)\/([\w-]*)$/,"$1");
+  ta.value=cut+"/"+it.s.n+" "+post;
+  var pos=(cut+"/"+it.s.n+" ").length;
+  closeSlash(); ta.focus(); ta.setSelectionRange(pos,pos); autoGrow(); updateSend();
+  var label=(it.k==="mcp"?"MCP · ":"Skill · ")+it.s.n;
+  if(!$('.trayp[data-tool="'+label+'"]')){
+    $("#tray").insertAdjacentHTML("beforeend",
+      '<span class="trayp" data-tool="'+label+'">'+(it.k==="mcp"?I.mcp:I.skill)+label+
+      '<button class="x" data-act="untray" aria-label="Remove '+it.s.n+'"><svg class="ico xs" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>');
+  }
+}
+$("#slash").addEventListener("click",function(e){
+  var b=e.target.closest("[data-slash]"); if(b) insertSlash(+b.getAttribute("data-slash"));
+});
+document.addEventListener("click",function(e){
+  var x=e.target.closest('[data-act="untray"]'); if(x) x.closest(".trayp").remove();
+});
+
+/* ============================================================
+   10 · model + sovereignty pickers
+   ============================================================ */
+var MODELS={
+  kimi:{name:"Kimi K2 Instruct", spec:"1T MoE", d:"Default. Long structured reasoning over programme data; best on multi-source questions."},
+  deepseek:{name:"DeepSeek V3.1", spec:"MoE", d:"Strongest on code, maths and schedule arithmetic."},
+  qwen:{name:"Qwen 3 235B", spec:"235B", d:"Multilingual; the best Arabic on the cluster for contracts and correspondence."},
+  nemotron:{name:"NVIDIA Nemotron 120B", spec:"120B", d:"Fastest first token; good for summarisation and digests."}
+};
+var model=LS.get("mv5.model","kimi");
+function renderModelMenu(){
+  $("#modelMenu").innerHTML='<div class="menu-h">'+I.bolt+'<span class="eyebrow">Model</span>'+
+    '<span class="dim" style="margin-left:auto;font-size:11px">All four run on Magna GPUs</span></div>'+
+    Object.keys(MODELS).map(function(k){
+      var m=MODELS[k];
+      return '<button class="mi'+(k===model?" on":"")+'" data-model="'+k+'" role="menuitemradio" aria-checked="'+(k===model)+'">'+
+        '<span style="flex:1;min-width:0"><span class="nm">'+m.name+'<span class="badge">'+m.spec+'</span>'+
+        '<span class="badge priv">Private</span></span><span class="ds">'+m.d+'</span></span>'+
+        '<span class="chk">'+I.check.replace("ico xs","ico sm")+'</span></button>';
+    }).join("");
+}
+function setModelSilent(k){
+  model=k; LS.set("mv5.model",k);
+  $("#modelLabel").textContent=MODELS[k].name;
+  $("#modelLabel").nextElementSibling.textContent="· "+MODELS[k].spec;
+  $$("[data-modelname]").forEach(function(el){ el.textContent=MODELS[k].name; });
+  $$("[data-modelspec]").forEach(function(el){ el.textContent=MODELS[k].spec; });
+  $("#modelBtn").setAttribute("aria-label","Model: "+MODELS[k].name+" · "+MODELS[k].spec+". Change model");
+  renderModelMenu();
+}
+function setModel(k){
+  setModelSilent(k);
+  toast("Switched to "+MODELS[k].name+" · "+MODELS[k].spec+" — still on Magna GPUs.");
+}
+var TIERS={
+  private:{name:"Private", sub:"· Riyadh DC-1", cls:"priv"},
+  public:{name:"Public", sub:"· leaves your network", cls:"pub"}
+};
+var tier="private";
+function renderTierMenu(){
+  $("#tierMenu").innerHTML=
+    '<div class="menu-sec">Available now</div>'+
+    '<button class="mi'+(tier==="private"?" on":"")+'" data-tier="private" role="menuitemradio" aria-checked="'+(tier==="private")+'">'+
+      '<span style="flex:1"><span class="nm">Private<span class="badge priv">Active</span></span>'+
+      '<span class="ds">Runs on Magna\'s cluster — Riyadh DC-1, 8×H200. Nothing leaves your network. Twin context and Company Knowledge are attached.</span></span>'+
+      '<span class="chk">'+I.check.replace("ico xs","ico sm")+'</span></button>'+
+    '<button class="mi'+(tier==="public"?" on":"")+'" data-tier="public" role="menuitemradio" aria-checked="'+(tier==="public")+'">'+
+      '<span style="flex:1"><span class="nm">Public<span class="badge pub">Leaves your network</span></span>'+
+      '<span class="ds">Sends the prompt and any attachments to a third-party cloud model. Twin sources are withheld automatically. Use for general knowledge only.</span></span>'+
+      '<span class="chk">'+I.check.replace("ico xs","ico sm")+'</span></button>'+
+    '<div class="menu-sec">On the roadmap — dated, not hidden</div>'+
+    '<div class="roadrow"><span class="w"><span class="nm">Personal — on-device</span>'+
+      '<span class="ds">Runs on your laptop NPU for drafts and personal notes. No network call at all.</span></span>'+
+      '<span class="when">Q4 2026</span></div>'+
+    '<div class="roadrow"><span class="w"><span class="nm">In-Country</span>'+
+      '<span class="ds">Shared Saudi-hosted cluster for partner organisations, under the same residency rules.</span></span>'+
+      '<span class="when">Q4 2026</span></div>';
+}
+function setTier(t,silent){
+  tier=t; document.body.setAttribute("data-tier",t);
+  var b=$("#tierBtn");
+  b.classList.toggle("priv",t==="private"); b.classList.toggle("pub",t==="public");
+  $("#tierLabel").textContent=TIERS[t].name; $("#tierSub").textContent=TIERS[t].sub;
+  renderTierMenu();
+  if(silent) return;
+  toast(t==="public"
+    ? "Thread switched to Public. Twin context withheld; the next message leaves your network."
+    : "Back on Private — Riyadh DC-1. Twin context re-attached.");
+}
+function openMenu(btn,menu){
+  closeMenus();
+  var r=btn.getBoundingClientRect();
+  menu.classList.add("open"); btn.setAttribute("aria-expanded","true");
+  var w=menu.offsetWidth;
+  menu.style.top=(r.bottom+7)+"px";
+  menu.style.left=Math.max(10,Math.min(r.left,window.innerWidth-w-10))+"px";
+}
+function closeMenus(){
+  $$(".menu").forEach(function(m){ m.classList.remove("open"); });
+  $$("[aria-haspopup]").forEach(function(b){ b.setAttribute("aria-expanded","false"); });
+}
+$("#modelBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  if(this.getAttribute("aria-expanded")==="true"){ closeMenus(); return; }
+  renderModelMenu(); openMenu(this,$("#modelMenu"));
+});
+$("#tierBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  if(this.getAttribute("aria-expanded")==="true"){ closeMenus(); return; }
+  renderTierMenu(); openMenu(this,$("#tierMenu"));
+});
+$("#modelMenu").addEventListener("click",function(e){
+  var b=e.target.closest("[data-model]"); if(!b) return;
+  setModel(b.getAttribute("data-model")); closeMenus(); ta.focus();
+});
+$("#tierMenu").addEventListener("click",function(e){
+  var b=e.target.closest("[data-tier]"); if(!b) return;
+  var t=b.getAttribute("data-tier"); closeMenus();
+  if(t==="public" && tier!=="public"){ openDialog("guard"); return; }
+  setTier(t); ta.focus();
+});
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".menu") && !e.target.closest("[aria-haspopup]")) closeMenus();
+});
+$("#guardCancel").addEventListener("click",function(){ closeDialog(); toast("Stayed on Private. Nothing left the network."); });
+$("#guardGo").addEventListener("click",function(){ closeDialog(); setTier("public"); });
+
+/* ============================================================
+   11 · layout toggles
+   ============================================================ */
+function narrow(){ return window.matchMedia("(max-width:1023px)").matches; }
+function mobile(){ return window.matchMedia("(max-width:767px)").matches; }
+
+function setSide(expanded){
+  document.body.setAttribute("data-side", expanded?"expanded":"collapsed");
+  if(!narrow()) LS.set("mv5.side", expanded?"expanded":"collapsed");
+  var hb=$("#expandSide");
+  hb.hidden = expanded && !narrow();
+  hb.setAttribute("aria-expanded",String(expanded));
+  $("#sideScrim").classList.toggle("open", expanded && narrow());
+  if(expanded && narrow()){
+    var f=$("#newChat"); if(f) f.focus();
+  }
+}
+function setRail(open){
+  document.body.setAttribute("data-rail", open?"open":"collapsed");
+  if(!narrow()) LS.set("mv5.rail", open?"open":"collapsed");
+  $("#railToggle").classList.toggle("on",open);
+  $("#railToggle").setAttribute("aria-expanded",String(open));
+  $("#sideScrim").classList.toggle("open",
+    (open && narrow() && !mobile()) || (document.body.getAttribute("data-side")==="expanded" && narrow()));
+  if(open && narrow()){ var c=$("#railClose"); if(c) c.focus(); }
+}
+function closeOverlayPanels(){
+  if(!narrow()) return false;
+  var did=false;
+  if(document.body.getAttribute("data-side")==="expanded"){ setSide(false); did=true; }
+  if(document.body.getAttribute("data-rail")==="open"){ setRail(false); did=true; }
+  $("#sideScrim").classList.remove("open");
+  return did;
+}
+$("#sideScrim").addEventListener("click",function(){ closeOverlayPanels(); ta.focus(); });
+$("#collapseSide").addEventListener("click",function(){ setSide(false); ta.focus(); });
+$("#expandSide").addEventListener("click",function(){ setSide(document.body.getAttribute("data-side")!=="expanded"); });
+$("#railToggle").addEventListener("click",function(){
+  setRail(document.body.getAttribute("data-rail")!=="open");
+});
+$("#railClose").addEventListener("click",function(){ setRail(false); ta.focus(); });
+
+/* keep the drawer's focus inside it while it is a modal overlay */
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Tab" || !narrow()) return;
+  var panel = document.body.getAttribute("data-side")==="expanded" ? $("#side")
+            : (mobile() && document.body.getAttribute("data-rail")==="open") ? $("#rail") : null;
+  if(!panel) return;
+  var f=$$('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])',panel)
+        .filter(function(el){ return !el.disabled && el.offsetParent!==null; });
+  if(!f.length) return;
+  var first=f[0], last=f[f.length-1];
+  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  else if(!panel.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+});
+
+/* breakpoint changes: collapse overlays going narrow, restore going wide */
+var wasNarrow=narrow();
+window.addEventListener("resize",function(){
+  var n=narrow();
+  if(n!==wasNarrow){
+    wasNarrow=n;
+    if(n){ setSide(false); setRail(false); }
+    else {
+      setSide(LS.get("mv5.side","expanded")!=="collapsed");
+      setRail(LS.get("mv5.rail","open")!=="collapsed");
+      $("#sideScrim").classList.remove("open");
+    }
+  }
+  $("#expandSide").hidden = document.body.getAttribute("data-side")==="expanded" && !n;
+});
+$$("[data-nav]").forEach(function(b){
+  b.addEventListener("click",function(){
+    $$("[data-nav]").forEach(function(x){ x.classList.remove("on"); });
+    b.classList.add("on");
+    var k=b.getAttribute("data-nav");
+    if(k==="twin"){ setRail(true); toast("Twin sources are in the context rail on the right."); }
+    else if(k==="skills"){ ta.value="/"; ta.focus(); autoGrow(); slashInput(); }
+    else if(k==="knowledge"){ openSettings("connections"); }
+    else if(k==="help"){ openSettings("help"); }
+    else { $$("[data-nav]").forEach(function(x){ x.classList.remove("on"); }); $('[data-nav="chats"]').classList.add("on"); }
+  });
+});
+
+/* ============================================================
+   12 · dialogs
+   ============================================================ */
+var openDlg=null, lastFocus=null;
+function openDialog(id){
+  closeMenus(); lastFocus=document.activeElement;
+  openDlg=id; $("#scrim").classList.add("open"); $("#"+id).classList.add("open");
+  var f=$("#"+id).querySelector("input, button:not([disabled])"); if(f) f.focus();
+}
+function closeDialog(){
+  if(!openDlg) return;
+  $("#"+openDlg).classList.remove("open"); $("#scrim").classList.remove("open"); openDlg=null;
+  ta.focus();                       /* A7 — composer always regains focus */
+}
+$("#scrim").addEventListener("click",closeDialog);
+
+/* ---------- command palette ---------- */
+var DOCS=[
+  {n:"P4_baseline_r7.xer", d:"Primavera P6 · schedule export · 2.4 MB", tag:"P6"},
+  {n:"CO-118 — MEP rework change order", d:"Jira · raised 14 Jun 2026 · +11 days", tag:"Jira"},
+  {n:"Delegation of Authority v4", d:"Company Knowledge · approval thresholds", tag:"Docs"},
+  {n:"Subcontractor prequalification standard v6", d:"Company Knowledge · approved 14 Feb 2026", tag:"Docs"},
+  {n:"HSE weekly digest — week 33", d:"Company Knowledge · generated by hse-digest", tag:"Docs"},
+  {n:"PO 4500091237 — three-way match", d:"SAP S/4HANA · blocked for payment", tag:"SAP"},
+  {n:"Nitaqat compliance policy v4", d:"Company Knowledge · HR · updated May 2026", tag:"Docs"}
+];
+var ACTIONS=[
+  {n:"New chat", d:"Start a fresh grounded thread", run:function(){ newChat(); }},
+  {n:"Connect the 2 missing behavioural sources", d:"Site IoT telemetry and daily labour returns", run:function(){ setRail(true); connectSources(["iot","labour"]); }},
+  {n:"Open the Agentic Twin context rail", d:"16 sources, coverage and gaps", run:function(){ setRail(true); }},
+  {n:"Switch model to DeepSeek V3.1", d:"Strongest on code and maths", run:function(){ setModel("deepseek"); }},
+  {n:"Switch model to Qwen 3 235B", d:"Best Arabic on the cluster", run:function(){ setModel("qwen"); }},
+  {n:"Change sovereignty tier", d:"Private · Public · roadmap tiers", run:function(){ $("#tierBtn").click(); }},
+  {n:"Toggle theme", d:"Light, dark or follow the system", run:function(){ applyTheme(theme==="dark"?"light":theme==="light"?"system":"dark"); toast("Theme: "+theme); }},
+  {n:"Open settings", d:"General, appearance, models, sovereignty", run:function(){ openSettings("general"); }},
+  {n:"Replay the first-run tour", d:"Three steps, then it stays dismissed", run:function(){ startTour(true); }},
+  {n:"Collapse the sidebar", d:"More room for the transcript", run:function(){ setSide(false); }}
+];
+var palItems=[], palIdx=0;
+function buildPal(q){
+  q=(q||"").trim().toLowerCase();
+  var convs=ORDER.map(function(id){return CONVS[id];})
+    .filter(function(c){ return !q || c.title.toLowerCase().indexOf(q)>-1; }).slice(0,5);
+  var docs=DOCS.filter(function(d){ return !q || (d.n+" "+d.d).toLowerCase().indexOf(q)>-1; }).slice(0,5);
+  var acts=ACTIONS.filter(function(a){ return !q || (a.n+" "+a.d).toLowerCase().indexOf(q)>-1; }).slice(0,6);
+  palItems=[]; var html="";
+  if(convs.length){
+    html+='<div class="pal-sec">Conversations</div>';
+    convs.forEach(function(c){
+      palItems.push({run:function(){ active=c.id; renderConv(); }});
+      html+=palRow(I.chat,c.title,c.msgs.length+" messages · "+c.time,"Chat",palItems.length-1);
+    });
+  }
+  if(docs.length){
+    html+='<div class="pal-sec">Documents &amp; records</div>';
+    docs.forEach(function(d){
+      palItems.push({run:function(){ toast("Opening "+d.n+" — internal source, stays on Private."); }});
+      html+=palRow(I.doc,d.n,d.d,d.tag,palItems.length-1);
+    });
+  }
+  if(acts.length){
+    html+='<div class="pal-sec">Actions</div>';
+    acts.forEach(function(a){
+      palItems.push({run:a.run});
+      html+=palRow(I.bolt,a.n,a.d,"Action",palItems.length-1);
+    });
+  }
+  if(!palItems.length){
+    html='<div class="pal-empty"><p><b>Nothing matches “'+q+'”.</b><br>'+
+      'The palette searches conversation titles, connected documents and every action in the product — '+
+      'it does not search inside document bodies yet. Company Knowledge search lives in the composer.</p>'+
+      '<button class="btn sm" id="palNew">Start a new chat about “'+q+'”</button></div>';
+  }
+  $("#palBody").innerHTML=html; palIdx=0; markPal();
+}
+function palRow(ic,n,d,tag,i){
+  return '<button class="pal-i" data-pal="'+i+'"><span class="ib">'+ic+'</span>'+
+    '<span class="w"><span class="nm">'+n+'</span><span class="ds">'+d+'</span></span>'+
+    '<span class="tag">'+tag+'</span></button>';
+}
+function markPal(){
+  $$(".pal-i").forEach(function(el,i){
+    el.classList.toggle("sel",i===palIdx);
+    if(i===palIdx) el.scrollIntoView({block:"nearest"});
+  });
+}
+function runPal(i){
+  var it=palItems[i]; closeDialog(); if(it) setTimeout(it.run,10);
+}
+$("#palInput").addEventListener("input",function(){ buildPal(this.value); });
+$("#palInput").addEventListener("keydown",function(e){
+  if(e.key==="ArrowDown"){ e.preventDefault(); palIdx=Math.min(palIdx+1,palItems.length-1); markPal(); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); palIdx=Math.max(palIdx-1,0); markPal(); }
+  else if(e.key==="Enter"){ e.preventDefault(); runPal(palIdx); }
+});
+$("#palBody").addEventListener("click",function(e){
+  var b=e.target.closest("[data-pal]"); if(b){ runPal(+b.getAttribute("data-pal")); return; }
+  if(e.target.closest("#palNew")){ var v=$("#palInput").value; closeDialog(); newChat(); ta.value=v; autoGrow(); updateSend(); }
+});
+function openPalette(){ openDialog("palette"); $("#palInput").value=""; buildPal(""); $("#palInput").focus(); }
+
+/* ---------- settings (D8) ---------- */
+var SET=[
+  {id:"general", label:"General", ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l2.5 2"/></svg>', html:function(){
+    return '<h3>General</h3><p class="lead2">Your account and how MagnaVERSE opens.</p>'+
+    row("Signed in as","Ahmad Farahat · ahmad.farahat@magna.sa · Delivery, Riyadh","<button class='btn sm'>Manage</button>")+
+    row("Language","Interface language. Answers follow the language you write in.","<select class='sel'><option>English</option><option>العربية</option></select>")+
+    row("Time zone","All timestamps in this workspace","<select class='sel'><option>Riyadh · AST (UTC+3)</option><option>UTC</option></select>")+
+    row("On open","What you see when MagnaVERSE starts","<select class='sel'><option>Last conversation</option><option>New chat</option></select>")+
+    '<div class="note">Usage and spend are an admin view. They are not shown on every seat.</div>';
+  }},
+  {id:"appearance", label:"Appearance", ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17"/></svg>', html:function(){
+    return '<h3>Appearance</h3><p class="lead2">Theme is a CSS variable swap — it switches instantly and loads no images.</p>'+
+    row("Theme","Light, dark, or follow your operating system",
+      "<select class='sel' id='setThemeSel'><option value='light'>Light</option><option value='dark'>Dark</option><option value='system'>System</option></select>")+
+    row("Animated Magna backdrop","A subtle CSS/SVG brand mark behind the sidebar and the empty state. Never behind body text, and never a photograph.",
+      "<button class='setsw' id='setBackdrop' role='switch' aria-checked='"+(backdrop==="magna")+"' aria-label='Animated backdrop'></button>")+
+    row("Message width","Comfortable keeps lines near 80 characters","<select class='sel'><option>Comfortable</option><option>Wide</option></select>")+
+    row("Reduce motion","Follows your system setting automatically","<span class='pill sm'>Following system</span>")+
+    '<div class="note">There are no wallpaper, overlay, film-grain or hue/saturation controls. Body text always sits on a solid token-driven surface so contrast is predictable in both themes.</div>';
+  }},
+  {id:"models", label:"Models", ic:'<svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9h6v6H9z"/></svg>', html:function(){
+    return '<h3>Models</h3><p class="lead2">Four models, all running on Magna GPUs in Riyadh DC-1. Full identity, always.</p>'+
+      Object.keys(MODELS).map(function(k){
+        var m=MODELS[k];
+        return row(m.name+" · "+m.spec, m.d,
+          "<button class='btn sm"+(k===model?" primary":"")+"' data-setmodel='"+k+"'>"+(k===model?"Default":"Make default")+"</button>");
+      }).join("")+
+      '<div class="note">Model names are never abbreviated to “Latest Kimi”. Buyers evaluating a sovereign stack need the weights, version and size.</div>';
+  }},
+  {id:"sovereignty", label:"Sovereignty &amp; data", ic:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>', html:function(){
+    return '<h3>Sovereignty &amp; data</h3><p class="lead2">Where inference runs and what may leave the network.</p>'+
+    row("Default tier","New threads start here","<select class='sel'><option>Private · Riyadh DC-1</option><option>Public</option></select>")+
+    row("Warn before Public","Show the guardrail whenever a thread with internal files or twin context is switched to Public",
+      "<button class='setsw' role='switch' aria-checked='true' aria-label='Public guardrail' data-toggle></button>")+
+    row("PII masking","Mask names, ID and IBAN patterns before any Public call",
+      "<button class='setsw' role='switch' aria-checked='true' aria-label='PII masking' data-toggle></button>")+
+    row("Retention","How long Private threads are kept on the cluster","<select class='sel'><option>90 days</option><option>1 year</option><option>Forever</option></select>")+
+    '<div class="note">Personal (on-device) and In-Country tiers ship in Q4 2026. They appear in the tier picker as dated roadmap entries, not as dead menu items.</div>';
+  }},
+  {id:"twin", label:"Twin sources", ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></svg>', html:function(){
+    var c=counts();
+    return '<h3>Agentic Twin — TrendIQ</h3><p class="lead2">16 context sources. Coverage is the single number that decides how good an answer can be.</p>'+
+    row("Coverage today", c.connected+" connected · "+c.partial+" partial · "+c.missing+" missing",
+      "<button class='btn sm' id='setOpenRail'>Open context rail</button>")+
+    SOURCES.filter(function(s){ return eff(s)!=="connected"; }).map(function(s){
+      return row(s.n, s.d, s.s==="missing"
+        ? "<button class='btn sm primary' data-act='connect-one' data-id='"+s.id+"'>Connect</button>"
+        : "<span class='pill sm'>Partial</span>");
+    }).join("")+
+    '<div class="note">Sources are indexed and queried inside your network. Twin context is withheld automatically from any Public-tier thread.</div>';
+  }},
+  {id:"connections", label:"Connections &amp; MCP", ic:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M7 8 3.5 12 7 16M17 8l3.5 4-3.5 4M14 5l-4 14"/></svg>', html:function(){
+    return '<h3>Connections &amp; MCP</h3><p class="lead2">Knowledge connectors and the MCP servers exposed to the composer.</p>'+
+    row("Company Knowledge","8,400 documents · re-indexed 06:00 today","<span class='pill sm'><span class='dot' style='background:var(--ok)'></span>Connected</span>")+
+    row("SAP S/4HANA","Finance and procurement · 4 min lag","<span class='pill sm'><span class='dot' style='background:var(--ok)'></span>Connected</span>")+
+    row("Primavera P6","Schedule graph · baseline r7","<span class='pill sm'><span class='dot' style='background:var(--ok)'></span>Connected</span>")+
+    row("Jira","Change orders and issues","<span class='pill sm'><span class='dot' style='background:var(--ok)'></span>Connected</span>")+
+    row("HR system","Headcount, org structure, Saudisation","<span class='pill sm'><span class='dot' style='background:var(--ok)'></span>Connected</span>")+
+    MCPS.map(function(m){ return row("MCP · "+m.n, m.d, "<span class='pill sm'>Cluster-local</span>"); }).join("")+
+    '<div class="note">Type <b>/</b> in the composer to use any of these, or any of the 18 published skills, without leaving the conversation.</div>';
+  }},
+  {id:"keyboard", label:"Keyboard", ic:'<svg class="ico sm" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></svg>', html:function(){
+    var k=[["Command palette","⌘K / Ctrl+K"],["New chat","⌘N / Ctrl+N"],["Skills and MCP servers","/ in the composer"],
+      ["Toggle context rail","⌘J / Ctrl+J"],["Send","Enter"],["New line","Shift + Enter"],["Close any overlay","Esc"]];
+    return '<h3>Keyboard</h3><p class="lead2">Every overlay returns focus to the composer when it closes.</p>'+
+      '<table class="kbtable"><tbody>'+k.map(function(r){
+        return '<tr><td>'+r[0]+'</td><td><span class="kbd">'+r[1]+'</span></td></tr>'; }).join("")+'</tbody></table>';
+  }},
+  {id:"help", label:"Help &amp; roadmap", ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5v.4M12 17v.5"/></svg>', html:function(){
+    return '<h3>Help &amp; roadmap</h3><p class="lead2">The tour runs once. It lives here afterwards.</p>'+
+    row("First-run tour","Three steps: sidebar, context rail, slash and palette","<button class='btn sm' id='replayTour'>Replay tour</button>")+
+    row("Personal tier — on-device","Runs on your laptop NPU. No network call.","<span class='pill sm'>Q4 2026</span>")+
+    row("In-Country tier","Shared Saudi-hosted cluster for partners","<span class='pill sm'>Q4 2026</span>")+
+    row("Agentic Twin simulations","Test a decision against the twin before taking it","<span class='pill sm'>Q1 2027</span>")+
+    '<div class="note">Roadmap items live here, not in the primary navigation. Every destination in the sidebar works today.</div>';
+  }}
+];
+function row(t,d,ctl){
+  return '<div class="row"><span class="w"><span class="rt">'+t+'</span><span class="rd">'+d+'</span></span>'+
+    '<span class="ctl">'+(ctl||"")+'</span></div>';
+}
+var setCat="general";
+function renderSettings(){
+  $("#setNav").innerHTML=SET.map(function(s){
+    return '<button data-set="'+s.id+'" class="'+(s.id===setCat?"on":"")+'">'+s.ic+s.label+'</button>';
+  }).join("");
+  var cat=SET.filter(function(s){ return s.id===setCat; })[0];
+  $("#setPane").innerHTML=cat.html();
+  var sel=$("#setThemeSel"); if(sel){ sel.value=theme; sel.addEventListener("change",function(){ applyTheme(this.value); }); }
+}
+function openSettings(cat){ setCat=cat||setCat; renderSettings(); openDialog("settings"); }
+$("#openSettingsUser").addEventListener("click",function(){ openSettings("general"); });
+$("#setClose").addEventListener("click",closeDialog);
+$("#settings").addEventListener("click",function(e){
+  var n=e.target.closest("[data-set]");
+  if(n){ setCat=n.getAttribute("data-set"); renderSettings(); return; }
+  var m=e.target.closest("[data-setmodel]");
+  if(m){ setModel(m.getAttribute("data-setmodel")); renderSettings(); return; }
+  var bd=e.target.closest("#setBackdrop");
+  if(bd){ var on=bd.getAttribute("aria-checked")!=="true"; bd.setAttribute("aria-checked",String(on));
+    applyBackdrop(on?"magna":"off"); return; }
+  var tg=e.target.closest("[data-toggle]");
+  if(tg){ tg.setAttribute("aria-checked", String(tg.getAttribute("aria-checked")!=="true")); return; }
+  if(e.target.closest("#setOpenRail")){ closeDialog(); setRail(true); return; }
+  if(e.target.closest("#replayTour")){ closeDialog(); startTour(true); return; }
+});
+
+/* ---------- first-run tour (D10) ---------- */
+var TOUR=[
+  {t:"Everything lives in the sidebar",
+   x:"There is no top bar. New chat, search and your full conversation history sit on the left and stay there — no more Chat → History → expand, and no titles cut to 18 characters."},
+  {t:"The twin is in the room",
+   x:"The right-hand rail is your Agentic Twin: 16 context sources, how many are connected, and what each one feeds. Every answer opens with the systems that grounded it — and names, in amber, the relevant one it could not see."},
+  {t:"Type / for tools, ⌘K for everything",
+   x:"“/” in the composer lists all 18 skills and 4 MCP servers with descriptions. ⌘K searches conversations, documents and actions. Both hand focus back to the composer when they close."}
+];
+var tourI=0;
+function paintTour(){
+  $("#tourTitle").textContent=TOUR[tourI].t;
+  $("#tourText").textContent=TOUR[tourI].x;
+  $("#tourDots").innerHTML=TOUR.map(function(_,i){ return '<i class="'+(i===tourI?"on":"")+'"></i>'; }).join("");
+  $("#tourBack").disabled=tourI===0;
+  $("#tourNext").textContent=tourI===TOUR.length-1?"Got it":"Next";
+}
+function startTour(force){
+  if(!force && LS.get("mv5.tour","")==="done") return;
+  tourI=0; paintTour(); $("#tour").hidden=false;
+}
+function endTour(){ $("#tour").hidden=true; LS.set("mv5.tour","done"); ta.focus(); }
+$("#tourSkip").addEventListener("click",function(){ endTour(); toast("Tour dismissed. Replay it any time from Settings → Help & roadmap."); });
+$("#tourBack").addEventListener("click",function(){ if(tourI>0){ tourI--; paintTour(); } });
+$("#tourNext").addEventListener("click",function(){
+  if(tourI<TOUR.length-1){ tourI++; paintTour(); }
+  else { endTour(); toast("Tour complete. It will not appear again — replay it from Settings → Help & roadmap."); }
+});
+
+/* ============================================================
+   13 · keyboard
+   ============================================================ */
+document.addEventListener("keydown",function(e){
+  var mod=e.metaKey||e.ctrlKey;
+  if(mod && e.key.toLowerCase()==="k"){ e.preventDefault(); openDlg==="palette"?closeDialog():openPalette(); return; }
+  if(mod && e.key.toLowerCase()==="n"){ e.preventDefault(); newChat(); return; }
+  if(mod && e.key.toLowerCase()==="j"){ e.preventDefault(); setRail(document.body.getAttribute("data-rail")!=="open"); return; }
+  if(e.key==="Escape"){
+    if(slashOpen){ closeSlash(); ta.focus(); return; }
+    if($$(".menu.open").length){ closeMenus(); ta.focus(); return; }
+    if(openDlg){ closeDialog(); return; }
+    if(closeOverlayPanels()){ ta.focus(); return; }     /* drawer / sheet */
+    if(!$("#tour").hidden){ endTour(); return; }
+  }
+});
+
+/* ============================================================
+   14 · init
+   ============================================================ */
+setSide(!narrow() && LS.get("mv5.side","expanded")!=="collapsed");
+setRail(!narrow() && LS.get("mv5.rail","open")!=="collapsed");
+setModelSilent(model);
+setTier("private",true);
+renderConv();
+updateSend();
+startTour(false);
+ta.focus();
+
+})();
+</script>
+</body>
+</html>
