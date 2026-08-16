@@ -1,0 +1,1814 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MagnaVERSE — Functionality map</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─────────────────────────── tokens ─────────────────────────── */
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-bd:rgba(37,99,235,.32);
+  --ok:#15803D;   --ok-dim:rgba(21,128,61,.10);   --ok-bd:rgba(21,128,61,.30);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10); --crit-bd:rgba(180,35,24,.30);
+  --high:#B45309; --high-dim:rgba(180,83,9,.11);  --high-bd:rgba(180,83,9,.30);
+  --med:#6941C6;  --med-dim:rgba(105,65,198,.10); --med-bd:rgba(105,65,198,.28);
+  --r:10px; --r-lg:16px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788;
+    --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-bd:rgba(91,141,239,.40);
+    --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);   --ok-bd:rgba(63,207,149,.34);
+    --crit:#F97066; --crit-dim:rgba(249,112,102,.15); --crit-bd:rgba(249,112,102,.36);
+    --high:#E0A33C; --high-dim:rgba(224,163,60,.15);  --high-bd:rgba(224,163,60,.36);
+    --med:#B692F6;  --med-dim:rgba(182,146,246,.15);  --med-bd:rgba(182,146,246,.34);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E13; --bg-2:#10141B; --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+  --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788;
+  --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-bd:rgba(91,141,239,.40);
+  --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);   --ok-bd:rgba(63,207,149,.34);
+  --crit:#F97066; --crit-dim:rgba(249,112,102,.15); --crit-bd:rgba(249,112,102,.36);
+  --high:#E0A33C; --high-dim:rgba(224,163,60,.15);  --high-bd:rgba(224,163,60,.36);
+  --med:#B692F6;  --med-dim:rgba(182,146,246,.15);  --med-bd:rgba(182,146,246,.34);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F8FA; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
+  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
+  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798;
+  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-bd:rgba(37,99,235,.32);
+  --ok:#15803D;   --ok-dim:rgba(21,128,61,.10);   --ok-bd:rgba(21,128,61,.30);
+  --crit:#B42318; --crit-dim:rgba(180,35,24,.10); --crit-bd:rgba(180,35,24,.30);
+  --high:#B45309; --high-dim:rgba(180,83,9,.11);  --high-bd:rgba(180,83,9,.30);
+  --med:#6941C6;  --med-dim:rgba(105,65,198,.10); --med-bd:rgba(105,65,198,.28);
+}
+
+/* ─────────────────────────── base ─────────────────────────── */
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:1160px;margin:0 auto;padding:0 28px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.skip{position:absolute;left:-9999px;top:0;background:var(--surface);border:1px solid var(--line-2);
+  padding:10px 14px;border-radius:8px;z-index:80}
+.skip:focus{left:12px;top:12px}
+code,.mono{font-family:var(--mono)}
+code{font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:4px;
+  border:1px solid var(--line);word-break:break-word}
+.q{color:var(--tx-2);font-style:italic}
+
+/* ─────────────────────────── header ─────────────────────────── */
+.top{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line)}
+@supports (backdrop-filter:blur(2px)){
+  .top{background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px)}
+}
+.top .wrap{display:flex;align-items:center;gap:10px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14.5px;letter-spacing:-.012em;
+  min-width:0}
+.brand .t2{color:var(--tx-3);font-weight:450}
+.brand .sep{color:var(--tx-3);font-weight:400}
+.brand .ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mark{width:29px;height:auto;flex:none;display:block}
+.mark path{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion:no-preference){
+  .mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+.tbtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 12px;
+  border-radius:99px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-2);
+  font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.tbtn:hover{color:var(--tx);border-color:var(--accent-bd)}
+.tbtn svg{width:15px;height:15px;flex:none}
+.top .tbtn{margin-left:auto}
+
+/* ─────────────────────────── hero ─────────────────────────── */
+.hero{padding:52px 0 30px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:14px}
+h1{font-size:40px;line-height:1.1;font-weight:690;letter-spacing:-.028em;text-wrap:balance;max-width:19ch}
+.lede{margin-top:15px;font-size:16.5px;line-height:1.62;color:var(--tx-2);max-width:70ch}
+.lede b{color:var(--tx);font-weight:620}
+.meta{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12.2px;color:var(--tx-3);
+  font-family:var(--mono)}
+
+/* ─────────────────────────── sections ─────────────────────────── */
+section{padding:42px 0;border-top:1px solid var(--line)}
+section.hero{border-top:0}
+.sh{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:7px}
+h2{font-size:22px;font-weight:670;letter-spacing:-.02em}
+.sh .n{font-family:var(--mono);font-size:11px;color:var(--tx-3);letter-spacing:.11em;text-transform:uppercase}
+.sub{font-size:14.5px;color:var(--tx-2);max-width:74ch;margin-bottom:24px}
+h3.blk{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);
+  margin-bottom:10px}
+
+/* ─────────────────────────── stats ─────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-bottom:26px}
+@media (min-width:700px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--surface-2);min-width:0}
+.stat b{display:block;font-size:27px;font-weight:690;letter-spacing:-.025em;font-variant-numeric:tabular-nums;
+  line-height:1.15}
+.stat b i{font-style:normal;font-size:16px;font-weight:600;color:var(--tx-3);letter-spacing:0}
+.stat span{font-size:11.8px;color:var(--tx-3);display:block;margin-top:3px;line-height:1.4}
+.stat.c b{color:var(--crit)} .stat.h b{color:var(--high)} .stat.m b{color:var(--med)}
+.stat.g b{color:var(--ok)}
+
+.panels{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:820px){.panels{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:17px 18px 19px;
+  min-width:0}
+
+/* segmented bars */
+.segbar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--surface-3);
+  margin:12px 0 11px}
+.segbar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:7px 15px;font-size:12.4px;color:var(--tx-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:99px;flex:none}
+.legend b{color:var(--tx);font-weight:640;font-variant-numeric:tabular-nums}
+
+/* nav tally chart */
+.tally{display:grid;gap:7px;margin-top:12px}
+.trow{display:grid;grid-template-columns:98px 1fr 52px;align-items:center;gap:10px;font-size:12.6px}
+.trow .nm{color:var(--tx-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbar{display:flex;height:11px;border-radius:99px;overflow:hidden;background:var(--surface-3)}
+.tbar i{display:block;height:100%}
+.trow .ct{font-family:var(--mono);font-size:11.4px;color:var(--tx-3);text-align:right;
+  font-variant-numeric:tabular-nums}
+.trow.dead .ct{color:var(--crit)}
+.note{font-size:12.2px;color:var(--tx-3);line-height:1.55;margin-top:13px;padding-top:12px;
+  border-top:1px solid var(--line)}
+
+/* ─────────────────────────── details/tables ─────────────────────────── */
+details{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+details+details{margin-top:10px}
+summary{cursor:pointer;padding:13px 16px;font-size:13.6px;font-weight:600;color:var(--tx-2);
+  list-style:none;display:flex;align-items:center;gap:9px;min-height:46px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;
+  border-bottom:1.6px solid currentColor;transform:rotate(45deg);margin-left:auto;flex:none;
+  transition:transform .16s}
+details[open] summary::after{transform:rotate(-135deg)}
+summary:hover{color:var(--tx)}
+.dbody{padding:0 16px 16px}
+
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  -webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+th{background:var(--surface-2);text-align:left;padding:9px 13px;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700;border-bottom:1px solid var(--line);
+  white-space:nowrap}
+td{padding:9px 13px;border-bottom:1px solid var(--line);color:var(--tx-2);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+td b{color:var(--tx);font-weight:620}
+td.id,td.mono{font-family:var(--mono);font-size:11.6px;color:var(--tx);white-space:nowrap}
+td.wrapmono{font-family:var(--mono);font-size:11.4px;color:var(--tx-2);word-break:break-all;min-width:230px}
+
+/* ─────────────────────────── chips ─────────────────────────── */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:640;letter-spacing:.02em;
+  padding:3px 9px;border-radius:99px;border:1px solid var(--line-2);color:var(--tx-2);
+  background:var(--surface-2);white-space:nowrap}
+.chip .dot{width:7px;height:7px}
+.st-live{color:var(--ok);border-color:var(--ok-bd);background:var(--ok-dim)}
+.st-live .dot{background:var(--ok)}
+.st-partial{color:var(--high);border-color:var(--high-bd);background:var(--high-dim)}
+.st-partial .dot{background:var(--high)}
+.st-broken{color:var(--crit);border-color:var(--crit-bd);background:var(--crit-dim)}
+.st-broken .dot{background:var(--crit)}
+.st-missing{color:var(--tx-3);border-color:var(--line-2);background:var(--surface-2)}
+.st-missing .dot{background:var(--tx-3)}
+.sev{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9.6px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.sev.c{background:var(--crit-dim);color:var(--crit);border:1px solid var(--crit-bd)}
+.sev.h{background:var(--high-dim);color:var(--high);border:1px solid var(--high-bd)}
+.sev.m{background:var(--med-dim);color:var(--med);border:1px solid var(--med-bd)}
+
+/* ─────────────────────────── deep dive ─────────────────────────── */
+.deep{border:1px solid var(--line-2);border-radius:16px;background:var(--surface);overflow:hidden}
+.deep+.deep{margin-top:20px}
+.deephead{padding:20px 22px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.deephead .kick{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:8px}
+.deephead h3{font-size:21px;font-weight:670;letter-spacing:-.02em;margin-bottom:7px}
+.deephead p{font-size:14px;color:var(--tx-2);max-width:76ch}
+.deepbody{padding:20px 22px 24px}
+.deepgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+@media (min-width:900px){.deepgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.tb{border:1px solid var(--line);border-radius:12px;padding:15px 16px;background:var(--bg-2);min-width:0}
+.tb.today{border-color:var(--crit-bd)}
+.tb.next{border-color:var(--ok-bd)}
+.tb h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:11px}
+.tb.today h4{color:var(--crit)} .tb.next h4{color:var(--ok)}
+ul.tick{list-style:none;display:grid;gap:8px}
+ul.tick li{position:relative;padding-left:17px;font-size:13.4px;line-height:1.55;color:var(--tx-2)}
+ul.tick li::before{content:"";position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:99px;
+  background:var(--tx-3)}
+ul.tick li b{color:var(--tx);font-weight:620}
+ul.tick.bad li::before{background:var(--crit)}
+ul.tick.good li::before{background:var(--ok)}
+.ladder{font-family:var(--mono);font-size:12.3px;line-height:2;color:var(--tx-2);background:var(--bg-2);
+  border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow-x:auto;white-space:pre}
+.ladder b{color:var(--crit);font-weight:700}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:4px 0 2px}
+.flow .st{border:1px solid var(--line-2);border-radius:99px;padding:5px 11px;font-size:12px;
+  color:var(--tx-2);background:var(--surface-2);white-space:nowrap}
+.flow .st.on{border-color:var(--ok-bd);background:var(--ok-dim);color:var(--ok);font-weight:620}
+.flow .st.err{border-color:var(--crit-bd);background:var(--crit-dim);color:var(--crit)}
+.flow .ar{color:var(--tx-3);font-size:12px}
+.callout{border:1px solid var(--crit-bd);background:var(--crit-dim);border-radius:12px;padding:14px 16px;
+  font-size:13.4px;line-height:1.6;color:var(--tx-2)}
+.callout b{color:var(--crit)}
+.callout.ok{border-color:var(--accent-bd);background:var(--accent-dim)}
+.callout.ok b{color:var(--accent)}
+.mt{margin-top:18px}
+.mt-s{margin-top:12px}
+
+/* ─────────────────────────── controls ─────────────────────────── */
+.controls{position:sticky;top:58px;z-index:30;background:var(--bg);border:1px solid var(--line);
+  border-radius:14px;padding:12px 14px;margin-bottom:20px}
+@supports (backdrop-filter:blur(2px)){
+  .controls{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px)}
+}
+.crow{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.crow+.crow{margin-top:10px}
+.srch{position:relative;flex:1 1 240px;min-width:0}
+.srch svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;
+  color:var(--tx-3);pointer-events:none}
+.srch input{width:100%;height:38px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface-2);
+  color:var(--tx);font:inherit;font-size:13.6px;padding:0 34px 0 34px}
+.srch input::placeholder{color:var(--tx-3)}
+.srch .clr{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:28px;height:28px;
+  border-radius:7px;border:0;background:transparent;color:var(--tx-3);cursor:pointer;font-size:16px;
+  line-height:1;display:none}
+.srch .clr.on{display:block}
+.srch .clr:hover{color:var(--tx)}
+.flabel{font-family:var(--mono);font-size:10.4px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tx-3);flex:none}
+.fchip{height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line-2);background:var(--surface-2);
+  color:var(--tx-2);font:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fchip:hover{color:var(--tx)}
+.fchip .n{font-family:var(--mono);font-size:10.6px;color:var(--tx-3)}
+.fchip[aria-pressed="true"]{background:var(--accent-dim);border-color:var(--accent-bd);color:var(--accent);
+  font-weight:620}
+.fchip[aria-pressed="true"] .n{color:var(--accent)}
+.fchip.sc[aria-pressed="true"]{background:var(--crit-dim);border-color:var(--crit-bd);color:var(--crit)}
+.fchip.sh[aria-pressed="true"]{background:var(--high-dim);border-color:var(--high-bd);color:var(--high)}
+.fchip.sm[aria-pressed="true"]{background:var(--med-dim);border-color:var(--med-bd);color:var(--med)}
+.fchip.sc[aria-pressed="true"] .n,.fchip.sh[aria-pressed="true"] .n,.fchip.sm[aria-pressed="true"] .n{
+  color:inherit}
+.cend{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.count{font-size:12.6px;color:var(--tx-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.count b{color:var(--tx);font-weight:650}
+
+/* ─────────────────────────── capability list ─────────────────────────── */
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;align-items:start}
+.mapgrid>div{min-width:0}
+@media (min-width:1080px){.mapgrid{grid-template-columns:minmax(0,1fr) 224px}}
+.caps{display:grid;gap:9px;min-width:0}
+.cap{border:1px solid var(--line);border-radius:13px;background:var(--surface);overflow:hidden}
+.cap[hidden]{display:none}
+.cap.open{border-color:var(--line-2)}
+.cap h3{margin:0;font-size:inherit;font-weight:inherit}
+.caphead{width:100%;display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;
+  gap:10px;padding:13px 15px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;
+  text-align:left;min-height:56px}
+.caphead:hover{background:var(--surface-2)}
+.caphead .num{font-family:var(--mono);font-size:11.5px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+.hmid{min-width:0}
+.hname{font-size:14.8px;font-weight:640;letter-spacing:-.012em;color:var(--tx);line-height:1.35}
+.hmeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px}
+.route{font-family:var(--mono);font-size:11.2px;color:var(--tx-3);background:var(--surface-2);
+  border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+.hend{display:flex;align-items:center;gap:9px}
+.svm{display:flex;gap:4px}
+.svm i{font-family:var(--mono);font-size:10px;font-style:normal;font-weight:700;padding:2px 6px;
+  border-radius:5px;font-variant-numeric:tabular-nums}
+.svm i.c{background:var(--crit-dim);color:var(--crit)}
+.svm i.h{background:var(--high-dim);color:var(--high)}
+.svm i.m{background:var(--med-dim);color:var(--med)}
+.chev{width:9px;height:9px;border-right:1.7px solid var(--tx-3);border-bottom:1.7px solid var(--tx-3);
+  transform:rotate(45deg);flex:none;margin-right:3px;transition:transform .16s}
+.cap.open .chev{transform:rotate(-135deg)}
+@media (prefers-reduced-motion:reduce){.chev,summary::after{transition:none}}
+.capbody{padding:2px 15px 17px;border-top:1px solid var(--line)}
+.capbody[hidden]{display:none}
+.cbgrid{display:grid;grid-template-columns:1fr;gap:20px;padding-top:15px}
+@media (min-width:860px){.cbgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px}}
+.cbcol{min-width:0}
+.cbcol+.cbcol{border-top:1px solid var(--line);padding-top:18px}
+@media (min-width:860px){.cbcol+.cbcol{border-top:0;padding-top:0;border-left:1px solid var(--line);
+  padding-left:26px}}
+.blk{margin-bottom:18px}
+.blk:last-child{margin-bottom:0}
+.blk p{font-size:13.5px;line-height:1.62;color:var(--tx-2)}
+.probs{list-style:none;display:grid;gap:9px}
+.probs li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:start;
+  font-size:13.4px;line-height:1.58;color:var(--tx-2);transition:opacity .15s}
+.probs li.dim{opacity:.38}
+.probs li .sev{margin-top:2px}
+.probs li b{color:var(--tx);font-weight:620}
+.fixes{list-style:none;display:grid;gap:8px}
+.fixes li{position:relative;padding-left:19px;font-size:13.4px;line-height:1.58;color:var(--tx-2)}
+.fixes li::before{content:"";position:absolute;left:1px;top:6px;width:9px;height:5px;
+  border-left:1.8px solid var(--ok);border-bottom:1.8px solid var(--ok);transform:rotate(-45deg)}
+.fixes li b{color:var(--tx);font-weight:620}
+.today-l{list-style:none;display:grid;gap:8px}
+.today-l li{position:relative;padding-left:15px;font-size:13.4px;line-height:1.58;color:var(--tx-2)}
+.today-l li::before{content:"";position:absolute;left:1px;top:8.5px;width:5px;height:5px;border-radius:99px;
+  background:var(--tx-3)}
+.today-l li b{color:var(--tx);font-weight:620}
+.empty{display:none;border:1px dashed var(--line-2);border-radius:13px;padding:34px 22px;text-align:center}
+.empty.on{display:block}
+.empty p{font-size:14px;color:var(--tx-2);margin-bottom:14px}
+.empty b{color:var(--tx)}
+
+/* ─────────────────────────── toc ─────────────────────────── */
+.toc{border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:12px}
+.toc h3{font-family:var(--mono);font-size:10.4px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--tx-3);margin:2px 4px 9px;font-weight:700}
+.toclist{display:grid;grid-template-columns:minmax(0,1fr);gap:1px}
+.toclist button{display:flex;align-items:center;gap:8px;width:100%;min-width:0;text-align:left;
+  background:transparent;border:0;color:var(--tx-2);font:inherit;font-size:12.5px;padding:6px 7px;
+  border-radius:7px;cursor:pointer;line-height:1.35}
+.toclist button:hover{background:var(--surface-2);color:var(--tx)}
+.toclist button[hidden]{display:none}
+.toclist .dot{flex:none}
+.toclist .tn{font-family:var(--mono);font-size:10px;color:var(--tx-3);flex:none;width:15px}
+.toclist .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tocbtn{display:inline-flex}
+.scrim{position:fixed;inset:0;background:rgba(6,9,14,.55);z-index:44;opacity:0;pointer-events:none;
+  transition:opacity .18s}
+.scrim.on{opacity:1;pointer-events:auto}
+@media (max-width:1079.98px){
+  .toc{position:fixed;top:0;left:0;bottom:0;width:min(310px,84vw);z-index:45;border-radius:0;
+    border-width:0 1px 0 0;overflow-y:auto;transform:translateX(-102%);transition:transform .2s ease;
+    padding:14px 12px}
+  .toc.open{transform:none}
+  .toclist button{padding:9px 8px;font-size:13px;min-height:38px}
+}
+@media (min-width:1080px){
+  .toc{position:sticky;top:126px;max-height:calc(100vh - 150px);overflow-y:auto}
+  .tocbtn{display:none}
+  .scrim{display:none}
+}
+@media (prefers-reduced-motion:reduce){.toc{transition:none}.scrim{transition:none}}
+
+/* ─────────────────────────── IA diagram ─────────────────────────── */
+.svgwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+  padding:8px;-webkit-overflow-scrolling:touch}
+.iasvg{display:block;width:100%;min-width:860px;height:auto}
+.iasvg .card{fill:var(--surface-2);stroke:var(--line-2)}
+.iasvg .card-w{fill:var(--accent-dim);stroke:var(--accent-bd)}
+.iasvg .card-b{fill:var(--med-dim);stroke:var(--med-bd)}
+.iasvg .card-g{fill:var(--surface-3);stroke:var(--line-2)}
+.iasvg .row{fill:var(--surface);stroke:var(--line)}
+.iasvg .row-dead{fill:var(--crit-dim);stroke:var(--crit-bd)}
+.iasvg .t1{fill:var(--tx);font:640 15px var(--sans);letter-spacing:.02em}
+.iasvg .t2{fill:var(--tx);font:620 13px var(--sans)}
+.iasvg .t3{fill:var(--tx-2);font:400 12.2px var(--sans)}
+.iasvg .t4{fill:var(--tx-3);font:400 11px var(--mono);letter-spacing:.09em}
+.iasvg .tdead{fill:var(--crit);font:600 11px var(--mono)}
+.iasvg .lnk{stroke:var(--line-2);fill:none;stroke-width:1.4}
+.iasvg .ah{fill:var(--tx-3)}
+
+/* ─────────────────────────── plan ─────────────────────────── */
+.plan{display:grid;grid-template-columns:minmax(0,1fr);gap:13px}
+@media (min-width:700px){.plan{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1080px){.plan{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.pcard{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:16px 17px 18px;
+  display:flex;flex-direction:column;min-width:0}
+.pcard.now{border-color:var(--crit-bd)}
+.pcard .ph{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.pcard .ph h3{font-size:15px;font-weight:670;letter-spacing:-.012em}
+.pcard .ph .w{font-family:var(--mono);font-size:10px;color:var(--tx-3);letter-spacing:.09em;
+  text-transform:uppercase;margin-left:auto}
+.pcard .psub{font-size:12.4px;color:var(--tx-3);margin-bottom:12px;line-height:1.5}
+.pcard ul{list-style:none;display:grid;gap:8px}
+.pcard li{position:relative;padding-left:17px;font-size:13.1px;line-height:1.5;color:var(--tx-2)}
+.pcard li::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:2px;
+  border:1.5px solid var(--line-2)}
+.pcard.now li::before{border-color:var(--crit)}
+.pcard li.star::before{background:var(--crit);border-color:var(--crit)}
+.pcard li b{color:var(--tx);font-weight:620}
+
+footer{padding:30px 0 60px;font-size:12.6px;color:var(--tx-3);line-height:1.7;border-top:1px solid var(--line)}
+footer a{color:var(--tx-2)}
+
+/* ─────────────────────────── responsive ─────────────────────────── */
+@media (max-width:900px){
+  h1{font-size:32px}
+  .lede{font-size:15.5px}
+  .hero{padding:38px 0 26px}
+  section{padding:34px 0}
+  .deephead,.deepbody{padding-left:17px;padding-right:17px}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  h1{font-size:26px;max-width:none}
+  .lede{font-size:14.6px}
+  .hero{padding:28px 0 22px}
+  h2{font-size:19px}
+  .stat b{font-size:23px}
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .controls{top:54px;padding:11px;border-radius:12px}
+  .caphead{grid-template-columns:24px minmax(0,1fr) auto;gap:8px;padding:12px}
+  .hname{font-size:14px}
+  .capbody{padding:2px 12px 15px}
+  .brand .sep,.brand .ttl{display:none}
+  .top .wrap{height:54px}
+  .trow{grid-template-columns:78px 1fr 46px;font-size:12px}
+  .ladder{font-size:11.4px}
+  .flow .st{white-space:normal}
+  .count{width:100%;order:-1}
+}
+@media (max-width:380px){
+  .stats{grid-template-columns:1fr}
+  .svm i{padding:2px 5px}
+}
+/* touch targets */
+@media (pointer:coarse),(max-width:768px){
+  .tbtn,.fchip{min-height:44px;height:auto;padding-top:10px;padding-bottom:10px}
+  .srch input{height:44px}
+  .srch .clr{width:36px;height:36px}
+  .caphead{min-height:60px}
+  summary{min-height:52px}
+  .toclist button{min-height:44px}
+}
+</style></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top"><div class="wrap">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+      <defs>
+        <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+        </linearGradient>
+        <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+        </linearGradient>
+      </defs>
+      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)"
+        stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)"
+        stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>Magna<span class="t2">VERSE</span><span class="sep"> · </span><span class="ttl">Functionality map</span></div>
+  </div>
+  <button class="tbtn" id="themeBtn" type="button" aria-label="Change colour theme">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"
+      id="themeIcon"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    <span id="themeLabel">System</span>
+  </button>
+</div></header>
+
+<main id="main">
+
+<!-- ══════════════ HERO ══════════════ -->
+<section class="hero wrap">
+  <div class="eyebrow">Capability audit · build 1.0.491 · 16 Aug 2026</div>
+  <h1>Every capability in MagnaVERSE, marked.</h1>
+  <p class="lede">Twenty-three capabilities were opened, clicked through and exercised on
+    <code>app.stag.magna.ai</code>. This page states, for each one: <b>what it is, where it lives, what it
+    does today, what is wrong with it, and what it should become.</b> Two of them — <b>MCP</b> and
+    <b>Agents</b> — get their own section, because they are the two you asked about by name.</p>
+  <div class="meta">
+    <span>Source: MagnaVERSEFullFunctionalUXSpec.md</span>
+    <span>Method: every route opened, every flyout expanded, creation flows walked field by field</span>
+  </div>
+</section>
+
+<!-- ══════════════ AT A GLANCE ══════════════ -->
+<section class="wrap" id="glance">
+  <div class="sh"><span class="n">01</span><h2>The shape of the problem</h2></div>
+  <p class="sub">The product is not thin — it is hidden. Almost everything on this page exists and works;
+    the failures are of exposure, naming and default, not of engineering.</p>
+
+  <div class="stats">
+    <div class="stat"><b>23</b><span>capabilities audited</span></div>
+    <div class="stat g"><b id="s-live">—</b><span>fully live</span></div>
+    <div class="stat"><b>15</b><span>routes exist · 14 live, 1 stub</span></div>
+    <div class="stat c"><b>13<i>&#8202;/&#8202;26</i></b><span>nav destinations dead</span></div>
+    <div class="stat c"><b id="s-c">—</b><span>critical problems</span></div>
+    <div class="stat h"><b id="s-h">—</b><span>high problems</span></div>
+    <div class="stat m"><b id="s-m">—</b><span>medium problems</span></div>
+    <div class="stat"><b>14</b><span>cross-cutting issues</span></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3 class="blk">Status of the 23 capabilities</h3>
+      <div class="segbar" role="img" aria-label="Status distribution across 23 capabilities" id="statusBar"></div>
+      <div class="legend" id="statusLegend"></div>
+      <p class="note"><b style="color:var(--tx)">Live</b> — works end to end.
+        <b style="color:var(--tx)">Partial</b> — works, but a core piece of it is unreachable, unexplained or dead.
+        <b style="color:var(--tx)">Broken</b> — present in the UI and non-functional.
+        <b style="color:var(--tx)">Missing</b> — the backend is wired and there is no interface at all.</p>
+    </div>
+
+    <div class="panel">
+      <h3 class="blk">Problems by severity — 114 logged</h3>
+      <div class="segbar" role="img" aria-label="Severity distribution of logged problems" id="sevBar"></div>
+      <div class="legend" id="sevLegend"></div>
+      <p class="note"><b style="color:var(--crit)">Critical</b> costs trust or time on every session, or makes a
+        claim the product cannot substantiate. <b style="color:var(--high)">High</b> caps how good the product can
+        feel. <b style="color:var(--med)">Medium</b> is friction and polish. A further
+        <b style="color:var(--tx)">14 cross-cutting issues</b> span the whole product — see section 06.</p>
+    </div>
+
+    <div class="panel">
+      <h3 class="blk">The navigation tally — 7 sections</h3>
+      <div class="tally" id="tally"></div>
+      <p class="note">The section highlighted by default on load — <b style="color:var(--tx)">Upcoming</b> — is five
+        items, all disabled. First impression: a product that mostly does not work, when in fact the working parts
+        are strong. <span style="color:var(--tx-3)">Counted item by item the flyouts list 30 entries with 17
+        disabled; the audit's headline tally is 26 / 13. Worth re-verifying against the build before the number
+        goes in a deck.</span></p>
+    </div>
+
+    <div class="panel">
+      <h3 class="blk">Routes</h3>
+      <div class="tblwrap" style="border-radius:10px">
+        <table><thead><tr><th>Route</th><th>Page</th><th>State</th></tr></thead><tbody>
+          <tr><td class="mono">/</td><td>Chat + hero</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/skill</td><td>Skills</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/tool-mcp</td><td>Tools &amp; MCPs</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/channel</td><td>Channels</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/rag</td><td>Knowledge</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/agent</td><td>Agents (labelled "Tasks")</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/heartbeat</td><td>Heartbeat</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/schedule</td><td>Schedules</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/artifacts</td><td>Artifacts</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/apps</td><td>Apps</td><td><span class="chip st-broken"><i class="dot"></i>one demo card</span></td></tr>
+          <tr><td class="mono">/security</td><td>Security</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/usage</td><td>Usage &amp; budget</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/usage?panel=settings</td><td>Settings panel</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/profile</td><td>Profile &amp; Personality</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+          <tr><td class="mono">/projects</td><td>Projects</td><td><span class="chip st-live"><i class="dot"></i>live</span></td></tr>
+        </tbody></table>
+      </div>
+      <p class="note">Naming is inconsistent — singular <code>/skill</code>, <code>/channel</code>,
+        <code>/agent</code>, <code>/schedule</code> against plural <code>/apps</code>, <code>/artifacts</code>,
+        <code>/projects</code>, plus <code>/rag</code> and <code>/tool-mcp</code>, which are implementation names.
+        <code>/project</code>, <code>/artifact</code>, <code>/app</code> and <code>/knowledge</code> all 404 — onto a
+        white, unstyled page with grey Helvetica, on a black product.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ DEEP DIVE ══════════════ -->
+<section class="wrap" id="deep">
+  <div class="sh"><span class="n">02</span><h2>MCP and Agents, in depth</h2></div>
+  <p class="sub">These are the two capabilities you named. Both exist. Both are more capable than the interface
+    admits — and in both cases the gap between what the backend does and what a user can see is the whole problem.</p>
+
+  <!-- ── MCP ── -->
+  <article class="deep" id="mcp">
+    <div class="deephead">
+      <div class="kick">Deep dive A · capability 05 · /tool-mcp</div>
+      <h3>Tools &amp; MCP servers</h3>
+      <p>An MCP server, in this product, is a connector process running inside the Magna cluster that advertises a
+        set of tools the model may call — search a Jira project, read a Drive file, post to a Slack channel. Four
+        are shipped. The catalogue is hard-coded, no server can be added, and today all four advertise
+        <b>zero tools</b>.</p>
+    </div>
+    <div class="deepbody">
+
+      <h3 class="blk">The four servers, exactly as a user sees them</h3>
+      <div class="tblwrap">
+        <table><thead><tr><th>Server</th><th>Primary text on the card</th><th>State shown</th><th>Tools</th></tr></thead>
+        <tbody>
+          <tr><td><b>Atlassian</b></td><td class="wrapmono">http://atlassian-mcp.magna-system.svc.cluster.local:3000/mcp</td><td>Sign-in required · OAuth</td><td class="mono">0</td></tr>
+          <tr><td><b>Google Workspace</b></td><td class="wrapmono">http://google-workspace-mcp.magna-system.svc.cluster.local:8000/mcp</td><td>Sign-in required · OAuth</td><td class="mono">0</td></tr>
+          <tr><td><b>Microsoft 365</b></td><td class="wrapmono">http://ms365-mcp.magna-system.svc.cluster.local:3000/mcp</td><td>Sign-in required · OAuth</td><td class="mono">0</td></tr>
+          <tr><td><b>Slack</b></td><td class="wrapmono">http://slack-mcp.magna-system.svc.cluster.local:3000/mcp</td><td>Sign-in required · OAuth</td><td class="mono">0</td></tr>
+        </tbody></table>
+      </div>
+      <p class="note" style="border-top:0;padding-top:9px">Every card also shows an <b style="color:var(--tx)">enabled
+        blue toggle</b> at the same time as <b style="color:var(--tx)">Sign-in required</b> and
+        <b style="color:var(--tx)">No tools</b>. Three signals, no meaning: nothing explains what the toggle does when
+        nothing is connected. And nothing anywhere says what connecting Slack would let you <i>do</i>.</p>
+
+      <div class="deepgrid mt">
+        <div class="tb today">
+          <h4>How a user meets MCP today</h4>
+          <ul class="tick bad">
+            <li>They reach <code>/tool-mcp</code> through <b>Connections › Tools &amp; MCPs</b> — or through the
+              composer's sliders icon, where a <code>{} MCP</code> entry appears to do nothing distinct from the
+              rest of the Tools menu.</li>
+            <li>The first thing they read on every card is a <b>Kubernetes service DNS name</b>. It tells a user
+              nothing, tells an attacker something, and makes the product look like an internal admin console.</li>
+            <li>There is <b>no <code>+ Add server</code> button anywhere</b>. The entire premise of MCP is
+              bring-your-own; the catalogue is frozen at four.</li>
+            <li>There is no tool list, no permission model per tool, no last-sync, no error log, and no
+              test-connection action.</li>
+            <li>Nothing states which server runs on-prem and which would carry data outside the network — the one
+              question this product exists to answer.</li>
+          </ul>
+        </div>
+        <div class="tb next">
+          <h4>How it should work</h4>
+          <ul class="tick good">
+            <li>A <b>connector catalogue</b>, not a server list: logo, name, one plain sentence of value —
+              <span class="q">"Read and create Jira issues, search Confluence"</span> — and a <b>Connect</b>
+              primary action. Grouped Work management · Communication · Storage · CRM · Custom.</li>
+            <li>The endpoint moves behind an <b>admin-only "Technical details" disclosure</b>. Never on the card.</li>
+            <li>A dashed <b>＋ Add a custom MCP server</b> tile: Name · Server URL · Transport (SSE / HTTP / stdio) ·
+              Auth (None / OAuth / Bearer / Header), with <b>Test connection</b> gating the Save button.</li>
+            <li>Discovery is shown, not assumed — and each discovered tool gets a permission default of
+              <b>Always ask / Auto-approve / Blocked</b> before the server is saved.</li>
+            <li>One honest status per card, plus a residency badge stating whether the connector's traffic stays
+              inside the network.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt">
+        <h3 class="blk">The status a card should be able to show — one value, never three</h3>
+        <div class="flow">
+          <span class="st">Not connected</span><span class="ar">→</span>
+          <span class="st">Connecting…</span><span class="ar">→</span>
+          <span class="st">Reaching server…</span><span class="ar">→</span>
+          <span class="st">Discovering tools…</span><span class="ar">→</span>
+          <span class="st on">Connected · 14 tools</span>
+          <span class="ar">/</span><span class="st err">Error · view log</span>
+        </div>
+      </div>
+
+      <div class="mt">
+        <h3 class="blk">The ten built-in tools — always available, and the real story here</h3>
+        <div class="tblwrap">
+          <table><thead><tr><th>Tool</th><th>What it does</th><th>Group</th></tr></thead><tbody>
+            <tr><td><b>Current time</b></td><td>Return the current datetime</td><td class="mono">time</td></tr>
+            <tr><td><b>Run skill</b></td><td>Invoke an enabled skill by name</td><td class="mono">core</td></tr>
+            <tr><td><b>Notify user</b></td><td>Send the user an out-of-band alert</td><td class="mono">core</td></tr>
+            <tr><td><b>Email file</b></td><td>Send a workspace file or artifact as an email attachment</td><td class="mono">messaging</td></tr>
+            <tr><td><b>Message a contact</b></td><td>Send a direct message to another user</td><td class="mono">messaging</td></tr>
+            <tr><td><b>Send task request</b></td><td><b>Ask a peer agent to do a task</b></td><td class="mono">messaging</td></tr>
+            <tr><td><b>Send task response</b></td><td>Reply to a task request</td><td class="mono">messaging</td></tr>
+            <tr><td><b>Check messages</b></td><td>List pending incoming messages</td><td class="mono">messaging</td></tr>
+            <tr><td><b>List contacts</b></td><td>List reachable peer agents</td><td class="mono">messaging</td></tr>
+            <tr><td><b>Generate image</b></td><td>Create an image from a prompt</td><td class="mono">media</td></tr>
+          </tbody></table>
+        </div>
+        <div class="callout mt-s"><b>The messaging group is an agent-to-agent delegation network.</b> One user's agent
+          can send work to another user's agent, receive a request, reply to it, and enumerate who it can reach —
+          five tools, shipped and working. There is <b>no UI for it anywhere</b>: no contacts page, no inbox of
+          inbound task requests, no outbox of what you have delegated. The etiquette for it is even written down,
+          in two markdown files buried under Profile › Personality (<code>TASK_REQUEST.md</code>,
+          <code>TASK_RESPONSE.md</code>). Building <b>Contacts &amp; delegation</b> — "your agent's network", a
+          contacts list, "Requests to you" and "Requests you sent" with Accept / Decline — turns an invisible
+          backend into the most differentiated demo in the product.</div>
+      </div>
+
+      <div class="callout ok mt"><b>The worked example already exists.</b> The email MCP flow specified separately in
+        <code>BRIEF-V2.md</code> — choose provider, authorise in the provider's own window, opt in to
+        <i>Send mail as you</i>, state where mail is indexed, then read and draft from chat with a real send
+        confirmation — is the pattern every connector on this page should follow. It is not duplicated here.</div>
+    </div>
+  </article>
+
+  <!-- ── AGENTS ── -->
+  <article class="deep" id="agents">
+    <div class="deephead">
+      <div class="kick">Deep dive B · capability 06 · /agent</div>
+      <h3>Agents</h3>
+      <p>An agent is a named delegate with its own system prompt, its own model, its own allow-list of skills, MCP
+        servers and built-in tools, and its own autonomy settings. The creation flow is one of the best-built things
+        in the product. It is reached by clicking a nav item called <b>Tasks</b>.</p>
+    </div>
+    <div class="deepbody">
+
+      <h3 class="blk">Four nouns for one concept, in four consecutive views</h3>
+      <div class="ladder">Nav item       →  <b>"Tasks"</b>
+Page title     →  <b>"Tasks"</b>
+Page subtitle  →  <b>"Custom roles for delegation"</b>
+Primary button →  <b>"+ New agent"</b>
+Next screen    →  <b>"Create subagent"</b></div>
+      <p class="note" style="border-top:0;padding-top:9px">A user cannot form a mental model from this. Pick one
+        word — <b style="color:var(--tx)">Agents</b> — and use it in the nav, the page, the button and the editor.
+        Reserve "task" for scheduled work.</p>
+
+      <h3 class="blk mt">How an agent is created today</h3>
+      <div class="flow">
+        <span class="st">Create manually</span>
+        <span class="st">From template</span>
+        <span class="st">Import from JSON</span>
+        <span class="st">Create with AI — <i>describe what you want, an AI drafts the config</i></span>
+      </div>
+      <p class="note" style="border-top:0;padding-top:9px">All four paths are good, and all four sit behind a
+        button labelled with the wrong noun, on a page whose empty state is
+        <span class="q">"Nothing here yet"</span> in a bare table. Ten well-written templates, an AI-drafted path
+        and a JSON import are invisible until you press it.</p>
+
+      <div class="deepgrid mt">
+        <div class="tb today">
+          <h4>The ten templates shipped</h4>
+          <ul class="tick bad">
+            <li>Researcher <span class="q">· Research</span></li>
+            <li>Code Reviewer <span class="q">· Engineering</span></li>
+            <li>Meeting Summarizer <span class="q">· Productivity</span></li>
+            <li>Email Drafter <span class="q">· Communication</span></li>
+            <li>Calendar Planner <span class="q">· Productivity</span></li>
+            <li>PR Describer <span class="q">· Engineering</span></li>
+            <li>Data Analyst <span class="q">· Data</span></li>
+            <li>Message Triage <span class="q">· Communication</span></li>
+            <li>Document QA <span class="q">· Research</span></li>
+            <li>DevOps Helper <span class="q">· Engineering</span></li>
+          </ul>
+          <p class="note">Code Reviewer, PR Describer, DevOps Helper — a library for a software team, in a product
+            whose homepage says <span class="q">"enterprise operational brain"</span> and whose only demo app is
+            Health Care.</p>
+        </div>
+        <div class="tb next">
+          <h4>The ten it should ship</h4>
+          <ul class="tick good">
+            <li>Procurement Analyst</li>
+            <li>Contract Clause Reviewer</li>
+            <li>HSE Incident Reporter</li>
+            <li>Vendor Risk Screener</li>
+            <li>Schedule Slip Analyst</li>
+            <li>Compliance Checker</li>
+            <li>Meeting Summariser</li>
+            <li>Document QA</li>
+            <li>Data Analyst</li>
+            <li>Researcher</li>
+          </ul>
+          <p class="note">And the gallery becomes the empty state, not a blank table: <span class="q">"Pick a
+            starting point. You can edit every field before saving."</span></p>
+        </div>
+      </div>
+
+      <h3 class="blk mt">The editor — four tabs, and what is in them</h3>
+      <div class="tblwrap">
+        <table><thead><tr><th>Tab</th><th>Fields today</th><th>Problem</th></tr></thead><tbody>
+          <tr><td><b>Basics</b></td><td>Name · Description · System prompt (pre-filled from template) · Model</td>
+            <td>The model dropdown's default option is the raw code token <code>__inherit__</code>. It should read
+              <b>Same as chat (recommended)</b>.</td></tr>
+          <tr><td><b>Skills &amp; Tools</b></td><td>Required skills (18 checkboxes) · Required MCP servers (4, again
+            with raw cluster URLs) · Required built-in tools (10 checkboxes)</td>
+            <td><b>32 checkboxes in three flat lists</b>, no search, no grouping, no "select recommended".</td></tr>
+          <tr><td><b>Advanced</b></td><td><code>Restrict tools</code> — <span class="q">"When on, the subagent can
+            only use the tools you select here (instead of inheriting the full tool set)."</span></td>
+            <td>Right control, wrong noun, buried under a tab called Advanced.</td></tr>
+          <tr><td><b>Settings</b></td><td><code>Enabled</code> · <code>May interrupt the user</code> —
+            <span class="q">"Let this subagent pause mid-task to ask you a clarifying question. Turn off for fully
+            automated subagents."</span></td>
+            <td>This microcopy is the best in the product. It deserves a better home than a fourth tab.</td></tr>
+        </tbody></table>
+      </div>
+
+      <div class="deepgrid mt">
+        <div class="tb today">
+          <h4>How an agent runs today — and what is missing</h4>
+          <ul class="tick bad">
+            <li>There is <b>no test or preview</b> before saving. You write a system prompt, tick 32 boxes, save, and
+              find out later.</li>
+            <li>There is <b>no <code>@mention</code></b> in the composer — no visible way to invoke a named agent
+              from chat. Invocation goes through the <code>agents</code> skill, implicitly, at the model's
+              discretion.</li>
+            <li>There is <b>no run history</b>, no last-run output, no usage count, no versioning and no duplicate.</li>
+            <li>The <b>peer-delegation tools exist</b> (Send task request / Send task response / List contacts) but
+              nothing in the agent editor mentions them and no surface shows their traffic.</li>
+            <li><b>Scheduling lives somewhere else entirely</b> — under the same nav label, in two different engines
+              (Heartbeat and Schedules) with two different UIs.</li>
+          </ul>
+        </div>
+        <div class="tb next">
+          <h4>What to build</h4>
+          <ul class="tick good">
+            <li><b>Identity</b> tab: name, one-line purpose, avatar colour, a "How it should behave" field with three
+              insertable example blocks, and a model dropdown that never shows a code token.</li>
+            <li><b>Access</b> tab: replace 32 checkboxes with four preset cards — <b>Read-only research</b> ·
+              <b>Documents &amp; reports</b> · <b>Connected systems</b> · <b>Full access</b> — each listing what it
+              grants in plain words, with a collapsed "Fine-tune permissions" disclosure underneath.</li>
+            <li><b>Autonomy</b> tab: "May pause to ask you a question", "Restrict to the tools selected above", and a
+              third that does not exist yet — <b>"Requires approval before actions that send, publish or delete."</b></li>
+            <li><b>Test</b> tab: a prompt box, a Run button, a live trace of every step and tool call, and a verdict
+              banner — <span class="q">"Used 3 tools · asked 1 question · 8s"</span>.</li>
+            <li>An agent <b>list</b> once agents exist: name, purpose, access preset, last run, runs this week, status
+              toggle, and an overflow of Duplicate / Test / Export JSON / Delete.</li>
+            <li><b><code>@mention</code> agents in the composer</b> with autocomplete — the missing invocation path.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ══════════════ THE 23 ══════════════ -->
+<section class="wrap" id="capabilities">
+  <div class="sh"><span class="n">03</span><h2>All 23 capabilities</h2></div>
+  <p class="sub">Filter by status or severity, or search across every name, route and line of detail on this page.
+    Each row expands to what it does today, what is worth keeping, its problems tagged by severity, and the
+    enhancement.</p>
+
+  <div class="controls" role="search">
+    <div class="crow">
+      <div class="srch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search capabilities, routes, problems…  (press /)"
+          aria-label="Search capabilities" autocomplete="off">
+        <button class="clr" id="qclear" type="button" aria-label="Clear search">×</button>
+      </div>
+      <button class="tbtn tocbtn" id="tocBtn" type="button" aria-expanded="false" aria-controls="toc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Contents
+      </button>
+    </div>
+    <div class="crow">
+      <span class="flabel">Status</span>
+      <div id="statusFilters" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+    <div class="crow">
+      <span class="flabel">Severity</span>
+      <div id="sevFilters" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <div class="cend">
+        <span class="count" id="count" aria-live="polite" role="status">Showing 23 of 23</span>
+        <button class="tbtn" id="expandAll" type="button">Expand all</button>
+        <button class="tbtn" id="resetBtn" type="button">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mapgrid">
+    <div>
+      <div class="caps" id="caps"></div>
+      <div class="empty" id="empty">
+        <p><b>No capability matches these filters.</b><br>Try removing a severity filter, or search for a system
+          name like <code>Telegram</code>, <code>HEARTBEAT.md</code> or <code>azure</code>.</p>
+        <button class="tbtn" id="emptyReset" type="button" style="margin:0 auto">Clear all filters</button>
+      </div>
+    </div>
+    <aside class="toc" id="toc" aria-label="Capability index">
+      <h3>Index</h3>
+      <div class="toclist" id="toclist"></div>
+    </aside>
+  </div>
+</section>
+<div class="scrim" id="scrim" hidden></div>
+
+<!-- ══════════════ IA ══════════════ -->
+<section class="wrap" id="ia">
+  <div class="sh"><span class="n">04</span><h2>Proposed information architecture</h2></div>
+  <p class="sub">Seven sections and twenty-six items collapse into <b>three surfaces</b>, addressed at three
+    different people. Most seats never leave the first one.</p>
+
+  <div class="svgwrap">
+    <svg class="iasvg" viewBox="0 0 960 566" role="img"
+      aria-label="Diagram: seven current navigation sections, thirteen of them dead, collapsing into three surfaces — Work, Build and Govern.">
+      <defs>
+        <marker id="iaArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" class="ah"/>
+        </marker>
+      </defs>
+
+      <!-- LEFT: today -->
+      <text x="16" y="28" class="t4">TODAY · 7 SECTIONS · 26 DESTINATIONS</text>
+      <rect x="16" y="40" width="252" height="292" rx="12" class="card"/>
+      <g>
+        <rect x="28" y="56" width="228" height="26" rx="6" class="row"/>
+        <text x="40" y="73" class="t3">Chat</text><text x="244" y="73" class="t4" text-anchor="end">3 / 3</text>
+        <rect x="28" y="92" width="228" height="26" rx="6" class="row"/>
+        <text x="40" y="109" class="t3">Tasks</text><text x="244" y="109" class="t4" text-anchor="end">3 / 3</text>
+        <rect x="28" y="128" width="228" height="26" rx="6" class="row-dead"/>
+        <text x="40" y="145" class="t3">Workspace</text><text x="244" y="145" class="tdead" text-anchor="end">1 / 4</text>
+        <rect x="28" y="164" width="228" height="26" rx="6" class="row-dead"/>
+        <text x="40" y="181" class="t3">Apps</text><text x="244" y="181" class="tdead" text-anchor="end">1 / 5</text>
+        <rect x="28" y="200" width="228" height="26" rx="6" class="row-dead"/>
+        <text x="40" y="217" class="t3">Governance</text><text x="244" y="217" class="tdead" text-anchor="end">1 / 6</text>
+        <rect x="28" y="236" width="228" height="26" rx="6" class="row"/>
+        <text x="40" y="253" class="t3">Connections</text><text x="244" y="253" class="t4" text-anchor="end">4 / 4</text>
+        <rect x="28" y="272" width="228" height="26" rx="6" class="row-dead"/>
+        <text x="40" y="289" class="t3">Upcoming</text><text x="244" y="289" class="tdead" text-anchor="end">0 / 5</text>
+        <text x="28" y="318" class="t4">13 DESTINATIONS DO NOTHING</text>
+      </g>
+
+      <!-- connectors -->
+      <path d="M272 128 C 320 128, 330 116, 374 116" class="lnk" marker-end="url(#iaArrow)"/>
+      <path d="M272 186 C 320 186, 330 300, 374 300" class="lnk" marker-end="url(#iaArrow)"/>
+      <path d="M272 246 C 320 246, 330 456, 374 456" class="lnk" marker-end="url(#iaArrow)"/>
+
+      <!-- WORK -->
+      <rect x="382" y="40" width="562" height="176" rx="14" class="card-w"/>
+      <text x="404" y="70" class="t1">WORK</text>
+      <text x="924" y="70" class="t4" text-anchor="end">DEFAULT · 95% OF SEATS</text>
+      <text x="404" y="100" class="t2">Chat</text><text x="540" y="100" class="t3">threads, projects, canvases</text>
+      <text x="404" y="128" class="t2">Automations</text><text x="540" y="128" class="t3">schedules + watches, run history</text>
+      <text x="404" y="156" class="t2">Knowledge</text><text x="540" y="156" class="t3">spaces, documents, ask</text>
+      <text x="404" y="184" class="t2">Files</text><text x="540" y="184" class="t3">artifacts, uploads, devices</text>
+
+      <!-- BUILD -->
+      <rect x="382" y="232" width="562" height="146" rx="14" class="card-b"/>
+      <text x="404" y="262" class="t1">BUILD</text>
+      <text x="924" y="262" class="t4" text-anchor="end">OPT-IN PER USER</text>
+      <text x="404" y="292" class="t2">Agents</text><text x="540" y="292" class="t3">templates, editor, test</text>
+      <text x="404" y="320" class="t2">Capabilities</text><text x="540" y="320" class="t3">skills gallery + registry</text>
+      <text x="404" y="348" class="t2">Connections</text><text x="540" y="348" class="t3">connectors, MCP servers, channels, delegation</text>
+
+      <!-- GOVERN -->
+      <rect x="382" y="394" width="562" height="148" rx="14" class="card-g"/>
+      <text x="404" y="424" class="t1">GOVERN</text>
+      <text x="924" y="424" class="t4" text-anchor="end">ADMINS &amp; COMPLIANCE</text>
+      <text x="404" y="454" class="t3">Posture · Residency · PII &amp; redaction · Guardrails</text>
+      <text x="404" y="480" class="t3">Access &amp; roles · Audit log · Usage &amp; budget · Traces</text>
+      <text x="404" y="514" class="t4">A SEPARATE CONSOLE — NOT A SECTION OF THE APP</text>
+
+      <text x="382" y="558" class="t4">SIX ITEMS IN PRIMARY NAVIGATION INSTEAD OF TWENTY-SIX</text>
+    </svg>
+  </div>
+
+  <h3 class="blk mt">Moves out of the user's way</h3>
+  <div class="tblwrap">
+    <table><thead><tr><th>From</th><th>To</th></tr></thead><tbody>
+      <tr><td>Composer <b>Show traces</b> (Langfuse session IDs, observation counts)</td><td><b>Govern › Traces</b></td></tr>
+      <tr><td>The 18-skill checkbox list in the composer</td><td><b>Build › Capabilities</b> — auto by default, checkboxes become an advanced override</td></tr>
+      <tr><td>Raw memory keys and relevance scores (<code>memories:context/…</code>, <code>0.18</code>)</td><td><b>Work › What Magna remembers</b> — plain sentences, editable, deletable</td></tr>
+      <tr><td>Hue / saturation / lightness, film grain, vignette, wallpaper zoom</td><td><b>Appearance › Advanced</b>, collapsed</td></tr>
+      <tr><td>Usage &amp; cost (currently visible to every seat)</td><td><b>Govern</b> for admins, with a personal view in Work</td></tr>
+      <tr><td>The <b>Upcoming</b> nav section (five items, all disabled)</td><td>A dated roadmap link in Help</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<!-- ══════════════ SEQUENCING ══════════════ -->
+<section class="wrap" id="plan">
+  <div class="sh"><span class="n">05</span><h2>Sequencing</h2></div>
+  <p class="sub">Ordered by what unblocks a seat, then by what needs no design debate, then by what needs a shell,
+    then by what wins the deal.</p>
+
+  <div class="plan">
+    <div class="pcard now">
+      <div class="ph"><h3>Now</h3><span class="w">Launch blockers</span></div>
+      <p class="psub">The answer surface cannot display its own output. Any technical seat is unusable until these
+        ship.</p>
+      <ul>
+        <li class="star"><b>Math renderer.</b> Integral-calculus answers return ~25 lines of literal
+          <code>$\int x^3 , dx$</code>.</li>
+        <li class="star"><b>Diagram renderer.</b> Flowcharts are drawn in box-drawing characters and reflow into
+          garbage at any other width.</li>
+        <li class="star"><b>Code-block chrome</b> — language, filename, wrap, and a copy button.</li>
+        <li class="star"><b>Copy full message.</b> Nothing on an answer copies the whole response.</li>
+        <li>Fix the malformed LaTeX delimiters in the prompt template while you are in there.</li>
+      </ul>
+    </div>
+
+    <div class="pcard">
+      <div class="ph"><h3>Week 1</h3><span class="w">No debate</span></div>
+      <p class="psub">Each of these is a default, a string or a deletion. None of them needs a designer in the room.</p>
+      <ul>
+        <li>Companion <b>off by default</b></li>
+        <li>Prompt chips <b>pre-fill instead of send</b></li>
+        <li>Trace panel <b>collapsed by default</b></li>
+        <li><b>Copy button</b> on every answer</li>
+        <li>Fix focus after modal close; <b>bind ⌘K</b></li>
+        <li><b>Style the 404 page</b></li>
+        <li>Remove the <b>Upcoming</b> nav section</li>
+        <li>Remove <code>elon-musk-perspective-en</code>; hide <code>salesforce-uat-api</code> from non-admins</li>
+        <li>Hide <code>*.svc.cluster.local</code> behind an admin disclosure</li>
+        <li>Replace <span class="q">"the pod runs a heartbeat tick"</span> and <code>__inherit__</code></li>
+      </ul>
+    </div>
+
+    <div class="pcard">
+      <div class="ph"><h3>Weeks 2–6</h3><span class="w">The shell</span></div>
+      <p class="psub">The screen people spend 95% of their time on, rebuilt.</p>
+      <ul>
+        <li><b>Permanent conversation sidebar</b> — full titles, date groups</li>
+        <li><b>Flat default surface</b>, wallpaper opt-in, Appearance cut to four controls</li>
+        <li><b>Citations</b> with a visible web / internal split</li>
+        <li><b>Agent template gallery as the empty state</b>, one noun throughout</li>
+        <li>Merge <b>Heartbeat + Schedules into Automations</b></li>
+        <li><b>Launchpad home screen</b> replacing the marketing hero</li>
+      </ul>
+    </div>
+
+    <div class="pcard">
+      <div class="ph"><h3>Quarter</h3><span class="w">Differentiators</span></div>
+      <p class="psub">What the product is actually sold on.</p>
+      <ul>
+        <li class="star"><b>Resolve the residency claim.</b> Highest priority of anything on this page — the
+          <code>Private</code> badge is shown while Usage reports <code>azure/*</code> and <code>bedrock/*</code>
+          routing.</li>
+        <li>Sovereignty guardrail + per-answer <b>residency receipt</b></li>
+        <li><b>Context rail</b> — the Agentic Twin surfaced</li>
+        <li><b>Work / Build / Govern</b> split</li>
+        <li>Canvas entry points + a <b>Create</b> menu</li>
+        <li><b>API-to-skill wizard</b> as the headline demo</li>
+        <li>Knowledge <b>spaces with permissions</b></li>
+        <li><b>Voice</b> surfaces — mic, playback, hands-free</li>
+        <li><b>Devices</b> pairing flow with explicit folder scope</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CROSS-CUTTING ══════════════ -->
+<section class="wrap" id="cross">
+  <div class="sh"><span class="n">06</span><h2>Cross-cutting issues</h2></div>
+  <p class="sub">Fourteen issues that belong to no single capability because they belong to all of them. Fixing any
+    one of these improves several rows in section 03 at once.</p>
+  <div class="tblwrap">
+    <table><thead><tr><th>#</th><th>Issue</th><th>Severity</th><th>Evidence</th></tr></thead><tbody>
+      <tr><td class="id">X1</td><td><b>Residency claim unsubstantiated</b></td><td><span class="sev c">Critical</span></td>
+        <td><code>Private</code> badge shown while Usage reports <code>azure/*</code> and <code>bedrock/*</code> routing</td></tr>
+      <tr><td class="id">X2</td><td><b>Internal infrastructure exposed</b></td><td><span class="sev c">Critical</span></td>
+        <td><code>*.magna-system.svc.cluster.local</code> on every MCP card; <span class="q">"the pod runs a heartbeat tick"</span>; Langfuse session IDs; <code>FINAL RETURN</code></td></tr>
+      <tr><td class="id">X3</td><td><b>Non-production artefacts in production UI</b></td><td><span class="sev c">Critical</span></td>
+        <td><code>salesforce-uat-api</code> → <code>magnaai--uat.sandbox.my.salesforce.com</code>; <code>elon-musk-perspective-en (failed to parse SKILL.md)</code></td></tr>
+      <tr><td class="id">X4</td><td><b>Focus is dropped after modals</b></td><td><span class="sev h">High</span></td>
+        <td>A full sentence typed into the composer after closing the palette — and again into the palette itself — was discarded. Reproducible</td></tr>
+      <tr><td class="id">X5</td><td><b><code>⌘K</code> unbound</b></td><td><span class="sev h">High</span></td>
+        <td>The palette's only trigger is an unlabelled magnifier</td></tr>
+      <tr><td class="id">X6</td><td><b>404 page breaks the design system</b></td><td><span class="sev c">Critical</span></td>
+        <td>White page, grey Helvetica, on a black product</td></tr>
+      <tr><td class="id">X7</td><td><b>Storage formats are the UI</b></td><td><span class="sev h">High</span></td>
+        <td><code>SOUL.md</code>, <code>STYLE.md</code>, <code>HEARTBEAT.md</code>, <code>TASK_REQUEST.md</code>, <code>__inherit__</code>, <code>memories:context/…</code>, <code>github/delete_repo.py</code></td></tr>
+      <tr><td class="id">X8</td><td><b>Vocabulary collisions</b></td><td><span class="sev h">High</span></td>
+        <td>Task / agent / subagent / custom role · TrendIQ / TrendAI / Trend Micro · Skills in two places · "Requests" meaning two things</td></tr>
+      <tr><td class="id">X9</td><td><b>13 of 26 nav destinations disabled</b></td><td><span class="sev c">Critical</span></td>
+        <td>Including the section highlighted by default on load</td></tr>
+      <tr><td class="id">X10</td><td><b>Icon collisions</b></td><td><span class="sev m">Medium</span></td>
+        <td>Workspace and Apps share the same cube; the account menu is behind a gear; the info glyph is described in copy as a "Compass"</td></tr>
+      <tr><td class="id">X11</td><td><b>Route naming inconsistent</b></td><td><span class="sev m">Medium</span></td>
+        <td><code>/skill</code> vs <code>/apps</code>; <code>/rag</code> and <code>/tool-mcp</code> are implementation names; <code>/project</code>, <code>/artifact</code>, <code>/knowledge</code> 404</td></tr>
+      <tr><td class="id">X12</td><td><b>Empty states teach nothing</b></td><td><span class="sev h">High</span></td>
+        <td><span class="q">"Nothing here yet"</span> on Agents, Schedules, Artifacts, Knowledge and Projects</td></tr>
+      <tr><td class="id">X13</td><td><b>Layout instability</b></td><td><span class="sev m">Medium</span></td>
+        <td>Nav flyouts shove the chat column sideways; the tour rendered at near-zero opacity before fading in</td></tr>
+      <tr><td class="id">X14</td><td><b>Capability / UI mismatch</b></td><td><span class="sev h">High</span></td>
+        <td>Voice models, agent-to-agent messaging, document and slide canvases, and a desktop file bridge all exist with little or no UI</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap">
+  <div>MagnaVERSE functionality map · 23 capabilities · <span id="fCount">114</span> problems ·
+    14 cross-cutting issues · compiled 16 Aug 2026 from a hands-on audit of build 1.0.491.</div>
+  <div style="margin-top:6px">Companion documents: <b>MagnaVERSEFullFunctionalUXSpec.md</b> (the full spec, with a
+    build prompt per capability) · <b>MagnaVERSEUXAudit.md</b> (prioritised issues, including the round-two
+    rendering findings) · <b>BRIEF-V2.md</b> (the email MCP specification and the six app designs).</div>
+</div></footer>
+
+<script>
+"use strict";
+
+/* localStorage is unavailable in some file:// contexts — never let it break the page */
+var store={
+  get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},
+  set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+};
+
+/* ───────── theme ───────── */
+(function(){
+  var order=["system","light","dark"], key="mv-theme";
+  var btn=document.getElementById("themeBtn"),
+      lbl=document.getElementById("themeLabel"),
+      ico=document.getElementById("themeIcon");
+  var ICONS={
+    system:'<rect x="2.6" y="4" width="18.8" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    light:'<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    dark:'<path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a6.9 6.9 0 0 0 11.1 11.1z"/>'
+  };
+  var cur=store.get(key);
+  if(order.indexOf(cur)<0) cur="system";
+  function apply(){
+    if(cur==="system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme",cur);
+    lbl.textContent=cur.charAt(0).toUpperCase()+cur.slice(1);
+    ico.innerHTML=ICONS[cur];
+    btn.setAttribute("aria-label","Colour theme: "+cur+". Click to change.");
+  }
+  apply();
+  btn.addEventListener("click",function(){
+    cur=order[(order.indexOf(cur)+1)%order.length];
+    store.set(key,cur); apply();
+  });
+})();
+
+/* ───────── data: the 23 capabilities ───────── */
+var CAPS=[
+{n:1,name:"Chat &amp; Composer",status:"live",route:"/",
+ one:"The primary surface — a streaming chat with tool use, planning traces, memory recall and per-message actions.",
+ today:[
+  "<b>The composer, left to right:</b> attach a file · a sliders icon opening a Tools menu (<code>{} MCP</code> · <code>Skills 18/18</code> · <code>Agents</code>) · a knowledge-base toggle, on by default, tooltipped <span class='q'>\"Search your documents before answering\"</span> · share · a model picker (<code>Latest DeepSeek</code>, <code>Latest Kimi</code> starred, <code>Latest Qwen</code>, <code>Nvidia Nemotron-120B</code>, all labelled <code>private</code>) · send · a <b>Show traces</b> clock opening a Langfuse panel with <code>session_id: thr_ltXzvv2eMiNcLOL4</code>, per-turn duration, <code>$0.0000</code> and <code>25 obs</code> · and a <code>Private</code> pill that duplicates the header.",
+  "<b>The answer surface:</b> a step tracker <code>Planning → Searching → Generating → Done</code>, expanded by default, listing <code>model</code>, <code>read_file</code>, <code>execute_skill_script</code>, <code>FINAL RETURN</code> and the string <span class='q'>\"Final step completed without captured I/O.\"</span> Three unlabelled message icons with no tooltips. A recalled-memory panel reading <code>MEDIUM · explicit · 0.18</code>.",
+  "<b>The empty state:</b> a full-bleed Riyadh skyline photograph, the MagnaVERSE wordmark, the tagline <span class='q'>\"Your enterprise operational brain — perceive, reason, and act with agentic intelligence\"</span>, and four chips: Analyze · Automate · Create · Simulate."],
+ good:"Answer quality is strong — specific, well structured, and it correctly recalled prior turns. The Planning / Searching / Generating tracker is a genuinely good idea, badly presented.",
+ probs:[
+  ["c","<b>The 3D robot companion overlaps the model selector and send button.</b> A click aimed at the model picker opens the companion panel instead. It is configurable and hideable — but it ships on, over the primary action."],
+  ["c","<b>The four chips fire a prompt the user never wrote.</b> Clicking <i>Analyze</i> silently sends a 30-word question, then burns 12 seconds. No preview, no edit, no undo."],
+  ["c","<b>Body text renders over a photograph</b> at a 50% overlay by default."],
+  ["h","<b>The trace panel is expanded on every message</b>, consuming ~200px above every answer and pushing it below the fold."],
+  ["h","<b>No copy button.</b> No regenerate. No edit-and-resend."],
+  ["h","<b>No citations.</b> The answer named <i>Scientific Reports</i> and <i>HKA CRUX 2025</i> with hard figures and linked nothing — and drew no line between web sources and the internal knowledge base."],
+  ["h","<b>The knowledge-base toggle stays on for conversational turns.</b> Asking <span class='q'>\"what did I just ask you?\"</span> triggered a 3.3s knowledge-base search that returned nothing."],
+  ["m","Five icon-only composer buttons with no labels. <code>Private</code> appears twice on screen."]],
+ fix:[
+  "Companion <b>off by default</b>, moved to a corner that never overlaps a control, opt-in from Appearance.",
+  "Chips become <b>intent scaffolds</b>: clicking <i>Analyse</i> fills the composer with an editable brief containing slots, cursor in the first one. Nothing sends until the user presses return.",
+  "The trace collapses to a single chip — <span class='q'>\"Reasoned for 10s · searched web · read 2 docs · Show steps\"</span>.",
+  "A full, labelled action row: <b>Copy · Retry · Edit · Save to workspace · Export · Share</b>, plus thumbs up and down.",
+  "Inline numbered citations, and a Sources block that visually separates <b>web</b> from <b>internal</b>.",
+  "The knowledge base becomes <b>Auto</b> — it searches only when the question looks like it needs company data — with Always and Never overrides.",
+  "A flat, readable surface. Wallpaper becomes opt-in."]},
+
+{n:2,name:"Conversations, History &amp; Projects",status:"partial",route:"/projects",
+ one:"Thread persistence and grouping.",
+ today:[
+  "<b>History</b> is a collapsible list nested inside a hover flyout, rendered in a ~150px-tall scroll box. Titles truncate at about 18 characters — a real entry read <code>What are the to…</code>. Entries group by month (<code>AUGUST 2026</code>) with relative timestamps.",
+  "<b>Projects</b> is two-pane. Left: the project list plus <code>New project</code>. Right: an editor with Name, Colour (8 swatches), Description and a <code>Conversations (0)</code> list, with <code>Delete project</code> bottom right. Clicking <code>New project</code> immediately creates <code>Untitled project</code>."],
+ good:"Project colour-coding and the two-pane layout are clean. Conversations do get auto-titled from the first message.",
+ probs:[
+  ["h","<b>History is three levels deep</b> — hover Chat, click History, expand — in a box too small to be useful, with titles cut mid-word. This is the single biggest structural gap versus ChatGPT and Claude."],
+  ["h","<b>Projects have no knowledge and no instructions.</b> ChatGPT and Claude both let a project carry its own files and custom instructions. Here a project is only a folder of chats — so there is no reason to make one."],
+  ["m","Empty threads are all titled <code>New Conversation</code>; the palette showed two identical entries."],
+  ["m","No pin, no archive, no rename-from-list, no bulk select, no search within a thread."],
+  ["m","<code>New project</code> creates the record before you have named it, leaving <code>Untitled project</code> litter if you back out."]],
+ fix:[
+  "History becomes the <b>permanent left rail</b>, with full titles and Today / Yesterday / Last week groups.",
+  "Projects gain three tabs: <b>Conversations · Files · Instructions</b>. Files attached to a project are auto-scoped into every chat inside it; instructions prepend to the system prompt for that project only.",
+  "<b>Project-level residency</b>: pin a project to Private so no thread inside it can be switched to Public.",
+  "Row affordances: pin, rename, archive, move to project, export."]},
+
+{n:3,name:"Models &amp; Sovereignty",status:"partial",route:"header · composer · settings",
+ one:"The product's reason to exist: choosing which inference substrate answers you.",
+ today:[
+  "<b>Four tiers:</b> Personal <span class='q'>\"Data remains local to the user's device\"</span> (coming soon) · <b>Private</b> <span class='q'>\"Data remains inside your organization's controlled environment\"</span> (active) · In-Country (coming soon) · Public.",
+  "<b>Four models:</b> <code>Latest DeepSeek</code>, <code>Latest Kimi</code> (starred default), <code>Latest Qwen</code>, <code>Nvidia Nemotron-120B</code>.",
+  "<b>Settings › Model defaults</b> has a Public / Private segmented control and five slots: Chat <code>Nvidia Nemotron-120B</code> · Image <code>gpt-image-1.5</code> · Vision <span class='q'>\"No models available\"</span> · Text-to-speech <code>azure/tts</code> · Speech-to-text <code>azure/whisper</code>."],
+ good:"The four-tier vocabulary and its one-line definitions are the right instinct. The problem is entirely in what sits behind them.",
+ probs:[
+  ["c","<b>The residency claim is not substantiated.</b> Usage › By model reports every request in this environment running through <code>azure/Kimi-K2.6</code> (333.9k tokens) and <code>bedrock/nvidia.nemotron-super-3-120b</code> (24.5k) while the UI displayed a green <code>Private</code> badge and the sentence <span class='q'>\"Data remains inside your organization's controlled environment.\"</span> This may be entirely expected for a staging deployment — but the UI makes a claim it cannot evidence, in the one place a security reviewer will look. Nothing else in this audit is as commercially dangerous."],
+  ["h","<b>Two of four tiers are dead menu items.</b> Roadmap in a control surface."],
+  ["h","<b>Nothing prevents a leak.</b> A thread containing SAP data and uploaded files can be switched from Private to Public with one click and no warning."],
+  ["h","<b>No per-answer provenance.</b> A global header pill tells you nothing about which model, node or region handled a specific answer."],
+  ["m","Model names carry no guidance — nothing indicates which is best for long documents, code, Arabic or speed."],
+  ["m","<code>Vision model: No models available</code> is shown as a live dropdown rather than a disabled state with an explanation."]],
+ fix:[
+  "Only real tiers in the picker. Each states <b>where it runs · what leaves · which models · what you can use · what you give up.</b> Roadmap tiers move to a dashed, dated footnote.",
+  "A <b>pre-flight guardrail</b>: switching to Public with restricted content in the thread names the exact files and PII at risk, and offers <i>Keep this thread Private</i> or <i>Start a clean Public thread</i>.",
+  "A <b>residency receipt</b> per answer — inference node, egress bytes, tools run and where, PII masking, retention, and an exportable signed hash.",
+  "Models get one-line role labels — <i>Fast everyday</i>, <i>Long documents</i>, <i>Deep reasoning</i>, <i>Arabic-first</i> — plus an <b>Auto</b> default that picks."]},
+
+{n:4,name:"Skills",status:"live",route:"/skill",
+ one:"The extension system — 18 installed capabilities the model can invoke, plus the ability to add more.",
+ today:[
+  "The page offers <b>Import from GitHub</b> and <b>Upload skill</b> and a refresh icon. Each skill is a row with a name, a <code>Built-in</code> or <code>Company</code> tag, a description and an on/off toggle.",
+  "<b>Standouts among the 15 built-ins:</b> <code>magna-api-skill-generator</code> turns any third-party API into a callable skill from an OpenAPI URL — <i>or from a PDF, Word doc, wiki page or screenshot of the docs</i> — and rotates credentials. <code>magna-canvas-document</code> and <code>magna-canvas-slide</code> open a live editable right-side canvas and export a real <code>.docx</code> or a branded <code>.pptx</code> with AI images. <code>files</code> reads and writes uploaded files, saved files <i>and files on a connected remote desktop</i>. Plus <code>agents</code>, <code>heartbeat</code>, <code>knowledge-base</code>, <code>magna-generate-docx/-pdf/-pptx/-markdown</code>, <code>magna-guided-help</code>, <code>meeting-notes</code>, <code>schedule</code> and <code>web-search</code>.",
+  "<b>The three company skills:</b> <code>elon-musk-perspective-en</code>, whose description is the literal string <code>(failed to parse SKILL.md)</code>; <code>jira-ticket-definer</code>, which creates tickets in the <code>MGAI</code> project and whose trigger list includes Chinese phrases; and <code>salesforce-uat-api</code>, marked <code>Credential needed</code>, whose description exposes <code>https://magnaai--uat.sandbox.my.salesforce.com/services/data/v66.0</code>."],
+ good:"This is the most valuable part of the product and nobody knows it exists. The API-to-skill generator alone — share a screenshot of an API doc and get a callable tool — is a headline feature. The two canvas skills are a full document and deck co-authoring experience.",
+ probs:[
+  ["c","<b>Skill descriptions are LLM system prompts shown verbatim to humans.</b> The <code>files</code> skill reads <span class='q'>\"The ONLY invocation is execute_skill_script(script_name=\"files/files.py\", script_args=[verb, …]). Verbs: list | search | read | stat | write | copy | replace. Do NOT invent other script names like search.py or list.py — they don't exist.\"</span> That is instruction text for a model, rendered in a settings page for a procurement lead."],
+  ["c","<b>A broken skill and a UAT sandbox endpoint are live in the list</b>, visible to every seat."],
+  ["h","<b>All 18 are on by default with no grouping.</b> The user is asked to make an 18-way decision they cannot evaluate; in the composer they appear as a raw checkbox list with descriptions cut mid-sentence."],
+  ["h","<b>The canvases are invisible.</b> Nothing in the UI tells you a document or slide canvas exists. You have to say the right sentence in chat."],
+  ["h","<b>Import from GitHub and Upload skill have no explanation</b> of what a skill file is, what format it takes, or what happens on failure — and the only visible example of failure is the broken skill in the list."],
+  ["m","No search, no category filter, no usage counts, no last-used, no per-skill test button."]],
+ fix:[
+  "A <b>two-audience split</b>: a <b>Capabilities</b> gallery for users — cards with a human sentence, an example prompt and a <i>Try it</i> button — and a <b>Skill registry</b> for builders, with raw manifests, versions, parse errors and logs.",
+  "<b>Group by outcome</b>, not by name: Create documents · Search &amp; research · Connect systems · Automate · Meetings.",
+  "<b>Auto by default.</b> Skills are selected by the model; the checkbox list becomes an advanced override.",
+  "Surface the canvases as first-class actions — a <b>Create</b> menu in the composer offering Document / Deck / PDF / Markdown, opening the canvas directly.",
+  "Promote the API skill generator to a <b>four-step wizard</b>: paste a URL or drop a PDF or screenshot → preview the detected operations → choose auth → test one call → save. This is the killer demo.",
+  "Health states: <b>Ready · Needs credential · Broken — view log · Sandbox — not for production.</b>"]},
+
+{n:5,name:"Tools &amp; MCPs",status:"partial",route:"/tool-mcp",
+ one:"Built-in agent tools plus Model Context Protocol server connections. Covered in full in the deep dive above.",
+ today:[
+  "<b>Ten built-in tools</b>, always available, grouped <code>time</code> / <code>core</code> / <code>messaging</code> / <code>media</code>. Five of them — Email file, Message a contact, Send task request, Send task response, Check messages, List contacts — form an <b>agent-to-agent delegation network</b>.",
+  "<b>Four MCP servers</b>, hard-coded: Atlassian, Google Workspace, Microsoft 365 and Slack. Each card's primary text is a Kubernetes service DNS name such as <code>http://slack-mcp.magna-system.svc.cluster.local:3000/mcp</code>, and each shows an enabled toggle, <code>Sign-in required</code>, <code>OAuth</code> and <code>No tools</code> simultaneously."],
+ good:"The built-in tool set is unusually complete — including a working peer-delegation protocol that most competing products do not have at all.",
+ probs:[
+  ["c","<b>Raw Kubernetes service DNS is the primary text of every MCP card.</b> <code>*.magna-system.svc.cluster.local</code> tells a user nothing, tells an attacker something, and makes the product look like an internal admin console."],
+  ["c","<b>There is no way to add an MCP server.</b> No <code>+ Add server</code> button anywhere. The whole point of MCP is bring-your-own; the catalogue is frozen at four."],
+  ["h","<b>Contradictory state.</b> Each server shows an enabled blue toggle <i>and</i> <code>Sign-in required</code> <i>and</i> <code>No tools</code>. Three signals, no clear meaning — and nothing explains what the toggle does when nothing is connected."],
+  ["h","<b>Zero explanation of value.</b> Nothing says what connecting Slack would let you do."],
+  ["h","<b>The agent-to-agent messaging network is completely unexposed</b> — no contacts page, no inbox, no delegation UI, despite five built-in tools for it."],
+  ["m","The composer's <code>{} MCP</code> entry appears to do nothing distinct."]],
+ fix:[
+  "A <b>connector catalogue</b>, not a server list: logo, name, one plain sentence of value, a <b>Connect</b> primary action. The endpoint moves behind an admin-only technical disclosure.",
+  "<b>＋ Add MCP server</b> with two modes — <i>From catalogue</i> and <i>Custom</i> (URL, transport, auth, health check) — followed by a tool-discovery preview.",
+  "A <b>single honest status</b> per card: Not connected → Connecting → Connected · 14 tools → Error · view log.",
+  "Post-connect, list the discovered tools with plain-language names and a per-tool permission default of <b>Always ask / Auto-approve / Blocked</b>.",
+  "Build the missing surface: <b>Contacts &amp; delegation</b> — who your agent can reach, an inbox of inbound task requests, and an outbox of what you have delegated."]},
+
+{n:6,name:"Agents (subagents)",status:"live",route:"/agent",
+ one:"Configurable delegate personas with their own prompt, model, tool set and autonomy settings. Covered in full in the deep dive above.",
+ today:[
+  "Reached via <b>Tasks › Tasks</b>. Four creation paths: <b>Create manually</b> · <b>From template</b> · <b>Import from JSON</b> · <b>Create with AI</b> (<span class='q'>\"Describe what you want; an AI drafts the config\"</span>).",
+  "<b>Ten curated templates</b> across five categories with a filter bar: Researcher, Code Reviewer, Meeting Summarizer, Email Drafter, Calendar Planner, PR Describer, Data Analyst, Message Triage, Document QA, DevOps Helper.",
+  "<b>A four-tab editor:</b> Basics (name, description, system prompt, model <code>__inherit__</code>) · Skills &amp; Tools (18 + 4 + 10 checkboxes) · Advanced (<code>Restrict tools</code>) · Settings (<code>Enabled</code>, <code>May interrupt the user</code>)."],
+ good:"The four creation paths are excellent. The templates are well written. <code>May interrupt the user</code> and <code>Restrict tools</code> are exactly the right autonomy controls, and their microcopy is the best in the product.",
+ probs:[
+  ["c","<b>The naming.</b> Task, agent, subagent and custom role are used interchangeably across four consecutive views. A user cannot form a mental model."],
+  ["h","<b>The empty state hides everything.</b> <span class='q'>\"Nothing here yet\"</span> in a bare table. Ten good templates, an AI-drafted path and a JSON import all sit behind a button labelled with the wrong noun."],
+  ["h","<b>The templates are for a software team, not for Magna's buyer.</b> Code Reviewer, PR Describer, DevOps Helper — in a product whose homepage says <span class='q'>\"enterprise operational brain\"</span> and whose demo app is Health Care. There is no Procurement Analyst, Contract Reviewer, HSE Reporter, Vendor Screener or Compliance Checker."],
+  ["h","<code>__inherit__</code> <b>is a raw code token in a user-facing dropdown.</b>"],
+  ["h","<b>Three flat checkbox lists</b> — 18 + 4 + 10 = 32 checkboxes — with no search, no grouping and no <i>select recommended</i>."],
+  ["m","No test or preview before saving. No usage history. No versioning. No duplicate."],
+  ["m","Agents cannot be invoked visibly from chat — there is no <code>@agent</code> mention pattern in the composer."]],
+ fix:[
+  "<b>Pick one word: Agents.</b> Nav, page, button, screen. \"Task\" is reserved for scheduled work.",
+  "<b>The template gallery becomes the empty state</b>, not a blank table.",
+  "Rewrite the template library for the actual market: Procurement Analyst · Contract Clause Reviewer · HSE Incident Reporter · Vendor Risk Screener · Schedule Slip Analyst · Compliance Checker · Meeting Summariser · Document QA · Data Analyst · Researcher.",
+  "Model dropdown reads <b>Same as chat (recommended)</b> instead of <code>__inherit__</code>.",
+  "Replace 32 checkboxes with a <b>two-step permission builder</b>: choose a preset (Read-only research · Documents &amp; reports · Connected systems · Full access), then refine.",
+  "Add a <b>test panel</b> in the editor — run a sample prompt against the draft config and watch the trace before saving.",
+  "<b><code>@mention</code> agents in the composer</b> with autocomplete."]},
+
+{n:7,name:"Tasks — Heartbeat &amp; Schedules",status:"live",route:"/heartbeat · /schedule",
+ one:"Two different automation engines: a standing checklist reviewed on a loop, and cron-driven jobs.",
+ today:[
+  "<b>Heartbeat</b> — <span class='q'>\"A standing checklist your agent reviews on a schedule, notifying you only when something needs attention.\"</span> It edits a file called <code>HEARTBEAT.md</code>, shown read-only with <b>Edit</b> and <b>Run history</b> buttons, a schedule control of <code>every</code> + N + minutes/hours, a placeholder suggesting <span class='q'>\"Check my email and summarize anything urgent\"</span>, a live <code>0 chars · 0 words</code> counter, and the helper line <span class='q'>\"The pod runs a heartbeat tick automatically.\"</span>",
+  "<b>Schedules</b> — <span class='q'>\"Cron jobs for your agent\"</span>. A table of Schedule / Cron / Next run / Status, plus a <b>New schedule</b> modal: Name · When to run (Every / At / Cron) · interval · a natural-language <i>What should this schedule do?</i> textarea · a <b>Need help? Design in chat →</b> link · Enabled · and <b>Auto-approve tools</b>, off, explained as <span class='q'>\"Let this task run tools that normally ask for approval (e.g. send email). Off: the run stops and notifies you instead.\"</span>"],
+ good:"The schedule modal is genuinely excellent: progressive disclosure from Every to At to Cron, natural-language intent instead of a DSL, an escape hatch into chat, and a beautifully worded autonomy toggle. Make this the template for every creation flow in the product.",
+ probs:[
+  ["c","<span class='q'>\"The pod runs a heartbeat tick automatically.\"</span> <b>Kubernetes vocabulary in end-user helper text.</b>"],
+  ["h","<b>Heartbeat and Schedules are the same idea with different UIs.</b> Both run agent prompts on an interval. One edits a markdown file with a word counter; the other has a polished modal. A user has no way to know which to use."],
+  ["h","<code>HEARTBEAT.md</code> <b>is exposed as a filename</b> — as are <code>SOUL.md</code>, <code>STYLE.md</code> and <code>TASK_REQUEST.md</code> elsewhere. Users are being shown the storage format."],
+  ["h","<b><code>Tasks</code> in the nav leads to Agents, not to tasks.</b> The two things that <i>are</i> tasks sit beside it under the same label."],
+  ["m","No run history on the Schedules page — no last run, duration, output or failure."],
+  ["m","Nothing surfaces overnight results. If a schedule ran at 06:00 and found three incidents, you will not know unless you go looking."]],
+ fix:[
+  "<b>Merge into one Automations surface</b> with two trigger types: <i>On a schedule</i> and <i>Watch continuously</i>. Same creation modal for both.",
+  "<b>Kill the filenames.</b> The heartbeat becomes a checklist UI with rows — a plain-language condition, a source chip, and a notify-when rule — not a markdown blob.",
+  "<b>Run history is first-class</b>: a timeline of runs with status, duration, what it did, what it found, and a drawer offering <i>Send to chat</i> / <i>Save to workspace</i> / <i>Adjust this automation</i>.",
+  "<b>Overnight results surface on the home screen</b> as resume cards.",
+  "Rename the nav item to <b>Automations</b>; Agents becomes its own item."]},
+
+{n:8,name:"Knowledge (RAG)",status:"live",route:"/rag",
+ one:"The retrieval layer — document ingestion, chunking, embedding and search.",
+ today:[
+  "Five tabs — <b>Dashboard · Documents · Search · Cloud storage · Status</b> — plus a refresh icon and an auto-refresh dropdown currently reading <code>off</code>.",
+  "<b>Dashboard:</b> <code>Indexed documents 0</code> · <code>Total chunks 0</code> · <code>Pending 0</code> · <code>Embedding model auto</code> · <code>Last ingest —</code>. <b>Documents:</b> a drop zone, <span class='q'>\"Max 100 MB\"</span>, <code>Choose files</code>, and a File / Size / Chunks / Status / Added table reading <span class='q'>\"Nothing here yet\"</span>. <b>Search:</b> a query field. <b>Cloud storage:</b> Google Drive, OneDrive and Dropbox, all Not connected. <b>Status:</b> the Cloud-storage cards and the Dashboard stats concatenated — no content of its own.",
+  "Settings › Knowledge contains exactly one control: <code>Enable OCR on document upload</code>, on."],
+ good:"The pipeline is transparent — chunks, pending, embedding model and last ingest are the right metrics to expose. The Documents drop zone is clean.",
+ probs:[
+  ["h","<b>The Status tab is a duplicate</b> — two other tabs' content stacked together."],
+  ["h","<b>No spaces, folders or permissions.</b> Every document goes into one flat index. An enterprise knowledge base needs Procurement, HSE and Legal with per-space access — and the chat's residency guarantee depends on knowing which space an answer came from."],
+  ["h","<b>No connection between Knowledge and the chat's Company knowledge toggle.</b> The user cannot see which documents are in scope for a given conversation."],
+  ["h","<code>Embedding model: auto</code> <b>is unexplained</b>, while the Usage page reveals it is actually <code>azure/text-embedding-3-small</code> and <code>-3-large</code> — again, an external endpoint under a <code>Private</code> badge."],
+  ["m","No per-document actions (reindex, delete, preview, permissions), no ingestion error surface, no supported-format list, and <span class='q'>\"Max 100 MB\"</span> is ambiguous — per file or in total."],
+  ["m","Search returns raw chunks with no answer synthesis and no <i>ask about this</i> handoff into chat."]],
+ fix:[
+  "Rename the route and the nav item to <b>Company knowledge</b>.",
+  "<b>Spaces</b> become the top-level object: name, description, members, residency lock, document count.",
+  "The documents table gains a real status pipeline — <b>Queued → OCR → Chunking → Indexed</b>, plus <i>Failed — view reason</i> — with chunk count, source, owner and row actions.",
+  "<b>Search becomes an answer surface</b>: a synthesised answer with numbered citations, the matched passages beneath with source, page and relevance, and a <b>Continue in chat</b> button.",
+  "A <b>bidirectional link with chat</b>: the composer's Company knowledge chip opens a scope picker — <span class='q'>\"Magna will search 2 spaces · 8,412 documents before answering.\"</span>",
+  "Cloud connectors state what will be synced, how often, and whether the content leaves the network."]},
+
+{n:9,name:"Channels",status:"partial",route:"/channel",
+ one:"Reaching Magna from outside the web app.",
+ today:[
+  "Subtitle: <span class='q'>\"Connect WhatsApp, Telegram, Teams\"</span>. Four cards — <b>Microsoft Teams</b>, <b>Zoom</b>, <b>WhatsApp</b> (greyed out) and <b>Telegram</b> — all <code>Not connected</code>.",
+  "<b>The Telegram flow is a good two-step pattern:</b> step 1 shows a QR code with <span class='q'>\"Scan to open @BotFather on Telegram, send /newbot, then copy the API token\"</span> and an <i>Open @BotFather in browser</i> fallback link; step 2 is a text field with placeholder <code>123456:ABC-…</code> and a <b>Connect</b> button."],
+ good:"The Telegram two-step — a QR, a precise instruction and a browser fallback — is the right shape for a credential handoff. It just needs the security and the value statement around it.",
+ probs:[
+  ["h","<b>The subtitle does not match the content</b> — it names three services, one of which (WhatsApp) is disabled, and omits Zoom entirely."],
+  ["h","<b>No statement of value.</b> Nothing explains what connecting Telegram gives you: can you chat with Magna from your phone? Do automations push results there? Can your agent message a colleague?"],
+  ["h","<b>A bot token is pasted in plain text</b> with no masking, no <i>stored encrypted</i> reassurance and no rotation path."],
+  ["m","Zoom sits beside three messaging apps with no explanation of what a Zoom \"channel\" means. Meeting transcripts would pair naturally with the <code>meeting-notes</code> skill — but nothing says so."],
+  ["m","No post-connection state design — no test message, no <i>connected as</i>, no disconnect."]],
+ fix:[
+  "Reframe the page as <b>\"Where Magna reaches you\"</b>: each card leads with the outcome — <span class='q'>\"Ask Magna from your phone\"</span>, <span class='q'>\"Get automation results in your team channel\"</span>, <span class='q'>\"Auto-summarise every Zoom meeting\"</span>.",
+  "Each connector states <b>what you can do · what data crosses the boundary · a residency warning</b> where relevant. A message sent to Telegram has left your network — say so.",
+  "<b>Mask credential fields</b>, state encryption, offer rotation.",
+  "Post-connect: <span class='q'>\"Connected as @magna_bonyad_bot\"</span> · <b>Send a test message</b> · a permissions summary · <b>Disconnect</b>."]},
+
+{n:10,name:"Artifacts &amp; the Canvas",status:"partial",route:"/artifacts",
+ one:"Generated files, and a live side-panel editor for documents and decks.",
+ today:[
+  "<b>The Artifacts page</b> has a search field, an <code>All</code> / <code>Session</code> segmented toggle, an <code>All</code> filter chip and <code>No artifacts yet</code>. The sibling nav items <i>Document</i>, <i>Image</i> and <i>Code</i> are permanently disabled.",
+  "<b>The canvas</b> — per its skill manifests — opens a live editable right-side panel, lets the user iterate on content and layout via chat, and exports a real <code>.docx</code> or a Magna-branded <code>.pptx</code> with AI-generated images. It has <b>no UI entry point at all</b>: it is reachable only by saying the right sentence in chat."],
+ good:"The canvas itself is a complete co-authoring experience that already works — live editing, chat-driven iteration, and real Office-format export.",
+ probs:[
+  ["c","<b>The best feature in the product has no entry point.</b> A document and slide co-authoring canvas exists and is reachable only by guessing the right phrasing. Nothing in the composer, the Workspace section or the empty state mentions it."],
+  ["h","<b>Workspace › Document / Image / Code are disabled</b> — exactly the filters that would make Artifacts useful."],
+  ["h","<b>Two competing generation paths</b> (<code>magna-canvas-*</code> versus <code>magna-generate-*</code>) with no user-visible difference, resolved only by a model-facing <i>preferred over</i> note buried in a skill description."],
+  ["m","The empty state teaches nothing."]],
+ fix:[
+  "Add a <b>Create</b> control to the composer: Document · Deck · Spreadsheet · PDF · Image · Diagram. Each opens the canvas directly.",
+  "<b>Design the canvas as a real surface</b>: split view with chat left and the live document right, a hover toolbar per block (Regenerate, Expand, Shorten, Rewrite in my style), an outline rail, version history, and an export bar.",
+  "Retire <code>magna-generate-*</code> from the user-visible layer — the canvas is the one path.",
+  "<b>Artifacts becomes a real library</b>: working type filters, thumbnail previews, a link back to the source conversation, and a version count."]},
+
+{n:11,name:"Memory",status:"partial",route:"settings › memory",
+ one:"Cross-conversation recall of facts about the user.",
+ today:[
+  "Settings › Memory offers exactly three controls: <code>Enable memory recall</code> (on), <code>Recall limit</code> — a number field set to <code>5</code>, helper text <span class='q'>\"Items recalled per turn (1–20)\"</span> — and <code>Enable memory extraction</code> (on).",
+  "The per-message panel shows retrieved memories as <code>MEDIUM   explicit   0.18</code>, then the sentence <span class='q'>\"User wants to learn coding.\"</span>, then the raw key <code>memories:context/interest-learning-coding</code>."],
+ good:"Extraction and recall both work, and recall is surfaced per message rather than hidden. The instinct to show the user what was remembered is right.",
+ probs:[
+  ["c","<b>Raw memory keys and relevance scores are shown to end users.</b> <code>memories:context/interest-learning-coding</code> and <code>0.18</code> are database internals."],
+  ["h","<b>There is no memory management page.</b> You can toggle memory and set a recall limit, but you cannot see everything Magna remembers, edit it, delete one item or clear it. That is a privacy expectation, and in some jurisdictions a legal one."],
+  ["h","<code>Recall limit: 5</code> <b>asks the user to tune a retrieval parameter.</b>"],
+  ["h","<b>The recalled memory was irrelevant</b> — a coding-interest memory surfaced on a Saudi construction-risk question, with the low score (0.18) visible. Showing a weak match with its score undermines confidence more than showing nothing."],
+  ["m","The brain icon has no tooltip; nothing indicates what it opens."]],
+ fix:[
+  "Build <b>\"What Magna remembers about you\"</b> as a real page — grouped into Role &amp; team · Preferences · Projects · Facts, each item editable and deletable, with the conversation it came from and a date, phrased in the user's own first person.",
+  "<b>Confirm on capture</b>: an unobtrusive inline chip after a turn — <span class='q'>\"Remembered: you report to Delivery, not Commercial. Undo\"</span>.",
+  "Replace <code>Recall limit</code> with <b>Memory: Off / Balanced / Extensive</b>.",
+  "<b>Hide scores.</b> Suppress low-confidence matches rather than displaying them — <span class='q'>\"No stored memories were used for this answer\"</span> beats a weak one.",
+  "Add <b>Export my memories</b> and <b>Clear all</b> with a confirmation."]},
+
+{n:12,name:"Personality — SOUL, STYLE and message policies",status:"live",route:"/profile › Personality",
+ one:"Five markdown files that define the agent's identity, voice and inter-agent etiquette.",
+ today:[
+  "Five sub-tabs, each a file: <b>Soul</b> (<code>SOUL.md</code>) — <span class='q'>\"You are a personal AI assistant… You are direct, pragmatic, and curious. You favour clarity over ceremony. When you do not know something, you say so — you do not bluff.\"</span> <b>Style</b> (<code>STYLE.md</code>) — <span class='q'>\"Short sentences. Active voice. Lead with the answer… no 'great question!', no 'I hope this helps'.\"</span> <b>Task request</b> (<code>TASK_REQUEST.md</code>) — <span class='q'>\"state the outcome you need, not the steps… Include every input the other agent needs: IDs, deadlines, constraints.\"</span> Plus <b>Task response</b> and <b>On message</b>.",
+  "Each is a read-only viewer with an <b>Edit</b> button and a <code>370 chars · 66 words</code> counter."],
+ good:"The seed content is well written — better than most products' default assistant prompts. <code>TASK_REQUEST.md</code> and <code>TASK_RESPONSE.md</code> reveal a thought-through agent-to-agent protocol that nothing else in the UI acknowledges.",
+ probs:[
+  ["h","<b>It is five raw markdown files behind a tab called Personality inside a page called Profile.</b> No user will find it, and none will know that editing <code>SOUL.md</code> changes how every answer sounds."],
+  ["h","<b>The filenames are the UI.</b> <code>SOUL.md</code>, <code>STYLE.md</code> and <code>TASK_REQUEST.md</code> are storage names presented as navigation."],
+  ["h","<b>No preview.</b> You edit prose and cannot see the effect until your next chat."],
+  ["h","<b>Personal versus organisational scope is undefined.</b> Can an admin set a house style all users inherit? Nothing indicates scope."],
+  ["m","A character and word counter on an identity document is an odd emphasis."]],
+ fix:[
+  "Rename the section <b>\"How Magna behaves\"</b> and put it one click from the composer, not inside Profile.",
+  "Three plain-language panels: <b>Identity · Writing style · Working with other agents</b>.",
+  "<b>Style becomes assisted</b>: tone sliders (formal ↔ casual, brief ↔ thorough), format toggles (lead with the answer, use tables when comparing, always cite), and a <span class='q'>\"Paste three things you've written and Magna will match your voice\"</span> drop zone.",
+  "A <b>sticky live preview</b> — a fixed sample answer that re-renders as settings change.",
+  "<b>Scope badges</b>: <i>Organisation default</i> (locked, with the admin's name) versus <i>Your override</i>, with a reset."]},
+
+{n:13,name:"Permissions &amp; tool approval",status:"partial",route:"settings › permissions",
+ one:"Per-tool consent — which actions run automatically and which stop to ask.",
+ today:[
+  "An explainer: <span class='q'>\"This list shows tools and skills you've already chosen to allow or block. To add a new entry, encounter a permission bubble in chat and click 'Always allow' or 'Always ask'.\"</span>",
+  "<code>Trust built-in tools and skills</code> (on) — <span class='q'>\"When on, magna runs built-in tools and default skills without asking. Per-item overrides below still apply.\"</span> — then three override lists (<b>Built-ins · MCP tools · Skills</b>), all empty, and a note that <span class='q'>\"Keys with a slash (e.g. github/delete_repo.py) are per-script pins; bare names are whole-skill pins.\"</span>"],
+ good:"The mental model is right — trust by default, with per-item overrides learned from in-chat approvals. The explainer is clear.",
+ probs:[
+  ["h","<b>The permission bubble was never encountered in an entire session</b>, because <code>Trust built-in tools and skills</code> defaults to on. The system that teaches you how permissions work is disabled by the default setting."],
+  ["h","<code>github/delete_repo.py</code> <b>as the illustrative example is alarming and irrelevant to the buyer.</b>"],
+  ["h","<b>No risk tiering.</b> \"Send an email\", \"create a Jira ticket\" and \"delete a repo\" are treated identically. Destructive and outbound actions should be non-optional prompts."],
+  ["m","No audit trail of what was auto-approved and what it did."]],
+ fix:[
+  "Replace the single trust switch with <b>three risk tiers</b>: <b>Read</b> (auto) · <b>Write &amp; create</b> (auto, logged) · <b>Send, publish, delete, pay</b> (always ask, not overridable by default).",
+  "<b>Design the permission bubble properly</b> — it is the teaching moment. State what will run, against which system, with what data, plus a residency line where relevant, and three buttons: Allow once / Always allow this / Don't allow.",
+  "Add an <b>activity log</b>: every auto-approved action, what it did, and an undo where possible.",
+  "Replace the GitHub example with something from the actual domain."]},
+
+{n:14,name:"Governance &amp; Security",status:"partial",route:"/security",
+ one:"The compliance surface.",
+ today:[
+  "Page title <b>Security</b>, subtitle <span class='q'>\"AI Security protection powered by TrendAI\"</span>. The <b>Overview</b> tab shows a green <code>Protected by organization policy</code> banner and an AI Guard card reading <code>Total log 0</code> and <code>Today 0</code>. The <b>AI Guard</b> tab reads <span class='q'>\"Messages blocked by Trend Micro AI Guard\"</span> with the empty state <span class='q'>\"No logged events / All messages have passed security checks.\"</span>",
+  "Five sibling nav items — <i>PII Detection · Guardrails · Access Control · Benchmarks · Sovereignty</i> — are all disabled."],
+ good:"Having a dedicated governance surface at all, with a named security vendor behind it, is more than most AI products ship at this stage.",
+ probs:[
+  ["h","<b>Three confusable brand names in one product</b>: TrendIQ (the digital twin), TrendAI (this page's subtitle) and Trend Micro (the actual vendor). Pick one and be consistent."],
+  ["h","<b>Five of six Governance items are disabled</b> — including <i>Sovereignty</i>, the product's core claim, and <i>Guardrails</i> and <i>PII Detection</i>, which the sovereignty story depends on."],
+  ["h","<code>Protected by organization policy</code> <b>states a conclusion with no evidence.</b> Which policy? Set by whom? What does it block?"],
+  ["m","Zero counts with no explanation of what would produce a non-zero count."],
+  ["m","Governance contains no audit log, no export, no retention settings and no access review — the artefacts a compliance officer actually needs."]],
+ fix:[
+  "Rebuild as a <b>Governance console</b> with real sections: Policy · Data residency · PII &amp; redaction · Guardrails · Access &amp; roles · Audit log · Retention.",
+  "The overview becomes a <b>posture dashboard</b>: policy in force, residency distribution over 30 days, PII redactions performed, blocked events, connectors carrying data outside the network, and open risks — each phrased as a plain sentence with a Fix action.",
+  "<b>Every claim links to its evidence.</b> Every number is clickable through to what produced it.",
+  "<b>One vendor name</b>, used consistently."]},
+
+{n:15,name:"Usage &amp; Budget",status:"live",route:"/usage",
+ one:"Consumption tracking and budget control.",
+ today:[
+  "<b>Dashboard:</b> a range selector (Today · 7 days · 30 days · MTD · YTD), a <b>Monthly budget</b> bar reading <code>$0.0000 / $5000.00 (0%)</code> resetting 9/1/2026, four stat cards (Total requests <code>58</code>, Successful <code>58</code>, Total tokens <code>358.6k</code>, Total spend <code>$0.0000</code>), two time-series charts, and a <b>By model</b> table.",
+  "<b>By model:</b> <code>azure/Kimi-K2.6</code> 333.9k tokens / 33 requests · <code>bedrock/nvidia.nemotron-super-3-120b</code> 24.5k / 1 · <code>azure/text-embedding-3-small</code> 176 / 22 · <code>azure/text-embedding-3-large</code> 7 / 1 · <code>tts</code> 0 / 1.",
+  "<b>Requests tab:</b> not a request log — it is budget-increase requests. <span class='q'>\"Need more budget? Send a request to an admin with a justification.\"</span>"],
+ good:"The By model table is the most informative table in the product. It is also the only place in the entire UI where the real inference substrate is visible.",
+ probs:[
+  ["c","<b>This table is the evidence contradicting the <code>Private</code> badge.</b> Every row is an external provider — see capability 03."],
+  ["h","<code>Requests</code> <b>is an ambiguous tab label</b> — it reads as a request log. Call it <b>Budget requests</b>."],
+  ["h","<b>Every cost reads <code>$0.0000</code>.</b> Four decimal places of zero on five rows, a $5,000 budget at 0%, and a progress bar with nothing in it. Either pricing is not wired up or this is a free tier — but the UI insists on displaying precision it does not have."],
+  ["h","<b>No per-user or per-team breakdown</b>, no per-feature attribution (chat versus automations versus indexing), and no forecast against the budget."],
+  ["m","Model identifiers are raw provider strings, and <code>tts</code> has no provider prefix at all."],
+  ["m","Cost data is shown to every seat."]],
+ fix:[
+  "<b>Split by audience</b>: an individual sees their usage; an admin sees org, team and per-user.",
+  "<b>Attribute cost to work</b> — chat · automations · indexing · agents · voice. That is the question a budget owner actually asks.",
+  "<b>Forecast</b>: <span class='q'>\"At the current rate you will reach $3,180 of $5,000 by 31 Aug.\"</span>",
+  "Model rows get human names with the technical identifier in a tooltip — <b>and a residency badge per row</b>, so a user can see at a glance whether a model ran inside or outside their network.",
+  "<b>Hide currency entirely when pricing is not configured</b> and show tokens instead. Never render <code>$0.0000</code>.",
+  "Rename the second tab <b>Budget requests</b> and give it a proper request and approve flow."]},
+
+{n:16,name:"Apps",status:"broken",route:"/apps",
+ one:"Unclear. One card.",
+ today:[
+  "A single card — <b>Health Care</b>, with a <code>Demo</code> pill. Not clickable. Nothing else on the page.",
+  "The sibling nav items <i>Magna · Company · User · Default</i> are all disabled."],
+ good:"The Health Care card hints at the right idea: a packaged vertical solution, preconfigured for an industry.",
+ probs:[
+  ["c","<b>An entire top-level nav section containing one non-functional demo card.</b> One of five sub-items works, and the one that works does nothing."],
+  ["h","<b>No definition of \"app\".</b> It is not skills, not MCP servers, not agents, not channels — all of which live elsewhere. The concept is undefined for the user."],
+  ["h","<b>Workspace and Apps share an identical cube icon</b> in the nav."]],
+ fix:[
+  "<b>Option A — remove it.</b> Fold whatever \"apps\" means into Capabilities or Connections. One less dead section.",
+  "<b>Option B — make it the vertical-solutions surface.</b> Packaged industry configurations — Health Care, Construction, Banking — each bundling a knowledge space, a set of agents, connectors and automations, installable in one click, with a three-step install flow (review what will be created · connect required systems · confirm, then \"Try your first question\").",
+  "Choose B only if it will be built this quarter. Otherwise A."]},
+
+{n:17,name:"Devices — the desktop companion",status:"partial",route:"settings › devices",
+ one:"A macOS or Windows app that gives Magna access to local files.",
+ today:[
+  "<code>No devices registered</code>, then <b>Download for macOS</b> and <b>Download for Windows</b>. That is the entire surface.",
+  "The <code>files</code> skill confirms the purpose: it handles <span class='q'>\"any file on their connected remote desk… absolute paths (/Users/…, C:\\…), or mentions of 'my desktop', 'my laptop', 'my files'.\"</span>"],
+ good:"A local-file bridge that avoids uploading is exactly right for a sovereignty product, and the capability is real — the <code>files</code> skill already speaks it.",
+ probs:[
+  ["c","<b>A local-filesystem bridge is offered as two bare download links inside a dropdown submenu.</b> No explanation of what it does, what it can access, whether files are copied or read in place, what leaves the network, or how to revoke it. For an on-prem sovereignty product, an unexplained agent that reads a user's local disk is the highest-stakes item in the entire application."],
+  ["h","<b>No pairing flow, no device list design, no per-device scope, no revoke.</b>"],
+  ["h","<b>Buried three levels deep</b> under a gear icon."]],
+ fix:[
+  "Promote to a <b>Devices page</b> with a real value proposition: <span class='q'>\"Let Magna work with the files on your laptop without uploading them.\"</span>",
+  "<b>Explicit scope</b>: the user picks which folders are visible, all unselected by default, with a warning row for folders that look sensitive.",
+  "A <b>residency statement on the page</b>: does file content cross the network to be embedded, or is it read in place? Say it, in the wording the real architecture supports.",
+  "A <b>pairing flow</b>: download → install → six-digit code → name this device → choose folders → confirm.",
+  "A <b>device list</b> with name, OS, last seen, shared folders, Pause and Revoke access — and an access log of which files were read, by which conversation, when."]},
+
+{n:18,name:"Voice",status:"missing",route:"settings › model defaults",
+ one:"Text-to-speech and speech-to-text, wired up in settings and invisible everywhere else.",
+ today:[
+  "Settings › Model defaults lists <code>Text-to-speech: azure/tts</code> and <code>Speech-to-text: azure/whisper</code>.",
+  "The Usage table shows a <code>tts</code> row with 1 request — so the capability has been invoked at least once."],
+ good:"The models are configured and one has already been invoked. The backend exists; only the interface is absent.",
+ probs:[
+  ["c","<b>There is no microphone button in the composer and no play button on any answer.</b> Two models are configured, one has been invoked, and the capability has zero surface area."]],
+ fix:[
+  "<b>A microphone in the composer</b> with a live waveform, an interim transcript that firms up as it is confirmed, and edit-before-send — it must never auto-send.",
+  "<b>Play on any answer</b>, with a scrubber that highlights the currently-spoken sentence, a speed control and a voice picker.",
+  "<b>A hands-free voice mode</b> for field use — large targets, very high contrast, and a persistent residency badge so the user knows whether their voice leaves the network.",
+  "<b>Arabic and English voice selection</b>, given the market."]},
+
+{n:19,name:"Search / Command palette",status:"partial",route:"header magnifier",
+ one:"The best-designed thing in the product, behind an unlabelled icon.",
+ today:[
+  "The magnifier opens a modal with a <code>Search…</code> field and two groups: <b>Conversations</b> (recent threads) and <b>Search</b> (Take the tour · Tasks · Projects · Skills · Apps · Tools &amp; MCPs · Channels · Schedules · Heartbeat · Knowledge)."],
+ good:"As a pattern it is right, and it is the fastest route to any destination in the product — including several that are otherwise three levels deep.",
+ probs:[
+  ["h","<b><code>⌘K</code> does not open it.</b> The one universal shortcut for this pattern is unbound."],
+  ["h","<b>Focus is not placed in the input.</b> A full query typed after opening it was discarded, keystroke by keystroke — the same bug as the composer after closing the palette. This is the most reproducible defect found."],
+  ["h","<b>It only searches conversation titles and page names</b> — not message contents, documents, artifacts, agents or skills."],
+  ["m","No labelled entry point, and no <code>⌘K</code> hint anywhere in the UI."],
+  ["m","No actions (\"New chat about X\", \"Create a schedule\"), no recents, no keyboard-navigation affordances."]],
+ fix:[
+  "Bind <b><code>⌘K</code> / <code>Ctrl+K</code></b>. Autofocus the input. Show the shortcut on a labelled trigger — <span class='q'>\"Search everything ⌘K\"</span> — not an unlabelled magnifier.",
+  "<b>Search everything</b>: conversations, message contents, documents, artifacts, agents, automations, skills and settings.",
+  "Add an <b>Actions</b> group with verb-first rows, and a <code>&gt;</code> command mode.",
+  "Group results with counts, show source badges (internal / web), and support <code>↑↓ ⏎ esc</code> with a visible footer hint."]},
+
+{n:20,name:"Onboarding &amp; Help",status:"live",route:"info icon · magna-guided-help",
+ one:"A seven-step tour, plus an in-product help skill that explains the product itself.",
+ today:[
+  "A modal: <span class='q'>\"WELCOME TO MAGNA — This 2-minute tour shows you the basics. You can take it again any time from this Compass button.\"</span> with <code>1 / 7</code>, Skip and Next.",
+  "<code>magna-guided-help</code> handles questions like <span class='q'>\"what can this platform do?\"</span>, <span class='q'>\"how do I set up Slack?\"</span> and <span class='q'>\"where do I connect my email?\"</span> in plain language, pointing at UI locations."],
+ good:"Having a help <i>skill</i> — where the assistant explains its own product — is smart and rare.",
+ probs:[
+  ["h","<b>The tour calls the info icon a \"Compass button\".</b> The icon is an information glyph. The copy references a control that is not there."],
+  ["h","<b>The tour took several seconds to become visible</b> — it rendered at near-zero opacity on first paint before fading in."],
+  ["h","<b>A seven-step tour is a poor fit for a product this deep.</b> Seven modals cannot cover skills, agents, automations, knowledge, residency, canvases and devices — and a tour teaches nothing that sticks."],
+  ["h","<code>magna-guided-help</code> <b>is invisible.</b> There is no \"Ask about Magna\" affordance anywhere."],
+  ["m","No first-run checklist, no progress, no contextual empty-state guidance."]],
+ fix:[
+  "Replace the tour with a <b>persistent \"Get started\" checklist</b> pinned to the sidebar: connect a system · upload a document · ask your first question about company data · create an automation · invite a teammate. Progress persists, dismissible, resumable.",
+  "<b>Contextual coaching in empty states</b> instead of an upfront modal — a headline stating the value, one primary action, and three concrete examples.",
+  "Give <code>magna-guided-help</code> a front door: a <code>?</code> in the sidebar opening a help composer prefilled with <span class='q'>\"How do I…\"</span>.",
+  "Fix the icon and copy mismatch, and the render flash.",
+  "One <b>first-answer coachmark</b> pointing at the citations block, shown once."]},
+
+{n:21,name:"Appearance &amp; the Companion",status:"live",route:"settings › theme &amp; display",
+ one:"Theming, and a 3D animal mascot.",
+ today:[
+  "<b>Theme &amp; Display:</b> one theme, <code>North Star Vibe</code>; Mode Dark / Light / <s>Rainbow</s>.",
+  "<b>Display Settings</b> holds roughly fourteen controls: interface scale, background overlay %, background animation (None, Color Halo, Particle Field, Aurora, Grid Pulse, Orbit Rings, Radial Breathe), a wallpaper picker, vignette %, film grain %, background blur px, wallpaper zoom %, eight accent swatches, and raw <b>Hue / Saturation / Lightness</b> sliders displaying <code>hsl(210, 67%, 47%)</code>.",
+  "<b>The companion</b> is a 3D robot with eleven animal alternatives (Fox, Wolf, Husky, Shiba Inu, Alpaca, Horse, White Horse, Cow, Bull, Deer, Stag) and a <i>Hide companion</i> button — sharing a popover with Notifications."],
+ good:"Accent swatches and an interface-scale control are reasonable to expose, and a Light mode exists.",
+ probs:[
+  ["c","<b>The companion overlaps the send button and steals its clicks.</b>"],
+  ["h","<b>Roughly fourteen appearance controls exist while the product lacks a copy button.</b> Film grain, vignette, wallpaper zoom and HSL sliders represent significant engineering invested in the least valuable surface."],
+  ["h","<b>The defaults are the problem.</b> A 50% overlay plus a photographic wallpaper is what makes body text hard to read. Every one of these sliders is a workaround for a bad default."],
+  ["h","<code>hsl(210, 67%, 47%)</code> <b>is raw CSS shown to an end user.</b>"],
+  ["m","Companion and Notifications share one popover — unrelated concepts."],
+  ["m","One theme, named <code>North Star Vibe</code>; <code>Rainbow</code> mode disabled."]],
+ fix:[
+  "<b>Default to a flat, legible surface.</b> Wallpaper becomes an opt-in <i>Personalise</i> toggle, off.",
+  "<b>Collapse fourteen controls to four</b>: Theme (Dark / Light / Match system), Accent (swatches only), Density (Compact / Comfortable / Spacious), Background (None recommended / Subtle gradient / Wallpaper). Everything else goes behind <i>Advanced</i> or is removed.",
+  "Selecting Wallpaper reveals a <b>contrast warning</b> if the combination drops body text below WCAG AA, with a one-click Fix contrast.",
+  "<b>Companion off by default</b>, its own settings row, a position control with four corners, and an explicit note that it is decorative and never overlaps the composer.",
+  "<b>Separate Notifications from Companion.</b>"]},
+
+{n:22,name:"Notifications",status:"partial",route:"bell icon",
+ one:"Alerts, sharing a popover with the companion picker.",
+ today:[
+  "A <b>Notifications</b> header with a refresh icon and <b>Mark all read</b>, then <code>Nothing new.</code>",
+  "Then — in the same popover — a <b>Companion</b> section with twelve character tiles and a <i>Hide companion</i> button."],
+ good:"Mark-all-read and refresh are present; the shell of a notification centre exists.",
+ probs:[
+  ["h","<b>Two unrelated features in one popover.</b> A user opening notifications is shown a menagerie."],
+  ["h","<b><code>Notify user</code> is a core built-in tool</b>, and automations have a documented \"notifies you instead\" behaviour — yet the notification surface has no design for what either of those looks like."],
+  ["m","No categories, no deep links, no preferences, no history."]],
+ fix:[
+  "<b>Separate the companion out entirely.</b>",
+  "Design <b>six real notification types</b>: automation finished (with a result summary and Open) · approval needed (with inline Allow / Deny) · agent asked a question · task request from a colleague's agent (Accept / Decline) · budget threshold · connector failed (with Reconnect).",
+  "Group by <b>Today / Yesterday / Earlier</b>, add filters, and give each type a <b>delivery preference</b> across in-app, email, Telegram and Teams — plus quiet hours.",
+  "An empty state that lists <b>what will appear here</b>, rather than \"Nothing new\"."]},
+
+{n:23,name:"The Agentic Twin (AT / TrendIQ)",status:"partial",route:"12px edge tab",
+ one:"A 16-source enterprise context graph — the most differentiated capability in the platform.",
+ today:[
+  "It lives behind <b>a ~12px unlabelled vertical tab glued to the right screen edge</b>, reading <code>ACTIVE AT TrendIQ</code> in rotated text.",
+  "Expanded, it shows <code>SELECTED AT · TrendIQ</code> with an <code>active</code> status and a dropdown, the counter <b><code>7/16 connected · 6 partial</code></b>, a <code>Sovereign Mode</code> badge, and a radial topology diagram with nodes for Structural, Workflows, Behavioral, Guardrails, Observability, Dynamics, Enterprise Apps, Data Sources and Intent.",
+  "Four tabs carry coverage counts — <b>Structural 3/5 · Behavioral 1/4 · Dynamics 1/3 · Intent 2</b>. Under Structural: <code>Org Chart &amp; Units</code> connected · <code>Process Maps</code> connected · <code>Data Flow Registry</code> partial · <code>Enterprise Apps</code> connected · <code>Data Sources</code> partial."],
+ good:"A 16-source organisational context graph with per-source coverage is the most differentiated capability in the platform — and it exists, runs, and reports honest coverage numbers today.",
+ probs:[
+  ["c","<b>The most valuable, most differentiated, most saleable capability in the product is hidden behind a 12px tab with rotated text and an unexpanded acronym.</b> \"AT\" is never defined anywhere in the UI, and <i>Agentic Twins</i> appears in the nav permanently disabled."],
+  ["h","<b>No connection to answers.</b> Nothing in the chat indicates which of the 16 sources informed a response, or which relevant one was missing."],
+  ["h","<b><code>7/16 connected · 6 partial</code> is the single best expansion metric in the product</b> and it is invisible from every other screen."],
+  ["h","<b><code>Partial</code> is undefined.</b> What is partially connected? What is missing? What would completing it change?"]],
+ fix:[
+  "Promote it to a <b>context rail</b> in chat and a full <b>Enterprise context</b> page, with a three-segment coverage meter and grouped source lists.",
+  "<b>Per-answer grounding chips</b>: which sources fed this answer, in green — and, in amber, a relevant source that is <i>not</i> connected.",
+  "<b>Honest confidence</b>: <span class='q'>\"Confidence capped at medium — I could not see the site telemetry, so progress is inferred from a 6-day-old plan.\"</span>",
+  "<b>Every gap becomes a CTA phrased as answer quality</b>, not licensing: <span class='q'>\"Connecting these 2 sources would move schedule answers from planned to measured.\"</span>",
+  "<b>Expand the acronym.</b> Ship the coverage number on the home screen."]}
+];
+
+/* ───────── render ───────── */
+var STATUS_LABEL={live:"Live",partial:"Partial",broken:"Broken",missing:"Missing"};
+var SEV_LABEL={c:"Critical",h:"High",m:"Medium"};
+var capsEl=document.getElementById("caps"),
+    tocEl=document.getElementById("toclist");
+
+function sevCounts(cap){
+  var o={c:0,h:0,m:0};
+  cap.probs.forEach(function(p){o[p[0]]++;});
+  return o;
+}
+
+var totals={c:0,h:0,m:0}, statusTotals={live:0,partial:0,broken:0,missing:0};
+
+CAPS.forEach(function(cap){
+  var sc=sevCounts(cap);
+  totals.c+=sc.c; totals.h+=sc.h; totals.m+=sc.m;
+  statusTotals[cap.status]++;
+  var num=("0"+cap.n).slice(-2);
+  var sevList=[]; if(sc.c)sevList.push("c"); if(sc.h)sevList.push("h"); if(sc.m)sevList.push("m");
+
+  var art=document.createElement("article");
+  art.className="cap"; art.id="cap-"+cap.n;
+  art.setAttribute("data-status",cap.status);
+  art.setAttribute("data-sev",sevList.join(" "));
+
+  var mini="";
+  ["c","h","m"].forEach(function(k){ if(sc[k]) mini+='<i class="'+k+'" title="'+sc[k]+' '+SEV_LABEL[k]+'">'+sc[k]+'</i>'; });
+
+  var probsHTML=cap.probs.map(function(p){
+    return '<li data-s="'+p[0]+'"><span class="sev '+p[0]+'">'+SEV_LABEL[p[0]]+'</span><span>'+p[1]+'</span></li>';
+  }).join("");
+
+  art.innerHTML=
+   '<h3><button class="caphead" type="button" aria-expanded="false" aria-controls="body-'+cap.n+'">'+
+     '<span class="num">'+num+'</span>'+
+     '<span class="hmid"><span class="hname">'+cap.name+'</span>'+
+       '<span class="hmeta"><span class="chip st-'+cap.status+'"><i class="dot"></i>'+STATUS_LABEL[cap.status]+'</span>'+
+       '<code class="route">'+cap.route+'</code></span></span>'+
+     '<span class="hend"><span class="svm">'+mini+'</span><span class="chev"></span></span>'+
+   '</button></h3>'+
+   '<div class="capbody" id="body-'+cap.n+'" hidden>'+
+     '<div class="cbgrid">'+
+       '<div class="cbcol">'+
+         '<div class="blk"><h3 class="blk">What it is</h3><p>'+cap.one+'</p></div>'+
+         '<div class="blk"><h3 class="blk">What it does today</h3><ul class="today-l"><li>'+
+           cap.today.join("</li><li>")+'</li></ul></div>'+
+         '<div class="blk"><h3 class="blk">What is worth keeping</h3><p>'+cap.good+'</p></div>'+
+       '</div>'+
+       '<div class="cbcol">'+
+         '<div class="blk"><h3 class="blk">Problems — '+cap.probs.length+'</h3><ul class="probs">'+probsHTML+'</ul></div>'+
+         '<div class="blk"><h3 class="blk">Enhancement</h3><ul class="fixes"><li>'+
+           cap.fix.join("</li><li>")+'</li></ul></div>'+
+       '</div>'+
+     '</div>'+
+   '</div>';
+  capsEl.appendChild(art);
+
+  var tb=document.createElement("button");
+  tb.type="button"; tb.setAttribute("data-t",cap.n);
+  tb.innerHTML='<span class="tn">'+num+'</span><i class="dot" style="background:var(--'+
+    (cap.status==="live"?"ok":cap.status==="partial"?"high":cap.status==="broken"?"crit":"tx-3")+
+    ')"></i><span class="tt">'+cap.name+'</span>';
+  tocEl.appendChild(tb);
+
+  art.__hay=(cap.name+" "+cap.route+" "+cap.status+" "+art.textContent).toLowerCase().replace(/\s+/g," ");
+});
+
+/* summary numbers */
+document.getElementById("s-c").textContent=totals.c;
+document.getElementById("s-h").textContent=totals.h;
+document.getElementById("s-m").textContent=totals.m;
+document.getElementById("s-live").textContent=statusTotals.live;
+document.getElementById("fCount").textContent=totals.c+totals.h+totals.m;
+
+(function(){
+  var tot=totals.c+totals.h+totals.m;
+  var bar=document.getElementById("sevBar"), leg=document.getElementById("sevLegend");
+  [["c","crit"],["h","high"],["m","med"]].forEach(function(x){
+    var i=document.createElement("i");
+    i.style.width=(totals[x[0]]/tot*100)+"%"; i.style.background="var(--"+x[1]+")"; bar.appendChild(i);
+    var s=document.createElement("span");
+    s.innerHTML='<i class="dot" style="background:var(--'+x[1]+')"></i>'+SEV_LABEL[x[0]]+' <b>'+totals[x[0]]+'</b>';
+    leg.appendChild(s);
+  });
+  var sb=document.getElementById("statusBar"), sl=document.getElementById("statusLegend");
+  [["live","ok"],["partial","high"],["broken","crit"],["missing","tx-3"]].forEach(function(x){
+    var i=document.createElement("i");
+    i.style.width=(statusTotals[x[0]]/23*100)+"%"; i.style.background="var(--"+x[1]+")"; sb.appendChild(i);
+    var s=document.createElement("span");
+    s.innerHTML='<i class="dot" style="background:var(--'+x[1]+')"></i>'+STATUS_LABEL[x[0]]+' <b>'+statusTotals[x[0]]+'</b>';
+    sl.appendChild(s);
+  });
+})();
+
+/* nav tally chart */
+(function(){
+  var rows=[["Chat",3,3],["Tasks",3,3],["Workspace",1,4],["Apps",1,5],["Governance",1,6],
+            ["Connections",4,4],["Upcoming",0,5]];
+  var host=document.getElementById("tally");
+  rows.forEach(function(r){
+    var d=document.createElement("div");
+    d.className="trow"+(r[1]<r[2]?" dead":"");
+    d.innerHTML='<span class="nm">'+r[0]+'</span>'+
+      '<span class="tbar"><i style="width:'+(r[1]/r[2]*100)+'%;background:var(--ok)"></i>'+
+      '<i style="width:'+((r[2]-r[1])/r[2]*100)+'%;background:var(--crit);opacity:.55"></i></span>'+
+      '<span class="ct">'+r[1]+' / '+r[2]+'</span>';
+    host.appendChild(d);
+  });
+})();
+
+/* ───────── expand / collapse ───────── */
+function setOpen(art,open){
+  var btn=art.querySelector(".caphead"), body=art.querySelector(".capbody");
+  btn.setAttribute("aria-expanded",open?"true":"false");
+  body.hidden=!open;
+  art.classList.toggle("open",open);
+}
+capsEl.addEventListener("click",function(e){
+  var btn=e.target.closest(".caphead"); if(!btn)return;
+  var art=btn.closest(".cap");
+  setOpen(art,btn.getAttribute("aria-expanded")!=="true");
+});
+
+var expandBtn=document.getElementById("expandAll");
+expandBtn.addEventListener("click",function(){
+  var visible=Array.prototype.filter.call(capsEl.children,function(a){return !a.hidden;});
+  var anyClosed=visible.some(function(a){return !a.classList.contains("open");});
+  visible.forEach(function(a){setOpen(a,anyClosed);});
+  expandBtn.textContent=anyClosed?"Collapse all":"Expand all";
+});
+
+/* ───────── filtering ───────── */
+var statusSet=new Set(), sevSet=new Set(), query="";
+var qEl=document.getElementById("q"), qclear=document.getElementById("qclear"),
+    countEl=document.getElementById("count"), emptyEl=document.getElementById("empty");
+
+(function buildFilters(){
+  var sf=document.getElementById("statusFilters");
+  ["live","partial","broken","missing"].forEach(function(k){
+    var b=document.createElement("button");
+    b.type="button"; b.className="fchip"; b.setAttribute("aria-pressed","false");
+    b.setAttribute("data-status",k);
+    b.innerHTML=STATUS_LABEL[k]+' <span class="n">'+statusTotals[k]+'</span>';
+    b.addEventListener("click",function(){
+      if(statusSet.has(k)){statusSet.delete(k);b.setAttribute("aria-pressed","false");}
+      else{statusSet.add(k);b.setAttribute("aria-pressed","true");}
+      apply();
+    });
+    sf.appendChild(b);
+  });
+  var vf=document.getElementById("sevFilters");
+  [["c","sc"],["h","sh"],["m","sm"]].forEach(function(x){
+    var k=x[0];
+    var b=document.createElement("button");
+    b.type="button"; b.className="fchip "+x[1]; b.setAttribute("aria-pressed","false");
+    b.setAttribute("data-sev",k);
+    b.innerHTML="Has "+SEV_LABEL[k].toLowerCase()+' <span class="n">'+totals[k]+'</span>';
+    b.addEventListener("click",function(){
+      if(sevSet.has(k)){sevSet.delete(k);b.setAttribute("aria-pressed","false");}
+      else{sevSet.add(k);b.setAttribute("aria-pressed","true");}
+      apply();
+    });
+    vf.appendChild(b);
+  });
+})();
+
+function apply(){
+  var shown=0, searching=query.length>=2;
+  Array.prototype.forEach.call(capsEl.children,function(art,i){
+    var ok=true;
+    if(statusSet.size && !statusSet.has(art.getAttribute("data-status"))) ok=false;
+    if(ok && sevSet.size){
+      var has=art.getAttribute("data-sev").split(" ");
+      ok=Array.from(sevSet).every(function(s){return has.indexOf(s)>=0;});
+    }
+    if(ok && searching) ok=art.__hay.indexOf(query)>=0;
+    art.hidden=!ok;
+    tocEl.children[i].hidden=!ok;
+    if(ok){
+      shown++;
+      if(searching) setOpen(art,true);
+    }
+    /* dim problems that do not match an active severity filter */
+    Array.prototype.forEach.call(art.querySelectorAll(".probs li"),function(li){
+      li.classList.toggle("dim", sevSet.size>0 && !sevSet.has(li.getAttribute("data-s")));
+    });
+  });
+  countEl.innerHTML="Showing <b>"+shown+"</b> of 23";
+  emptyEl.classList.toggle("on",shown===0);
+  qclear.classList.toggle("on",query.length>0);
+  expandBtn.textContent=searching?"Collapse all":"Expand all";
+}
+
+qEl.addEventListener("input",function(){
+  var prev=query;
+  query=qEl.value.trim().toLowerCase();
+  if(prev.length>=2 && query.length<2){
+    Array.prototype.forEach.call(capsEl.children,function(a){setOpen(a,false);});
+  }
+  apply();
+});
+qclear.addEventListener("click",function(){
+  qEl.value=""; query="";
+  Array.prototype.forEach.call(capsEl.children,function(a){setOpen(a,false);});
+  apply(); qEl.focus();
+});
+function resetAll(){
+  statusSet.clear(); sevSet.clear(); query=""; qEl.value="";
+  Array.prototype.forEach.call(document.querySelectorAll(".fchip"),function(b){
+    b.setAttribute("aria-pressed","false");
+  });
+  Array.prototype.forEach.call(capsEl.children,function(a){setOpen(a,false);});
+  apply();
+}
+document.getElementById("resetBtn").addEventListener("click",resetAll);
+document.getElementById("emptyReset").addEventListener("click",resetAll);
+
+/* ───────── table of contents ───────── */
+var toc=document.getElementById("toc"), tocBtn=document.getElementById("tocBtn"),
+    scrim=document.getElementById("scrim");
+function closeToc(focusBack){
+  toc.classList.remove("open"); scrim.classList.remove("on"); scrim.hidden=true;
+  tocBtn.setAttribute("aria-expanded","false");
+  if(focusBack) tocBtn.focus();
+}
+function openToc(){
+  toc.classList.add("open"); scrim.hidden=false;
+  requestAnimationFrame(function(){scrim.classList.add("on");});
+  tocBtn.setAttribute("aria-expanded","true");
+  var first=toc.querySelector(".toclist button:not([hidden])");
+  if(first) first.focus();
+}
+tocBtn.addEventListener("click",function(){
+  if(toc.classList.contains("open")) closeToc(true); else openToc();
+});
+scrim.addEventListener("click",function(){closeToc(true);});
+tocEl.addEventListener("click",function(e){
+  var b=e.target.closest("button[data-t]"); if(!b)return;
+  var art=document.getElementById("cap-"+b.getAttribute("data-t"));
+  setOpen(art,true);
+  if(toc.classList.contains("open")) closeToc(false);
+  art.scrollIntoView({block:"start",behavior:
+    matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+  art.querySelector(".caphead").focus({preventScroll:true});
+});
+
+/* ───────── keyboard ───────── */
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){
+    if(toc.classList.contains("open")){closeToc(true);return;}
+    if(document.activeElement===qEl){
+      if(qEl.value){qEl.value="";query="";
+        Array.prototype.forEach.call(capsEl.children,function(a){setOpen(a,false);});
+        apply();}
+      else qEl.blur();
+      return;
+    }
+  }
+  if(e.key==="/" && !e.metaKey && !e.ctrlKey && !e.altKey){
+    var t=e.target.tagName;
+    if(t!=="INPUT" && t!=="TEXTAREA" && !e.target.isContentEditable){
+      e.preventDefault(); qEl.focus(); qEl.select();
+    }
+  }
+});
+
+apply();
+</script>
+</body></html>

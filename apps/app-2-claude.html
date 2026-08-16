@@ -613,8 +613,11 @@ svg.diagram{display:block;width:100%;height:auto;min-width:420px}
 .field .err{display:none;margin-top:6px;font-size:12px;color:var(--public);align-items:center;gap:6px}
 .field.bad .err{display:flex}
 .field .hint{margin-top:6px;font-size:11.5px;color:var(--tx-3)}
+/* informational, not a validation error — it must not read as one sitting
+   directly under the password field */
 .demonote{display:flex;align-items:center;gap:8px;margin-top:14px;padding:9px 11px;border-radius:10px;
-  background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:12.2px;font-weight:550}
+  background:var(--surface-2);border:1px dashed var(--line-2);color:var(--tx-2);font-size:12.2px}
+.demonote .ic{color:var(--tx-3);flex:none}
 .auth-btn{width:100%;height:46px;margin-top:18px;border-radius:12px;font-size:15px;font-weight:600;
   display:flex;align-items:center;justify-content:center;gap:9px;
   background:var(--accent);border:1px solid var(--accent);color:var(--accent-on)}
@@ -861,6 +864,160 @@ button.lrow:hover{background:var(--surface-2)}
   .vgrid{grid-template-columns:1fr}
   .maillayout{min-height:0}
   .draft textarea{min-height:180px}
+}
+</style>
+<style>
+/* ==========================================================================
+   v3 — skills catalogue, the shared guided stepper, setup checklist.
+   The explainer type does the teaching here, so it gets real editorial care.
+   ========================================================================== */
+
+/* ---------------------- "How skills work" explainer --------------------- */
+.explain{border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden;
+  margin-bottom:20px}
+.explain .eh{display:flex;align-items:center;gap:9px;padding:13px 16px;border-bottom:1px solid var(--line);
+  background:var(--surface-2)}
+.explain .eh b{font-family:var(--serif);font-size:16px;font-weight:600}
+.explain .eh .x{margin-left:auto;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
+  color:var(--tx-3)}
+.explain .eh .x:hover{background:var(--surface-3);color:var(--tx)}
+.esteps{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.estep{padding:18px 18px 20px;position:relative}
+.estep + .estep{border-left:1px solid var(--line)}
+.estep .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:99px;
+  background:var(--accent);color:var(--accent-on);font-family:var(--mono);font-size:11.5px;font-weight:700;
+  margin-bottom:11px}
+.estep h4{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.3;margin-bottom:6px}
+.estep p{font-size:13.2px;line-height:1.62;color:var(--tx-2)}
+.estep .dia{margin-top:13px;height:56px;border:1px solid var(--line);border-radius:10px;
+  background:var(--surface-2);display:grid;place-items:center;overflow:hidden}
+.estep .dia svg{width:100%;height:100%}
+.dia-t{fill:var(--tx-2);font:600 9px var(--mono)}
+.dia-box{fill:var(--surface);stroke:var(--line-2);stroke-width:1}
+.dia-box.acc{fill:var(--accent-dim);stroke:var(--accent)}
+.dia-ln{stroke:var(--tx-3);stroke-width:1.2;fill:none}
+.dia-ar{fill:var(--tx-3)}
+
+/* ---------------------------- skill cards -------------------------------- */
+.filterbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.searchbox{display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:11px;
+  border:1px solid var(--line-2);background:var(--surface);flex:1;min-width:180px}
+.searchbox input{flex:1;min-width:0;border:0;background:none;font-size:14px;color:var(--tx)}
+.searchbox input:focus{outline:none}
+.searchbox .ic{color:var(--tx-3)}
+.fchip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--tx-2);font-size:12.5px;white-space:nowrap}
+.fchip:hover{border-color:var(--tx-3);color:var(--tx)}
+.fchip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);
+  font-weight:600}
+
+.skillcard{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:15px;
+  display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow)}
+.skillcard.on{border-color:var(--private-line)}
+.skillcard .top{display:flex;gap:11px;align-items:flex-start}
+.skillcard .top .t{flex:1;min-width:0}
+.skillcard .top b{display:block;font-size:14.6px;font-weight:650;line-height:1.3}
+.skillcard .top .id{display:block;font-family:var(--mono);font-size:10.5px;color:var(--tx-3);margin-top:3px}
+.skillcard > p{font-size:13.2px;line-height:1.6;color:var(--tx-2)}
+.skillcard .needs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:var(--tx-3)}
+.skillcard .example{border-left:2px solid var(--accent);padding:2px 0 2px 11px;font-size:12.8px;
+  line-height:1.6;color:var(--tx-2);font-style:italic}
+.skillcard .ft{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.skillcard .ft .sp{flex:1}
+.recrow{display:flex;align-items:center;gap:9px;margin:0 0 12px;padding:10px 13px;border-radius:11px;
+  background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:12.8px;
+  font-weight:550}
+
+/* --------------------------- guided stepper ------------------------------ */
+.stepper{width:min(660px,100%);background:var(--surface);border:1px solid var(--line-2);border-radius:18px;
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
+.st-hd{display:flex;align-items:center;gap:11px;padding:15px 18px;border-bottom:1px solid var(--line);flex:none}
+.st-hd .tile{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;
+  background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent)}
+.st-hd .t{flex:1;min-width:0}
+.st-hd h2{font-family:var(--serif);font-size:18px;font-weight:600}
+.st-hd p{font-size:12px;color:var(--tx-3);margin-top:2px}
+/* the numbered rail — always visible, so the user can see how far this goes */
+.st-rail{display:flex;align-items:center;gap:0;padding:14px 18px 0;flex:none;overflow-x:auto}
+.st-rail .sn{display:flex;align-items:center;gap:8px;flex:none}
+.st-rail .bub{width:24px;height:24px;border-radius:99px;display:grid;place-items:center;flex:none;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--tx-3);
+  font-family:var(--mono);font-size:11px;font-weight:700}
+.st-rail .sn.on .bub{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
+.st-rail .sn.done .bub{background:var(--private-dim);border-color:var(--private-line);color:var(--private)}
+.st-rail .lb{font-size:12px;color:var(--tx-3);white-space:nowrap}
+.st-rail .sn.on .lb{color:var(--tx);font-weight:600}
+.st-rail .bar{flex:1;height:1px;background:var(--line-2);margin:0 9px;min-width:14px}
+.st-body{flex:1;overflow-y:auto;padding:18px}
+.st-body h3{font-size:16px;font-weight:650;margin-bottom:5px}
+.st-body > p.lede{font-size:13.2px;color:var(--tx-2);line-height:1.62;margin-bottom:15px}
+.st-ft{display:flex;align-items:center;gap:9px;padding:14px 18px;border-top:1px solid var(--line);
+  background:var(--surface-2);flex:none;flex-wrap:wrap}
+.st-ft .sp{flex:1}
+.st-next{font-size:11.5px;color:var(--tx-3)}
+.routecard{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:14px;
+  border:1px solid var(--line-2);border-radius:13px;background:var(--surface)}
+.routecard + .routecard{margin-top:9px}
+.routecard:hover{border-color:var(--accent);background:var(--surface-2)}
+.routecard .ic{margin-top:2px;color:var(--accent)}
+.routecard b{display:block;font-size:14.2px;font-weight:650}
+.routecard span{display:block;font-size:12.5px;color:var(--tx-3);margin-top:3px;line-height:1.55}
+.routecard .tagm{margin-top:2px}
+
+/* live preview of the skill card being built */
+.preview-wrap{border:1px dashed var(--line-2);border-radius:13px;padding:13px;background:var(--bg-2)}
+.preview-wrap .lb{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:10px}
+.importbox{width:100%;min-height:170px;border:1px solid var(--line-2);border-radius:12px;background:var(--code-bg);
+  color:var(--tx);padding:13px;font-family:var(--mono);font-size:12.2px;line-height:1.65;resize:vertical}
+.importbox:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.parse-err{margin-top:11px;border:1px solid var(--public-line);background:var(--public-dim);border-radius:12px;
+  overflow:hidden}
+.parse-err .hd{display:flex;gap:9px;align-items:center;padding:11px 13px;border-bottom:1px solid var(--line)}
+.parse-err .hd .ic{color:var(--public)}
+.parse-err .hd b{font-size:13.4px;font-weight:650}
+.parse-err .bd{padding:12px 13px;font-size:12.8px;line-height:1.65;color:var(--tx-2)}
+.parse-err code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--line);
+  border-radius:5px;padding:1px 5px}
+.parse-err .where{margin-top:9px;font-family:var(--mono);font-size:11.5px;background:var(--code-bg);
+  border:1px solid var(--line);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:pre;color:var(--tx-2)}
+.parse-err .where .bad{color:var(--public);font-weight:700}
+
+/* test-connection result */
+.testout{border:1px solid var(--line);border-radius:12px;background:var(--code-bg);overflow:hidden;margin-top:12px}
+.testout pre{padding:12px 13px;font-family:var(--mono);font-size:12px;line-height:1.75;color:var(--tx-2);
+  overflow-x:auto}
+.testout .ok{color:var(--private)} .testout .warn{color:var(--public)} .testout .dim{color:var(--tx-3)}
+
+/* --------------------------- setup checklist ----------------------------- */
+.setup{border:1px solid var(--accent);border-radius:16px;background:var(--surface);overflow:hidden;
+  box-shadow:var(--shadow)}
+.setup .sh{display:flex;align-items:center;gap:10px;padding:13px 15px;background:var(--accent-dim);
+  border-bottom:1px solid var(--line)}
+.setup .sh b{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--accent)}
+.setup .sh .prog{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--accent);font-weight:700}
+.setup .sh .x{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--accent)}
+.setup .bar{height:3px;background:var(--surface-3)}
+.setup .bar i{display:block;height:100%;background:var(--accent);transition:width .3s ease}
+.setuprow{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:12px 15px}
+.setuprow + .setuprow{border-top:1px solid var(--line)}
+button.setuprow:hover{background:var(--surface-2)}
+.setuprow .tick{width:22px;height:22px;border-radius:99px;flex:none;display:grid;place-items:center;
+  border:1px solid var(--line-2);color:transparent;margin-top:1px}
+.setuprow.done .tick{background:var(--private-dim);border-color:var(--private-line);color:var(--private)}
+.setuprow .t{flex:1;min-width:0}
+.setuprow .t b{display:block;font-size:13.8px;font-weight:600}
+.setuprow.done .t b{color:var(--tx-3);text-decoration:line-through;text-decoration-color:var(--line-2)}
+.setuprow .t span{display:block;font-size:12.4px;color:var(--tx-2);margin-top:2px;line-height:1.5}
+.setuprow .go{flex:none;color:var(--tx-3);margin-top:3px}
+button.setuprow:hover .go{color:var(--accent)}
+
+@media (max-width:767px){
+  .esteps{grid-template-columns:1fr}
+  .estep + .estep{border-left:0;border-top:1px solid var(--line)}
+  .stepper{width:100%;height:100dvh;max-height:none;border-radius:0;border:0}
+  .st-rail .lb{display:none}
+  .fchip{height:38px}
 }
 </style>
 <style>
@@ -1124,6 +1281,12 @@ button.lrow:hover{background:var(--surface-2)}
   .achip{height:36px}
   .navitem{padding:11px 10px;min-height:44px}
   .mi,.src,.setnav button,.seg button{min-height:44px}
+  /* v2/v3 view controls */
+  .btn,.btn.sm,.fchip,.exchip,.vtab{min-height:44px}
+  .mailitem,.optrow,.scoperow,.routecard,.setuprow,.lrow{min-height:44px}
+  /* the toggle keeps its 42x24 look but gets a 44px-tall hit area */
+  .switch{position:relative}
+  .switch::before{content:"";position:absolute;left:-6px;right:-6px;top:-10px;bottom:-10px}
   .seg button{padding:5px 14px}
   .reason{height:36px}
 
@@ -1429,7 +1592,8 @@ button.lrow:hover{background:var(--surface-2)}
         <svg class="ic sm" aria-hidden="true"><use href="#i-mail"></use></svg><span class="t">Mail</span>
         <span class="cnt" id="navMailCount">4</span></button></li>
       <li><button class="navitem" data-act="view" data-view="connections">
-        <svg class="ic sm" aria-hidden="true"><use href="#i-mcp"></use></svg><span class="t">Connections</span></button></li>
+        <svg class="ic sm" aria-hidden="true"><use href="#i-mcp"></use></svg><span class="t">Connections</span>
+        <span class="cnt" id="navConnCount">10</span></button></li>
       <li><button class="navitem" data-act="view" data-view="agents">
         <svg class="ic sm" aria-hidden="true"><use href="#i-agent"></use></svg><span class="t">Agents</span></button></li>
       <li><button class="navitem" data-act="view" data-view="tasks">
@@ -2323,6 +2487,9 @@ QUARTER        = <span class="s">"2026-Q3"</span>
       <p>Sunday 16 August 2026 · running Private on Magna cluster, Riyadh DC-1</p>
     </div>
 
+    <!-- v3 §4: setup checklist — benefit-first rows, real completion state -->
+    <div id="setupMount"></div>
+
     <!-- A3: chips PRE-FILL an editable draft. Nothing sends. -->
     <div class="chips">
       <button class="pchip" data-act="prefill"
@@ -2852,6 +3019,12 @@ QUARTER        = <span class="s">"2026-Q3"</span>
     not reappear on every login.</p>
   <div class="row"><div class="t"><b>Onboarding tour</b><span id="tourState">Status: dismissed on this device.</span></div>
     <div class="ctl-right"><button class="btn sm primary" data-act="replay-tour">Replay tour</button></div></div>
+  <div class="row"><div class="t"><b>Setup checklist</b><span>Six steps, each stating what it unlocks.
+    It disappears on its own once you finish.</span></div>
+    <div class="ctl-right"><button class="btn sm" data-act="setup-show">Show setup</button></div></div>
+  <div class="row"><div class="t"><b>How skills work</b><span>The three-step explainer on the Skills
+    catalogue — turn one on, ask for it, see what it did.</span></div>
+    <div class="ctl-right"><button class="btn sm" data-act="explain-show">Show me again</button></div></div>
   <div class="row"><div class="t"><b>Keyboard shortcuts</b>
     <span><kbd class="mono">⌘K</kbd> command palette · <kbd class="mono">/</kbd> skills and MCP servers ·
       <kbd class="mono">⇧⏎</kbd> newline · <kbd class="mono">esc</kbd> closes any overlay and returns you to the composer.</span></div>
@@ -3092,6 +3265,26 @@ QUARTER        = <span class="s">"2026-Q3"</span>
     <div class="wiz-body" id="runBody"></div>
     <div class="wiz-ft"><span class="sp"></span>
       <button class="btn" data-act="run-close">Close</button></div>
+  </div>
+</div>
+
+<!-- ============ shared guided stepper (skills + MCP servers) ============= -->
+<div class="scrim center" id="stepScrim" hidden>
+  <div class="stepper" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+    <div class="st-hd">
+      <span class="tile"><svg class="ic" aria-hidden="true" id="stIcon"><use href="#i-skill"></use></svg></span>
+      <span class="t"><h2 id="stTitle">Add a skill</h2><p id="stSub">Step 1 of 4</p></span>
+      <button class="iconbtn" data-act="st-close" aria-label="Close — nothing is saved until the last step">
+        <svg class="ic" aria-hidden="true"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="st-rail" id="stRail" aria-hidden="true"></div>
+    <div class="st-body" id="stBody"></div>
+    <div class="st-ft">
+      <button class="btn" data-act="st-back" id="stBack">Back</button>
+      <span class="sp"></span>
+      <span class="st-next" id="stNextNote"></span>
+      <button class="btn primary" data-act="st-next" id="stNext">Continue</button>
+    </div>
   </div>
 </div>
 
@@ -3446,6 +3639,7 @@ function loadConvo(id){
   if(!c.artifacts){ closeArtifact(); } else { state.artifact = "brief"; state.tab = "preview"; }
   ensureOverflowActions();
   closeDrawer(false);                       /* picking a conversation closes the drawer */
+  renderSetupCard();                        /* the empty state carries the setup checklist */
   scroll.scrollTop = 0;
   input.placeholder = id === "new"
     ? "Ask anything — type / for skills and MCP servers"
@@ -3682,7 +3876,6 @@ function renderSlash(q){
   /* mail tools only exist here once the connector is connected and scoped */
   var servers = MCPS.concat(mailToolsAvailable().map(function(t){ return [t[0], t[1]]; }));
   var mm = servers.filter(function(m){ return (m[0]+m[1]).toLowerCase().indexOf(ql) > -1; });
-  var sk = SKILLS.filter(function(s){ return (s[0]+s[1]).toLowerCase().indexOf(ql) > -1; });
   var html = "";
   if(mm.length){
     html += '<div class="gh">MCP servers <span class="cnt">'+mm.length+' of '+servers.length+
@@ -3696,11 +3889,34 @@ function renderSlash(q){
       '<span>Search your mailbox and draft replies from chat. 6 tools, sending off by default.</span>' +
       '</span><span class="tagm skill">connect</span></button>';
   }
-  if(sk.length){
-    html += '<div class="gh">Skills <span class="cnt">'+sk.length+' of 18</span></div>';
-    sk.forEach(function(s){ html += slashHTML("skill", s[0], s[1]); });
+  /* skills the user has switched on are insertable; the rest show a Turn-on
+     affordance instead of being silently absent (BRIEF-V3 §3.4) */
+  var onSk = SKILL_CAT.filter(function(s){
+    return s.on && (s.name + s.what + s.id).toLowerCase().indexOf(ql) > -1; });
+  var offSk = SKILL_CAT.filter(function(s){
+    return !s.on && (s.name + s.what + s.id).toLowerCase().indexOf(ql) > -1; });
+  if(onSk.length){
+    html += '<div class="gh">Skills <span class="cnt">' + onSk.length + " on</span></div>";
+    onSk.forEach(function(s){
+      html += '<button class="mi" role="option" data-act="slash-pick" data-name="' + s.id + '">' +
+        '<svg class="ic" aria-hidden="true"><use href="#i-skill"></use></svg>' +
+        '<span class="t"><b>' + esc(s.name) + '</b><span>' + esc(s.what) + "</span></span>" +
+        '<span class="tagm skill">/' + esc(s.id) + "</span></button>";
+    });
   }
-  if(!mm.length && !sk.length){
+  if(offSk.length){
+    html += '<div class="gh">Off <span class="cnt">' + offSk.length + " available, not switched on</span></div>";
+    offSk.slice(0,4).forEach(function(s){
+      var ready = skillReady(s);
+      html += '<button class="mi" data-act="' + (ready ? "skill-toggle" : "goto-skills") +
+        '" data-id="' + s.id + '" style="opacity:.72">' +
+        '<svg class="ic" aria-hidden="true"><use href="#i-skill"></use></svg>' +
+        '<span class="t"><b>' + esc(s.name) + '</b><span>' + esc(s.what) + "</span></span>" +
+        '<span class="tagm skill">' + (ready ? "Turn on" : "Connect " + esc(s.needs[0])) + "</span></button>";
+    });
+  }
+  var sk = onSk;
+  if(!html){          /* only when nothing at all was offered, including Connect rows */
     html = '<div class="emptyrow"><b>Nothing matches “'+q+'”</b>' +
       'There are 18 skills and 4 MCP servers installed. Clear the filter to browse them, or ask in plain ' +
       'language — I will pick the right tool myself.</div>';
@@ -4116,7 +4332,7 @@ function doSignIn(){
   btn.innerHTML = markSVG("mg-thinking", "Signing in") + "<span>Signing in…</span>";
   setTimeout(function(){
     btn.disabled = false;
-    btn.innerHTML = '<span id="signInLabel">Sign in</span>';
+    btn.innerHTML = "<span>Sign in</span>";
     V.pendingUser = { email:email, name:"Ahmad Farahat" };
     showAuth("workspace");
   }, 1100);
@@ -4296,7 +4512,18 @@ function viewConnections(){
 
   if(tab === "mcp"){
     var mail = V.mail.connected;
+    var TOOLNAMES = {
+      "sap-po-lookup":"Search purchase orders · Read a PO · Committed spend by vendor · Variance report",
+      "jira-search":"Search issues · Read a board · Draft a ticket · Comment on an issue",
+      "p6-schedule":"List activities · Read total float · Walk the critical path · Model a slip",
+      "confluence":"Search spaces · Read a page · List attachments · Read page history"
+    };
     body =
+      '<div class="emptynote" style="margin-bottom:14px">' +
+        '<svg class="ic" aria-hidden="true"><use href="#i-mcp"></use></svg>' +
+        "<span><strong>An MCP server is a small adapter that lets Magna use one of your systems.</strong> " +
+        "It exposes a named list of tools and nothing beyond them, so you can see exactly what Magna can " +
+        "reach — and revoke it in one click.</span></div>" +
       '<div class="vgrid">' +
       '<div class="gcard"><div class="top">' +
         '<span class="tile ' + (mail ? "ok" : "acc") + '" style="width:36px;height:36px;border-radius:10px;' +
@@ -4305,7 +4532,13 @@ function viewConnections(){
         '<span class="t"><b>Magna Mail</b><span>' + (mail ? esc(V.mail.addr) : "not connected") + "</span></span></div>" +
         "<p>Search your mailbox, summarise a thread and draft replies from any chat. Sending always stops " +
         "for your confirmation.</p>" +
-        '<div class="ft">' + statusPill(mail ? "ok" : "off") +
+        '<p style="font-size:12px;color:var(--tx-3)"><strong style="color:var(--tx-2)">Tools:</strong> ' +
+        "Search mail · Read a message · Draft a reply · Send mail · Look up a contact · Check free/busy</p>" +
+        '<div class="ft">' +
+          (V.mail.provider === "magna" || !mail
+            ? '<span class="pill ok"><span class="dot"></span>on-prem</span>'
+            : '<span class="pill warn"><span class="dot"></span>leaves your network</span>') +
+          statusPill(mail ? "ok" : "off") +
           (mail ? '<span class="pill mono">' + mailToolsAvailable().length + " tools</span>" +
                   '<span class="pill">synced ' + esc(V.mail.sync || "just now") + "</span>" : "") +
           '<span style="flex:1"></span>' +
@@ -4318,12 +4551,16 @@ function viewConnections(){
           '<span class="tile" style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;' +
           'background:var(--surface-2);border:1px solid var(--line);color:var(--tx-2)">' +
           '<svg class="ic" aria-hidden="true"><use href="#i-mcp"></use></svg></span>' +
-          '<span class="t"><b>' + esc(s[0]) + "</b><span>runs on-premises</span></span></div>" +
+          '<span class="t"><b>' + esc(s[0]) + '</b><span class="mono" style="font-size:10.5px">' +
+          esc(s[0]) + "</span></span></div>" +
           "<p>" + esc(s[1]) + "</p>" +
-          '<div class="ft">' + statusPill("ok") + '<span class="pill mono">' +
+          (TOOLNAMES[s[0]] ? '<p style="font-size:12px;color:var(--tx-3)">' +
+            '<strong style="color:var(--tx-2)">Tools:</strong> ' + TOOLNAMES[s[0]] + "</p>" : "") +
+          '<div class="ft"><span class="pill ok"><span class="dot"></span>on-prem</span>' +
+          statusPill("ok") + '<span class="pill mono">' +
           (s[0] === "sap-po-lookup" ? 8 : s[0] === "jira-search" ? 9 : s[0] === "p6-schedule" ? 5 : 4) +
           " tools</span><span style=\"flex:1\"></span>" +
-          '<button class="btn sm" data-act="test-connection" data-name="' + esc(s[0]) + '">Test</button></div></div>';
+          '<button class="btn sm" data-act="test-connection" data-name="' + esc(s[0]) + '">Test connection</button></div></div>';
       }).join("") +
       '<button class="gcard dashed" data-act="add-mcp"><svg class="ic lg" aria-hidden="true">' +
         '<use href="#i-plus"></use></svg><b style="font-size:13.5px">Add an MCP server</b>' +
@@ -4348,19 +4585,7 @@ function viewConnections(){
     }).join("");
   }
 
-  if(tab === "skills"){
-    body = '<div class="vgrid">' + SKILLS.slice(0,9).map(function(s){
-      return '<div class="gcard"><div class="top">' +
-        '<span class="tile" style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;' +
-        'background:var(--surface-2);border:1px solid var(--line);color:var(--tx-2)">' +
-        '<svg class="ic" aria-hidden="true"><use href="#i-skill"></use></svg></span>' +
-        '<span class="t"><b class="mono" style="font-size:13px">' + esc(s[0]) + "</b></span></div>" +
-        "<p>" + esc(s[1]) + "</p></div>";
-    }).join("") + "</div>" +
-    '<div class="emptynote" style="margin-top:14px"><svg class="ic" aria-hidden="true">' +
-      '<use href="#i-info"></use></svg><span>9 of 18 shown. Skills stay off until you call them — type ' +
-      '<code class="mono">/</code> in the composer to see the full list with what each one does.</span></div>';
-  }
+  if(tab === "skills"){ body = viewSkills(); }
 
   if(tab === "channels"){
     body = '<div class="empty-v"><svg class="ic" aria-hidden="true"><use href="#i-msg"></use></svg>' +
@@ -4370,13 +4595,21 @@ function viewConnections(){
       '<button class="btn primary" data-act="add-channel">Connect a channel</button></div>';
   }
 
+  var acts = tab === "skills"
+    ? '<div class="acts"><button class="btn primary" data-act="skill-add">' +
+      '<svg class="ic sm" aria-hidden="true"><use href="#i-plus"></use></svg>Add skill</button>' +
+      '<button class="btn" data-act="explain-show">How skills work</button></div>'
+    : tab === "mcp"
+    ? '<div class="acts"><button class="btn primary" data-act="add-mcp">' +
+      '<svg class="ic sm" aria-hidden="true"><use href="#i-plus"></use></svg>Add server</button></div>'
+    : "";
   return '<div class="vhd"><h2>Connections</h2>' +
     "<p>Everything MagnaVERSE can reach. Every item here works — nothing on this page is a placeholder " +
-    "for something that ships later.</p></div>" +
+    "for something that ships later.</p>" + acts + "</div>" +
     '<div class="vtabs" role="tablist">' +
       vtab("connections","knowledge","Knowledge & systems", CONNECTORS.length) +
-      vtab("connections","skills","Skills", 18) +
-      vtab("connections","mcp","Tools & MCP", MCPS.length + 1) +
+      vtab("connections","skills","Skills", skillsOn() + " on") +
+      vtab("connections","mcp","Tools & MCP", MCPS.length + (V.mail.connected ? 1 : 0)) +
       vtab("connections","channels","Channels", 0) +
     "</div>" + body;
 }
@@ -4661,6 +4894,7 @@ function wizNext(){
     saveMail();
     logActivity("Connected Magna Mail", "magna-mail", "ok");
     refreshMailEverywhere();
+    markSetup("mail");
     V.wizStep = 5; wizRender();
     toast("Magna Mail connected · " + mailToolsAvailable().length + " tools");
     return;
@@ -4678,10 +4912,17 @@ function disconnectMail(){
   if(V.view === "mail" || V.view === "connections") renderView();
   toast("Magna Mail disconnected — the index was deleted with it");
 }
+/* §3.4 — connecting must visibly change the app, not just a status pill */
 function refreshMailEverywhere(){
   $("#navMailCount").textContent = V.mail.connected
     ? String(INBOX.filter(function(m){ return m.unread; }).length) : "";
   $('[data-view="mail"]').title = V.mail.connected ? "" : "Not connected";
+  /* connection count = live systems + MCP servers + the mail connector */
+  var n = CONNECTORS.filter(function(c){ return c.status === "ok"; }).length +
+          MCPS.length + (V.mail.connected ? 1 : 0);
+  $("#navConnCount").textContent = String(n);
+  renderSetupCard();
+  if(V.view === "connections" || V.view === "mail") renderView();
 }
 
 /* ------------------------------------------- email MCP: draft & send ---- */
@@ -4898,7 +5139,8 @@ function mailAnswer(query){
       '<span class="chip acc">magna-mail</span></div>' +
     '<button class="reason" data-act="toggle-reason" aria-expanded="false">' +
       '<svg class="ic sm chev" aria-hidden="true"><use href="#i-chev"></use></svg>' +
-      "Thought for 3s · ran magna-mail.search · " + hits.length + " messages matched</button>" +
+      "Thought for 3s · ran magna-mail.search · " + hits.length +
+      (hits.length === 1 ? " message matched" : " messages matched") + "</button>" +
     '<div class="reason-body" hidden><ol>' +
       '<li><span class="st"></span><span>Asked your permission to use the mail tool</span><span class="ms">—</span></li>' +
       '<li><span class="st"></span><span>Ran <code class="mono">magna-mail.search</code> against ' +
@@ -5078,9 +5320,11 @@ function handleV2(a, el, e){
     toast(ag.name + (ag.enabled ? " enabled" : " paused"));
     return true; }
   case "agent-template":
+    markSetup("agent");
     toast('"' + el.dataset.name + '" loaded — every field is editable before you save');
     return true;
   case "agent-create":
+    markSetup("agent");
     toast("Creation is a four-step flow: identity, access preset, autonomy, then a test run");
     return true;
   case "sched-toggle": {
@@ -5099,21 +5343,678 @@ function handleV2(a, el, e){
   case "test-connection":
     toast("Reaching " + el.dataset.name + "… discovered tools, health OK, latency 41 ms");
     return true;
-  case "add-mcp":
-    toast("Add server: catalogue or a custom URL, then a test that discovers the tool list");
-    return true;
+  case "add-mcp": openServerStepper(); return true;
   case "add-channel":
     toast("Channels post an agent's output to Teams, Slack or email on a schedule");
     return true;
   case "kb-upload":
+    markSetup("knowledge");
     toast("Upload: files are chunked and embedded on-prem — nothing is sent out to be indexed");
     return true;
   case "kb-connect":
     toast("Connect a shared drive to close the three gaps flagged in this list");
     return true;
+  /* ---- v3: skills catalogue ---- */
+  case "skill-cat":   SKILL_FILTER.cat = el.dataset.cat; renderView(); return true;
+  case "skill-state": SKILL_FILTER.state = el.dataset.state; renderView(); return true;
+  case "skill-search": return true;                     /* handled on input */
+  case "skill-toggle": {
+    var sk = SKILL_CAT.filter(function(x){ return x.id === el.dataset.id; })[0];
+    if(!skillReady(sk)){ toast("Connect " + sk.needs[0] + " first — this skill cannot run without it"); return true; }
+    sk.on = !sk.on;
+    el.setAttribute("aria-checked", sk.on ? "true" : "false");
+    if(sk.on) markSetup("skill");
+    renderView();
+    toast(sk.name + (sk.on ? " is on — it is in the / menu now" : " turned off"));
+    return true; }
+  case "skill-try": {
+    var st2 = SKILL_CAT.filter(function(x){ return x.id === el.dataset.id; })[0];
+    setView("chat");
+    prefill(st2.example);
+    $("#draftText").textContent = "Example from " + st2.name + " — edit it, then press Enter. Nothing sent.";
+    return true; }
+  case "skill-add": openSkillStepper(); return true;
+  case "explain-hide": LS.set("mv2.skillsExplainer","1"); renderView(); return true;
+  case "explain-show": LS.set("mv2.skillsExplainer","0"); closeSettings();
+    V.tab.connections = "skills"; setView("connections"); return true;
+
+  /* ---- v3: shared stepper ---- */
+  case "st-close": closeStepper(); return true;
+  case "st-back": if(ST && ST.i > 0){ ST.i--; stRender(); } return true;
+  case "st-next": stNext(); return true;
+  case "st-route":
+    ST.data.route = el.dataset.route;
+    $$('[data-act="st-route"]').forEach(function(r){ r.style.borderColor = ""; });
+    el.style.borderColor = "var(--accent)";
+    $("#stNextNote").textContent = "";
+    return true;
+  case "st-field": return true;                          /* handled on input */
+  case "st-use": {
+    var n2 = el.dataset.name, ix = ST.data.uses.indexOf(n2);
+    if(ix > -1) ST.data.uses.splice(ix,1); else ST.data.uses.push(n2);
+    el.setAttribute("aria-checked", ix > -1 ? "false" : "true");
+    return true; }
+  case "st-trigger":
+    ST.data.trigger = el.dataset.t;
+    $$('[data-act="st-trigger"]').forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.t === ST.data.trigger ? "true" : "false"); });
+    return true;
+  case "st-transport":
+    ST.data.transport = el.dataset.t; ST.data.tested = false;
+    $$('[data-act="st-transport"]').forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.t === ST.data.transport ? "true" : "false"); });
+    return true;
+  case "st-auth":
+    ST.data.auth = el.dataset.t; ST.data.tested = false;
+    $$('[data-act="st-auth"]').forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.t === ST.data.auth ? "true" : "false"); });
+    return true;
+  case "st-scope": {
+    var sc2 = el.dataset.s;
+    if(sc2 === "read"){ toast("Read access is required for any MCP server"); return true; }
+    ST.data.scopes[sc2] = !ST.data.scopes[sc2];
+    el.setAttribute("aria-checked", ST.data.scopes[sc2] ? "true" : "false");
+    return true; }
+  case "st-validate": validateImport(); return true;
+  case "st-loadbad": $("#impBox").value = BROKEN_SKILL; ST.data.importText = BROKEN_SKILL;
+    ST.data.parsed = false; validateImport(); return true;
+  case "st-import": return true;
+
+  /* ---- v3: setup checklist ---- */
+  case "setup-hide": LS.set("mv2.setupHidden","1"); renderSetupCard(); return true;
+  case "setup-show": LS.set("mv2.setupHidden","0"); closeSettings();
+    setView("chat"); loadConvo("new"); return true;
+  case "goto-skills": V.tab.connections = "skills"; setView("connections"); return true;
+  case "goto-knowledge": setView("knowledge"); return true;
+  case "goto-agents": setView("agents"); return true;
+
   case "noop": return true;
   }
   return false;
+}
+
+/* ======================================================================== */
+/* v3 — skills catalogue, the shared stepper, setup checklist              */
+/* ======================================================================== */
+
+/* Plain name first, internal id second — never the reverse. */
+var SKILL_CAT = [
+  { id:"hse-digest", name:"Daily HSE digest", cat:"HSE", on:true, auto:true,
+    what:"Pulls the week's incidents and near-misses from the HR system and writes a summary by site.",
+    needs:["HR system","Company Knowledge"],
+    example:"Summarise this week's HSE incidents for the steering pack." },
+  { id:"po-variance-scan", name:"Purchase-order variance scan", cat:"Procurement", on:true, auto:true,
+    what:"Finds purchase orders that moved beyond a threshold and names the stated reason for each.",
+    needs:["SAP S/4HANA"],
+    example:"Which POs moved more than SAR 250,000 this month, and why?" },
+  { id:"jira-ticket-definer", name:"Write a proper Jira ticket", cat:"Engineering", on:true, auto:false,
+    what:"Turns a loose request into a ticket with acceptance criteria, then waits for your approval.",
+    needs:["Jira"],
+    example:"Turn the HV access control problem into a ticket with acceptance criteria." },
+  { id:"schedule-slip-model", name:"Model a schedule slip", cat:"Engineering", on:true, auto:false,
+    what:"Applies a delay to a Primavera chain, re-walks total float and names what goes critical.",
+    needs:["Primavera P6"],
+    example:"Model a 14-day slip on Package 4 steel and show me what goes critical." },
+  { id:"contract-clause-diff", name:"Compare two contract revisions", cat:"Procurement", on:false, auto:false,
+    what:"Compares contracts clause by clause in Arabic and English and lists exactly what changed.",
+    needs:["Company Knowledge"],
+    example:"Compare amendment 3 against the signed Al-Rashid contract, clause by clause." },
+  { id:"vendor-prequal-check", name:"Screen a vendor", cat:"Procurement", on:false, auto:false,
+    what:"Checks a vendor against the pre-qualification register and flags expiring certification.",
+    needs:["Company Knowledge","SAP S/4HANA"],
+    example:"Screen Gulf Mechanical Contracting against the pre-qualification register." },
+  { id:"invoice-3way-match", name:"Three-way invoice match", cat:"Procurement", on:false, auto:false,
+    what:"Matches invoice, goods receipt and purchase order, then lists only the breaks.",
+    needs:["SAP S/4HANA"],
+    example:"Run a three-way match on August invoices and show me the breaks." },
+  { id:"knowledge-gap-audit", name:"Find audit evidence gaps", cat:"Reporting", on:false, auto:false,
+    what:"Lists the evidence an auditor will ask for that is not in Company Knowledge.",
+    needs:["Company Knowledge"],
+    example:"What will the ISO 9001 auditors ask for that we cannot produce?" },
+  { id:"cost-report-builder", name:"Build the monthly cost report", cat:"Reporting", on:false, auto:false,
+    what:"Assembles the cost report from SAP commitments and P6 earned value.",
+    needs:["SAP S/4HANA","Primavera P6"],
+    example:"Build the August cost report for the DC-2 programme." },
+  { id:"meeting-minutes", name:"Minutes from a transcript", cat:"Admin", on:false, auto:false,
+    what:"Turns a meeting transcript into minutes with owners and dates against each action.",
+    needs:[], example:"Turn Thursday's progress call transcript into minutes with owners." },
+  { id:"heartbeat", name:"Standing daily check", cat:"Admin", on:true, auto:true,
+    what:"Runs a standing checklist across connected systems each morning and posts a digest.",
+    needs:["SAP S/4HANA","Jira"], example:"What changed across my systems overnight?" },
+  { id:"policy-lookup", name:"Answer from policy", cat:"Admin", on:false, auto:false,
+    what:"Answers a policy question with the exact clause and revision it came from.",
+    needs:["Company Knowledge"], example:"What is our escalation threshold for supplier concentration?" }
+];
+var SKILL_FILTER = { q:"", cat:"All", state:"All" };
+
+function connectedSystems(){
+  var names = CONNECTORS.filter(function(c){ return c.status === "ok"; })
+                        .map(function(c){ return c.name; });
+  if(V.mail.connected) names.push("Magna Mail");
+  return names;
+}
+function skillReady(s){
+  var have = connectedSystems();
+  return s.needs.every(function(n){ return have.indexOf(n) > -1; });
+}
+function skillsOn(){ return SKILL_CAT.filter(function(s){ return s.on; }).length; }
+
+/* ----------------------------------------------- skills catalogue view --- */
+function viewSkills(){
+  var explainer = LS.get("mv2.skillsExplainer","0") === "1" ? "" : (
+    '<div class="explain"><div class="eh">' +
+      '<svg class="ic" aria-hidden="true" style="color:var(--accent)"><use href="#i-info"></use></svg>' +
+      "<b>How skills work</b>" +
+      '<button class="x" data-act="explain-hide" aria-label="Hide explainer">' +
+      '<svg class="ic sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>' +
+    '<div class="esteps">' +
+      '<div class="estep"><span class="n">1</span><h4>Turn one on</h4>' +
+        "<p>A skill is a short, repeatable procedure Magna already knows how to run. Switching it on " +
+        "makes it available — it does not run anything yet.</p>" +
+        '<div class="dia"><svg viewBox="0 0 220 56" aria-hidden="true">' +
+          '<rect class="dia-box" x="18" y="16" width="120" height="24" rx="7"/>' +
+          '<text class="dia-t" x="30" y="31">Daily HSE digest</text>' +
+          '<rect class="dia-box acc" x="152" y="18" width="42" height="20" rx="10"/>' +
+          '<text class="dia-t" x="166" y="31">ON</text></svg></div></div>' +
+      '<div class="estep"><span class="n">2</span><h4>Ask for it, or type /</h4>' +
+        "<p>Ask in your own words and Magna picks the right skill. Or type <code>/</code> in the composer " +
+        "and choose it by name — the same list, when you want to be explicit.</p>" +
+        '<div class="dia"><svg viewBox="0 0 220 56" aria-hidden="true">' +
+          '<rect class="dia-box" x="14" y="14" width="86" height="28" rx="8"/>' +
+          '<text class="dia-t" x="24" y="31">/hse-digest</text>' +
+          '<path class="dia-ln" d="M104 28 H132" marker-end=""/>' +
+          '<path class="dia-ar" d="M132 24 L140 28 L132 32 Z"/>' +
+          '<rect class="dia-box acc" x="146" y="14" width="60" height="28" rx="8"/>' +
+          '<text class="dia-t" x="158" y="31">run it</text></svg></div></div>' +
+      '<div class="estep"><span class="n">3</span><h4>See what it did</h4>' +
+        "<p>Every run shows one quiet line — which systems it touched and how long it took — that expands " +
+        "if you want the detail. Nothing happens invisibly.</p>" +
+        '<div class="dia"><svg viewBox="0 0 220 56" aria-hidden="true">' +
+          '<rect class="dia-box" x="14" y="12" width="192" height="14" rx="6"/>' +
+          '<text class="dia-t" x="22" y="22">ran hse-digest · 2 systems · 4.9s</text>' +
+          '<rect class="dia-box acc" x="14" y="32" width="192" height="14" rx="6"/>' +
+          '<text class="dia-t" x="22" y="42">2 recordables, 11 near-misses</text></svg></div></div>' +
+    "</div></div>");
+
+  var cats = ["All","Procurement","Engineering","HSE","Reporting","Admin"];
+  var filters =
+    '<div class="filterbar">' +
+      '<span class="searchbox"><svg class="ic sm" aria-hidden="true"><use href="#i-search"></use></svg>' +
+      '<label class="sr" for="skillQ">Search skills</label>' +
+      '<input id="skillQ" type="text" placeholder="Search by what it does, or by id…" value="' +
+      esc(SKILL_FILTER.q) + '" data-act="skill-search"></span>' +
+    "</div>" +
+    '<div class="filterbar">' +
+      cats.map(function(c){
+        return '<button class="fchip" data-act="skill-cat" data-cat="' + c + '" aria-pressed="' +
+          (SKILL_FILTER.cat === c) + '">' + c + "</button>"; }).join("") +
+      '<span style="flex:1"></span>' +
+      ["All","On","Ready to use","Needs a connection"].map(function(s){
+        return '<button class="fchip" data-act="skill-state" data-state="' + s + '" aria-pressed="' +
+          (SKILL_FILTER.state === s) + '">' + s + "</button>"; }).join("") +
+    "</div>";
+
+  var q = SKILL_FILTER.q.toLowerCase();
+  var list = SKILL_CAT.filter(function(s){
+    if(SKILL_FILTER.cat !== "All" && s.cat !== SKILL_FILTER.cat) return false;
+    if(SKILL_FILTER.state === "On" && !s.on) return false;
+    if(SKILL_FILTER.state === "Ready to use" && !skillReady(s)) return false;
+    if(SKILL_FILTER.state === "Needs a connection" && skillReady(s)) return false;
+    if(q && (s.name + " " + s.what + " " + s.id).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+
+  var cards = list.length ? '<div class="vgrid">' + list.map(function(s){
+    var ready = skillReady(s);
+    var missing = s.needs.filter(function(n){ return connectedSystems().indexOf(n) < 0; });
+    return '<div class="skillcard' + (s.on ? " on" : "") + '">' +
+      '<div class="top"><span class="t"><b>' + esc(s.name) + "</b>" +
+        '<span class="id">' + esc(s.id) + "</span></span>" +
+        '<button class="switch" data-act="skill-toggle" data-id="' + s.id + '" role="switch" aria-checked="' +
+        s.on + '" aria-label="Turn on ' + esc(s.name) + '"' + (ready ? "" : " disabled") + "></button></div>" +
+      "<p>" + esc(s.what) + "</p>" +
+      '<div class="needs">' + (s.needs.length
+        ? "Needs: " + s.needs.map(function(n){
+            return connectedSystems().indexOf(n) > -1
+              ? '<span class="pill ok"><span class="dot"></span>' + esc(n) + "</span>"
+              : '<span class="pill warn"><span class="dot"></span>' + esc(n) + " — not connected</span>"; }).join("")
+        : '<span class="pill ok"><span class="dot"></span>No connection needed</span>') + "</div>" +
+      '<p class="example">“' + esc(s.example) + "”</p>" +
+      '<div class="ft">' +
+        '<span class="pill' + (s.on ? " ok" : " off") + '"><span class="dot"></span>' +
+          (s.on ? (s.auto ? "On · Auto" : "On") : "Off") + "</span>" +
+        '<span class="pill">' + esc(s.cat) + "</span>" +
+        '<span class="sp"></span>' +
+        (ready
+          ? '<button class="btn sm" data-act="skill-try" data-id="' + s.id + '">Try it</button>'
+          : '<button class="btn sm" data-act="view" data-view="connections">Connect ' +
+            esc(missing[0]) + "</button>") +
+      "</div></div>";
+  }).join("") + "</div>"
+  : '<div class="empty-v"><svg class="ic" aria-hidden="true"><use href="#i-skill"></use></svg>' +
+    "<b>No skill matches that</b><p>Twelve skills are installed across procurement, engineering, HSE, " +
+    "reporting and admin. Clear the filters to browse them all, or describe what you want and build it " +
+    "as a new skill.</p>" +
+    '<button class="btn primary" data-act="skill-add">Build a skill for that</button></div>';
+
+  return explainer +
+    '<div class="recrow"><svg class="ic sm" aria-hidden="true"><use href="#i-sparkle"></use></svg>' +
+    "Recommended for a procurement lead: <strong>Purchase-order variance scan</strong>, " +
+    "<strong>Screen a vendor</strong> and <strong>Compare two contract revisions</strong>.</div>" +
+    filters + cards;
+}
+
+/* ============================ shared stepper ============================= */
+var ST = null;
+function openStepper(cfg){
+  ST = cfg; ST.i = 0; ST.data = ST.data || {};
+  closeSlash(false); closeMenus();
+  $("#stepScrim").hidden = false;
+  $("#stTitle").textContent = cfg.title;
+  $("#stIcon").innerHTML = '<use href="#' + cfg.icon + '"></use>';
+  stRender();
+}
+function closeStepper(){
+  $("#stepScrim").hidden = true; ST = null;
+  if(!isMobile()) input.focus();
+}
+function stRender(){
+  var step = ST.steps[ST.i];
+  $("#stSub").textContent = "Step " + (ST.i + 1) + " of " + ST.steps.length + " · " + step.sub;
+  $("#stRail").innerHTML = ST.steps.map(function(s, ix){
+    return '<span class="sn ' + (ix === ST.i ? "on" : ix < ST.i ? "done" : "") + '">' +
+      '<span class="bub">' + (ix < ST.i ? "✓" : ix + 1) + "</span>" +
+      '<span class="lb">' + esc(s.label) + "</span></span>" +
+      (ix < ST.steps.length - 1 ? '<span class="bar"></span>' : "");
+  }).join("");
+  $("#stBody").innerHTML = step.render();
+  $("#stBody").scrollTop = 0;
+  $("#stBack").hidden = ST.i === 0;
+  $("#stNext").textContent = step.cta || "Continue";
+  $("#stNext").hidden = !!step.hideNext;
+  $("#stNextNote").textContent = step.note || "";
+}
+function stNext(){
+  var step = ST.steps[ST.i];
+  if(step.validate && !step.validate()) return;
+  if(step.commit) step.commit();
+  if(ST.i === ST.steps.length - 1){ if(ST.finish) ST.finish(); closeStepper(); return; }
+  ST.i++; stRender();
+}
+
+/* ------------------------------------------------ add-a-skill stepper --- */
+var BROKEN_SKILL = '{\n  "name": "elon-musk-perspective-en",\n  "description": "Answer in the voice of\n' +
+  '  "triggers": ["opinion", "hot take"],\n  "tools": [ "web_search" ]\n}';
+function openSkillStepper(){
+  openStepper({
+    title:"Add a skill", icon:"i-skill",
+    data:{ route:null, name:"", what:"", uses:[], trigger:"on-request", importText:"", parsed:false },
+    steps:[
+      { label:"Choose", sub:"pick where the skill comes from", cta:"Continue",
+        render:function(){
+          return '<h3>Where should this skill come from?</h3>' +
+            '<p class="lede">Most people never leave the first option. The other two exist for when the ' +
+            "catalogue does not already have what you need.</p>" +
+            '<button class="routecard" data-act="st-route" data-route="catalogue">' +
+              '<svg class="ic lg" aria-hidden="true"><use href="#i-book"></use></svg>' +
+              "<span><b>From the catalogue</b><span>Twelve ready-made skills. One click to turn one on — " +
+              "this is the common path.</span></span></button>" +
+            '<button class="routecard" data-act="st-route" data-route="template">' +
+              '<svg class="ic lg" aria-hidden="true"><use href="#i-sparkle"></use></svg>' +
+              "<span><b>Describe a new one</b><span>Say what it should do in plain language. We show you " +
+              "the resulting skill card as you type.</span></span></button>" +
+            '<button class="routecard" data-act="st-route" data-route="import">' +
+              '<svg class="ic lg" aria-hidden="true"><use href="#i-code"></use></svg>' +
+              "<span><b>Import a definition</b><span>Paste a skill file from another workspace. We validate " +
+              "it and tell you plainly if it is broken.</span></span></button>";
+        },
+        validate:function(){
+          if(!ST.data.route){ $("#stNextNote").textContent = "Pick one to continue"; return false; }
+          if(ST.data.route === "catalogue"){
+            closeStepper(); V.tab.connections = "skills"; setView("connections");
+            toast("Browse the catalogue and switch on whatever you need");
+            return false;
+          }
+          return true;
+        } },
+      { label:"Configure", sub:"name it and say what it does", cta:"Continue",
+        render:function(){
+          var d = ST.data;
+          if(d.route === "import"){
+            return "<h3>Paste a skill definition</h3>" +
+              '<p class="lede">We parse it before it can appear anywhere. A skill that does not parse never ' +
+              "reaches the catalogue — it stops here, with the reason.</p>" +
+              '<label class="sr" for="impBox">Skill definition</label>' +
+              '<textarea class="importbox" id="impBox" data-act="st-import" spellcheck="false">' +
+              esc(d.importText || BROKEN_SKILL) + "</textarea>" +
+              '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
+              '<button class="btn sm" data-act="st-validate">Validate</button>' +
+              '<button class="btn sm" data-act="st-loadbad">Load the broken example</button></div>' +
+              '<div id="impResult"></div>';
+          }
+          return "<h3>What should this skill do?</h3>" +
+            '<p class="lede">Write it the way you would explain it to a new colleague. The card on the right ' +
+            "is what everyone else will see.</p>" +
+            '<div class="field" style="margin-top:0"><label for="skName">Name it in plain language</label>' +
+            '<input id="skName" data-act="st-field" data-f="name" value="' + esc(d.name) +
+            '" placeholder="Weekly vendor concentration check"></div>' +
+            '<div class="field"><label for="skWhat">What does it do?</label>' +
+            '<input id="skWhat" data-act="st-field" data-f="what" value="' + esc(d.what) +
+            '" placeholder="Works out the Herfindahl index from SAP committed spend and flags anything above the policy line."></div>' +
+            '<div class="preview-wrap" style="margin-top:16px"><div class="lb">Live preview</div>' +
+            '<div class="skillcard" id="skPreview">' + skillPreview(d) + "</div></div>";
+        },
+        validate:function(){
+          var d = ST.data;
+          if(d.route === "import"){
+            if(!d.parsed){
+              $("#stNextNote").textContent = $(".parse-err")
+                ? "Fix the definition to continue" : "Validate the definition first";
+              return false;
+            }
+            return true;
+          }
+          if(!d.name.trim() || !d.what.trim()){
+            $("#stNextNote").textContent = "Give it a name and a description"; return false;
+          }
+          return true;
+        } },
+      { label:"Permissions", sub:"what it may reach, and when it fires", cta:"Continue",
+        render:function(){
+          var d = ST.data;
+          return "<h3>What may it use, and when does it run?</h3>" +
+            '<p class="lede">Read access is on. Anything that writes, sends or deletes stays off until you ' +
+            "turn it on — and still asks you at the moment it happens.</p>" +
+            CONNECTORS.filter(function(c){ return c.status === "ok"; }).map(function(c){
+              return '<div class="scoperow"><div class="t"><b>' + esc(c.name) + "</b>" +
+                "<span>" + esc(c.value) + "</span></div>" +
+                '<button class="switch" data-act="st-use" data-name="' + esc(c.name) +
+                '" role="switch" aria-checked="' + (d.uses.indexOf(c.name) > -1) +
+                '" aria-label="Allow ' + esc(c.name) + '"></button></div>';
+            }).join("") +
+            '<h3 style="margin-top:20px;font-size:14.5px">When should it fire?</h3>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">' +
+            [["on-request","Only when asked"],["scheduled","On a schedule"],["agent","When an agent calls it"]]
+              .map(function(t){
+                return '<button class="fchip" data-act="st-trigger" data-t="' + t[0] + '" aria-pressed="' +
+                  (d.trigger === t[0]) + '">' + t[1] + "</button>"; }).join("") + "</div>";
+        } },
+      { label:"Done", sub:"and how to use it", cta:"Turn it on", hideNext:false,
+        render:function(){
+          var d = ST.data;
+          var nm = d.route === "import" ? "Contract clause explainer" : (d.name || "New skill");
+          var id = d.route === "import" ? "contract-clause-explainer" : slugify(nm);
+          return '<div style="text-align:center;padding:6px 0 2px">' +
+            '<span style="display:inline-grid;place-items:center;width:50px;height:50px;border-radius:15px;' +
+            'background:var(--private-dim);border:1px solid var(--private-line);color:var(--private);' +
+            'margin-bottom:12px"><svg class="ic lg" aria-hidden="true"><use href="#i-check"></use></svg></span>' +
+            '<h3 style="font-family:var(--serif);font-size:19px">' + esc(nm) + " is ready</h3>" +
+            '<p class="lede" style="margin:6px auto 0;max-width:46ch">It is off until you press the button ' +
+            "below — nothing has changed yet.</p></div>" +
+            '<div class="lcard" style="margin-top:14px"><div class="lrow">' +
+              '<span class="tile ok"><svg class="ic" aria-hidden="true"><use href="#i-skill"></use></svg></span>' +
+              '<span class="t"><b>How to use it</b>' +
+              "<p>Ask for it in your own words, or type <code class=\"mono\">/" + esc(id) +
+              "</code> in the composer. Every run shows what it touched.</p>" +
+              '<span class="meta"><span class="pill mono">/' + esc(id) + "</span>" +
+              (d.uses.length ? d.uses.map(function(u){
+                return '<span class="pill ok"><span class="dot"></span>' + esc(u) + "</span>"; }).join("")
+                : '<span class="pill">no connections needed</span>') + "</span></span></div></div>";
+        },
+        commit:function(){
+          var d = ST.data;
+          var nm = d.route === "import" ? "Contract clause explainer" : (d.name || "New skill");
+          SKILL_CAT.unshift({ id:slugify(nm), name:nm, cat:"Procurement", on:true, auto:false,
+            what:d.what || "Explains a contract clause in plain language and cites the revision it came from.",
+            needs:d.uses.slice(), example:"Use " + nm.toLowerCase() + " on the Al-Rashid amendment." });
+          markSetup("skill");
+          logActivity("Added skill " + slugify(nm), "skills", "ok");
+        } }
+    ],
+    finish:function(){
+      refreshMailEverywhere();
+      V.tab.connections = "skills"; setView("connections");
+      toast("Skill added and switched on — it is in the / menu now");
+    }
+  });
+}
+function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,34); }
+function skillPreview(d){
+  return '<div class="top"><span class="t"><b>' + esc(d.name || "Name your skill") + "</b>" +
+    '<span class="id">' + esc(d.name ? slugify(d.name) : "id-generated-from-the-name") + "</span></span></div>" +
+    "<p>" + esc(d.what || "One sentence describing what it does, in language a colleague understands.") + "</p>" +
+    '<div class="ft"><span class="pill off"><span class="dot"></span>Off until you finish</span></div>';
+}
+
+/* ------------------------------------------- add-an-MCP-server stepper -- */
+function openServerStepper(){
+  openStepper({
+    title:"Add an MCP server", icon:"i-mcp",
+    data:{ route:null, name:"", url:"", transport:"HTTP", auth:"OAuth", tested:false, scopes:{read:true, write:false} },
+    steps:[
+      { label:"Choose", sub:"catalogue, custom, or import",
+        render:function(){
+          return "<h3>What are you connecting?</h3>" +
+            '<p class="lede">An <strong>MCP server</strong> is a small adapter that lets Magna use one of your ' +
+            "systems — it exposes a named set of tools, and nothing beyond them.</p>" +
+            '<button class="routecard" data-act="st-route" data-route="catalogue">' +
+              '<svg class="ic lg" aria-hidden="true"><use href="#i-book"></use></svg>' +
+              "<span><b>From the catalogue</b><span>Magna Mail, Jira, SAP, Primavera and Confluence — " +
+              "pre-built and already approved by your administrator.</span></span></button>" +
+            '<button class="routecard" data-act="st-route" data-route="custom">' +
+              '<svg class="ic lg" aria-hidden="true"><use href="#i-link"></use></svg>' +
+              "<span><b>A custom server</b><span>Your own endpoint. Name, URL, transport and authentication — " +
+              "then we test it and show you the tools it exposes.</span></span></button>" +
+            '<button class="routecard" data-act="st-route" data-route="import">' +
+              '<svg class="ic lg" aria-hidden="true"><use href="#i-code"></use></svg>' +
+              "<span><b>Import a config</b><span>Paste a server config from another workspace.</span></span>" +
+              "</button>";
+        },
+        validate:function(){
+          if(!ST.data.route){ $("#stNextNote").textContent = "Pick one to continue"; return false; }
+          if(ST.data.route === "catalogue"){
+            closeStepper(); V.tab.connections = "mcp"; setView("connections");
+            toast("Pick a server below and press Connect");
+            return false;
+          }
+          return true;
+        } },
+      { label:"Configure", sub:"endpoint and authentication", cta:"Test connection",
+        render:function(){
+          var d = ST.data;
+          return "<h3>Point us at the server</h3>" +
+            '<p class="lede">No password is entered here. If the server needs an account, you approve it in ' +
+            "that provider's own sign-in window.</p>" +
+            '<div class="field" style="margin-top:0"><label for="svName">Name it</label>' +
+            '<input id="svName" data-act="st-field" data-f="name" value="' + esc(d.name) +
+            '" placeholder="Salesforce opportunities"></div>' +
+            '<div class="field"><label for="svUrl">Server URL</label>' +
+            '<input id="svUrl" data-act="st-field" data-f="url" value="' + esc(d.url) +
+            '" placeholder="https://mcp.internal.magna.ai/salesforce" spellcheck="false"></div>' +
+            '<div class="field"><label>Transport</label><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            ["HTTP","SSE","stdio"].map(function(t){
+              return '<button class="fchip" data-act="st-transport" data-t="' + t + '" aria-pressed="' +
+                (d.transport === t) + '">' + t + "</button>"; }).join("") + "</div></div>" +
+            '<div class="field"><label>Authentication</label><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            ["None","OAuth","Bearer token","Header"].map(function(t){
+              return '<button class="fchip" data-act="st-auth" data-t="' + t + '" aria-pressed="' +
+                (d.auth === t) + '">' + t + "</button>"; }).join("") + "</div></div>" +
+            '<div id="testOut"></div>';
+        },
+        validate:function(){
+          var d = ST.data;
+          if(!d.name.trim() || !d.url.trim()){
+            $("#stNextNote").textContent = "Name it and give it a URL"; return false;
+          }
+          if(!d.tested){ runServerTest(); return false; }
+          return true;
+        } },
+      { label:"Permissions", sub:"what the tools may do",
+        render:function(){
+          var d = ST.data;
+          return "<h3>What may these tools do?</h3>" +
+            '<p class="lede">Six tools were discovered. Reading is on; anything that writes stays off until ' +
+            "you allow it, and still asks at the moment it runs.</p>" +
+            '<div class="scoperow"><div class="t"><b>Read and search</b>' +
+              "<span>Look records up and cite them in answers. Cannot change anything.</span></div>" +
+              '<button class="switch" data-act="st-scope" data-s="read" role="switch" aria-checked="' +
+              d.scopes.read + '" aria-label="Read and search"></button></div>' +
+            '<div class="scoperow"><div class="t"><b>Create and update</b>' +
+              "<span>Write records back. Every write is logged, and destructive actions always ask.</span></div>" +
+              '<button class="switch" data-act="st-scope" data-s="write" role="switch" aria-checked="' +
+              d.scopes.write + '" aria-label="Create and update"></button></div>';
+        } },
+      { label:"Done", sub:"and how to use it", cta:"Connect server",
+        render:function(){
+          var d = ST.data;
+          return '<div style="text-align:center;padding:6px 0 2px">' +
+            '<span style="display:inline-grid;place-items:center;width:50px;height:50px;border-radius:15px;' +
+            'background:var(--private-dim);border:1px solid var(--private-line);color:var(--private);' +
+            'margin-bottom:12px"><svg class="ic lg" aria-hidden="true"><use href="#i-check"></use></svg></span>' +
+            '<h3 style="font-family:var(--serif);font-size:19px">' + esc(d.name || "Server") + " is ready</h3>" +
+            '<p class="lede" style="margin:6px auto 0;max-width:46ch">Press the button below to connect it. ' +
+            "Its tools appear in the <code>/</code> menu straight after.</p></div>" +
+            '<div class="lcard" style="margin-top:14px"><div class="lrow">' +
+            '<span class="tile ok"><svg class="ic" aria-hidden="true"><use href="#i-mcp"></use></svg></span>' +
+            '<span class="t"><b>Tools you will get</b><p>Search records · Read a record · Create a record · ' +
+            "Update a record · List owners · Health check</p>" +
+            '<span class="meta"><span class="pill mono">/' + esc(slugify(d.name || "server")) + "</span>" +
+            '<span class="pill ok"><span class="dot"></span>' + esc(d.transport) + " · " + esc(d.auth) +
+            "</span></span></span></div></div>";
+        },
+        commit:function(){
+          var d = ST.data;
+          ST_LAST_NAME = d.name || "Server";
+          MCPS.push([slugify(d.name || "server"),
+            "Search, read and cite records from " + (d.name || "your server") + ". Runs on-premises."]);
+          CONNECTORS.push({ id:slugify(d.name), name:d.name, value:"Custom MCP server · " + d.transport,
+            status:"ok", tools:6, sync:"just now", local:true });
+          logActivity("Connected " + d.name, "mcp", "ok");
+        } }
+    ],
+    finish:function(){
+      refreshMailEverywhere();          /* bumps the sidebar count + dependent surfaces */
+      V.tab.connections = "mcp"; setView("connections");
+      toast(ST_LAST_NAME + " connected · 6 tools now in the / menu");
+    }
+  });
+}
+var ST_LAST_NAME = "Server";
+function runServerTest(){
+  var out = $("#testOut"); if(!out) return;
+  out.innerHTML = '<div class="testout"><pre id="testPre"><span class="dim">reaching ' +
+    esc(ST.data.url) + "…</span></pre></div>";
+  var pre = $("#testPre");
+  var lines = [
+    ['<span class="dim">resolving host…</span>', 450],
+    ['<span class="ok">connected</span> <span class="dim">· TLS 1.3 · 41 ms</span>', 500],
+    ['<span class="dim">discovering tools…</span>', 550],
+    ['<span class="ok">found 6 tools</span> <span class="dim">· search, read, create, update, owners, health</span>', 500],
+    ['<span class="ok">✓ server healthy</span> <span class="dim">· ready to connect</span>', 300]
+  ], i = 0;
+  var t = setInterval(function(){
+    if(i >= lines.length){
+      clearInterval(t);
+      ST.data.tested = true;
+      $("#stNext").textContent = "Continue";
+      $("#stNextNote").textContent = "";
+      return;
+    }
+    pre.innerHTML += "\n" + lines[i][0];
+    i++;
+  }, 420);
+}
+
+/* ------------------------------------------------ import validation ----- */
+function validateImport(){
+  var box = $("#impBox"), res = $("#impResult");
+  var txt = box.value;
+  ST.data.importText = txt;
+  var ok = true, err = null;
+  try{ JSON.parse(txt); }
+  catch(e){ ok = false; err = e.message; }
+  if(ok){
+    ST.data.parsed = true;
+    res.innerHTML = '<div class="lcard" style="margin-top:11px;border-color:var(--private-line)">' +
+      '<div class="lrow"><span class="tile ok"><svg class="ic" aria-hidden="true">' +
+      '<use href="#i-check"></use></svg></span><span class="t"><b>Definition is valid</b>' +
+      "<p>Parsed cleanly. Continue to set what it may reach.</p></span></div></div>";
+    $("#stNextNote").textContent = "";
+    return;
+  }
+  ST.data.parsed = false;
+  /* This is the fix for `elon-musk-perspective-en (failed to parse SKILL…)`
+     reaching a user-facing list: it stops here, in language, with the location. */
+  res.innerHTML =
+    '<div class="parse-err"><div class="hd">' +
+      '<svg class="ic" aria-hidden="true"><use href="#i-alert"></use></svg>' +
+      "<b>This skill could not be read, so it was not added</b></div>" +
+    '<div class="bd">The file is not valid JSON. A <code>description</code> value starts with a quote on ' +
+      "line 3 and is never closed, so everything after it is read as part of that one string." +
+      '<div class="where">  2   "name": "elon-musk-perspective-en",\n' +
+      '<span class="bad">  3   "description": "Answer in the voice of   ← quote never closed</span>\n' +
+      '  4   "triggers": ["opinion", "hot take"],</div>' +
+      "<p style=\"margin-top:11px\">Close the quote on line 3, or delete the description and let us generate " +
+      "one. Nothing was saved, and a skill that fails to parse never appears in the catalogue — your " +
+      "administrator sees it in the import log instead.</p>" +
+      '<p style="margin-top:9px;color:var(--tx-3);font-size:11.5px">Parser said: <code>' + esc(err) +
+      "</code></p></div></div>";
+  $("#stNextNote").textContent = "Fix the definition to continue";
+}
+
+/* ============================ setup checklist =========================== */
+function setupItems(){
+  var session = null;
+  try{ session = JSON.parse(LS.get("mv2.session","null")); }catch(e){}
+  var flags = {};
+  try{ flags = JSON.parse(LS.get("mv2.setupFlags","{}")) || {}; }catch(e){}
+  return [
+    { id:"signin", done:!!session, title:"Sign in",
+      benefit:"Your threads, projects and connectors follow you.", act:null },
+    { id:"workspace", done:!!(session && session.ws), title:"Choose a workspace",
+      benefit:"Sets where inference runs and which tiers you are allowed.", act:null },
+    { id:"mail", done:V.mail.connected, title:"Connect your mail",
+      benefit:"Unlocks reading and drafting replies from any chat.", act:"mail-connect" },
+    { id:"skill", done:!!flags.skill, title:"Turn on your first skill",
+      benefit:"Try the daily HSE digest — it writes your Sunday summary for you.",
+      act:"goto-skills" },
+    { id:"knowledge", done:!!flags.knowledge, title:"Add a knowledge source",
+      benefit:"So answers cite your documents instead of guessing.", act:"goto-knowledge" },
+    { id:"agent", done:!!flags.agent, title:"Create your first agent",
+      benefit:"Something that runs while you sleep and reports back.", act:"goto-agents" }
+  ];
+}
+function markSetup(id){
+  var flags = {};
+  try{ flags = JSON.parse(LS.get("mv2.setupFlags","{}")) || {}; }catch(e){}
+  flags[id] = true;
+  LS.set("mv2.setupFlags", JSON.stringify(flags));
+  renderSetupCard();
+}
+function setupHTML(){
+  var items = setupItems();
+  var done = items.filter(function(i){ return i.done; }).length;
+  if(done === items.length || LS.get("mv2.setupHidden","0") === "1") return "";
+  return '<div class="setup" id="setupCard">' +
+    '<div class="sh"><svg class="ic" aria-hidden="true" style="color:var(--accent)">' +
+      '<use href="#i-check"></use></svg><b>Finish setting up</b>' +
+      '<span class="prog">' + done + " of " + items.length + "</span>" +
+      '<button class="x" data-act="setup-hide" aria-label="Hide setup checklist">' +
+      '<svg class="ic sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>' +
+    '<div class="bar"><i style="width:' + Math.round(done / items.length * 100) + '%"></i></div>' +
+    items.map(function(it){
+      var inner = '<span class="tick"><svg class="ic sm" aria-hidden="true">' +
+        '<use href="#i-check"></use></svg></span>' +
+        '<span class="t"><b>' + esc(it.title) + "</b><span>" + esc(it.benefit) + "</span></span>" +
+        (it.done || !it.act ? "" : '<svg class="ic go" aria-hidden="true"><use href="#i-arrowr"></use></svg>');
+      return it.done || !it.act
+        ? '<div class="setuprow done">' + inner + "</div>"
+        : '<button class="setuprow" data-act="' + it.act + '">' + inner + "</button>";
+    }).join("") + "</div>";
+}
+function renderSetupCard(){
+  var mount = $("#setupMount");        /* only exists on the chat empty state */
+  if(mount) mount.innerHTML = setupHTML();
 }
 
 /* ============================ delegated events =========================== */
@@ -5333,10 +6234,29 @@ document.addEventListener("click", function(e){
   }
 });
 
-/* live-bind the mail draft fields (they are re-rendered, so delegate) */
+/* live-bind re-rendered fields (mail draft, skill search, stepper fields) */
 document.addEventListener("input", function(e){
-  var el = e.target.closest('[data-act="draft-field"]');
-  if(el && V.draft) V.draft[el.dataset.f] = el.value;
+  var d = e.target.closest('[data-act="draft-field"]');
+  if(d && V.draft){ V.draft[d.dataset.f] = d.value; return; }
+
+  var q = e.target.closest('[data-act="skill-search"]');
+  if(q){
+    SKILL_FILTER.q = q.value;
+    renderView();
+    var again = $("#skillQ");
+    if(again){ again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+    return;
+  }
+  var f = e.target.closest('[data-act="st-field"]');
+  if(f && ST){
+    ST.data[f.dataset.f] = f.value;
+    ST.data.tested = false;
+    var pv = $("#skPreview");
+    if(pv) pv.innerHTML = skillPreview(ST.data);
+    return;
+  }
+  var im = e.target.closest('[data-act="st-import"]');
+  if(im && ST){ ST.data.importText = im.value; ST.data.parsed = false; }
 });
 
 /* auth forms */

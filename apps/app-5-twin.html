@@ -235,7 +235,7 @@ body[data-backdrop="magna"] .bd{opacity:.13}
   border-bottom:1px solid var(--line);background:var(--bg)}
 .tbar .tt{font-size:13px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tbar .ts{font-size:11px;color:var(--tx-3);white-space:nowrap;flex:none}
-.tbar .sp{flex:1;min-width:8px}
+.tbar .flexsp{flex:1;min-width:8px}
 .tsel{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 9px;border-radius:var(--r-sm);
   border:1px solid transparent;font-size:12.2px;color:var(--tx-2);white-space:nowrap;flex:none}
 .tsel span{white-space:nowrap}
@@ -845,6 +845,415 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
   .diagbox svg{min-width:470px}
 }
 </style>
+<style>
+/* ============================================================
+   v2 — auth flow, routed views, email MCP, capability depth
+   All new components read the same tokens. No new colours.
+   ============================================================ */
+
+/* ---------- auth ---------- */
+.auth{position:fixed;inset:0;z-index:200;display:none;background:var(--bg)}
+.auth.open{display:flex}
+.auth-brand{width:44%;min-width:0;flex:none;position:relative;overflow:hidden;
+  background:var(--bg-2);border-right:1px solid var(--line);padding:44px 44px 36px;
+  display:flex;flex-direction:column}
+.auth-brand .bd-auth{position:absolute;right:-90px;bottom:-70px;width:440px;opacity:.13;pointer-events:none}
+.auth-brand .bd-auth .magna-mark{width:100%}
+.auth-brand > *{position:relative;z-index:1}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:auto}
+.auth-logo .magna-mark{width:34px}
+.auth-logo .t{display:flex;align-items:baseline;gap:10px;font-size:17px}
+.auth-logo .t b{font-weight:650}
+.auth-logo .t span{color:var(--tx-3);font-weight:600;letter-spacing:.06em;font-size:14px}
+.auth-brand h2{font-size:27px;line-height:1.25;font-weight:680;letter-spacing:-.02em;margin-bottom:14px;max-width:16ch}
+.auth-brand p{font-size:14px;line-height:1.65;color:var(--tx-2);max-width:44ch;margin-bottom:20px}
+.auth-facts{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.auth-facts .f{display:flex;align-items:center;gap:9px;font-size:12.6px;color:var(--tx-2)}
+.auth-facts .f svg{color:var(--private);flex:none}
+.auth-main{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:32px 24px;overflow-y:auto}
+.auth-card{width:100%;max-width:392px}
+.auth-card h1{font-size:22px;font-weight:680;letter-spacing:-.02em;margin-bottom:5px}
+.auth-card .sub{font-size:13.4px;color:var(--tx-2);line-height:1.6;margin-bottom:20px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.2px;font-weight:600;margin-bottom:6px;color:var(--tx-2)}
+.field input{width:100%;height:42px;border-radius:var(--r);border:1px solid var(--line-2);
+  background:var(--surface-2);padding:0 12px;font-size:14px;color:var(--tx)}
+.field input:focus{border-color:var(--accent);background:var(--surface)}
+.field.bad input{border-color:var(--public)}
+.field .err{display:none;font-size:11.8px;color:var(--public);margin-top:6px;align-items:center;gap:6px}
+.field.bad .err{display:flex}
+.demo-note{display:flex;align-items:center;gap:8px;font-size:11.8px;color:var(--ok);
+  background:var(--ok-dim);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);
+  border-radius:var(--r);padding:9px 11px;margin-bottom:16px;line-height:1.5}
+.btn.lg{height:44px;font-size:14px;width:100%}
+.auth-or{display:flex;align-items:center;gap:12px;margin:15px 0;color:var(--tx-3);font-size:11.5px}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.auth-foot{margin-top:18px;font-size:12.6px;color:var(--tx-3);text-align:center;line-height:1.6}
+.auth-foot button{color:var(--accent);font-weight:600}
+.auth-legal{margin-top:22px;font-size:11px;color:var(--tx-3);line-height:1.55;text-align:center}
+.spin{width:15px;height:15px;border-radius:99px;border:2px solid currentColor;border-top-color:transparent;
+  display:inline-block;vertical-align:-3px}
+@media (prefers-reduced-motion: no-preference){ .spin{animation:sp .7s linear infinite} }
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* workspace picker */
+.ws-list{display:flex;flex-direction:column;gap:11px;margin-bottom:8px}
+.wscard{display:flex;gap:13px;text-align:left;padding:15px;border-radius:var(--r-lg);
+  border:1px solid var(--line-2);background:var(--surface);width:100%;transition:border-color .12s,transform .1s}
+.wscard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.wscard .ic{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line)}
+.wscard .nm{font-size:14px;font-weight:650;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wscard .ds{font-size:12.2px;color:var(--tx-3);line-height:1.55;margin-top:3px}
+.wscard .mt{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* ---------- routed views ---------- */
+.viewbar{display:none}
+body[data-view="chat"] .viewbar{display:none}
+body:not([data-view="chat"]) .tbar{display:none}
+body:not([data-view="chat"]) .viewbar{display:flex}
+body:not([data-view="chat"]) .scroll,
+body:not([data-view="chat"]) .compwrap{display:none}
+body[data-view="chat"] .pageview{display:none}
+.pageview{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:block}
+body:not([data-view="chat"]) .rail{display:none}
+
+.v-page{max-width:1080px;margin:0 auto;padding:22px 28px 40px}
+.v-head{margin-bottom:18px}
+.v-head h1{font-size:21px;font-weight:680;letter-spacing:-.02em;margin-bottom:5px}
+.v-head p{font-size:13.2px;color:var(--tx-2);line-height:1.6;max-width:72ch}
+.v-head .acts{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+.v-tabs{display:flex;gap:3px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.v-tab{padding:9px 12px;font-size:13px;color:var(--tx-3);border-bottom:2px solid transparent;
+  margin-bottom:-1px;white-space:nowrap;font-weight:550}
+.v-tab:hover{color:var(--tx-2)}
+.v-tab.on{color:var(--tx);border-bottom-color:var(--accent);font-weight:650}
+.v-tab .n{font-size:10.5px;color:var(--tx-3);margin-left:5px;font-variant-numeric:tabular-nums}
+.v-card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:15px;margin-bottom:12px}
+.v-card.tight{padding:0;overflow:hidden}
+.v-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.v-sec{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--tx-3);
+  margin:20px 0 10px;display:flex;align-items:center;gap:9px}
+.v-sec .ln{flex:1;height:1px;background:var(--line)}
+.v-empty{border:1px dashed var(--line-2);border-radius:var(--r-lg);padding:26px 20px;text-align:center}
+.v-empty h4{font-size:14px;font-weight:650;margin-bottom:6px}
+.v-empty p{font-size:12.8px;color:var(--tx-2);line-height:1.6;max-width:56ch;margin:0 auto 14px}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:16px}
+.stat{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:11px 13px}
+.stat .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3);font-weight:700}
+.stat .v{font-size:19px;font-weight:680;font-variant-numeric:tabular-nums;margin-top:5px;letter-spacing:-.01em}
+.stat .s{font-size:11px;color:var(--tx-3);margin-top:2px}
+
+/* data table */
+.dtwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)}
+table.dt{width:100%;border-collapse:collapse;font-size:12.8px;min-width:620px}
+.dt th{background:var(--surface-2);text-align:left;padding:9px 12px;font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--tx-3);font-weight:700;border-bottom:1px solid var(--line);white-space:nowrap}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--tx-2);vertical-align:middle}
+.dt tr:last-child td{border-bottom:0}
+.dt tbody tr:hover{background:var(--surface-2)}
+.dt td.r{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);color:var(--tx)}
+.dt td .nm{color:var(--tx);font-weight:600}
+.dt td .sub{font-size:11px;color:var(--tx-3);margin-top:2px}
+.dt td.act{text-align:right;white-space:nowrap}
+
+/* status pills */
+.sp{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:99px;
+  font-size:11px;font-weight:600;border:1px solid;white-space:nowrap}
+.sp.ok{color:var(--ok);background:var(--ok-dim);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.sp.warn{color:var(--part);background:var(--part-dim);border-color:color-mix(in srgb,var(--part) 45%,transparent)}
+.sp.off{color:var(--tx-3);background:var(--miss-dim);border-color:var(--line-2)}
+.sp.info{color:var(--accent);background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.sp.pub{color:var(--public);background:var(--public-dim);border-color:color-mix(in srgb,var(--public) 45%,transparent)}
+
+/* connector cards */
+.conn{display:flex;gap:12px;padding:14px;border:1px solid var(--line);background:var(--surface);
+  border-radius:var(--r-lg);align-items:flex-start}
+.conn.hl{border-color:color-mix(in srgb,var(--accent) 45%,transparent);box-shadow:0 0 0 3px var(--accent-dim)}
+.conn .logo{width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--tx-2);font-weight:700;font-size:12px}
+.conn .w{flex:1;min-width:0}
+.conn .nm{font-size:13.6px;font-weight:650;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.conn .ds{font-size:12.2px;color:var(--tx-3);line-height:1.55;margin-top:3px}
+.conn .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:var(--tx-3);align-items:center}
+.conn .cta{flex:none;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.disc{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.disc summary{font-size:11.5px;color:var(--tx-3);cursor:pointer;list-style:none}
+.disc summary::-webkit-details-marker{display:none}
+.disc summary::before{content:"▸ ";color:var(--tx-3)}
+.disc[open] summary::before{content:"▾ "}
+.disc .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:9px;font-size:11.5px}
+.disc .kv dt{color:var(--tx-3)}
+.disc .kv dd{color:var(--tx-2);font-family:var(--mono);font-size:11px;word-break:break-all}
+.toollist{margin-top:10px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:7px}
+.toolrow{display:flex;align-items:center;gap:9px;font-size:12px}
+.toolrow .tn{font-family:var(--mono);font-size:11.5px;color:var(--tx);font-weight:600}
+.toolrow .td{color:var(--tx-3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* wizard */
+#wizard{top:7vh;width:min(620px,94vw);flex-direction:column;max-height:86vh}
+.wz-hd{display:flex;align-items:center;gap:11px;padding:14px 16px;border-bottom:1px solid var(--line);flex:none}
+.wz-hd h2{font-size:15px;font-weight:680;flex:1}
+.wz-steps{display:flex;gap:6px;padding:12px 16px 0;flex:none;flex-wrap:wrap}
+.wz-steps i{flex:1;min-width:38px;height:3px;border-radius:99px;background:var(--surface-3)}
+.wz-steps i.on{background:var(--accent)}
+.wz-steps i.done{background:var(--ok)}
+.wz-b{flex:1;overflow-y:auto;padding:16px}
+.wz-b h3{font-size:15.5px;font-weight:680;margin-bottom:5px}
+.wz-b .lead2{font-size:12.8px;color:var(--tx-2);line-height:1.6;margin-bottom:15px}
+.wz-f{flex:none;display:flex;gap:9px;align-items:center;padding:13px 16px;border-top:1px solid var(--line)}
+.wz-f .sp2{flex:1}
+.pick{display:flex;gap:11px;width:100%;text-align:left;padding:12px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface);margin-bottom:9px;align-items:flex-start}
+.pick:hover{border-color:var(--line-3);background:var(--surface-2)}
+.pick.on{border-color:var(--accent);background:var(--accent-dim)}
+.pick .rad{width:17px;height:17px;border-radius:99px;border:2px solid var(--line-3);flex:none;margin-top:2px;position:relative}
+.pick.on .rad{border-color:var(--accent)}
+.pick.on .rad::after{content:"";position:absolute;inset:2.5px;border-radius:99px;background:var(--accent)}
+.pick .nm{font-size:13.4px;font-weight:620;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pick .ds{font-size:11.8px;color:var(--tx-3);line-height:1.5;margin-top:3px}
+.scope{display:flex;gap:11px;padding:11px;border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:8px;background:var(--surface);align-items:flex-start;width:100%;text-align:left}
+.scope .box{width:19px;height:19px;border-radius:5px;border:1.5px solid var(--line-3);flex:none;margin-top:1px;
+  display:grid;place-items:center;color:transparent}
+.scope.on .box{background:var(--accent);border-color:var(--accent);color:var(--accent-tx)}
+.scope .nm{font-size:13px;font-weight:600}
+.scope .ds{font-size:11.6px;color:var(--tx-3);line-height:1.5;margin-top:2px}
+.scope.danger.on .box{background:var(--public);border-color:var(--public);color:#fff}
+.resid{border:1px solid color-mix(in srgb,var(--private) 40%,transparent);background:var(--private-dim);
+  border-radius:var(--r);padding:13px;font-size:12.6px;line-height:1.6;color:var(--tx-2)}
+.resid b{color:var(--private)}
+.resid.pub{border-color:color-mix(in srgb,var(--public) 45%,transparent);background:var(--public-dim)}
+.resid.pub b{color:var(--public)}
+.authbox{border:1px solid var(--line-2);border-radius:var(--r);padding:15px;text-align:center;background:var(--surface-2)}
+.authbox .st{font-size:12.6px;color:var(--tx-2);line-height:1.6;margin-bottom:12px}
+
+/* ---------- mail ---------- */
+.mailwrap{display:flex;gap:14px;align-items:flex-start}
+.maillist{width:340px;flex:none;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);overflow:hidden}
+.mailrow{display:block;width:100%;text-align:left;padding:11px 13px;border-bottom:1px solid var(--line)}
+.mailrow:last-child{border-bottom:0}
+.mailrow:hover{background:var(--surface-2)}
+.mailrow.on{background:var(--accent-dim);box-shadow:inset 3px 0 0 var(--accent)}
+.mailrow .r1{display:flex;align-items:baseline;gap:8px}
+.mailrow .from{font-size:12.8px;font-weight:600;color:var(--tx-2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mailrow.unread .from{color:var(--tx);font-weight:700}
+.mailrow .when{font-size:10.5px;color:var(--tx-3);flex:none;font-variant-numeric:tabular-nums}
+.mailrow .subj{font-size:12.6px;color:var(--tx);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mailrow.unread .subj{font-weight:650}
+.mailrow .prev{font-size:11.4px;color:var(--tx-3);margin-top:2px;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mailrow .dot{width:7px;height:7px;border-radius:99px;background:var(--accent);flex:none}
+.mailread{flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);
+  padding:16px 17px}
+.mailread h3{font-size:16px;font-weight:680;line-height:1.35;margin-bottom:9px}
+.mailmeta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:13px}
+.mailmeta .av{width:31px;height:31px;border-radius:99px;background:var(--surface-3);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11.5px;font-weight:700;color:var(--tx-2);flex:none}
+.mailmeta .who{font-size:12.8px;font-weight:600}
+.mailmeta .addr{font-size:11.4px;color:var(--tx-3)}
+.mailbody{font-size:13.6px;line-height:1.7;color:var(--tx)}
+.mailbody p{margin-bottom:12px}
+.mailbody p:last-child{margin-bottom:0}
+.mailacts{display:flex;gap:7px;margin-top:16px;padding-top:13px;border-top:1px solid var(--line);flex-wrap:wrap}
+
+/* mail composer + confirm */
+#mailComp{top:8vh;width:min(660px,94vw);flex-direction:column;max-height:82vh}
+.mc-f{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--line)}
+.mc-f label{font-size:11.5px;color:var(--tx-3);width:52px;flex:none;font-weight:600}
+.mc-f input{flex:1;border:0;background:none;font-size:13.2px;color:var(--tx)}
+.mc-body{flex:1;min-height:180px;padding:13px 14px;overflow-y:auto}
+.mc-body textarea{width:100%;min-height:200px;border:0;background:none;resize:none;font-size:13.6px;
+  line-height:1.65;color:var(--tx)}
+.mc-note{display:flex;gap:9px;margin:0 14px 12px;padding:10px 12px;border-radius:var(--r);
+  border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);background:var(--accent-dim);
+  font-size:11.8px;line-height:1.55;color:var(--tx-2)}
+.mc-ft{display:flex;gap:9px;align-items:center;padding:12px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+#sendConfirm{top:14vh;width:min(560px,94vw);flex-direction:column}
+.sc-list{margin:0 16px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.sc-list .r{display:flex;gap:11px;padding:9px 12px;border-top:1px solid var(--line);font-size:12.6px}
+.sc-list .r:first-child{border-top:0}
+.sc-list .r .k{width:72px;flex:none;color:var(--tx-3);font-size:11.5px;padding-top:1px}
+.sc-list .r .v{flex:1;min-width:0;color:var(--tx);word-break:break-word}
+.sc-quote{margin:12px 16px 0;padding:11px 12px;border-radius:var(--r);background:var(--surface-2);
+  border:1px solid var(--line);font-size:12px;line-height:1.6;color:var(--tx-2);max-height:130px;overflow-y:auto;white-space:pre-wrap}
+
+/* ---------- tool approval ---------- */
+.approval{border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:var(--surface);
+  border-radius:12px;padding:13px;box-shadow:var(--shadow-1)}
+.approval .ah{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.approval .ah .ic{width:28px;height:28px;border-radius:8px;flex:none;display:grid;place-items:center;
+  background:var(--accent-dim);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.approval .ah h5{font-size:13.4px;font-weight:680;flex:1}
+.approval .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px;margin-bottom:11px}
+.approval .kv dt{color:var(--tx-3)}
+.approval .kv dd{color:var(--tx-2)}
+.approval .kv dd code{font-family:var(--mono);font-size:11.5px;color:var(--tx)}
+.approval .btns{display:flex;gap:7px;flex-wrap:wrap}
+.approval .why{font-size:11.4px;color:var(--tx-3);margin-top:9px;line-height:1.55}
+.approval.resolved{border-color:var(--line);opacity:.8}
+
+/* mail-boost callout inside an answer */
+.mailboost{display:none;align-items:center;gap:11px;border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);
+  background:var(--ok-dim);border-radius:12px;padding:11px 13px;font-size:12.6px;line-height:1.55;color:var(--tx-2)}
+body[data-mail="connected"] .mailboost{display:flex}
+.mailboost b{color:var(--ok)}
+.mailboost .btn{flex:none}
+
+/* agents / automations */
+.agent{display:flex;gap:12px;padding:14px;border:1px solid var(--line);background:var(--surface);
+  border-radius:var(--r-lg);align-items:flex-start}
+.agent .av{width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center;
+  font-size:12.5px;font-weight:700;color:var(--accent-tx)}
+.agent .w{flex:1;min-width:0}
+.agent .nm{font-size:13.8px;font-weight:650}
+.agent .ds{font-size:12.2px;color:var(--tx-3);line-height:1.55;margin-top:3px}
+.agent .kv{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.agent .last{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:11.8px;color:var(--tx-2);line-height:1.55}
+.agent .last b{color:var(--tx)}
+.tmpl{display:flex;flex-direction:column;gap:5px;text-align:left;padding:13px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface)}
+.tmpl:hover{border-color:var(--accent)}
+.tmpl .nm{font-size:13.2px;font-weight:650}
+.tmpl .ds{font-size:11.8px;color:var(--tx-3);line-height:1.5}
+.runrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:12.2px}
+.runrow:first-child{border-top:0}
+.runrow .st{width:8px;height:8px;border-radius:99px;flex:none}
+.cronprev{font-size:11.8px;color:var(--accent);margin-top:6px;display:flex;align-items:center;gap:6px}
+
+/* knowledge */
+.space{display:flex;flex-direction:column;gap:7px;text-align:left;padding:14px;border-radius:var(--r-lg);
+  border:1px solid var(--line);background:var(--surface)}
+.space:hover{border-color:var(--line-3)}
+.space.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.space .nm{font-size:13.6px;font-weight:650;display:flex;align-items:center;gap:8px}
+.space .ds{font-size:12px;color:var(--tx-3);line-height:1.5}
+.space .mt{display:flex;gap:10px;font-size:11px;color:var(--tx-3);margin-top:4px;flex-wrap:wrap}
+.drop{border:1px dashed var(--line-2);border-radius:var(--r-lg);padding:20px;text-align:center;margin-bottom:14px}
+.drop p{font-size:12.4px;color:var(--tx-3);line-height:1.55;margin:7px 0 11px}
+.askbox{display:flex;gap:9px;margin-bottom:14px}
+.askbox input{flex:1;height:42px;border-radius:var(--r);border:1px solid var(--line-2);
+  background:var(--surface-2);padding:0 13px;font-size:13.4px;color:var(--tx)}
+.passage{border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;margin-bottom:9px;background:var(--surface)}
+.passage .src{display:flex;align-items:center;gap:8px;font-size:11.2px;color:var(--tx-3);margin-bottom:6px;flex-wrap:wrap}
+.passage .tx{font-size:12.6px;line-height:1.6;color:var(--tx-2)}
+.relbar{width:64px;height:4px;border-radius:99px;background:var(--surface-3);overflow:hidden;flex:none}
+.relbar i{display:block;height:100%;background:var(--accent)}
+
+/* drawer */
+#drawer{top:0;right:0;left:auto;transform:none;width:min(480px,96vw);height:100dvh;max-height:100dvh;
+  border-radius:0;flex-direction:column}
+.dw-hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex:none}
+.dw-hd h2{font-size:14.5px;font-weight:680;flex:1}
+.dw-b{flex:1;overflow-y:auto;padding:16px}
+
+/* activity log */
+.act-row{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);font-size:12.2px}
+.act-row:first-child{border-top:0}
+.act-row .t{font-family:var(--mono);font-size:10.5px;color:var(--tx-3);width:52px;flex:none;padding-top:2px;
+  font-variant-numeric:tabular-nums}
+.act-row .w{flex:1;min-width:0}
+.act-row .w b{color:var(--tx);font-weight:600}
+.act-row .w em{font-style:normal;color:var(--tx-3);display:block;font-size:11.2px;margin-top:2px}
+
+/* ---------- responsive for v2 ---------- */
+@media (max-width:1023px){
+  .v-page{padding:18px 18px 34px}
+  .mailwrap{flex-direction:column}
+  .maillist{width:100%}
+}
+@media (max-width:900px){
+  .auth-brand{display:none}
+  .auth-main{width:100%}
+}
+@media (max-width:767px){
+  .v-page{padding:14px 13px 30px}
+  .v-head h1{font-size:19px}
+  .conn{flex-wrap:wrap}
+  .conn .cta{width:100%;flex-direction:row;align-items:stretch}
+  .conn .cta .btn{flex:1}
+  #wizard,#mailComp,#sendConfirm,#drawer{top:0;left:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}
+  .wz-f,.mc-ft{flex-direction:column-reverse;align-items:stretch}
+  .wz-f .btn,.mc-ft .btn{width:100%}
+  .wz-f .sp2{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .v-grid{grid-template-columns:1fr}
+  .auth-main{padding:20px 14px;align-items:flex-start}
+  .field input{height:46px}
+  .v-tab{min-height:44px;display:flex;align-items:center}
+  .mailrow{min-height:44px}
+}
+</style>
+<style>
+/* ---------- v3: guided setup, skills catalogue, checklist ---------- */
+.how{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:14px;margin-bottom:14px}
+.how-h{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.how-h b{font-size:13px;flex:1}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(206px,1fr));gap:12px}
+.how-s{display:flex;gap:10px}
+.how-s .n{width:22px;height:22px;border-radius:99px;background:var(--accent-dim);color:var(--accent);font-size:11.5px;
+  font-weight:700;display:grid;place-items:center;flex:none}
+.how-s b{font-size:12.4px;display:block;margin-bottom:3px}
+.how-s p{font-size:11.8px;color:var(--tx-3);line-height:1.5}
+
+.filterbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.fchip{height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line-2);background:var(--surface);
+  font-size:12px;color:var(--tx-2)}
+.fchip:hover{border-color:var(--line-3);color:var(--tx)}
+.fchip.on{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 45%,transparent);color:var(--accent);font-weight:600}
+
+.skill{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:13px;
+  display:flex;flex-direction:column;gap:7px}
+.skill.needs{border-style:dashed}
+.sk-h{display:flex;align-items:center;gap:9px}
+.sk-n{font-size:13.4px;font-weight:650;flex:1;min-width:0}
+.sk-id{font-size:10.5px;color:var(--tx-3);margin-top:-5px}
+.sk-d{font-size:12.2px;color:var(--tx-2);line-height:1.55}
+.sk-req{font-size:11px;color:var(--tx-3);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.sk-ex,.sk-gap{display:flex;gap:8px;font-size:11.6px;line-height:1.5;border-radius:9px;padding:8px 10px}
+.sk-ex{background:var(--surface-2);color:var(--tx-3)}
+.sk-ex svg,.sk-gap svg{flex:none;margin-top:1px}
+.sk-gap{background:var(--part-dim);color:var(--tx-2);border:1px solid color-mix(in srgb,var(--part) 32%,transparent)}
+.sk-gap b{color:var(--part)}
+.sk-ex em,.sk-gap em{font-style:italic}
+.sk-f{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:4px}
+
+.wz-s{flex:1;min-width:58px;display:flex;flex-direction:column;gap:5px}
+.wz-s i{height:3px;border-radius:99px;background:var(--surface-3);display:block}
+.wz-s span{font-size:10px;color:var(--tx-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wz-s.on i{background:var(--accent)} .wz-s.on span{color:var(--tx);font-weight:650}
+.wz-s.done i{background:var(--ok)} .wz-s.done span{color:var(--tx-2)}
+
+.sl-i.off{opacity:.7}
+.sl-i.off:hover{opacity:1}
+
+.setup{margin:10px 12px 0;border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r);
+  padding:11px;box-shadow:var(--shadow-1)}
+.setup[hidden]{display:none}
+.su-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.su-h b{font-size:12.4px;flex:1}
+.su-n{font-size:10.5px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+.su-bar{height:4px;border-radius:99px;background:var(--surface-3);overflow:hidden;margin-bottom:9px}
+.su-bar i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.su-row{display:flex;gap:9px;width:100%;text-align:left;padding:6px 4px;border-radius:8px;align-items:flex-start}
+.su-row:hover:not([disabled]){background:var(--surface-2)}
+.su-row[disabled]{cursor:default}
+.su-tick{width:16px;height:16px;border-radius:99px;border:1.5px solid var(--line-3);flex:none;margin-top:1px;
+  display:grid;place-items:center;color:transparent}
+.su-row.done .su-tick{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.su-t{font-size:12px;font-weight:600;display:block}
+.su-row.done .su-t{color:var(--tx-3);text-decoration:line-through}
+.su-y{font-size:11px;color:var(--tx-3);line-height:1.45;display:block;margin-top:1px}
+
+@media (max-width:767px){
+  .fchip{min-height:44px;min-width:44px;justify-content:center}
+  .how-steps{grid-template-columns:1fr}
+  .su-row{min-height:44px}
+}
+</style>
+
 </head>
 <body data-side="expanded" data-rail="open" data-tier="private" data-backdrop="off">
 
@@ -920,6 +1329,7 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
       <button class="navitem" data-nav="help"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5v.4M12 17v.5"/></svg>Help &amp; roadmap</button>
     </nav>
 
+    <div class="setup" id="setupCard" hidden></div>
     <div class="side-scroll" id="convList"></div>
 
     <div class="side-foot">
@@ -949,7 +1359,7 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
     </button>
     <span class="tt" id="threadTitle">Package 4 handover — schedule exposure and risk owner</span>
     <span class="ts dim" id="threadMeta">· 6 messages · today 14:08</span>
-    <span class="sp"></span>
+    <span class="flexsp"></span>
 
     <button class="tsel" id="modelBtn" aria-haspopup="menu" aria-expanded="false">
       <svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9h6v6H9z"/></svg>
@@ -968,6 +1378,9 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
       <span class="rt-badge" id="railBadge">7/16</span>
     </button>
   </div>
+
+  <!-- bar for every non-chat view -->
+  <div class="tbar viewbar" id="viewbar"></div>
 
   <!-- transcript: the only scrolling region in the centre column -->
   <div class="scroll" id="scroll">
@@ -1025,6 +1438,8 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
       </div>
     </div>
   </div>
+  <!-- routed views render here -->
+  <div class="pageview" id="pages"></div>
 </main>
 
 <!-- ============================== CONTEXT RAIL (signature) -->
@@ -1049,7 +1464,7 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
       </div>
       <div class="rail-used">
         <svg class="ico sm" viewBox="0 0 24 24" style="color:var(--ok)"><path d="M5 12.5 9.5 17 19 7"/></svg>
-        <span>This answer used <b id="usedCount">4</b> of 16 sources</span>
+        <span>This answer used <b id="usedCount">4</b> of <b id="usedTotal">16</b> sources</span>
       </div>
     </div>
 
@@ -1142,6 +1557,194 @@ select.sel{height:31px;border-radius:8px;border:1px solid var(--line-2);backgrou
 <div class="toast" id="toast" role="status" aria-live="polite">
   <svg class="ico sm ic" viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7"/></svg><span id="toastText">Copied</span>
 </div>
+
+<!-- ============================== AUTH (login → register → workspace) -->
+<div class="auth" id="auth" data-step="login">
+  <div class="auth-brand">
+    <div class="bd-auth" aria-hidden="true">
+      <svg class="magna-mark" viewBox="0 0 640 440">
+        <defs>
+          <linearGradient id="mgGB-authbd" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-authbd" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path class="w1" d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-authbd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="w2" d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-authbd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="auth-logo">
+      <svg class="magna-mark" id="authMark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-auth" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-auth" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-auth)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="t"><b>Magna</b><span>VERSE</span></span>
+    </div>
+
+    <h2>The answer, and where it came from.</h2>
+    <p>Runs on Magna GPUs in Riyadh. Your data never leaves your network — and every answer
+       tells you which of your systems it was grounded in, and which one it could not see.</p>
+    <div class="auth-facts">
+      <div class="f"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg>Private tier · Riyadh DC-1 · 8×H200</div>
+      <div class="f"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></svg>Agentic Twin — 16 enterprise context sources</div>
+      <div class="f"><svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/></svg>Company Knowledge — 8,400 documents indexed on-prem</div>
+    </div>
+  </div>
+
+  <div class="auth-main">
+    <!-- LOGIN -->
+    <div class="auth-card" data-pane="login">
+      <span class="pill sm private" style="margin-bottom:14px"><span class="dot"></span>Private · Riyadh DC-1</span>
+      <h1>Sign in to MagnaVERSE</h1>
+      <p class="sub">Use your Magna work account. This prototype keeps everything in your browser — nothing is sent anywhere.</p>
+      <div class="demo-note">
+        <svg class="ico sm" viewBox="0 0 24 24" style="flex:none"><path d="M5 12.5 9.5 17 19 7"/></svg>
+        Demo credentials filled — press <b style="margin:0 3px">Sign in</b>
+      </div>
+      <form id="loginForm" novalidate>
+        <div class="field" id="fEmail">
+          <label for="liEmail">Work email</label>
+          <input id="liEmail" type="email" value="ahmad.farahat@magna.ai" autocomplete="username" spellcheck="false">
+          <span class="err"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg><span class="et">Enter your work email</span></span>
+        </div>
+        <div class="field" id="fPass">
+          <label for="liPass">Password</label>
+          <input id="liPass" type="password" value="magnaverse" autocomplete="current-password">
+          <span class="err"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg><span class="et">Enter your password</span></span>
+        </div>
+        <button class="btn primary lg" id="signIn" type="submit">Sign in</button>
+      </form>
+      <div class="auth-or">or</div>
+      <button class="btn lg" id="ssoBtn">
+        <svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        Continue with Magna SSO
+      </button>
+      <p class="auth-foot">No account yet? <button id="toRegister">Create an account</button></p>
+      <p class="auth-legal">Prototype — never enter a real password. No credentials are stored or transmitted;
+        sign-in state lives only in this browser's local storage.</p>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-card" data-pane="register" hidden>
+      <h1>Create your account</h1>
+      <p class="sub">Your workspace administrator approves new seats. For this prototype, everything is local.</p>
+      <form id="regForm" novalidate>
+        <div class="field" id="fRName"><label for="rgName">Full name</label>
+          <input id="rgName" type="text" placeholder="Ahmad Farahat" autocomplete="name">
+          <span class="err"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg><span class="et">Enter your name</span></span></div>
+        <div class="field" id="fREmail"><label for="rgEmail">Work email</label>
+          <input id="rgEmail" type="email" placeholder="name@magna.ai" autocomplete="username" spellcheck="false">
+          <span class="err"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg><span class="et">Enter a valid work email</span></span></div>
+        <div class="field" id="fRPass"><label for="rgPass">Password</label>
+          <input id="rgPass" type="password" placeholder="At least 8 characters" autocomplete="new-password">
+          <span class="err"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg><span class="et">Use at least 8 characters</span></span></div>
+        <div class="field" id="fROrg"><label for="rgOrg">Organisation</label>
+          <input id="rgOrg" type="text" value="Magna" autocomplete="organization">
+          <span class="err"><svg class="ico xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16v.5"/></svg><span class="et">Enter your organisation</span></span></div>
+        <button class="btn primary lg" id="regBtn" type="submit">Create account</button>
+      </form>
+      <p class="auth-foot">Already have one? <button id="toLogin">Sign in</button></p>
+    </div>
+
+    <!-- WORKSPACE PICKER -->
+    <div class="auth-card" data-pane="workspace" hidden style="max-width:460px">
+      <h1>Choose a workspace</h1>
+      <p class="sub">Your workspace sets the default sovereignty tier for every new thread. You can change the tier per thread later.</p>
+      <div class="ws-list">
+        <button class="wscard" data-ws="prod">
+          <span class="ic"><svg class="ico" viewBox="0 0 24 24" style="color:var(--private)"><path d="M12 3 4 6.5v5.2c0 4.7 3.3 8.4 8 9.3 4.7-.9 8-4.6 8-9.3V6.5Z"/></svg></span>
+          <span style="flex:1;min-width:0">
+            <span class="nm">Magna KSA · Production<span class="sp ok">Private</span></span>
+            <span class="ds">Inference on Magna's own cluster — Riyadh DC-1, 8×H200. Public tier is blocked by policy for this workspace.</span>
+            <span class="mt"><span class="pill sm">8,400 documents</span><span class="pill sm">16 twin sources</span><span class="pill sm">42 seats</span></span>
+          </span>
+        </button>
+        <button class="wscard" data-ws="sandbox">
+          <span class="ic"><svg class="ico" viewBox="0 0 24 24" style="color:var(--public)"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span>
+          <span style="flex:1;min-width:0">
+            <span class="nm">Magna Sandbox<span class="sp pub">Public allowed</span></span>
+            <span class="ds">For evaluation and non-sensitive work. Threads may be switched to the Public tier, which sends prompts outside your network.</span>
+            <span class="mt"><span class="pill sm">120 documents</span><span class="pill sm">4 twin sources</span><span class="pill sm">6 seats</span></span>
+          </span>
+        </button>
+      </div>
+      <p class="auth-legal">You are signing in as <b id="wsWho">ahmad.farahat@magna.ai</b> ·
+        <button id="backToLogin" style="color:var(--accent);font-weight:600">Not you?</button></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== v2 dialogs -->
+<div class="menu" id="userMenu" role="menu" aria-label="Account"></div>
+
+<div class="dialog" id="wizard" role="dialog" aria-modal="true" aria-labelledby="wzTitle">
+  <div class="wz-hd">
+    <span class="conn logo" style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;padding:0;border:1px solid var(--line);background:var(--surface-2)">
+      <svg class="ico sm" viewBox="0 0 24 24" style="color:var(--accent)"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+    </span>
+    <h2 id="wzTitle">Connect Magna Mail</h2>
+    <button class="iconbtn" id="wzClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="wz-steps" id="wzSteps"></div>
+  <div class="wz-b" id="wzBody"></div>
+  <div class="wz-f" id="wzFoot"></div>
+</div>
+
+<div class="dialog" id="mailComp" role="dialog" aria-modal="true" aria-label="Draft email">
+  <div class="wz-hd">
+    <svg class="ico" viewBox="0 0 24 24" style="color:var(--accent)"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+    <h2>Draft — review before anything is sent</h2>
+    <button class="iconbtn" id="mcClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="mc-f"><label for="mcTo">To</label><input id="mcTo" type="text" spellcheck="false"></div>
+  <div class="mc-f"><label for="mcCc">Cc</label><input id="mcCc" type="text" spellcheck="false"></div>
+  <div class="mc-f"><label for="mcSubj">Subject</label><input id="mcSubj" type="text"></div>
+  <div class="mc-body"><label class="sr" for="mcBody">Message body</label><textarea id="mcBody"></textarea></div>
+  <div class="mc-note" id="mcNote"></div>
+  <div class="mc-ft">
+    <span class="dim" style="font-size:11.5px;flex:1" id="mcScope"></span>
+    <button class="btn" id="mcCancel">Discard</button>
+    <button class="btn primary" id="mcReview">Review &amp; send</button>
+  </div>
+</div>
+
+<div class="dialog" id="sendConfirm" role="dialog" aria-modal="true" aria-labelledby="scTitle">
+  <div class="g-hd">
+    <span class="g-ic" id="scIcon"><svg class="ico" viewBox="0 0 24 24"><path d="M4.5 12 20 4.5 14 12l6 7.5Z"/></svg></span>
+    <div>
+      <h2 id="scTitle">Send this email?</h2>
+      <p>Magna never sends on its own. This is exactly what will go out, from your mailbox, right now.</p>
+    </div>
+  </div>
+  <div class="sc-list" id="scList"></div>
+  <div class="sc-quote" id="scQuote"></div>
+  <div class="g-ft">
+    <span class="dim" style="font-size:11.5px;flex:1" id="scResidency"></span>
+    <button class="btn" id="scCancel">Cancel</button>
+    <button class="btn" id="scEdit">Edit</button>
+    <button class="btn primary" id="scSend">Send</button>
+  </div>
+</div>
+
+<div class="dialog" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dwTitle">
+  <div class="dw-hd">
+    <h2 id="dwTitle">Run detail</h2>
+    <button class="iconbtn" id="dwClose" aria-label="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="dw-b" id="dwBody"></div>
+</div>
+
 
 <script>
 (function(){
@@ -1290,14 +1893,19 @@ var SOURCES=[
    d:"Owners, likelihood, impact and mitigation status."},
   {id:"mkt",   g:"dynamics", n:"Market &amp; supplier signals", short:"Supplier signals",
    s:"missing", on:false, meta:"Not connected",
-   d:"Lead times, price indices and subcontractor capacity in the region."}
+   d:"Lead times, price indices and subcontractor capacity in the region."},
+
+  /* the 17th source — not part of the twin until you connect it */
+  {id:"mail",  g:"behavioural", n:"Magna Mail — inbox &amp; sent", short:"Magna Mail",
+   s:"missing", on:false, candidate:true, meta:"Not connected · 17th source",
+   d:"Supplier and internal correspondence: what people actually told each other, and when. Often the only evidence of why a date moved."}
 ];
 var SRC={}; SOURCES.forEach(function(s){ SRC[s.id]=s; });
 
 function eff(s){ return s.on ? s.s : "missing"; }
 function counts(){
   var c={connected:0,partial:0,missing:0};
-  SOURCES.forEach(function(s){ c[eff(s)]++; });
+  SOURCES.forEach(function(s){ if(!s.candidate) c[eff(s)]++; });
   return c;
 }
 function statusMark(st){
@@ -1314,9 +1922,10 @@ function renderRail(){
   var body=$("#railBody"), html="";
   GROUPS.forEach(function(g){
     var list=SOURCES.filter(function(s){ return s.g===g.id; });
-    var okN=list.filter(function(s){ return eff(s)==="connected"; }).length;
+    var inTwin=list.filter(function(s){ return !s.candidate; });
+    var okN=inTwin.filter(function(s){ return eff(s)==="connected"; }).length;
     html+='<section class="cg"><div class="cg-h">'+g.label+
-          '<span class="n">'+okN+' / '+list.length+' connected</span></div>';
+          '<span class="n">'+okN+' / '+inTwin.length+' connected</span></div>';
     list.forEach(function(s){
       var st=eff(s), isUsed=used.indexOf(s.id)>-1 && st!=="missing";
       html+='<div class="src'+(isUsed?" used":"")+(s.on?"":" off")+'" data-src="'+s.id+'">'+
@@ -1326,6 +1935,7 @@ function renderRail(){
             statusMark(st)+
             '<span class="nm">'+s.n+'</span>'+
             (isUsed?'<span class="usedtag">used</span>':'')+
+            (s.candidate?'<span class="usedtag" style="color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:var(--accent-dim)">17th</span>':'')+
             '<svg class="ico xs dim" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>'+
           '</button>'+
           (s.s==="missing" && !s.on
@@ -1361,11 +1971,13 @@ function renderRail(){
 
   var c=counts();
   $("#cOk").textContent=c.connected; $("#cPart").textContent=c.partial; $("#cMiss").textContent=c.missing;
-  $("#meter").innerHTML='<i class="m-ok" style="width:'+(c.connected/16*100).toFixed(1)+'%"></i>'+
-                        '<i class="m-part" style="width:'+(c.partial/16*100).toFixed(1)+'%"></i>';
-  $("#meter").setAttribute("aria-label", c.connected+" connected, "+c.partial+" partial, "+c.missing+" missing, of 16 twin sources");
-  $("#navTwinCount").textContent=c.connected+"/16";
-  $("#railBadge").textContent=c.connected+"/16";
+  var TOT=totalSrc();
+  $("#meter").innerHTML='<i class="m-ok" style="width:'+(c.connected/TOT*100).toFixed(1)+'%"></i>'+
+                        '<i class="m-part" style="width:'+(c.partial/TOT*100).toFixed(1)+'%"></i>';
+  $("#meter").setAttribute("aria-label", c.connected+" connected, "+c.partial+" partial, "+c.missing+" missing, of "+TOT+" twin sources");
+  var nt=$("#navTwinCount"); if(nt) nt.textContent=c.connected+"/"+TOT;
+  $("#railBadge").textContent=c.connected+"/"+TOT;
+  var ut=$("#usedTotal"); if(ut) ut.textContent=TOT;
   var liveUsed=used.filter(function(id){ return SRC[id] && eff(SRC[id])!=="missing"; }).length;
   $("#usedCount").textContent=liveUsed;
   $("#twinToolCount").textContent=liveUsed;
@@ -1383,7 +1995,7 @@ function ground(ids){
   return '<div class="ground" data-ground>'+
     '<div class="ground-h">'+I.twin+'<span class="eyebrow">Grounded in</span>'+
       '<button class="n" data-act="open-rail" title="Open the twin context rail">'+
-        '<b data-gcount>'+ids.length+'</b> of 16 twin sources ›</button></div>'+
+        '<b data-gcount>'+ids.length+'</b> of <span data-gtotal>16</span> twin sources ›</button></div>'+
     '<div class="gchips">'+ids.map(gchip).join("")+'</div></div>';
 }
 function reason(summary,steps){
@@ -1486,6 +2098,10 @@ var C1_A1 =
       '<li>Connect site telemetry so the next answer is measured, not inferred.</li>'+
     '</ul>'+
     conf(["iot","labour"],["p6","co"])+
+    '<div class="mailboost">'+I.bolt+
+      '<span style="flex:1"><b>Magna Mail is connected now.</b> This answer was written before your mailbox was part of the twin — '+
+      'and the supplier has since put the cause in writing.</span>'+
+      '<button class="btn sm primary" data-act="mail-reask">Re-ask with mail</button></div>'+
   '</div>'+
   '<div class="srcs">'+
     '<div class="srcs-h">'+I.doc+'<span class="eyebrow">Sources</span><span class="n">5 · internal 4 · web 1</span></div>'+
@@ -1901,6 +2517,7 @@ function syncTwin(){
   $$("[data-ground]").forEach(function(g){
     var live=$$(".gchip",g).filter(function(el){ return el.getAttribute("data-state")!=="missing"; }).length;
     var n=$("[data-gcount]",g); if(n) n.textContent=live;
+    var gt=$("[data-gtotal]",g); if(gt) gt.textContent=totalSrc();
   });
   $$("[data-conf]").forEach(function(el){
     var boost=(el.getAttribute("data-boost")||"").split(",").filter(Boolean);
@@ -2093,47 +2710,7 @@ function send(){
   CONVS[active].msgs.push(um); pushMsg(msgHTML(um));
   ta.value=""; autoGrow(); updateSend(); $("#tray").innerHTML=""; toBottom();
 
-  var live=(CONVS[active].used||[]).filter(function(id){ return SRC[id] && eff(SRC[id])!=="missing"; }).length;
-  pushMsg(
-    '<div class="turn-ai" id="pending">'+
-      '<div class="mg-think" role="status" aria-live="polite">'+
-        '<svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna is working">'+
-          '<defs>'+
-            '<linearGradient id="mgGB-think" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
-              '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>'+
-            '</linearGradient>'+
-            '<linearGradient id="mgR-think" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
-              '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>'+
-            '</linearGradient>'+
-          '</defs>'+
-          '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-think)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
-          '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-think)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
-        '</svg>'+
-        '<span class="think-t" id="thinkText">Thinking<span class="el">…</span></span>'+
-      '</div>'+
-    '</div>');
-  toBottom();
-
-  var stages=[
-    [900,  "Reading "+live+" of 16 twin sources"],
-    [1750, "Checking which relevant sources are missing"],
-    [2450, "Writing"]
-  ];
-  var timers=stages.map(function(s){
-    return setTimeout(function(){
-      var el=$("#thinkText");
-      if(el) el.innerHTML=s[1]+'<span class="el">…</span>';
-    },s[0]);
-  });
-  setTimeout(function(){
-    timers.forEach(clearTimeout);
-    var pend=$("#pending"); if(pend) pend.remove();
-    var am={r:"a",h:replyFor(text)};
-    CONVS[active].msgs.push(am); pushMsg(msgHTML(am));
-    syncTwin(); renderConvList($("#convSearch").value);
-    $("#threadMeta").textContent="· "+CONVS[active].msgs.length+" messages · just now";
-    toBottom(true);
-  },3050);
+  runTurn(text);
 }
 function escapeHTML(s){ return s.replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -2485,7 +3062,13 @@ function buildPal(q){
   q=(q||"").trim().toLowerCase();
   var convs=ORDER.map(function(id){return CONVS[id];})
     .filter(function(c){ return !q || c.title.toLowerCase().indexOf(q)>-1; }).slice(0,5);
-  var docs=DOCS.filter(function(d){ return !q || (d.n+" "+d.d).toLowerCase().indexOf(q)>-1; }).slice(0,5);
+  var pool=DOCS.slice();
+  if(MAIL.connected){
+    MAILBOX.forEach(function(m){
+      pool.push({n:m.subj, d:"Magna Mail · "+m.from+" · "+m.when, tag:"Mail", mail:m.id});
+    });
+  }
+  var docs=pool.filter(function(d){ return !q || (d.n+" "+d.d).toLowerCase().indexOf(q)>-1; }).slice(0,6);
   var acts=ACTIONS.filter(function(a){ return !q || (a.n+" "+a.d).toLowerCase().indexOf(q)>-1; }).slice(0,6);
   palItems=[]; var html="";
   if(convs.length){
@@ -2498,7 +3081,10 @@ function buildPal(q){
   if(docs.length){
     html+='<div class="pal-sec">Documents &amp; records</div>';
     docs.forEach(function(d){
-      palItems.push({run:function(){ toast("Opening "+d.n+" — internal source, stays on Private."); }});
+      palItems.push({run:function(){
+        if(d.mail){ route("mail"); mailTab="inbox"; mailSel=d.mail; renderMail(); }
+        else toast("Opening "+d.n+" — internal source, stays on Private.");
+      }});
       html+=palRow(I.doc,d.n,d.d,d.tag,palItems.length-1);
     });
   }
@@ -2634,7 +3220,7 @@ function renderSettings(){
   var sel=$("#setThemeSel"); if(sel){ sel.value=theme; sel.addEventListener("change",function(){ applyTheme(this.value); }); }
 }
 function openSettings(cat){ setCat=cat||setCat; renderSettings(); openDialog("settings"); }
-$("#openSettingsUser").addEventListener("click",function(){ openSettings("general"); });
+
 $("#setClose").addEventListener("click",closeDialog);
 $("#settings").addEventListener("click",function(e){
   var n=e.target.closest("[data-set]");
@@ -2696,6 +3282,1817 @@ document.addEventListener("keydown",function(e){
   }
 });
 
+
+/* ============================================================
+   15 · v2 — data for the full product
+   ============================================================ */
+var WORKSPACES={
+  prod:{id:"prod",name:"Magna KSA · Production",tier:"private",publicAllowed:false,
+        sub:"Private · Riyadh DC-1",docs:"8,400",seats:42},
+  sandbox:{id:"sandbox",name:"Magna Sandbox",tier:"private",publicAllowed:true,
+        sub:"Public tier allowed",docs:"120",seats:6}
+};
+var SESSION=null, pendingUser=null;
+
+/* ---------- MCP servers: every one is a connector, every connector can move the twin ---------- */
+var MCPSERVERS=[
+  {id:"magna-mail", name:"Magna Mail", idn:"magna-mail", group:"Communication", twin:"mail",
+   val:"Read your inbox, summarise a thread and draft replies without leaving MagnaVERSE.",
+   state:"disconnected", local:true, transport:"stdio", endpoint:"mail-mcp.magna.internal:8443",
+   example:"What arrived in my inbox about Package 4 this week?",
+   unlocks:"Answers can cite what a supplier actually wrote — and Magna can draft replies for you to send.",
+   tools:[
+     {n:"magna-mail.search", p:"Search mail", d:"Find messages by sender, subject, date or content", risk:"read"},
+     {n:"magna-mail.read", p:"Read a message", d:"Open one message and its thread", risk:"read"},
+     {n:"magna-mail.draft", p:"Draft a reply", d:"Prepare a reply for you to review — never sends", risk:"write"},
+     {n:"magna-mail.send", p:"Send mail", d:"Send a message from your mailbox", risk:"send"},
+     {n:"magna-mail.contacts", p:"Look up a contact", d:"Resolve a colleague or supplier address", risk:"read"}
+   ]},
+  {id:"sap-po-lookup", name:"SAP purchase orders", idn:"sap-po-lookup", group:"Work management", twin:"sap",
+   val:"Read purchase orders, goods receipts and three-way match exceptions from SAP S/4HANA.",
+   state:"connected", local:true, transport:"stdio", endpoint:"sap-mcp.magna.internal:8443", sync:"4 min ago",
+   example:"Why is PO 4500091237 blocked for payment?",
+   unlocks:"Commitment, receipt and invoice questions answered from the ledger itself.",
+   tools:[
+     {n:"sap.get_po", p:"Read a purchase order", d:"One PO with its history", risk:"read"},
+     {n:"sap.list_exceptions", p:"List blocked invoices", risk:"read", d:"Everything stuck in three-way match"},
+     {n:"sap.three_way_match", p:"Compare PO, receipt, invoice", d:"Show the variance and the tolerance", risk:"read"}
+   ]},
+  {id:"jira-search", name:"Jira", idn:"jira-search", group:"Work management", twin:"co",
+   val:"Search issues, change orders and comments across programme projects.",
+   state:"connected", local:false, transport:"http", endpoint:"jira-mcp.magna.internal:3000", sync:"11 min ago",
+   example:"Summarise change orders CO-118 to CO-121 and their schedule impact.",
+   unlocks:"Change history, approvals and who raised what.",
+   tools:[
+     {n:"jira.search_issues", p:"Search issues", d:"Query in plain language or JQL", risk:"read"},
+     {n:"jira.get_issue", p:"Read an issue", d:"One issue with comments and history", risk:"read"},
+     {n:"jira.create_issue", p:"Raise an issue", d:"Create a new ticket", risk:"write"}
+   ]},
+  {id:"p6-schedule", name:"Primavera P6", idn:"p6-schedule", group:"Work management", twin:"p6",
+   val:"Query activities, float, the critical path and baseline differences.",
+   state:"connected", local:true, transport:"stdio", endpoint:"p6-mcp.magna.internal:8443", sync:"6 days ago",
+   example:"What is the driving path on Package 4 and how much float is left?",
+   unlocks:"Schedule questions answered from the plan rather than from memory.",
+   tools:[
+     {n:"p6.list_activities", p:"List activities", d:"By package or WBS", risk:"read"},
+     {n:"p6.critical_path", p:"Find the driving path", d:"With float per path", risk:"read"},
+     {n:"p6.float_report", p:"Float report", d:"Absorbed and remaining float", risk:"read"},
+     {n:"p6.baseline_diff", p:"Compare to baseline", d:"Live schedule vs a baseline", risk:"read"}
+   ]},
+  {id:"confluence", name:"Confluence", idn:"confluence", group:"Work management", twin:"proc",
+   val:"Search spaces and read process maps and method statements.",
+   state:"connected", local:false, transport:"http", endpoint:"confluence-mcp.magna.internal:3000", sync:"today 08:15",
+   example:"Who approves a change order with commercial impact?",
+   unlocks:"Process and authority questions answered from your own documented process.",
+   tools:[
+     {n:"confluence.search_pages", p:"Search pages", d:"Across spaces you can read", risk:"read"},
+     {n:"confluence.get_page", p:"Read a page", d:"One page in full", risk:"read"}
+   ]},
+  {id:"site-telemetry", name:"Site telemetry", idn:"site-telemetry", group:"Operations", twin:"iot",
+   val:"Gate counts, crane cycles and concrete pours, matched to P6 activity IDs.",
+   state:"disconnected", local:true, transport:"stdio", endpoint:"iot-gw.magna.internal:8883",
+   example:"Is MEP first fix actually progressing at the rate P6 assumes?",
+   unlocks:"Progress answered from measured reality instead of a 6-day-old plan update.",
+   tools:[
+     {n:"iot.activity_rate", p:"Measured progress rate", d:"Output per activity per day", risk:"read"},
+     {n:"iot.gate_counts", p:"Headcount on site", d:"Turnstile counts by contractor", risk:"read"},
+     {n:"iot.pour_log", p:"Concrete pours", d:"Volume and location, matched to activities", risk:"read"}
+   ]},
+  {id:"workforce-returns", name:"Daily labour returns", idn:"workforce-returns", group:"Operations", twin:"labour",
+   val:"Crew hours booked against each activity, every day, by subcontractor.",
+   state:"disconnected", local:true, transport:"stdio", endpoint:"workforce.magna.internal:8443",
+   example:"Which activities are absorbing more crew hours than planned?",
+   unlocks:"Productivity questions, and the ground truth behind any claim.",
+   tools:[
+     {n:"labour.daily_returns", p:"Daily returns", d:"Hours per crew per activity", risk:"read"},
+     {n:"labour.productivity", p:"Productivity index", d:"Planned vs actual hours", risk:"read"}
+   ]},
+  {id:"slack", name:"Slack", idn:"slack", group:"Communication", twin:"comms",
+   val:"Read the channels you choose, so coordination patterns become visible.",
+   state:"disconnected", local:false, transport:"http", endpoint:"slack-mcp.magna.internal:3000",
+   example:"Where is coordination breaking down between Delivery and Commercial?",
+   unlocks:"Completes the behavioural picture — who is waiting on whom, and for how long.",
+   tools:[
+     {n:"slack.search", p:"Search messages", d:"In the channels you grant", risk:"read"},
+     {n:"slack.post", p:"Post a message", d:"To a channel you choose", risk:"send"}
+   ]},
+  {id:"market-signals", name:"Market & supplier signals", idn:"market-signals", group:"Operations", twin:"mkt",
+   val:"Regional lead times, price indices and subcontractor capacity.",
+   state:"disconnected", local:false, transport:"http", endpoint:"signals.magna.internal:3000",
+   example:"Is an 11-week valve lead time normal for this region right now?",
+   unlocks:"Tells you whether a supplier's quoted lead time is normal or optimistic.",
+   tools:[
+     {n:"signals.lead_times", p:"Lead times", d:"By category and region", risk:"read"},
+     {n:"signals.price_index", p:"Price index", d:"Monthly movement by trade", risk:"read"}
+   ]}
+];
+function mcpById(id){ return MCPSERVERS.filter(function(m){ return m.id===id; })[0]; }
+function connectedCount(){ return MCPSERVERS.filter(function(m){ return m.state==="connected"; }).length; }
+
+/* ---------- connector setup definitions — one shared 4-step shape ---------- */
+var CONNSETUP={
+  "magna-mail":{
+    title:"Connect Magna Mail", commit:"Connect Magna Mail", kind:"account",
+    variants:[
+      {id:"magna", n:"Magna Mail", sub:"Exchange 2019, on-prem — Riyadh DC-1", leaves:false,
+       d:"Your own mail servers, inside the Magna network. Indexing and search run on the same cluster as inference."},
+      {id:"m365", n:"Microsoft 365", sub:"Exchange Online", leaves:true,
+       d:"Mail is fetched from Microsoft's cloud. Message content crosses your network boundary in transit."},
+      {id:"google", n:"Google Workspace", sub:"Gmail", leaves:true,
+       d:"Mail is fetched from Google's cloud. Message content crosses your network boundary in transit."},
+      {id:"imap", n:"Generic IMAP", sub:"Any IMAP/SMTP server", leaves:true,
+       d:"Works with any standards-compliant server. Residency depends on where that server runs."}
+    ],
+    account:{addr:"ahmad.farahat@magna.ai", disp:"Ahmad Farahat", addrLabel:"Mailbox address", dispLabel:"Display name on sent mail"},
+    scopes:[
+      {id:"read", n:"Read mail", d:"Search and open messages in this mailbox. Needed for anything useful.", on:true},
+      {id:"send", n:"Send mail as you", d:"Let Magna send from your address. Magna still drafts and waits for your confirmation — this only decides whether the Send button works at all.", on:false, danger:true},
+      {id:"contacts", n:"Read contacts", d:"Resolve names to addresses when drafting.", on:false},
+      {id:"calendar", n:"Read calendar", d:"See meetings so scheduling answers are accurate.", on:false}
+    ]},
+  "site-telemetry":{
+    title:"Connect site telemetry", commit:"Connect site telemetry", kind:"endpoint",
+    variants:[
+      {id:"gw", n:"Magna IoT gateway", sub:"MQTT bridge on the site network", leaves:false,
+       d:"The gateway already on RUH-P4. Readings stay on the Magna network end to end."},
+      {id:"vendor", n:"Vendor cloud (Trimble / Procore)", sub:"Contractor-hosted telemetry", leaves:true,
+       d:"Readings are pulled from the vendor's cloud. Activity IDs and volumes cross your boundary."}
+    ],
+    endpoint:{host:"iot-gw.magna.internal:8883", label:"Gateway address", auth:"Certificate (mutual TLS)"},
+    scopes:[
+      {id:"read", n:"Read measured progress", d:"Output per activity per day, matched to P6 IDs.", on:true},
+      {id:"gates", n:"Read gate counts", d:"Headcount on site by contractor and hour.", on:true},
+      {id:"write", n:"Write back to the plan", d:"Let Magna update P6 progress from measured output.", on:false, danger:true}
+    ]},
+  "workforce-returns":{
+    title:"Connect daily labour returns", commit:"Connect labour returns", kind:"endpoint",
+    variants:[
+      {id:"onprem", n:"Workforce system (on-prem)", sub:"Timesheet database, Riyadh DC-1", leaves:false,
+       d:"Reads the nightly timesheet extract already produced for payroll."},
+      {id:"sub", n:"Subcontractor portals", sub:"Per-contractor uploads", leaves:true,
+       d:"Pulls returns from each subcontractor's own portal. Coverage depends on their compliance."}
+    ],
+    endpoint:{host:"workforce.magna.internal:8443", label:"Extract endpoint", auth:"Service account (read-only)"},
+    scopes:[
+      {id:"read", n:"Read crew hours", d:"Hours booked per crew per activity, daily.", on:true},
+      {id:"pii", n:"Include worker names", d:"Off by default — aggregate crew totals are enough for schedule answers.", on:false, danger:true}
+    ]},
+  "slack":{
+    title:"Connect Slack", commit:"Connect Slack", kind:"account",
+    variants:[
+      {id:"ws", n:"Magna workspace", sub:"magna.slack.com", leaves:true,
+       d:"Slack is a hosted service. Message content crosses your network boundary in transit and is then indexed on-prem."}
+    ],
+    account:{addr:"magna.slack.com", disp:"Delivery, Commercial, HSE", addrLabel:"Workspace", dispLabel:"Channels to index"},
+    scopes:[
+      {id:"read", n:"Read the channels you choose", d:"Only the channels named above. No DMs.", on:true},
+      {id:"post", n:"Post messages", d:"Let Magna post to a channel. Always asks first.", on:false, danger:true}
+    ]},
+  "market-signals":{
+    title:"Connect market & supplier signals", commit:"Connect signals", kind:"endpoint",
+    variants:[
+      {id:"gulf", n:"Gulf construction index", sub:"Regional lead times and price movement", leaves:true,
+       d:"A commercial data feed. Queries leave your network; no Magna data is sent with them."}
+    ],
+    endpoint:{host:"signals.magna.internal:3000", label:"Feed gateway", auth:"API key held by your administrator"},
+    scopes:[
+      {id:"read", n:"Read lead times and indices", d:"Category and region level only.", on:true}
+    ]}
+};
+
+/* mail account state — persisted */
+var MAIL={connected:false, provider:"magna", account:"ahmad.farahat@magna.ai", display:"Ahmad Farahat",
+  scopes:{read:true,send:false,contacts:false,calendar:false}, synced:"", approvals:{}};
+function providerName(){ var v=CONNSETUP["magna-mail"].variants.filter(function(x){return x.id===MAIL.provider;})[0]; return v?v.n:"Magna Mail"; }
+function providerLeaves(){ var v=CONNSETUP["magna-mail"].variants.filter(function(x){return x.id===MAIL.provider;})[0]; return v?v.leaves:false; }
+
+/* ---------- skills catalogue ---------- */
+var SKILLCAT=[
+  {id:"hse-digest", n:"Daily HSE digest", c:"HSE", on:true,
+   d:"Summarise incidents, near misses and permit compliance, and name who owns every open action.",
+   needs:["know"], ex:"Summarise this week's HSE incidents for the steering pack."},
+  {id:"p6-rebaseline", n:"Schedule slip analyser", c:"Reporting", on:true,
+   d:"Find the driving path, quantify the slip in days, and say who can decide to re-baseline.",
+   needs:["p6"], ex:"Where is Package 4 slipping, and who owns the decision?"},
+  {id:"po-exception-triage", n:"PO exception triage", c:"Procurement", on:true,
+   d:"Classify blocked purchase orders and route each one to the person who can clear it.",
+   needs:["sap"], ex:"Which purchase orders are blocked, and who clears each one?"},
+  {id:"jira-ticket-definer", n:"Ticket definer", c:"Engineering", on:true,
+   d:"Turn a loose request into a well-formed ticket with acceptance criteria and an owner.",
+   needs:["co"], ex:"Turn this into a Jira ticket with acceptance criteria: the valve schedule needs re-sequencing."},
+  {id:"tender-comparator", n:"Tender comparator", c:"Procurement", on:true,
+   d:"Score bids against your own prequalification standard and show exactly where each one fails.",
+   needs:["know"], ex:"Compare the three civils bids against our prequalification standard."},
+  {id:"heartbeat", n:"Standing checklist", c:"Admin", on:true,
+   d:"A checklist Magna reviews on a loop, telling you only when something needs attention.",
+   needs:[], ex:"Every morning, check for POs past tolerance and HSE actions overdue."},
+  {id:"contract-clause-diff", n:"Contract clause diff", c:"Procurement", on:false,
+   d:"Compare a draft against the approved template and mark every deviation with its clause.",
+   needs:["know"], ex:"Diff this amendment against our standard subcontract."},
+  {id:"claim-narrative-builder", n:"Delay claim narrative", c:"Procurement", on:false,
+   d:"Draft a delay-claim narrative from the schedule, the change orders and the correspondence.",
+   needs:["p6","mail"], ex:"Draft the delay narrative for Package 4 with the supplier's own words as evidence."},
+  {id:"vendor-risk-screener", n:"Vendor risk screener", c:"Procurement", on:false,
+   d:"Score a supplier on delivery, HSE, bonding and commercial exposure before you shortlist them.",
+   needs:["sap","mkt"], ex:"Screen Gulf MEP Supply for delivery and commercial risk."},
+  {id:"nitaqat-forecast", n:"Saudisation forecast", c:"Admin", on:false,
+   d:"Project the Nitaqat band from current headcount and the hiring plan.",
+   needs:["org"], ex:"Does the Q4 hiring plan keep us in the green band?"},
+  {id:"board-pack-drafter", n:"Board pack drafter", c:"Reporting", on:false,
+   d:"Assemble the monthly steering pack from schedule, cost and HSE sources, with every figure cited.",
+   needs:["p6","know"], ex:"Draft the August steering pack for Package 4."},
+  {id:"risk-register-sync", n:"Risk register sync", c:"Reporting", on:false,
+   d:"Reconcile the risk register against live schedule and cost signals and flag what is stale.",
+   needs:["p6","risk"], ex:"Which risks in the register are contradicted by the current schedule?"},
+  {id:"permit-checker", n:"Permit pack checker", c:"HSE", on:false,
+   d:"Check a permit-to-work pack against the HSE standard before it is issued.",
+   needs:["know"], ex:"Check this permit pack against MG-HSE-014 before I issue it."},
+  {id:"invoice-reconciler", n:"Invoice reconciler", c:"Procurement", on:false,
+   d:"Match invoices to goods receipts and explain every exception in plain language.",
+   needs:["sap"], ex:"Reconcile August invoices against goods receipts for Package 4."},
+  {id:"minutes-to-actions", n:"Minutes to actions", c:"Admin", on:false,
+   d:"Turn meeting minutes into owned, dated actions, ready to push into Jira.",
+   needs:["co"], ex:"Turn Thursday's re-baseline minutes into owned actions."},
+  {id:"doc-redliner", n:"Document redliner", c:"Procurement", on:false,
+   d:"Mark up a document against the standard that governs it, clause by clause.",
+   needs:["know"], ex:"Redline this method statement against the approved template."},
+  {id:"meeting-summariser", n:"Meeting summariser", c:"Admin", on:false,
+   d:"Turn a long thread or transcript into decisions, owners and dates.",
+   needs:[], ex:"Summarise this thread into decisions and owners."},
+  {id:"magna-api-skill-generator", n:"API skill generator", c:"Engineering", on:false,
+   d:"Turn an internal API specification into a callable skill your team can run from chat.",
+   needs:[], ex:"Turn our permits API spec into a skill."}
+];
+var SKILLCATS=["All","Reporting","Procurement","HSE","Engineering","Admin"];
+function srcName(id){ return SRC[id] ? SRC[id].short : id; }
+function skillReady(s){
+  return s.needs.every(function(n){ return SRC[n] && eff(SRC[n])!=="missing"; });
+}
+function skillMissing(s){
+  return s.needs.filter(function(n){ return SRC[n] && eff(SRC[n])==="missing"; });
+}
+
+/* ---------- mailbox, activity, agents, automations, knowledge ---------- */
+var MAILBOX=[
+  {id:"m1", from:"Faisal Al-Harbi", addr:"f.alharbi@gulfmep.com.sa", org:"Gulf MEP Supply",
+   subj:"RE: Package 4 — chilled water valve lead time",
+   prev:"Ahmad, following our call — the 8-week lead time we quoted in June has moved to 11 weeks. The DN300 actuated valves are the constraint…",
+   when:"08:42", unread:true,
+   body:["Ahmad,","Following our call on Tuesday — I have to confirm in writing that the 8-week lead time we quoted on 12 June has moved to 11 weeks for the DN300 actuated valves. The constraint is at the actuator supplier in Turkey, not with us.","Practically that means delivery to site on 29 September rather than 8 September. We can part-ship the DN150 line on the original date if that helps your first fix.","I am sorry to be the bearer of this. Happy to join your re-baseline review if it is useful.","Faisal Al-Harbi — Commercial Manager, Gulf MEP Supply"]},
+  {id:"m2", from:"Noura Al-Qahtani", addr:"n.alqahtani@magna.ai", org:"HSE",
+   subj:"HPNM-33-02 — written response due Thursday",
+   prev:"The lifting incident at Grid F needs a written response from Delivery before Thursday's committee…",
+   when:"07:15", unread:true,
+   body:["Ahmad,","The high-potential near miss at Grid F (HPNM-33-02) needs a written response from Delivery before Thursday's committee.","The lifting plan was not re-issued after the crane moved on 9 August. We need the corrective action and the owner named.","Noura"]},
+  {id:"m3", from:"Jira", addr:"no-reply@magna.ai", org:"Notifications",
+   subj:"Daily digest — 6 issues moved, CO-121 approved",
+   prev:"CO-121 approved by Commercial. 3 issues moved to Done, 2 blocked, 1 escalated to programme risk…",
+   when:"06:02", unread:false,
+   body:["Overnight activity on RUH-P4:","CO-121 approved by Commercial (+4 days, MEP first fix).","3 issues moved to Done, 2 blocked on materials, 1 escalated to programme risk."]},
+  {id:"m4", from:"Sarah Mansour", addr:"s.mansour@magna.ai", org:"Legal",
+   subj:"Contract amendment #3 — Package 4 handover date",
+   prev:"Draft amendment moving contractual handover to 29 October, with liquidated damages relief tied to the change orders…",
+   when:"Yesterday 16:40", unread:false,
+   body:["Ahmad,","Draft amendment #3 attached — it moves contractual handover to 29 October and ties LD relief to CO-118 through CO-121.","Legal needs the delay narrative evidenced before we issue. Anything in writing from the supplier would help considerably.","Sarah"]},
+  {id:"m5", from:"M. Al-Otaibi", addr:"m.alotaibi@magna.ai", org:"Delivery",
+   subj:"Re-baseline review — Thursday 10:00, DC-1 room 3",
+   prev:"Invite: re-baseline review with Commercial. Please bring the current forecast and the change-order impact…",
+   when:"Yesterday 14:05", unread:false,
+   body:["Booked Thursday 10:00 with Commercial for the re-baseline.","Please bring the current forecast and the change-order impact by path.","M."]},
+  {id:"m6", from:"SAP Notifications", addr:"sap-noreply@magna.ai", org:"SAP S/4HANA",
+   subj:"PO 4500091237 blocked for payment — quantity variance",
+   prev:"Invoice INV-2026-08841 exceeds goods receipt by 20 units. Routed to the site materials controller…",
+   when:"Yesterday 09:10", unread:false,
+   body:["PO 4500091237 is blocked for payment.","Invoice INV-2026-08841 bills 480 units; goods receipt confirms 460. Variance 20 units / SAR 13,000, above the 2% tolerance."]},
+  {id:"m7", from:"Khalid Al-Dossary", addr:"k.aldossary@magna.ai", org:"Procurement",
+   subj:"Metro P3 prequalification — bonding gate on Al-Rajhi Civil",
+   prev:"Al-Rajhi clears every gate except bonding capacity. Do you want the surety limit raised for this package…",
+   when:"Mon 11:26", unread:false,
+   body:["Al-Rajhi Civil clears every prequalification gate except bonding capacity.","Do you want the surety limit raised for Metro P3, or do we proceed with three bidders?","Khalid"]},
+  {id:"m8", from:"Finance", addr:"finance@magna.ai", org:"Finance",
+   subj:"Package 4 cost report — August",
+   prev:"Committed SAR 41.2m against a forecast final of SAR 44.6m. Change orders account for SAR 2.1m of the variance…",
+   when:"Mon 08:00", unread:false,
+   body:["August cost report for Package 4.","Committed SAR 41.2m against a forecast final of SAR 44.6m. Change orders account for SAR 2.1m of the variance."]}
+];
+var SENT=[];
+var ACTIVITY=[
+  {t:"14:12", a:"p6.float_report", sys:"Primavera P6", by:"You · chat", res:"ok", d:"Float report for Package 4 · 11,400 activities scanned"},
+  {t:"14:08", a:"jira.search_issues", sys:"Jira", by:"You · chat", res:"ok", d:"CO-118 … CO-121 returned"},
+  {t:"13:00", a:"sap.list_exceptions", sys:"SAP purchase orders", by:"Automation · PO slippage watch", res:"ok", d:"2 POs past tolerance"},
+  {t:"06:00", a:"run_skill hse-digest", sys:"Company Knowledge", by:"Agent · HSE Digest", res:"ok", d:"3 open actions, 1 overdue"},
+  {t:"02:00", a:"sap.vendor_extract", sys:"SAP purchase orders", by:"Automation · Vendor prequal refresh", res:"fail", d:"Extract timed out after 120s"}
+];
+var AGENTS=[
+  {id:"a1", name:"HSE Digest", colour:"var(--ok)", purpose:"Summarise incidents, near misses and permit compliance, and name the owner of every open action.",
+   model:"Kimi K2 Instruct", access:"Documents & reports", tools:["hse-digest","Company Knowledge","confluence"],
+   trigger:"Weekdays 06:00", last:"Today 06:00", lastOut:"0 lost-time injuries · 1 high-potential near miss · 3 open actions, 1 overdue.",
+   runs:7, on:true, interrupt:false},
+  {id:"a2", name:"PO Slippage Watch", colour:"var(--accent)", purpose:"Watch purchase orders against their promised dates and flag anything that will hit the schedule.",
+   model:"DeepSeek V3.1", access:"Connected systems", tools:["sap-po-lookup","p6-schedule"],
+   trigger:"Every hour", last:"Today 13:00", lastOut:"2 POs past tolerance — 4500091237 (qty variance) and 4500090884 (14 days late).",
+   runs:154, on:true, interrupt:false},
+  {id:"a3", name:"Jira Intake Triage", colour:"var(--part)", purpose:"Read new issues, rewrite them into a usable ticket, set the package and route them to an owner.",
+   model:"Qwen 3 235B", access:"Connected systems", tools:["jira-search","jira-ticket-definer"],
+   trigger:"On new Jira issue", last:"Today 11:42", lastOut:"6 issues triaged · 1 escalated to programme risk.",
+   runs:38, on:true, interrupt:true},
+  {id:"a4", name:"Board Pack Drafter", colour:"var(--miss)", purpose:"Assemble the monthly steering pack from schedule, cost and HSE sources, with every figure cited.",
+   model:"Kimi K2 Instruct", access:"Documents & reports", tools:["board-pack-drafter","p6-schedule","Company Knowledge"],
+   trigger:"Manual", last:"12 Aug 09:20", lastOut:"Draft v3 saved to Workspace · 14 pages, 22 citations.",
+   runs:2, on:false, interrupt:true}
+];
+var TEMPLATES=[
+  {n:"Procurement Analyst", c:"Procurement", d:"Compare bids, check them against your prequalification standard and show the gaps."},
+  {n:"Contract Clause Reviewer", c:"Compliance", d:"Read a draft against the approved template and mark every deviation with the clause."},
+  {n:"HSE Incident Reporter", c:"Compliance", d:"Turn incident logs into a committee-ready summary with owners and due dates."},
+  {n:"Vendor Risk Screener", c:"Procurement", d:"Score a supplier on delivery, HSE, bonding and commercial exposure."},
+  {n:"Schedule Slip Analyst", c:"Delivery", d:"Find the driving path, quantify the slip and name who can decide."},
+  {n:"Compliance Checker", c:"Compliance", d:"Check a document pack against the standard that governs it."},
+  {n:"Meeting Summariser", c:"Productivity", d:"Turn minutes into owned, dated actions."},
+  {n:"Document QA", c:"Research", d:"Answer questions about a document set with citations."},
+  {n:"Data Analyst", c:"Research", d:"Read a table, explain what changed and why."},
+  {n:"Researcher", c:"Research", d:"Gather evidence from internal knowledge before any web source."}
+];
+var AUTOS=[
+  {id:"t1", name:"HSE morning digest", kind:"schedule", cron:"0 6 * * 1-5", human:"Weekdays at 06:00 Riyadh",
+   last:"Today 06:00", res:"ok", out:"3 open actions, 1 overdue", next:"Tomorrow 06:00", on:true,
+   what:"Summarise the last 24 hours of HSE incidents and permit compliance, and list every open action with its owner."},
+  {id:"t2", name:"PO slippage watch", kind:"watch", cron:"*/60 * * * *", human:"Every hour · watching",
+   last:"Today 13:00", res:"ok", out:"2 POs past tolerance", next:"Today 14:00", on:true,
+   what:"Watch open purchase orders against promised dates. Only notify me when a slip would move a milestone."},
+  {id:"t3", name:"Package 4 schedule drift", kind:"schedule", cron:"0 7 * * 1", human:"Mondays at 07:00 Riyadh",
+   last:"Mon 07:00", res:"ok", out:"MEP path slipped 2 days week-on-week", next:"Mon 07:00", on:true,
+   what:"Compare the live schedule to baseline r7 and report movement on the driving path."},
+  {id:"t4", name:"Vendor prequalification refresh", kind:"schedule", cron:"0 2 1 * *", human:"1st of the month at 02:00 Riyadh",
+   last:"1 Aug 02:00", res:"fail", out:"SAP vendor extract timed out after 120s", next:"1 Sep 02:00", on:true,
+   what:"Refresh vendor delivery and HSE scores from SAP and re-rank the prequalification matrix."},
+  {id:"t5", name:"Overnight inbox triage", kind:"schedule", cron:"0 5 * * *", human:"Every day at 05:00 Riyadh",
+   last:"Never run", res:"blocked", out:"Needs Magna Mail — not connected", next:"Paused", on:false,
+   what:"Read overnight mail, flag anything that affects a milestone and draft replies for me to review."}
+];
+var SPACES=[
+  {id:"s1", name:"Delivery — Package 4", d:"Programme documents for RUH-P4: method statements, baselines, change orders.",
+   docs:2140, size:"1.4 GB", indexed:"Today 06:00", lock:"Private only", members:18},
+  {id:"s2", name:"Procurement & Contracts", d:"Contracts, prequalification standards, vendor records and amendments.",
+   docs:3860, size:"2.9 GB", indexed:"Today 06:00", lock:"Private only", members:24},
+  {id:"s3", name:"HSE & Compliance", d:"Incident logs, permits, method statements and the Saudi regulatory set.",
+   docs:2400, size:"1.1 GB", indexed:"Today 06:00", lock:"Private only", members:31}
+];
+var DOCS2=[
+  {n:"P4 MEP method statement rev C.pdf", sp:"s1", src:"Upload", size:"4.2 MB", chunks:318, st:"Indexed", added:"14 Aug"},
+  {n:"P4_baseline_r7.xer", sp:"s1", src:"Primavera P6", size:"2.4 MB", chunks:1120, st:"Indexed", added:"10 Aug"},
+  {n:"CO-118 change order — MEP rework.pdf", sp:"s1", src:"Jira", size:"820 KB", chunks:44, st:"Indexed", added:"14 Jun"},
+  {n:"CO-121 change order — valve substitution.pdf", sp:"s1", src:"Jira", size:"640 KB", chunks:31, st:"Indexed", added:"27 Jun"},
+  {n:"Delegation of Authority v4.pdf", sp:"s1", src:"Confluence", size:"1.1 MB", chunks:96, st:"Indexed", added:"2 Feb"},
+  {n:"Package 4 risk register — Aug.xlsx", sp:"s1", src:"Upload", size:"310 KB", chunks:22, st:"Indexed", added:"31 Jul"},
+  {n:"Site logistics plan rev F.pdf", sp:"s1", src:"Upload", size:"18.6 MB", chunks:0, st:"OCR", added:"Today"},
+  {n:"Subcontractor prequalification standard v6.pdf", sp:"s2", src:"Confluence", size:"2.2 MB", chunks:184, st:"Indexed", added:"14 Feb"},
+  {n:"Master services agreement — Gulf MEP.pdf", sp:"s2", src:"Upload", size:"3.8 MB", chunks:266, st:"Indexed", added:"9 Jan"},
+  {n:"Vendor performance extract FY23–FY26.csv", sp:"s2", src:"SAP purchase orders", size:"940 KB", chunks:410, st:"Indexed", added:"Today"},
+  {n:"HSE weekly digest — week 33.md", sp:"s3", src:"Agent · HSE Digest", size:"46 KB", chunks:12, st:"Indexed", added:"Yesterday"},
+  {n:"Lifting operations standard MG-HSE-014.pdf", sp:"s3", src:"Upload", size:"5.6 MB", chunks:0, st:"Failed", added:"Yesterday"}
+];
+var CHANNELS=[
+  {n:"Web app", d:"This workspace, in any browser on the Magna network.", st:"Active", cls:"ok"},
+  {n:"Email relay", d:"Forward a mail to magna@magna.ai and get a grounded reply back.", st:"Needs Magna Mail", cls:"warn"},
+  {n:"Microsoft Teams", d:"Ask Magna from a Teams channel or DM.", st:"Q4 2026", cls:"info"},
+  {n:"WhatsApp Business", d:"Field supervisors ask from site, in Arabic or English.", st:"Q1 2027", cls:"info"}
+];
+
+/* ---------- setup checklist (v3 §4) ---------- */
+var SETUP=[
+  {id:"signin", n:"Sign in", why:"You are in — everything below is optional but each one makes answers better.", done:function(){ return !!SESSION; }},
+  {id:"workspace", n:"Choose a workspace", why:"Sets the sovereignty tier every new thread starts on.", done:function(){ return !!SESSION; }},
+  {id:"mail", n:"Connect your mail", why:"Unlocks reading and drafting from chat — and adds a 17th twin source.", done:function(){ return MAIL.connected; }, go:"mail-connect"},
+  {id:"skill", n:"Turn on your first skill", why:"Try the delay claim narrative — it writes the evidence trail for you.", done:function(){ return LS.get("mv5.skillOn","")==="1"; }, go:"go-skills"},
+  {id:"knowledge", n:"Add a knowledge source", why:"So answers cite your documents instead of general knowledge.", done:function(){ return LS.get("mv5.kdoc","")==="1"; }, go:"go-knowledge"},
+  {id:"agent", n:"Create your first agent", why:"Something that runs while you sleep and tells you what changed.", done:function(){ return LS.get("mv5.agent","")==="1"; }, go:"go-agents"}
+];
+function setupDone(){ return SETUP.filter(function(s){ return s.done(); }).length; }
+
+/* ============================================================
+   16 · v2 — routing between real views
+   ============================================================ */
+var VIEW="chat";
+var NAV=[
+  {id:"chat",        label:"Chat",         ic:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4Z"/></svg>'},
+  {id:"mail",        label:"Mail",         ic:'<svg class="ico sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>'},
+  {id:"knowledge",   label:"Knowledge",    ic:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M8 7h7"/></svg>'},
+  {id:"connections", label:"Connections",  ic:'<svg class="ico sm" viewBox="0 0 24 24"><path d="M7 8 3.5 12 7 16M17 8l3.5 4-3.5 4M14 5l-4 14"/></svg>'},
+  {id:"agents",      label:"Agents",       ic:'<svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 13h.01M15 13h.01"/></svg>'},
+  {id:"automations", label:"Automations",  ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'},
+  {id:"twin",        label:"Twin sources", ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5M5.6 5.6 9 9M15 15l3.4 3.4M18.4 5.6 15 9M9 15l-3.4 3.4"/></svg>'},
+  {id:"help",        label:"Help & roadmap",ic:'<svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5v.4M12 17v.5"/></svg>'}
+];
+function navTail(id){
+  if(id==="chat") return String(ORDER.length);
+  if(id==="mail") return MAIL.connected ? String(MAILBOX.filter(function(m){return m.unread;}).length)+" new" : "off";
+  if(id==="knowledge") return "8,400";
+  if(id==="connections") return connectedCount()+"/"+MCPSERVERS.length;
+  if(id==="agents") return String(AGENTS.filter(function(a){return a.on;}).length);
+  if(id==="automations") return String(AUTOS.filter(function(a){return a.on;}).length);
+  if(id==="twin"){ var c=counts(); return c.connected+"/"+totalSrc(); }
+  return "";
+}
+function renderNav(){
+  $(".side-nav").innerHTML=NAV.map(function(n){
+    var t=navTail(n.id);
+    var tid = n.id==="twin" ? ' id="navTwinCount"' : n.id==="chat" ? ' id="navConvCount"' : '';
+    return '<button class="navitem'+(n.id===VIEW?" on":"")+'" data-nav="'+n.id+'">'+
+      n.ic+n.label+(t?'<span class="tail"'+tid+'>'+t+'</span>':'')+'</button>';
+  }).join("");
+  renderSetup();
+}
+function renderSetup(){
+  var host=$("#setupCard"); if(!host) return;
+  var done=setupDone(), total=SETUP.length;
+  if(done>=total || LS.get("mv5.setupHidden","")==="1"){ host.hidden=true; return; }
+  host.hidden=false;
+  host.innerHTML='<div class="su-h"><b>Finish setting up</b>'+
+    '<span class="su-n">'+done+' of '+total+'</span>'+
+    '<button class="iconbtn" data-act="setup-hide" aria-label="Hide setup checklist">'+
+      '<svg class="ico sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'+
+    '<div class="su-bar"><i style="width:'+Math.round(done/total*100)+'%"></i></div>'+
+    SETUP.map(function(s){
+      var d=s.done();
+      return '<button class="su-row'+(d?" done":"")+'"'+(d||!s.go?' disabled':'')+' data-act="'+(s.go||"noop")+'">'+
+        '<span class="su-tick">'+(d?I.check:'')+'</span>'+
+        '<span class="su-w"><span class="su-t">'+s.n+'</span><span class="su-y">'+s.why+'</span></span></button>';
+    }).join("");
+}
+function route(v){
+  if(v==="twin"){ VIEW="chat"; document.body.setAttribute("data-view","chat"); renderNav(); renderConv(); setRail(true);
+    toast("Twin sources live in the context rail, on the right."); return; }
+  if(v==="help"){ openSettings("help"); return; }
+  VIEW=v; document.body.setAttribute("data-view",v);
+  renderNav();
+  if(v==="chat"){ renderConv(); ta.focus(); }
+  else { renderPage(v); $("#pages").scrollTop=0; }
+  if(narrow()) setSide(false);
+}
+function pageBar(title,sub){
+  $("#viewbar").innerHTML=
+    '<button class="iconbtn" data-act="go" data-id="chat" aria-label="Back to chat" title="Back to chat">'+
+      '<svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>'+
+    '<span class="tt">'+title+'</span><span class="ts dim">'+(sub||"")+'</span><span class="flexsp"></span>'+
+    '<span class="pill sm private"><span class="dot"></span>'+(SESSION?WORKSPACES[SESSION.ws].name:"Magna KSA")+'</span>';
+}
+function renderPage(v){
+  if(v==="connections") renderConnections();
+  else if(v==="agents") renderAgents();
+  else if(v==="automations") renderAutomations();
+  else if(v==="knowledge") renderKnowledge();
+  else if(v==="mail") renderMail();
+}
+
+/* ============================================================
+   17 · v2/v3 — Connections: guided skill and MCP setup
+   ============================================================ */
+var connTab="mcp", skillFilter="All", skillReadyOnly=false, skillQ="";
+var kSpace="s1", kTab="docs", mailSel="m1", mailTab="inbox", agentMode="list", kAnswer=false;
+
+function tabs(list,cur,act){
+  return '<div class="v-tabs">'+list.map(function(t){
+    return '<button class="v-tab'+(t[0]===cur?" on":"")+'" data-act="'+act+'" data-id="'+t[0]+'">'+t[1]+
+      (t[2]?'<span class="n">'+t[2]+'</span>':'')+'</button>';
+  }).join("")+'</div>';
+}
+function statusPill(m){
+  if(m.state==="connected") return '<span class="sp ok"><span class="dot"></span>Connected · '+m.tools.length+' tools</span>';
+  if(m.state==="error") return '<span class="sp warn">Error · view log</span>';
+  return '<span class="sp off">Not connected</span>';
+}
+function residChip(m){
+  return m.local
+    ? '<span class="sp ok" style="font-weight:500">on-prem</span>'
+    : '<span class="sp warn" style="font-weight:500">leaves your network</span>';
+}
+
+/* ---------- how-it-works explainer (dismissible, v3 §2.4) ---------- */
+function howItWorks(kind){
+  if(LS.get("mv5.how"+kind,"")==="1") return "";
+  var steps = kind==="skill"
+    ? [["Turn one on","Pick a skill below and switch it on. Read-only skills need nothing else."],
+       ["Ask for it, or type /","Type the slash key and its name in the composer — or just ask in plain language."],
+       ["Watch what it did","Every run shows the sources it used and the tools it called, in one quiet line."]]
+    : [["Choose a server","A server is a small adapter that lets Magna read one system. Four steps, no code."],
+       ["Say what it may do","Read is on, anything that sends or writes is off until you grant it."],
+       ["Use it from chat","Its tools appear in the slash menu straight away, and answers start citing it."]];
+  return '<div class="how"><div class="how-h">'+I.bolt+'<b>How '+(kind==="skill"?"skills":"MCP servers")+' work</b>'+
+    '<button class="iconbtn" data-act="how-hide" data-id="'+kind+'" aria-label="Dismiss">'+
+    '<svg class="ico sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'+
+    '<div class="how-steps">'+steps.map(function(s,i){
+      return '<div class="how-s"><span class="n">'+(i+1)+'</span><div><b>'+s[0]+'</b><p>'+s[1]+'</p></div></div>';
+    }).join("")+'</div></div>';
+}
+
+/* ---------- skills catalogue ---------- */
+function skillCard(s){
+  var ready=skillReady(s), miss=skillMissing(s);
+  return '<div class="skill'+(ready?"":" needs")+'">'+
+    '<div class="sk-h"><span class="sk-n">'+s.n+'</span>'+
+      '<button class="sw" role="switch" data-act="skill-toggle" data-id="'+s.id+'" aria-checked="'+(s.on&&ready)+'"'+
+        (ready?"":' disabled')+' aria-label="Turn on '+s.n+'"></button></div>'+
+    '<div class="sk-id mono">/'+s.id+'</div>'+
+    '<p class="sk-d">'+s.d+'</p>'+
+    '<div class="sk-req">'+
+      (s.needs.length
+        ? 'Needs: '+s.needs.map(function(n){
+            var ok=SRC[n]&&eff(SRC[n])!=="missing";
+            return '<span class="sp '+(ok?"ok":"warn")+'" style="font-weight:500">'+srcName(n)+'</span>';
+          }).join(" ")
+        : '<span class="sp ok" style="font-weight:500">no connection needed</span>')+
+    '</div>'+
+    (miss.length
+      ? '<div class="sk-gap">'+I.warn+'<span>Connect <b>'+miss.map(srcName).join(" and ")+'</b> and this can answer: '+
+        '<em>"'+s.ex+'"</em></span></div>'
+      : '<div class="sk-ex">'+I.chat+'<span>"'+s.ex+'"</span></div>')+
+    '<div class="sk-f">'+
+      (miss.length
+        ? '<button class="btn sm primary" data-act="connect-src" data-id="'+miss[0]+'">Connect '+srcName(miss[0])+'</button>'
+        : '<button class="btn sm" data-act="skill-try" data-id="'+s.id+'">Try it</button>')+
+      '<span class="sp '+(s.on&&ready?"ok":"off")+'" style="margin-left:auto">'+(s.on&&ready?"On":"Off")+'</span>'+
+    '</div></div>';
+}
+function skillsPane(){
+  var list=SKILLCAT.filter(function(s){
+    if(skillFilter!=="All" && s.c!==skillFilter) return false;
+    if(skillReadyOnly && !skillReady(s)) return false;
+    if(skillQ){
+      var hay=(s.n+" "+s.d+" "+s.id+" "+s.ex).toLowerCase();
+      if(hay.indexOf(skillQ.toLowerCase())===-1) return false;
+    }
+    return true;
+  });
+  var rec=SKILLCAT.filter(function(s){ return ["tender-comparator","po-exception-triage","claim-narrative-builder"].indexOf(s.id)>-1; });
+  return howItWorks("skill")+
+    '<div class="filterbar">'+
+      '<div class="searchwrap" style="flex:1;min-width:180px;margin:0">'+
+        '<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>'+
+        '<input class="search" id="skillSearch" type="search" placeholder="Search skills by name, description or id" value="'+skillQ+'" style="padding-right:12px">'+
+      '</div>'+
+      SKILLCATS.map(function(c){
+        return '<button class="fchip'+(skillFilter===c?" on":"")+'" data-act="skill-cat" data-id="'+c+'">'+c+'</button>';
+      }).join("")+
+      '<button class="fchip'+(skillReadyOnly?" on":"")+'" data-act="skill-ready">Ready to use</button>'+
+      '<button class="btn sm primary" data-act="skill-add" style="margin-left:auto">+ Add skill</button>'+
+    '</div>'+
+    (skillQ||skillFilter!=="All"||skillReadyOnly ? "" :
+      '<div class="v-sec">Recommended for a delivery &amp; procurement lead<span class="ln"></span></div>'+
+      '<div class="v-grid" style="margin-bottom:6px">'+rec.map(skillCard).join("")+'</div>'+
+      '<div class="v-sec">All skills <span class="dim" style="text-transform:none;letter-spacing:0;font-weight:500">· '+
+        SKILLCAT.filter(function(s){return s.on&&skillReady(s);}).length+' on, '+SKILLCAT.length+' available</span><span class="ln"></span></div>')+
+    (list.length
+      ? '<div class="v-grid">'+list.map(skillCard).join("")+'</div>'
+      : '<div class="v-empty"><h4>No skill matches that</h4><p>Try a different category, or clear the filters. '+
+        'If the skill you want does not exist yet, you can describe it in plain language and Magna will draft it.</p>'+
+        '<button class="btn sm primary" data-act="skill-add">Add a skill</button></div>');
+}
+
+/* ---------- MCP catalogue ---------- */
+function mcpPane(){
+  var body=howItWorks("mcp")+
+    '<div class="v-card" style="display:flex;gap:11px;align-items:flex-start">'+I.mcp+
+    '<div><b style="font-size:13px">What an MCP server is</b>'+
+    '<p style="font-size:12.4px;color:var(--tx-3);line-height:1.6;margin-top:3px">'+
+    'A small adapter that lets Magna read one of your systems, and nothing else. Each one exposes a named set of tools — '+
+    '"Search mail", "Read a purchase order" — that you can see before you connect it. Servers marked <b>on-prem</b> run on the '+
+    'same cluster as inference, so nothing they read leaves your network.</p></div>'+
+    '<button class="btn sm" data-act="mcp-add" style="margin-left:auto;flex:none">+ Add server</button></div>';
+  ["Communication","Work management","Operations"].forEach(function(g){
+    var rows=MCPSERVERS.filter(function(m){return m.group===g;});
+    if(!rows.length) return;
+    body+='<div class="v-sec">'+g+'<span class="ln"></span></div>';
+    rows.forEach(function(m){
+      var isMail=m.id==="magna-mail", conn=m.state==="connected";
+      body+='<div class="conn'+(isMail&&!conn?" hl":"")+'">'+
+        '<span class="logo">'+(isMail
+          ? '<svg class="ico sm" viewBox="0 0 24 24" style="color:var(--accent)"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>'
+          : m.name.slice(0,2).toUpperCase())+'</span>'+
+        '<div class="w"><div class="nm">'+m.name+statusPill(m)+residChip(m)+'</div>'+
+          '<div class="mono" style="font-size:10.5px;color:var(--tx-3);margin-top:2px">'+m.idn+'</div>'+
+          '<div class="ds">'+m.val+'</div>'+
+          '<div class="meta"><b style="color:var(--tx-2);font-weight:600">Tools:</b> '+
+            m.tools.map(function(t){ return t.p; }).join(" · ")+'</div>'+
+          (conn
+            ? '<div class="meta"><span>Last sync '+(isMail?MAIL.synced:m.sync)+'</span><span>·</span>'+
+              '<span>transport '+m.transport+'</span>'+
+              (isMail?'<span>·</span><span>'+MAIL.account+'</span>'+
+                Object.keys(MAIL.scopes).filter(function(k){return MAIL.scopes[k];}).map(function(k){
+                  return '<span class="sp '+(k==="send"?"warn":"ok")+'" style="font-weight:500">'+scopeLabel(k)+'</span>'; }).join(""):'')+
+              '<span id="test-'+m.id+'"></span></div>'
+            : '<div class="meta"><span class="sp info" style="font-weight:500">unlocks</span>'+m.unlocks+'</div>')+
+          '<details class="disc"><summary>Technical details</summary><dl class="kv">'+
+            '<dt>Endpoint</dt><dd>'+m.endpoint+'</dd><dt>Transport</dt><dd>'+m.transport+'</dd>'+
+            '<dt>Residency</dt><dd>'+(m.local?"cluster-local · 0 bytes egress":"egress via gateway")+'</dd>'+
+            '<dt>Twin source</dt><dd>'+(m.twin&&SRC[m.twin]?SRC[m.twin].short:"—")+'</dd></dl></details>'+
+        '</div>'+
+        '<div class="cta">'+
+          (conn
+            ? '<button class="btn sm" data-act="test-conn" data-id="'+m.id+'">Test connection</button>'+
+              (isMail?'<button class="btn sm" data-act="mail-scopes">Permissions</button>'+
+                      '<button class="btn sm ghost" data-act="mail-disconnect">Disconnect</button>':'')
+            : '<button class="btn sm primary" data-act="conn-start" data-id="'+m.id+'">Connect '+m.name+'</button>'+
+              (m.twin?'<span class="dim" style="font-size:10.5px;text-align:right">moves twin coverage</span>':''))+
+        '</div></div>';
+    });
+  });
+  body+='<div class="v-sec">Activity — every tool run, logged<span class="ln"></span></div>'+
+    '<div class="v-card">'+ACTIVITY.slice(0,8).map(function(a){
+      return '<div class="act-row"><span class="t">'+a.t+'</span><div class="w">'+
+        '<b>'+a.a+'</b> · '+a.sys+'<em>'+a.by+' — '+a.d+'</em></div>'+
+        '<span class="sp '+(a.res==="ok"?"ok":"warn")+'">'+(a.res==="ok"?"ok":"failed")+'</span></div>';
+    }).join("")+'</div>';
+  return body;
+}
+
+function renderConnections(){
+  pageBar("Connections","· "+connectedCount()+" of "+MCPSERVERS.length+" servers connected");
+  var body="";
+  if(connTab==="mcp") body=mcpPane();
+  else if(connTab==="skills") body=skillsPane();
+  else if(connTab==="knowledge"){
+    body='<div class="stats">'+
+      '<div class="stat"><div class="k">Spaces</div><div class="v">3</div><div class="s">all Private-only</div></div>'+
+      '<div class="stat"><div class="k">Documents</div><div class="v">8,400</div><div class="s">indexed on-prem</div></div>'+
+      '<div class="stat"><div class="k">Passages</div><div class="v">214,880</div><div class="s">searchable</div></div>'+
+      '<div class="stat"><div class="k">Last ingest</div><div class="v">06:00</div><div class="s">today</div></div></div>'+
+      '<div class="v-card"><b style="font-size:13px">Company Knowledge</b>'+
+      '<p style="font-size:12.4px;color:var(--tx-2);line-height:1.6;margin:5px 0 11px">'+
+      'Documents are chunked and embedded on the Magna cluster with an on-prem model. Originals stay where they are; '+
+      'the index never leaves Riyadh DC-1.</p>'+
+      '<button class="btn sm" data-act="go" data-id="knowledge">Open Knowledge</button></div>'+
+      '<div class="v-sec">Cloud storage<span class="ln"></span></div>'+
+      '<div class="v-grid">'+["SharePoint","Google Drive","OneDrive"].map(function(n){
+        return '<div class="conn" style="margin:0"><span class="logo">'+n.slice(0,2).toUpperCase()+'</span>'+
+          '<div class="w"><div class="nm">'+n+'<span class="sp off">Not connected</span></div>'+
+          '<div class="ds">Files are copied into your private index every 6 hours. Originals stay in place.</div></div>'+
+          '<div class="cta"><button class="btn sm" data-act="soon">Connect</button></div></div>';
+      }).join("")+'</div>';
+  }
+  else {
+    body='<div class="v-grid">'+CHANNELS.map(function(c){
+      return '<div class="conn" style="margin:0"><span class="logo">'+c.n.slice(0,2).toUpperCase()+'</span>'+
+        '<div class="w"><div class="nm">'+c.n+'<span class="sp '+c.cls+'">'+c.st+'</span></div>'+
+        '<div class="ds">'+c.d+'</div></div>'+
+        (c.st==="Needs Magna Mail"&&!MAIL.connected
+          ?'<div class="cta"><button class="btn sm primary" data-act="conn-start" data-id="magna-mail">Connect mail</button></div>':'')+
+        '</div>';
+    }).join("")+'</div>';
+  }
+  $("#pages").innerHTML='<div class="v-page"><div class="v-head"><h1>Connections</h1>'+
+    '<p>Everything Magna can read or act on. Turning a skill on takes one click; connecting a server takes four steps '+
+    'and tells you at each one what changes.</p></div>'+
+    tabs([["knowledge","Knowledge"],["skills","Skills",SKILLCAT.filter(function(s){return s.on&&skillReady(s);}).length+"/"+SKILLCAT.length],
+          ["mcp","Tools & MCP",connectedCount()+"/"+MCPSERVERS.length],["channels","Channels"]],connTab,"conn-tab")+
+    body+'</div>';
+  var sq=$("#skillSearch");
+  if(sq) sq.addEventListener("input",function(){ skillQ=this.value; var p=$("#pages").scrollTop; renderConnections(); $("#pages").scrollTop=p; $("#skillSearch").focus(); });
+}
+function scopeLabel(k){
+  return {read:"Read mail",send:"Send mail as you",contacts:"Read contacts",calendar:"Read calendar"}[k]||k;
+}
+
+/* ---------- Agents ---------- */
+function renderAgents(){
+  pageBar("Agents","· "+AGENTS.length+" configured");
+  var body="";
+  if(agentMode==="templates"){
+    body='<div class="v-card"><b style="font-size:13px">Pick a starting point</b>'+
+      '<p style="font-size:12.4px;color:var(--tx-3);line-height:1.55;margin-top:4px">You can edit every field before saving. '+
+      'An agent is a named role with a model, a tool set and a trigger — nothing runs until you enable it.</p></div>'+
+      '<div class="v-grid">'+TEMPLATES.map(function(t,i){
+        return '<button class="tmpl" data-act="use-template" data-id="'+i+'">'+
+          '<span class="nm">'+t.n+'</span><span class="sp info" style="align-self:flex-start;font-weight:500">'+t.c+'</span>'+
+          '<span class="ds">'+t.d+'</span></button>';
+      }).join("")+'</div>';
+  } else {
+    body=AGENTS.map(function(a){
+      return '<div class="agent" style="margin-bottom:11px">'+
+        '<span class="av" style="background:'+a.colour+'">'+a.name.slice(0,2).toUpperCase()+'</span>'+
+        '<div class="w"><div class="nm">'+a.name+'</div><div class="ds">'+a.purpose+'</div>'+
+        '<div class="kv"><span class="pill sm">'+a.model+'</span><span class="pill sm">'+a.access+'</span>'+
+          '<span class="pill sm">'+a.trigger+'</span>'+
+          a.tools.map(function(t){ return '<span class="pill sm mono" style="font-size:10.5px">'+t+'</span>'; }).join("")+
+          (a.interrupt?'<span class="pill sm">may ask you a question</span>':'')+'</div>'+
+        '<div class="last"><b>Last run '+a.last+'</b> — '+a.lastOut+' · '+a.runs+' runs this week</div></div>'+
+        '<div class="cta" style="display:flex;flex-direction:column;gap:7px;align-items:flex-end">'+
+          '<button class="sw" role="switch" data-act="agent-toggle" data-id="'+a.id+'" aria-checked="'+a.on+'" aria-label="Enable '+a.name+'"></button>'+
+          '<button class="btn sm" data-act="agent-run" data-id="'+a.id+'">Run now</button>'+
+        '</div></div>';
+    }).join("");
+  }
+  $("#pages").innerHTML='<div class="v-page"><div class="v-head"><h1>Agents</h1>'+
+    '<p>Delegate repeatable work to a configured specialist. One word throughout — an agent has a model, a tool set, '+
+    'a knowledge scope and a trigger. Scheduled work lives in Automations.</p>'+
+    '<div class="acts">'+
+      '<button class="btn primary sm" data-act="agent-mode" data-id="templates">Create agent</button>'+
+      '<button class="btn sm" data-act="agent-mode" data-id="list">All agents</button>'+
+      '<button class="btn sm" data-act="go" data-id="automations">Automations</button>'+
+    '</div></div>'+body+'</div>';
+}
+
+/* ---------- Automations ---------- */
+function renderAutomations(){
+  pageBar("Automations","· work that runs without you");
+  var rows=AUTOS.map(function(a){
+    var dot=a.res==="ok"?"var(--ok)":a.res==="fail"?"var(--public)":"var(--miss)";
+    return '<tr'+(a.res==="fail"?' style="box-shadow:inset 3px 0 0 var(--public)"':'')+'>'+
+      '<td><div class="nm">'+a.name+'</div><div class="sub">'+a.what.slice(0,70)+'…</div></td>'+
+      '<td><span class="sp '+(a.kind==="watch"?"info":"off")+'">'+a.human+'</span>'+
+        '<div class="mono" style="font-size:10.5px;color:var(--tx-3);margin-top:4px">'+a.cron+'</div></td>'+
+      '<td><span style="display:inline-flex;align-items:center;gap:7px"><i style="width:7px;height:7px;border-radius:99px;background:'+dot+';display:inline-block"></i>'+a.last+'</span>'+
+        '<div class="sub">'+a.out+'</div></td>'+
+      '<td>'+a.next+'</td>'+
+      '<td class="act"><button class="sw" role="switch" data-act="auto-toggle" data-id="'+a.id+'" aria-checked="'+a.on+'" aria-label="Enable '+a.name+'"></button></td>'+
+      '<td class="act"><button class="btn sm" data-act="auto-run" data-id="'+a.id+'">View run</button></td></tr>';
+  }).join("");
+  $("#pages").innerHTML='<div class="v-page"><div class="v-head"><h1>Automations</h1>'+
+    '<p>Scheduled and watching work in one place. Every automation states in plain English when it runs, what it found last time, '+
+    'and whether it may use tools that normally ask for approval.</p>'+
+    '<div class="acts"><button class="btn primary sm" data-act="auto-new">New automation</button>'+
+    '<button class="btn sm" data-act="go" data-id="agents">Agents</button></div></div>'+
+    '<div class="stats">'+
+      '<div class="stat"><div class="k">Enabled</div><div class="v">'+AUTOS.filter(function(a){return a.on;}).length+'</div><div class="s">of '+AUTOS.length+'</div></div>'+
+      '<div class="stat"><div class="k">Runs today</div><div class="v">31</div><div class="s">29 ok · 1 failed · 1 blocked</div></div>'+
+      '<div class="stat"><div class="k">Next run</div><div class="v">14:00</div><div class="s">PO slippage watch</div></div>'+
+      '<div class="stat"><div class="k">Needs attention</div><div class="v">2</div><div class="s">1 failed · 1 blocked</div></div></div>'+
+    '<div class="dtwrap"><table class="dt"><thead><tr><th>Automation</th><th>Trigger</th><th>Last run</th><th>Next</th><th>On</th><th></th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>'+
+    '<div class="v-card" style="margin-top:14px;display:flex;gap:11px;align-items:flex-start">'+I.warn+
+    '<div style="flex:1"><b style="font-size:12.8px">Overnight inbox triage is '+(MAIL.connected?"ready":"blocked")+'</b>'+
+    '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.55;margin-top:3px">It needs Magna Mail, which is '+
+    (MAIL.connected?'now connected — enable it and it will read overnight mail before you wake up.':'not connected yet.')+'</p></div>'+
+    (MAIL.connected?'<button class="btn sm" data-act="auto-toggle" data-id="t5">Enable</button>'
+      :'<button class="btn sm primary" data-act="conn-start" data-id="magna-mail">Connect Magna Mail</button>')+'</div></div>';
+}
+
+/* ---------- Knowledge ---------- */
+function renderKnowledge(){
+  pageBar("Knowledge","· 8,400 documents · indexed on-prem");
+  var sp=SPACES.filter(function(s){return s.id===kSpace;})[0];
+  var docs=DOCS2.filter(function(d){return d.sp===kSpace;});
+  var body="";
+  if(kTab==="docs"){
+    body='<div class="drop">'+I.doc+'<p>Drop files here, or choose them. PDF, DOCX, XLSX, PPTX, CSV, MD, TXT and scanned images (OCR on). '+
+      'Up to 100 MB per file.</p><button class="btn sm primary" data-act="k-upload">Choose files</button></div>'+
+      '<div class="dtwrap"><table class="dt"><thead><tr><th>File</th><th>Source</th><th class="r">Size</th><th class="r">Passages</th><th>Status</th><th>Added</th><th></th></tr></thead><tbody>'+
+      docs.map(function(d){
+        var cls=d.st==="Indexed"?"ok":d.st==="Failed"?"warn":"info";
+        return '<tr><td><div class="nm">'+d.n+'</div></td><td>'+d.src+'</td><td class="r">'+d.size+'</td>'+
+          '<td class="r">'+(d.chunks||"—")+'</td><td><span class="sp '+cls+'">'+d.st+'</span></td><td>'+d.added+'</td>'+
+          '<td class="act"><button class="btn sm ghost" data-act="doc-act" data-id="'+d.n+'">Reindex</button></td></tr>';
+      }).join("")+'</tbody></table></div>'+
+      (kSpace==="s3"?'<p class="dim" style="font-size:11.5px;margin-top:10px">One document failed: '+
+        '<b>Lifting operations standard MG-HSE-014.pdf</b> — the PDF is a scan with no text layer and OCR timed out at 402 pages. '+
+        'Split it, or raise the OCR page limit in Settings.</p>':"");
+  } else if(kTab==="ask"){
+    body='<div class="askbox"><label class="sr" for="kq">Ask this space</label>'+
+      '<input id="kq" type="text" value="What did we agree with Gulf MEP on valve lead times?" spellcheck="false">'+
+      '<button class="btn primary" data-act="k-ask">Ask</button></div>';
+    if(kAnswer){
+      body+='<div class="v-card"><div class="ground" style="box-shadow:none;margin-bottom:11px">'+
+        '<div class="ground-h">'+I.doc+'<span class="eyebrow">Answer from 3 passages</span></div>'+
+        '<div class="gchips"><span class="gchip" data-state="connected"><span class="dot"></span><span class="t">Procurement &amp; Contracts</span></span></div></div>'+
+        '<p style="font-size:13.8px;line-height:1.68">The master services agreement fixes an <b>8-week lead time</b> for DN300 actuated valves '+
+        'from order confirmation<span class="cite">1</span>, with a 5-working-day cure period before liquidated damages apply<span class="cite">2</span>. '+
+        'Change order CO-121 substituted the valve model in June and re-started that clock<span class="cite">3</span>.</p>'+
+        '<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6;margin-top:10px">'+
+        (MAIL.connected
+          ? 'Magna Mail is connected, so I can also see what the supplier has said since — Faisal Al-Harbi confirmed 11 weeks in writing at 08:42 today.'
+          : 'I can only see the contract, not the correspondence. Connect Magna Mail and I could tell you what the supplier has actually said since.')+'</p>'+
+        '<div style="display:flex;gap:8px;margin-top:13px;flex-wrap:wrap">'+
+        '<button class="btn sm primary" data-act="k-tochat">Continue in chat</button>'+
+        (MAIL.connected?'<button class="btn sm" data-act="go" data-id="mail">Open the supplier email</button>'
+                       :'<button class="btn sm" data-act="conn-start" data-id="magna-mail">Connect Magna Mail</button>')+
+        '</div></div>'+
+        [["Master services agreement — Gulf MEP.pdf","§7.2, page 14",92,"Delivery of DN300 actuated valves shall be within eight (8) weeks of order confirmation, time being of the essence…"],
+         ["Master services agreement — Gulf MEP.pdf","§11.4, page 22",71,"Liquidated damages accrue after a cure period of five (5) working days from the contractual delivery date…"],
+         ["CO-121 change order — valve substitution.pdf","page 2",64,"Substitution of valve model approved 27 June 2026. Lead time re-baselined from the date of this order."]]
+        .map(function(p){
+          return '<div class="passage"><div class="src">'+I.doc+'<b style="color:var(--tx-2)">'+p[0]+'</b><span>·</span><span>'+p[1]+'</span>'+
+            '<span style="margin-left:auto;display:flex;align-items:center;gap:7px">'+p[2]+'%<span class="relbar"><i style="width:'+p[2]+'%"></i></span></span></div>'+
+            '<div class="tx">'+p[3]+'</div></div>';
+        }).join("");
+    } else {
+      body+='<div class="v-empty"><h4>Ask this space a question</h4>'+
+        '<p>You get a synthesised answer with numbered citations, then the passages it came from with their relevance. '+
+        'Retrieval and generation both run in Riyadh DC-1 — nothing is sent anywhere.</p>'+
+        '<button class="btn sm primary" data-act="k-ask">Try the example question</button></div>';
+    }
+  } else {
+    body='<div class="v-card"><b style="font-size:13px">Who can read this space</b>'+
+      '<p style="font-size:12.4px;color:var(--tx-2);line-height:1.6;margin:5px 0 0">'+sp.members+' members inherit access from the '+
+      '<b>Delivery</b> group in your directory. The space is locked to <b>Private only</b>: a thread on the Public tier cannot retrieve '+
+      'from it, and the guardrail names the documents before any tier change.</p></div>'+
+      '<div class="v-card"><b style="font-size:13px">Chat scope</b>'+
+      '<p style="font-size:12.4px;color:var(--tx-2);line-height:1.6;margin:5px 0 11px">The <b>Company Knowledge</b> chip in the composer '+
+      'controls which spaces a conversation may search. Right now Magna will search <b>3 spaces · 8,400 documents</b> before answering.</p>'+
+      '<button class="btn sm" data-act="go" data-id="chat">Back to chat</button></div>';
+  }
+  $("#pages").innerHTML='<div class="v-page"><div class="v-head"><h1>Company knowledge</h1>'+
+    '<p>Three spaces, each with its own residency lock. Documents are chunked and embedded on the Magna cluster — '+
+    'originals stay where they are.</p></div>'+
+    '<div class="v-grid" style="margin-bottom:16px">'+SPACES.map(function(s){
+      return '<button class="space'+(s.id===kSpace?" on":"")+'" data-act="k-space" data-id="'+s.id+'">'+
+        '<span class="nm">'+s.name+'<span class="sp ok" style="font-weight:500">'+s.lock+'</span></span>'+
+        '<span class="ds">'+s.d+'</span>'+
+        '<span class="mt"><span>'+s.docs.toLocaleString()+' documents</span><span>'+s.size+'</span><span>indexed '+s.indexed+'</span></span></button>';
+    }).join("")+'</div>'+
+    '<div class="stats">'+
+      '<div class="stat"><div class="k">Indexed</div><div class="v">'+sp.docs.toLocaleString()+'</div><div class="s">documents</div></div>'+
+      '<div class="stat"><div class="k">Passages</div><div class="v">54,720</div><div class="s">searchable</div></div>'+
+      '<div class="stat"><div class="k">Pending</div><div class="v">1</div><div class="s">OCR in progress</div></div>'+
+      '<div class="stat"><div class="k">Embedding</div><div class="v" style="font-size:14px;padding-top:3px">Magna E5-large</div>'+
+        '<div class="s"><span class="sp ok" style="font-weight:500">on-prem</span></div></div></div>'+
+    tabs([["docs","Documents",String(docs.length)],["ask","Ask"],["access","Access"]],kTab,"k-tab")+
+    body+'</div>';
+}
+
+/* ---------- Mail ---------- */
+function renderMail(){
+  pageBar("Mail","· "+(MAIL.connected?providerName()+" · "+MAIL.account:"not connected"));
+  if(!MAIL.connected){
+    $("#pages").innerHTML='<div class="v-page"><div class="v-head"><h1>Mail</h1>'+
+      '<p>Read, summarise and reply to your work mail without leaving MagnaVERSE.</p></div>'+
+      '<div class="v-empty"><h4>Magna Mail is not connected</h4>'+
+      '<p>Connecting your mailbox lets Magna answer from what people actually told each other — a supplier confirming a '+
+      'lead-time change is often the only evidence of why a milestone moved. It also becomes the <b>17th source</b> in your '+
+      'Agentic Twin, under Behavioural.</p>'+
+      '<button class="btn primary" data-act="conn-start" data-id="magna-mail">Connect Magna Mail</button></div>'+
+      '<div class="v-card" style="margin-top:14px"><b style="font-size:12.8px">What you will be asked</b>'+
+      '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.6;margin-top:5px">Four steps: provider, mailbox, permissions, residency. '+
+      '<b>Send mail as you is off by default</b> — Magna can draft, but you press send. You will never type a mail password into MagnaVERSE; '+
+      'authorisation happens in your provider\'s own window.</p></div></div>';
+    return;
+  }
+  var list=(mailTab==="inbox"?MAILBOX:SENT);
+  var msg=list.filter(function(m){return m.id===mailSel;})[0]||list[0];
+  var reader=msg?
+    '<div class="mailread"><h3>'+msg.subj+'</h3>'+
+    '<div class="mailmeta"><span class="av">'+msg.from.slice(0,2).toUpperCase()+'</span>'+
+      '<span style="flex:1;min-width:0"><span class="who" style="display:block">'+msg.from+(msg.org?' · '+msg.org:'')+'</span>'+
+      '<span class="addr" style="display:block">'+msg.addr+'</span></span>'+
+      '<span class="pill sm">'+msg.when+'</span>'+
+      '<span class="pill sm private"><span class="dot"></span>indexed on-prem</span></div>'+
+    '<div class="mailbody">'+msg.body.map(function(p){return '<p>'+p+'</p>';}).join("")+'</div>'+
+    '<div class="mailacts">'+
+      '<button class="btn sm primary" data-act="mail-summarise" data-id="'+msg.id+'">'+I.bolt+'Summarise with Magna</button>'+
+      '<button class="btn sm" data-act="open-draft" data-id="'+msg.id+'">'+I.copy+'Draft a reply</button>'+
+      '<button class="btn sm ghost" data-act="mail-tochat" data-id="'+msg.id+'">Ask about this in chat</button>'+
+    '</div></div>'
+    : '<div class="mailread"><div class="v-empty" style="border:0"><h4>Nothing sent yet</h4>'+
+      '<p>Anything Magna sends on your behalf appears here, with the time it went out and the approval that released it.</p>'+
+      '<button class="btn sm" data-act="mail-tab" data-id="inbox">Back to inbox</button></div></div>';
+  $("#pages").innerHTML='<div class="v-page"><div class="v-head"><h1>Mail</h1>'+
+    '<p>'+MAIL.account+' · '+providerName()+' · last synced '+MAIL.synced+'. '+
+    (MAIL.scopes.send?'Send is granted — Magna still drafts and waits for you.':'Send is <b>not</b> granted — Magna can draft, but cannot send.')+'</p>'+
+    '<div class="acts"><button class="btn sm primary" data-act="open-draft" data-id="m1">New draft</button>'+
+    '<button class="btn sm" data-act="go" data-id="connections">Manage connection</button></div></div>'+
+    tabs([["inbox","Inbox",String(MAILBOX.filter(function(m){return m.unread;}).length)],["sent","Sent",String(SENT.length)]],mailTab,"mail-tab")+
+    '<div class="mailwrap"><div class="maillist">'+
+      (list.length?list.map(function(m){
+        return '<button class="mailrow'+(m.unread?" unread":"")+(msg&&m.id===msg.id?" on":"")+'" data-act="mail-open" data-id="'+m.id+'">'+
+          '<span class="r1">'+(m.unread?'<span class="dot"></span>':'')+'<span class="from">'+m.from+'</span><span class="when">'+m.when+'</span></span>'+
+          '<span class="subj">'+m.subj+'</span><span class="prev">'+m.prev+'</span></button>';
+      }).join(""):'<div style="padding:22px 14px;font-size:12.4px;color:var(--tx-2);line-height:1.6">'+
+        'Nothing sent yet. When Magna drafts a reply you approve, it appears here.</div>')+
+    '</div>'+reader+'</div></div>';
+}
+
+/* ============================================================
+   18 · v2 — authentication flow
+   ============================================================ */
+function showPane(p){
+  $("#auth").setAttribute("data-step",p);
+  $$("[data-pane]").forEach(function(el){ el.hidden = el.getAttribute("data-pane")!==p; });
+  var f=$('[data-pane="'+p+'"]').querySelector("input,button");
+  if(f) setTimeout(function(){ f.focus(); },30);
+}
+function openAuth(p){ $("#auth").classList.add("open"); showPane(p||"login"); }
+function closeAuth(){ $("#auth").classList.remove("open"); }
+function fieldErr(id,msg){
+  var f=$("#"+id);
+  if(msg){ f.classList.add("bad"); f.querySelector(".et").textContent=msg; f.querySelector("input").focus(); }
+  else f.classList.remove("bad");
+  return !msg;
+}
+function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(v).trim()); }
+
+$("#loginForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var em=$("#liEmail").value.trim(), pw=$("#liPass").value;
+  fieldErr("fEmail",""); fieldErr("fPass","");
+  if(!em) return fieldErr("fEmail","Enter your work email");
+  if(!validEmail(em)) return fieldErr("fEmail","That does not look like an email address");
+  if(!/@magna\.(ai|sa)$/i.test(em)) return fieldErr("fEmail","No MagnaVERSE account for that address — use your @magna.ai work email");
+  if(!pw) return fieldErr("fPass","Enter your password");
+  if(pw.length<4) return fieldErr("fPass","That password is not right — it must be at least 4 characters");
+  var btn=$("#signIn"); btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> Signing in…';
+  $("#authMark").classList.add("mg-thinking");
+  setTimeout(function(){
+    btn.disabled=false; btn.textContent="Sign in";
+    $("#authMark").classList.remove("mg-thinking");
+    pendingUser={email:em, name:"Ahmad Farahat", org:"Magna"};
+    $("#wsWho").textContent=em;
+    showPane("workspace");
+  },1100);
+});
+$("#ssoBtn").addEventListener("click",function(){
+  var b=this; b.disabled=true; b.innerHTML='<span class="spin"></span> Opening Magna SSO…';
+  setTimeout(function(){
+    b.disabled=false;
+    b.innerHTML='<svg class="ico sm" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Continue with Magna SSO';
+    pendingUser={email:"ahmad.farahat@magna.ai", name:"Ahmad Farahat", org:"Magna"};
+    $("#wsWho").textContent=pendingUser.email;
+    showPane("workspace"); toast("Signed in through Magna SSO — no password was handled by MagnaVERSE.");
+  },1200);
+});
+$("#regForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var n=$("#rgName").value.trim(), em=$("#rgEmail").value.trim(), pw=$("#rgPass").value, org=$("#rgOrg").value.trim();
+  ["fRName","fREmail","fRPass","fROrg"].forEach(function(f){ fieldErr(f,""); });
+  if(!n) return fieldErr("fRName","Enter your name");
+  if(!validEmail(em)) return fieldErr("fREmail","Enter a valid work email");
+  if(pw.length<8) return fieldErr("fRPass","Use at least 8 characters");
+  if(!org) return fieldErr("fROrg","Enter your organisation");
+  pendingUser={email:em, name:n, org:org};
+  $("#wsWho").textContent=em;
+  showPane("workspace");
+});
+$("#toRegister").addEventListener("click",function(){ showPane("register"); });
+$("#toLogin").addEventListener("click",function(){ showPane("login"); });
+$("#backToLogin").addEventListener("click",function(){ showPane("login"); });
+$$("[data-ws]").forEach(function(b){
+  b.addEventListener("click",function(){
+    var ws=b.getAttribute("data-ws");
+    SESSION={email:pendingUser?pendingUser.email:"ahmad.farahat@magna.ai",
+             name:pendingUser?pendingUser.name:"Ahmad Farahat",
+             org:pendingUser?pendingUser.org:"Magna", ws:ws};
+    LS.set("mv5.session",JSON.stringify(SESSION));
+    enterApp(true);
+  });
+});
+function enterApp(fresh){
+  closeAuth();
+  var w=WORKSPACES[SESSION.ws];
+  $(".userrow .un").textContent=SESSION.name;
+  $(".userrow .uo").textContent=SESSION.org+" · Riyadh · "+w.name.replace("Magna ","");
+  $(".avatar").textContent=SESSION.name.split(" ").map(function(p){return p[0];}).join("").slice(0,2).toUpperCase();
+  setTier("private",true);
+  renderNav(); route("chat"); startTour(false);
+  if(fresh){
+    toast(w.publicAllowed
+      ? "Signed in to Magna Sandbox. The Public tier is available here — the guardrail still names what would leave."
+      : "Signed in to Magna KSA · Production. Every thread starts on the Private tier.");
+  }
+}
+function signOut(){
+  LS.set("mv5.session","");
+  SESSION=null; pendingUser=null;
+  closeMenus(); closeDialog();
+  $("#liPass").value="magnaverse";
+  openAuth("login");
+  toast("Signed out. The local session has been cleared.");
+}
+function renderUserMenu(){
+  var w=SESSION?WORKSPACES[SESSION.ws]:WORKSPACES.prod;
+  $("#userMenu").innerHTML=
+    '<div class="menu-h">'+I.twin+'<span class="eyebrow">'+(SESSION?SESSION.email:"")+'</span></div>'+
+    '<button class="mi" data-act="um" data-id="settings"><span style="flex:1"><span class="nm">Settings</span>'+
+      '<span class="ds">Appearance, models, sovereignty, twin sources</span></span></button>'+
+    '<button class="mi" data-act="um" data-id="setup"><span style="flex:1"><span class="nm">Finish setting up</span>'+
+      '<span class="ds">'+setupDone()+' of '+SETUP.length+' done</span></span></button>'+
+    '<button class="mi" data-act="um" data-id="workspace"><span style="flex:1"><span class="nm">Switch workspace</span>'+
+      '<span class="ds">Currently '+w.name+' · '+w.sub+'</span></span></button>'+
+    '<button class="mi" data-act="um" data-id="signout"><span style="flex:1"><span class="nm">Sign out</span>'+
+      '<span class="ds">Clears the local session and returns to the login screen</span></span></button>';
+}
+
+/* ============================================================
+   19 · v3 — one guided stepper for every connector
+   Choose → Configure → Permissions & residency → Done
+   ============================================================ */
+var STEPNAMES=["Choose","Configure","Permissions","Done"];
+var cw=null, wzMode="conn";
+function openConnect(id,step){
+  var cfg=CONNSETUP[id]; if(!cfg) return;
+  var m=mcpById(id);
+  wzMode="conn";
+  cw={id:id, cfg:cfg, step:step||1, variant:(id==="magna-mail"&&MAIL.connected?MAIL.provider:cfg.variants[0].id),
+      authorised:(id==="magna-mail"&&MAIL.connected), tested:false,
+      scopes:cfg.scopes.reduce(function(o,s){ o[s.id]= (id==="magna-mail"&&MAIL.connected)?!!MAIL.scopes[s.id]:s.on; return o; },{})};
+  $("#wzTitle").textContent=cfg.title;
+  renderWizard(); openDialog("wizard");
+}
+function variantOf(){ return cw.cfg.variants.filter(function(v){ return v.id===cw.variant; })[0]; }
+function renderWizard(){
+  if(wzMode==="skill") return renderSkillWiz();
+  var cfg=cw.cfg, v=variantOf(), b="", f="", m=mcpById(cw.id);
+  $("#wzSteps").innerHTML=STEPNAMES.map(function(n,i){
+    var s=i+1;
+    return '<div class="wz-s'+(s<cw.step?" done":s===cw.step?" on":"")+'"><i></i><span>'+s+'. '+n+'</span></div>';
+  }).join("");
+
+  if(cw.step===1){
+    b='<h3>Where does this run?</h3><p class="lead2">Pick the variant you use. Each one states what it means for your data — '+
+      'next you will name the account, then choose exactly what Magna may do.</p>'+
+      cfg.variants.map(function(x){
+        return '<button class="pick'+(cw.variant===x.id?" on":"")+'" data-act="wz-var" data-id="'+x.id+'"><span class="rad"></span>'+
+          '<span style="flex:1"><span class="nm">'+x.n+'<span class="sp '+(x.leaves?"warn":"ok")+'" style="font-weight:500">'+
+          (x.leaves?"traffic leaves your network":"on-prem")+'</span></span>'+
+          '<span class="ds">'+x.sub+' — '+x.d+'</span></span></button>';
+      }).join("")+
+      '<div class="v-card" style="margin:12px 0 0"><b style="font-size:12.4px">This server exposes</b>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
+      m.tools.map(function(t){ return '<span class="pill sm">'+t.p+'</span>'; }).join("")+'</div></div>';
+    f='<span class="sp2"></span><button class="btn" data-act="wz-cancel">Cancel</button>'+
+      '<button class="btn primary" data-act="wz-next">Continue to configure</button>';
+  }
+  else if(cw.step===2){
+    if(cfg.kind==="account"){
+      b='<h3>Which account?</h3><p class="lead2">Magna never sees or stores a password. You approve the connection in '+
+        v.n+'\'s own sign-in window, and it hands back a token you can revoke at any time.</p>'+
+        '<div class="field"><label for="wzAddr">'+cfg.account.addrLabel+'</label>'+
+          '<input id="wzAddr" type="text" value="'+cfg.account.addr+'" spellcheck="false"></div>'+
+        '<div class="field"><label for="wzName">'+cfg.account.dispLabel+'</label>'+
+          '<input id="wzName" type="text" value="'+cfg.account.disp+'"></div>'+
+        '<div class="authbox">'+
+          (cw.authorised
+            ? '<div class="st" style="color:var(--ok)">'+I.check.replace("ico xs","ico sm")+' Authorised in '+v.n+' · token issued '+nowTime()+'</div>'
+            : '<div class="st">You will be handed to '+v.n+' to approve this connection. Nothing is typed here — '+
+              'MagnaVERSE never asks for a third-party password.</div>'+
+              '<button class="btn primary" data-act="wz-auth">Authorise in '+v.n+' →</button>')+
+        '</div>';
+    } else {
+      b='<h3>Where is it?</h3><p class="lead2">Your administrator has already published this endpoint. Test it before you continue — '+
+        'a server that does not answer is worse than one you never connected.</p>'+
+        '<div class="field"><label for="wzAddr">'+cfg.endpoint.label+'</label>'+
+          '<input id="wzAddr" type="text" value="'+cfg.endpoint.host+'" spellcheck="false"></div>'+
+        '<div class="field"><label for="wzName">Authentication</label>'+
+          '<input id="wzName" type="text" value="'+cfg.endpoint.auth+'" readonly></div>'+
+        '<div class="authbox">'+
+          (cw.authorised
+            ? '<div class="st" style="color:var(--ok)">'+I.check.replace("ico xs","ico sm")+' Reached the server · '+
+              m.tools.length+' tools discovered · 34 ms</div>'
+            : '<div class="st">Nothing is written. The test opens a connection, lists the tools and closes it again.</div>'+
+              '<button class="btn primary" data-act="wz-auth">Test connection</button>')+
+        '</div>';
+    }
+    f='<button class="btn ghost" data-act="wz-back">Back</button><span class="sp2"></span>'+
+      '<button class="btn primary" data-act="wz-next"'+(cw.authorised?"":" disabled")+'>Continue to permissions</button>';
+  }
+  else if(cw.step===3){
+    b='<h3>What may Magna do with it?</h3><p class="lead2">Read is on. Anything that sends, posts or writes is off until you turn it on — '+
+      'and still asks you every single time it runs.</p>'+
+      cfg.scopes.map(function(s){
+        return '<button class="scope'+(cw.scopes[s.id]?" on":"")+(s.danger?" danger":"")+'" data-act="wz-scope" data-id="'+s.id+'" role="checkbox" aria-checked="'+!!cw.scopes[s.id]+'">'+
+          '<span class="box">'+I.check+'</span><span style="flex:1"><span class="nm">'+s.n+
+          (s.danger?'<span class="sp warn" style="margin-left:8px;font-weight:500">off by default</span>':'')+'</span>'+
+          '<span class="ds">'+s.d+'</span></span></button>';
+      }).join("")+
+      '<div class="v-sec" style="margin:16px 0 9px">Residency<span class="ln"></span></div>'+
+      (v.leaves
+        ? '<div class="resid pub"><b>Content crosses your network boundary.</b> It is fetched from '+v.n+
+          ' over the internet, then indexed inside Riyadh DC-1. Your administrator can restrict this connector to specific tiers.</div>'
+        : '<div class="resid"><b>0 bytes leave your network.</b> This server runs on the same cluster as inference in Riyadh DC-1. '+
+          'Everything it reads is indexed on-prem and embedded with the on-prem model.</div>')+
+      (m.twin&&SRC[m.twin]
+        ? '<div class="v-card" style="margin-top:11px;display:flex;gap:10px;align-items:flex-start">'+I.twin+
+          '<div><b style="font-size:12.6px">Your twin will change</b><p style="font-size:12.2px;color:var(--tx-2);line-height:1.55;margin-top:3px">'+
+          '<b>'+SRC[m.twin].short+'</b> moves to <b>connected</b> — coverage goes from '+counts().connected+' to '+
+          (eff(SRC[m.twin])==="connected"?counts().connected:counts().connected+1)+' of '+
+          (SRC[m.twin].candidate?totalSrc()+1:totalSrc())+'. '+m.unlocks+'</p></div></div>'
+        : '');
+    f='<button class="btn ghost" data-act="wz-back">Back</button><span class="sp2"></span>'+
+      '<button class="btn primary" data-act="wz-finish">'+cfg.commit+'</button>';
+  }
+  else {
+    var slash=m.tools.filter(function(t){ return t.risk!=="send"; }).slice(0,3);
+    b='<div style="text-align:center;padding:6px 0 2px">'+
+      '<div style="width:52px;height:52px;border-radius:99px;background:var(--ok-dim);color:var(--ok);display:grid;place-items:center;margin:0 auto 13px;border:1px solid color-mix(in srgb,var(--ok) 40%,transparent)">'+
+      I.check.replace("ico xs","ico")+'</div>'+
+      '<h3>'+m.name+' is connected</h3><p class="lead2" style="margin-bottom:14px">'+
+      (cw.id==="magna-mail"?MAIL.account+' · '+providerName():variantOf().n)+'</p></div>'+
+      '<div class="v-card" style="margin:0 0 11px"><b style="font-size:12.6px">Granted</b><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
+      cw.cfg.scopes.map(function(s){
+        return '<span class="sp '+(cw.scopes[s.id]?(s.danger?"warn":"ok"):"off")+'">'+(cw.scopes[s.id]?"":"not granted · ")+s.n+'</span>';
+      }).join("")+'</div></div>'+
+      '<div class="v-card" style="margin:0 0 11px"><b style="font-size:12.6px">How to use it right now</b>'+
+      '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.6;margin:6px 0 9px">Type <b>/</b> in the composer — these are live in the menu now:</p>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+slash.map(function(t){
+        return '<span class="pill sm mono">/'+t.n+'</span>'; }).join("")+'</div></div>'+
+      '<div class="resid"><b>Your twin grew.</b> Coverage is now <b>'+counts().connected+' connected · '+counts().partial+
+      ' partial · '+counts().missing+' missing</b> of '+totalSrc()+'. '+m.unlocks+'</div>';
+    f='<span class="sp2"></span><button class="btn" data-act="wz-cancel">Close</button>'+
+      '<button class="btn primary" data-act="wz-try" data-id="'+cw.id+'">Try it in chat</button>';
+  }
+  $("#wzBody").innerHTML=b; $("#wzFoot").innerHTML=f;
+}
+function nowTime(){ var d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+
+/* commit a connection — this is where the app visibly changes */
+function commitConnect(){
+  var id=cw.id, m=mcpById(id), a=$("#wzAddr"), n=$("#wzName");
+  m.state="connected"; m.sync="just now";
+  if(id==="magna-mail"){
+    MAIL.connected=true; MAIL.provider=cw.variant; MAIL.synced=nowTime();
+    MAIL.scopes={read:!!cw.scopes.read, send:!!cw.scopes.send, contacts:!!cw.scopes.contacts, calendar:!!cw.scopes.calendar};
+    if(a&&a.value.trim()) MAIL.account=a.value.trim();
+    if(n&&n.value.trim()) MAIL.display=n.value.trim();
+    document.body.setAttribute("data-mail","connected");
+    saveMail();
+  }
+  /* the twin gains — or completes — a source */
+  if(m.twin && SRC[m.twin]){
+    var s=SRC[m.twin];
+    s.s="connected"; s.on=true; s.candidate=false;
+    s.meta=(variantOf()?variantOf().n:m.name)+" · synced "+nowTime();
+  }
+  /* its tools become live in the slash menu */
+  MCPS=MCPS.filter(function(x){ return x.n!==m.idn; });
+  MCPS.push({n:m.idn, d:m.val, server:m.id});
+  LS.set("mv5.conn."+id,"1");
+  logAct(m.idn+".connect", m.name, "You · Connections", "ok",
+    m.tools.length+" tools discovered · "+(m.local?"0 bytes egress":"egress via gateway"));
+  renderRail(); syncTwin(); renderNav();
+  cw.step=4; renderWizard();
+}
+function disconnectServer(id){
+  var m=mcpById(id);
+  m.state="disconnected"; m.sync="";
+  if(id==="magna-mail"){
+    MAIL.connected=false; MAIL.synced=""; MAIL.approvals={};
+    document.body.removeAttribute("data-mail"); saveMail();
+  }
+  if(m.twin&&SRC[m.twin]){
+    var s=SRC[m.twin];
+    if(id==="magna-mail"){ s.s="missing"; s.on=false; s.candidate=true; s.meta="Not connected · 17th source"; }
+    else if(id==="slack"){ s.s="partial"; s.meta="Metadata only · no message bodies"; }
+    else { s.s="missing"; s.on=false; s.meta="Not connected"; }
+  }
+  MCPS=MCPS.filter(function(x){ return x.n!==m.idn; });
+  LS.set("mv5.conn."+id,"");
+  logAct(m.idn+".disconnect", m.name, "You · Connections", "ok", "Token revoked · index removed");
+  renderRail(); syncTwin(); renderNav();
+  toast(m.name+" disconnected. Coverage is back to "+counts().connected+" of "+totalSrc()+".");
+}
+function saveMail(){
+  LS.set("mv5.mail",JSON.stringify({connected:MAIL.connected,provider:MAIL.provider,account:MAIL.account,
+    display:MAIL.display,scopes:MAIL.scopes,synced:MAIL.synced,approvals:MAIL.approvals}));
+}
+function logAct(a,sys,by,res,d){ ACTIVITY.unshift({t:nowTime(),a:a,sys:sys,by:by,res:res,d:d}); }
+
+/* test connection — a real, visible result (v3 §3.3) */
+function testConn(id){
+  var m=mcpById(id), host=$("#test-"+id); if(!host) return;
+  host.innerHTML='<span class="sp info"><span class="spin" style="width:11px;height:11px;border-width:1.5px"></span>Reaching server…</span>';
+  setTimeout(function(){ host.innerHTML='<span class="sp info">Discovering tools…</span>'; },600);
+  setTimeout(function(){
+    if(id==="p6-schedule"){
+      host.innerHTML='<span class="sp warn">'+m.tools.length+' tools · progress data 6 days old</span>';
+      toast("Primavera P6 answered in 41 ms — but its last progress update is 6 days old, which is why schedule answers stay at medium confidence.");
+    } else {
+      host.innerHTML='<span class="sp ok">'+m.tools.length+' tools responded · 34 ms</span>';
+      toast(m.name+" answered in 34 ms · "+m.tools.length+" tools discovered · "+(m.local?"0 bytes left your network.":"via gateway."));
+    }
+    logAct(m.idn+".test", m.name, "You · Connections", "ok", m.tools.length+" tools responded");
+  },1400);
+}
+
+/* ============================================================
+   20 · v3 — adding a skill: three routes, with a real import error
+   ============================================================ */
+var sw2={route:null, name:"", what:"", needs:[], trigger:"request", err:null};
+function openSkillWiz(){
+  wzMode="skill"; sw2={route:null,name:"",what:"",needs:[],trigger:"request",err:null};
+  $("#wzTitle").textContent="Add a skill";
+  renderWizard(); openDialog("wizard");
+}
+function renderSkillWiz(){
+  var b="", f="";
+  $("#wzSteps").innerHTML=["Choose a route","Describe it","Done"].map(function(n,i){
+    var s=i+1, cur=sw2.route?(sw2.route==="done"?3:2):1;
+    return '<div class="wz-s'+(s<cur?" done":s===cur?" on":"")+'"><i></i><span>'+s+'. '+n+'</span></div>';
+  }).join("");
+  if(!sw2.route){
+    b='<h3>How do you want to add it?</h3><p class="lead2">Most people never leave the first option — the catalogue already has 18.</p>'+
+      [["catalogue","From the catalogue","18 ready-made skills. One click to turn one on, and a Try it button so you can judge it before you commit."],
+       ["template","Describe it in plain language","Name it, say what it should do, pick which connections it may use. You will see the card as you type."],
+       ["import","Import a definition","Paste a skill file from another workspace. It is validated before it appears anywhere."]]
+      .map(function(r){
+        return '<button class="pick" data-act="sw-route" data-id="'+r[0]+'"><span class="rad"></span>'+
+          '<span style="flex:1"><span class="nm">'+r[1]+'</span><span class="ds">'+r[2]+'</span></span></button>';
+      }).join("");
+    f='<span class="sp2"></span><button class="btn" data-act="wz-cancel">Cancel</button>';
+  }
+  else if(sw2.route==="catalogue"){
+    b='<h3>Browse the catalogue</h3><p class="lead2">Filter by category, or search. Anything that needs a connection you do not have '+
+      'says what it would let you answer — and offers to connect it.</p>'+
+      '<div class="v-card"><b style="font-size:12.6px">Turning one on</b>'+
+      '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.6;margin-top:5px">Flip the switch on its card. Read-only skills '+
+      'need nothing else. Then type <b>/</b> in the composer, or just ask in plain language.</p></div>';
+    f='<button class="btn ghost" data-act="sw-back">Back</button><span class="sp2"></span>'+
+      '<button class="btn primary" data-act="sw-catalogue">Open the catalogue</button>';
+  }
+  else if(sw2.route==="template"){
+    var prev={id:(sw2.name||"new-skill").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),
+              n:sw2.name||"Your new skill", d:sw2.what||"Say what it should do, in one sentence.",
+              needs:sw2.needs, c:"Custom", on:true,
+              ex:sw2.what?("Run "+(sw2.name||"this skill")+" for Package 4."):"An example prompt appears here."};
+    b='<h3>Describe it</h3><p class="lead2">Plain language. Magna writes the prompt — you own the words a colleague will read.</p>'+
+      '<div class="field"><label for="swName">Name it</label>'+
+        '<input id="swName" type="text" value="'+sw2.name.replace(/"/g,"&quot;")+'" placeholder="Delay claim narrative"></div>'+
+      '<div class="field"><label for="swWhat">What should it do?</label>'+
+        '<input id="swWhat" type="text" value="'+sw2.what.replace(/"/g,"&quot;")+'" placeholder="Draft a delay claim from the schedule, change orders and correspondence"></div>'+
+      '<div class="field"><label>Which connections may it use?</label>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+
+        ["p6","co","know","sap","mail"].map(function(n){
+          var on=sw2.needs.indexOf(n)>-1, live=SRC[n]&&eff(SRC[n])!=="missing";
+          return '<button class="fchip'+(on?" on":"")+'" data-act="sw-need" data-id="'+n+'">'+srcName(n)+
+            (live?'':' <span class="dim">(not connected)</span>')+'</button>';
+        }).join("")+'</div></div>'+
+      '<div class="field"><label>When does it run?</label>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+
+        [["request","On request"],["sched","On a schedule"],["agent","When an agent calls it"]].map(function(t){
+          return '<button class="fchip'+(sw2.trigger===t[0]?" on":"")+'" data-act="sw-trig" data-id="'+t[0]+'">'+t[1]+'</button>';
+        }).join("")+'</div></div>'+
+      '<div class="v-sec" style="margin:14px 0 8px">Live preview<span class="ln"></span></div>'+
+      '<div class="v-grid" style="grid-template-columns:1fr">'+skillCard(prev)+'</div>';
+    f='<button class="btn ghost" data-act="sw-back">Back</button><span class="sp2"></span>'+
+      '<button class="btn primary" data-act="sw-create">Create this skill</button>';
+  }
+  else if(sw2.route==="import"){
+    b='<h3>Import a definition</h3><p class="lead2">Paste a skill file. It is validated here — a definition that does not parse '+
+      'never reaches the catalogue, and never appears to your colleagues.</p>'+
+      '<div class="field"><label for="swJson">Skill definition</label>'+
+      '<textarea id="swJson" style="width:100%;min-height:150px;border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);padding:11px;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--tx);resize:vertical">'+
+      '{\n  "name": "elon-musk-perspective-en",\n  "description": "Answer in the style of a public figure",\n  "prompt": "You are ...\n  "tools": ["web_search"]\n}'+
+      '</textarea></div>'+
+      (sw2.err
+        ? '<div class="resid pub" style="margin-top:4px"><b>This definition will not load.</b><br>'+sw2.err+'</div>'+
+          '<div class="v-card" style="margin-top:10px"><b style="font-size:12.4px">What happens to it</b>'+
+          '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.6;margin-top:4px">Nothing. It is not added, not listed, and not '+
+          'offered to anyone else in the workspace. Broken definitions belong in an administrator\'s error log — never in a user-facing list '+
+          'with <span class="mono">(failed to parse SKILL…)</span> in the name.</p></div>'
+        : '');
+    f='<button class="btn ghost" data-act="sw-back">Back</button><span class="sp2"></span>'+
+      '<button class="btn primary" data-act="sw-validate">Validate and import</button>';
+  }
+  else {
+    b='<div style="text-align:center;padding:6px 0 2px">'+
+      '<div style="width:52px;height:52px;border-radius:99px;background:var(--ok-dim);color:var(--ok);display:grid;place-items:center;margin:0 auto 13px;border:1px solid color-mix(in srgb,var(--ok) 40%,transparent)">'+
+      I.check.replace("ico xs","ico")+'</div><h3>'+(sw2.name||"Your skill")+' is ready</h3>'+
+      '<p class="lead2">It is on, and it is in the catalogue for your workspace.</p></div>'+
+      '<div class="v-card"><b style="font-size:12.6px">How to use it</b>'+
+      '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.6;margin:6px 0 9px">Type <b>/</b> in the composer and start typing its name, '+
+      'or just ask in plain language — Magna will pick it when it fits.</p>'+
+      '<span class="pill sm mono">/'+(sw2.name||"new-skill").toLowerCase().replace(/[^a-z0-9]+/g,"-")+'</span></div>';
+    f='<span class="sp2"></span><button class="btn" data-act="wz-cancel">Close</button>'+
+      '<button class="btn primary" data-act="sw-try">Try it in chat</button>';
+  }
+  $("#wzBody").innerHTML=b; $("#wzFoot").innerHTML=f;
+  var n1=$("#swName"), n2=$("#swWhat");
+  if(n1) n1.addEventListener("input",function(){ sw2.name=this.value; var p=this.selectionStart; renderSkillWiz(); $("#swName").focus(); $("#swName").setSelectionRange(p,p); });
+  if(n2) n2.addEventListener("input",function(){ sw2.what=this.value; var p=this.selectionStart; renderSkillWiz(); $("#swWhat").focus(); $("#swWhat").setSelectionRange(p,p); });
+}
+
+/* ============================================================
+   21 · v2/v3 — slash menu that shows what you have NOT connected
+   (redeclared: this overrides the earlier definition)
+   ============================================================ */
+function openSlash(q){
+  var sk=SKILLCAT.filter(function(s){
+    return s.on && skillReady(s) && (s.n+" "+s.id+" "+s.d).toLowerCase().indexOf(q)>-1;
+  });
+  var live=[], off=[];
+  MCPSERVERS.forEach(function(m){
+    var hit=(m.name+" "+m.idn+" "+m.val).toLowerCase().indexOf(q)>-1;
+    m.tools.forEach(function(t){
+      if(!hit && (t.n+" "+t.p).toLowerCase().indexOf(q)===-1) return;
+      if(m.state==="connected") live.push({k:"mcp", s:{n:t.n, d:t.p+" — "+(t.d||m.name)}, server:m.id});
+      else if(off.filter(function(x){return x.server===m.id;}).length===0)
+        off.push({k:"connect", s:{n:m.idn, d:m.val}, server:m.id, name:m.name, tools:m.tools.length});
+    });
+  });
+  slashItems=sk.map(function(s){ return {k:"skill", s:{n:s.id, d:s.d}}; }).concat(live).concat(off);
+  slashIdx=0;
+  var html="";
+  if(!slashItems.length){
+    html='<div class="sl-empty"><b>Nothing matches “'+q+'”.</b><br>Skills are reusable prompts your team has published; '+
+         'MCP servers are live connections to your systems. Clear the text after / to see everything you can run.</div>';
+  } else {
+    var i=0;
+    if(sk.length){
+      html+='<div class="sl-h">'+I.skill+'<span class="eyebrow">Skills</span><span class="n">'+sk.length+' on · '+
+        SKILLCAT.length+' available</span></div>';
+      sk.forEach(function(s){ html+=slItem({k:"skill",s:{n:s.id,d:s.d}},i++); });
+    }
+    if(live.length){
+      html+='<div class="sl-h">'+I.mcp+'<span class="eyebrow">Connected tools</span><span class="n">'+
+        connectedCount()+' of '+MCPSERVERS.length+' servers</span></div>';
+      live.forEach(function(t){ html+=slItem(t,i++); });
+    }
+    if(off.length){
+      html+='<div class="sl-h">'+I.plug+'<span class="eyebrow">Not connected yet</span>'+
+        '<span class="n">four steps each</span></div>';
+      off.forEach(function(t){
+        html+='<button class="sl-i off" data-slash="'+(i++)+'" role="option">'+
+          '<span class="ib">'+I.plug+'</span>'+
+          '<span style="flex:1;min-width:0"><span class="nm">'+t.name+' · '+t.tools+' tools</span>'+
+          '<span class="ds">'+t.s.d+'</span></span>'+
+          '<span class="tag" style="color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)">Connect</span></button>';
+      });
+    }
+    html+='<div class="sl-f"><span class="kbd">↑</span><span class="kbd">↓</span> move · <span class="kbd">↵</span> insert · '+
+          '<span class="kbd">esc</span> close and keep typing</div>';
+  }
+  var box=$("#slash"); box.innerHTML=html; box.classList.add("open"); slashOpen=true; markSlash();
+}
+function insertSlash(i){
+  var it=slashItems[i]; if(!it) return;
+  if(it.k==="connect"){ closeSlash(); ta.value=ta.value.replace(/(^|\s)\/([\w.-]*)$/,"$1"); autoGrow(); updateSend(); openConnect(it.server); return; }
+  var pre=ta.value.slice(0,ta.selectionStart), post=ta.value.slice(ta.selectionStart);
+  var cut=pre.replace(/(^|\s)\/([\w.-]*)$/,"$1");
+  ta.value=cut+"/"+it.s.n+" "+post;
+  var pos=(cut+"/"+it.s.n+" ").length;
+  closeSlash(); ta.focus(); ta.setSelectionRange(pos,pos); autoGrow(); updateSend();
+  var label=(it.k==="mcp"?"Tool · ":"Skill · ")+it.s.n;
+  if(!$('.trayp[data-tool="'+label+'"]')){
+    $("#tray").insertAdjacentHTML("beforeend",
+      '<span class="trayp" data-tool="'+label+'">'+(it.k==="mcp"?I.mcp:I.skill)+label+
+      '<button class="x" data-act="untray" aria-label="Remove '+it.s.n+'"><svg class="ico xs" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>');
+  }
+}
+function slashInput(){
+  var pre=ta.value.slice(0,ta.selectionStart);
+  var m=pre.match(/(^|\s)\/([\w.-]*)$/);
+  if(!m){ closeSlash(); return; }
+  openSlash(m[2].toLowerCase());
+}
+
+/* ============================================================
+   22 · v2 — tool approval (§13) and mail-aware turns
+   ============================================================ */
+var threadApprovals={};
+function toolAllowed(tool){ return MAIL.approvals[tool]==="always" || threadApprovals[tool]===true; }
+function mailQuery(t){
+  return MAIL.connected && /inbox|mail|email|wrote|supplier|correspond|faisal|lead time|who told|reply|draft/i.test(t);
+}
+function pushApproval(text){
+  pushMsg('<div class="turn-ai" id="approvalTurn"><div class="approval">'+
+    '<div class="ah"><span class="ic">'+I.mcp+'</span><h5>Magna wants to run <code class="mono">magna-mail.search</code></h5>'+
+      '<span class="sp ok">read-only</span></div>'+
+    '<dl class="kv"><dt>Server</dt><dd>Magna Mail · MCP · <b>runs on-prem</b> in Riyadh DC-1</dd>'+
+      '<dt>Does</dt><dd>Searches your mailbox for messages matching this question, and reads the matches.</dd>'+
+      '<dt>Data</dt><dd>Your mailbox only. Nothing is sent outside your network.</dd></dl>'+
+    '<div class="btns">'+
+      '<button class="btn sm primary" data-act="approve" data-mode="once" data-text="'+encodeURIComponent(text)+'">Allow once</button>'+
+      '<button class="btn sm" data-act="approve" data-mode="thread" data-text="'+encodeURIComponent(text)+'">Allow for this thread</button>'+
+      '<button class="btn sm" data-act="approve" data-mode="always" data-text="'+encodeURIComponent(text)+'">Always allow</button>'+
+      '<button class="btn sm ghost" data-act="approve" data-mode="deny" data-text="'+encodeURIComponent(text)+'">Deny</button>'+
+    '</div>'+
+    '<p class="why">You are seeing this because reading a connected system for the first time in a thread always asks. '+
+    'Sending, publishing or deleting asks every time — and that cannot be switched off.</p>'+
+    '</div></div>');
+  toBottom();
+}
+function resolveApproval(mode,text){
+  var card=$("#approvalTurn"); if(!card) return;
+  var tool="magna-mail.search";
+  if(mode==="thread") threadApprovals[tool]=true;
+  if(mode==="always"){ MAIL.approvals[tool]="always"; saveMail(); }
+  var label={once:"Allowed once",thread:"Allowed for this thread",always:"Always allowed",deny:"Denied"}[mode];
+  card.querySelector(".approval").classList.add("resolved");
+  card.querySelector(".btns").innerHTML='<span class="sp '+(mode==="deny"?"warn":"ok")+'">'+label+' · '+nowTime()+'</span>';
+  card.removeAttribute("id");
+  if(mode==="deny"){
+    logAct("magna-mail.search","Magna Mail","You · chat","fail","Denied by user");
+    pushMsg('<div class="turn-ai">'+aiTop()+
+      '<div class="body"><p class="lead">Understood — I did not open your mailbox.</p>'+
+      '<p>I can still answer from the sources already connected, but for this question the mail is where the evidence is. '+
+      'Ask again and choose <b>Allow once</b> if you change your mind.</p></div></div>');
+    toBottom(true); return;
+  }
+  logAct(tool,"Magna Mail","You · chat","ok","3 messages matched · read-only");
+  thinkThenReply(text,true);
+}
+function mailReplyFor(q){
+  var stamp=nowStamp();
+  if(/draft|reply|respond|write back/i.test(q)){
+    return reason("Thought for 5s · magna-mail.search · magna-mail.draft · read 3 twin sources",[
+      ["0.6s","Ran <b>magna-mail.search</b> — found the Gulf MEP thread and Legal's amendment request."],
+      ["2.4s","Read the change-order log and the contract clause behind the lead time."],
+      ["4.1s","Drafted a reply. <b>Nothing was sent</b> — it is waiting for you."]
+    ])+ground(["mail","co","know","p6"])+
+    '<div class="body">'+
+      '<p class="lead">I have drafted a reply to Faisal Al-Harbi that confirms the 11-week lead time in writing, asks him to commit to the '+
+      'part-shipment date, and copies Legal — who need the delay evidenced before amendment #3 can be issued.</p>'+
+      '<p>It quotes §7.2 of the master services agreement and references CO-121. Read it, change anything, and press send yourself.</p>'+
+      '<div class="mailboost" style="display:flex">'+I.copy+
+        '<span style="flex:1"><b>Draft ready — nothing has been sent.</b> Check the recipients and the quoted clause before it goes out.</span>'+
+        '<button class="btn sm primary" data-act="open-draft" data-id="m1">Open the draft</button></div>'+
+      conf([],["mail","co"])+
+    '</div>'+foot(stamp);
+  }
+  return reason("Thought for 6s · magna-mail.search · read 4 twin sources",[
+    ["0.7s","Ran <b>magna-mail.search</b> over the last 30 days for Package 4 and MEP."],
+    ["2.2s","Read the Gulf MEP thread — supplier confirmation timed 08:42 today."],
+    ["3.9s","Cross-checked against P6 baseline r7 and the change-order log."],
+    ["5.4s","Reconciled the supplier's date with the forecast slip."]
+  ])+ground(["mail","p6","co","know"])+
+  '<div class="body">'+
+    '<p class="lead">Three messages matter, and one changes the answer. At 08:42 today <strong>Gulf MEP confirmed in writing that the valve '+
+    'lead time moved from 8 to 11 weeks</strong> — delivery 29 September instead of 8 September<span class="cite">1</span>.</p>'+
+    '<h4>What that changes</h4>'+
+    '<p>Until now the 17-day slip was <em>inferred</em> from earned value on a 6-day-old progress update. It is now <em>evidenced</em>: '+
+    'the driving constraint is a supplier lead time, named, dated and in writing. That is exactly the document Legal asked for before they '+
+    'can issue contract amendment #3<span class="cite">2</span>.</p>'+
+    '<div class="tblwrap"><table class="tbl">'+
+      '<thead><tr><th scope="col">Message</th><th scope="col">From</th><th scope="col">Bears on</th><th scope="col" class="r">Days</th></tr></thead>'+
+      '<tbody>'+
+        '<tr><td>Valve lead time 8 → 11 weeks</td><td>Gulf MEP Supply</td><td>MEP first fix</td><td class="r warn">+21</td></tr>'+
+        '<tr><td>Part-shipment of DN150 offered</td><td>Gulf MEP Supply</td><td>MEP first fix</td><td class="r">−4</td></tr>'+
+        '<tr><td>Amendment #3 needs evidence</td><td>Legal</td><td>Handover date</td><td class="r">—</td></tr>'+
+      '</tbody></table></div>'+
+    '<p>Net of the offered part-shipment the exposure is consistent with the 17 days already forecast — but now you can defend it.</p>'+
+    '<div class="mailboost" style="display:flex">'+I.bolt+
+      '<span style="flex:1"><b>Next step.</b> Reply to Faisal confirming the part-shipment date and copy Legal, so amendment #3 can be issued.</span>'+
+      '<button class="btn sm primary" data-act="open-draft" data-id="m1">Draft the reply</button></div>'+
+    conf([],["mail","p6","co"])+
+  '</div>'+
+  '<div class="srcs"><div class="srcs-h">'+I.doc+'<span class="eyebrow">Sources</span><span class="n">2 · internal 2 · web 0</span></div>'+
+    '<div class="srcs-sec"><div class="srcs-lb"><span class="tag int">Internal knowledge</span>'+
+      '<span class="dim" style="font-size:11px">Mail is indexed on-prem — 0 bytes left your network</span></div>'+
+      '<button class="srcline" data-act="mail-open-view" data-id="m1"><span class="i">1</span><span class="w">RE: Package 4 — chilled water valve lead time'+
+        '<em>Magna Mail · Faisal Al-Harbi, Gulf MEP Supply · today 08:42</em></span></button>'+
+      '<button class="srcline" data-act="mail-open-view" data-id="m4"><span class="i">2</span><span class="w">Contract amendment #3 — Package 4 handover date'+
+        '<em>Magna Mail · Sarah Mansour, Legal · yesterday 16:40</em></span></button>'+
+    '</div></div>'+
+  foot(stamp);
+}
+function thinkThenReply(text,viaMail){
+  var live=(CONVS[active].used||[]).filter(function(id){ return SRC[id] && eff(SRC[id])!=="missing"; }).length;
+  pushMsg(
+    '<div class="turn-ai" id="pending">'+
+      '<div class="mg-think" role="status" aria-live="polite">'+
+        '<svg class="magna-mark mg-thinking" viewBox="0 0 640 440" role="img" aria-label="Magna is working">'+
+          '<defs>'+
+            '<linearGradient id="mgGB-think" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
+              '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>'+
+            '</linearGradient>'+
+            '<linearGradient id="mgR-think" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
+              '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>'+
+            '</linearGradient>'+
+          '</defs>'+
+          '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-think)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+          '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-think)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '</svg>'+
+        '<span class="think-t" id="thinkText">Thinking<span class="el">…</span></span>'+
+      '</div></div>');
+  toBottom();
+  var stages=viaMail
+    ? [[800,"Searching Magna Mail — on-prem"],[1700,"Reading 3 matching messages"],[2450,"Reconciling with P6 and the change-order log"]]
+    : [[900,"Reading "+live+" of "+totalSrc()+" twin sources"],[1750,"Checking which relevant sources are missing"],[2450,"Writing"]];
+  var timers=stages.map(function(s){
+    return setTimeout(function(){ var el=$("#thinkText"); if(el) el.innerHTML=s[1]+'<span class="el">…</span>'; },s[0]);
+  });
+  setTimeout(function(){
+    timers.forEach(clearTimeout);
+    var pend=$("#pending"); if(pend) pend.remove();
+    var am={r:"a",h:viaMail?mailReplyFor(text):replyFor(text)};
+    CONVS[active].msgs.push(am); pushMsg(msgHTML(am));
+    syncTwin(); renderConvList($("#convSearch").value);
+    $("#threadMeta").textContent="· "+CONVS[active].msgs.length+" messages · just now";
+    toBottom(true);
+  },3050);
+}
+function runTurn(text){
+  var wantsMail=mailQuery(text);
+  if(wantsMail && !toolAllowed("magna-mail.search")){ pushApproval(text); return; }
+  if(wantsMail) logAct("magna-mail.search","Magna Mail","You · chat","ok","3 messages matched · read-only");
+  thinkThenReply(text,wantsMail);
+}
+
+/* ============================================================
+   23 · v2 — drafting and sending mail
+   ============================================================ */
+var draft=null;
+function openDraft(id){
+  var m=MAILBOX.filter(function(x){return x.id===id;})[0]||MAILBOX[0];
+  draft={to:m.addr, cc:"s.mansour@magna.ai", subj:"RE: "+m.subj.replace(/^RE:\s*/i,""),
+    internal:["Master services agreement — Gulf MEP.pdf §7.2","CO-121 change order — valve substitution.pdf"],
+    body:"Faisal,\n\nThank you for confirming in writing that the DN300 actuated valve lead time has moved from eight to eleven weeks, "+
+      "with delivery to site on 29 September.\n\nTwo things please:\n\n1. Confirm the part-shipment date for the DN150 line in writing, so we can "+
+      "re-sequence first fix around it.\n\n2. Note that §7.2 of our master services agreement fixes the eight-week lead time from order "+
+      "confirmation, and CO-121 re-started that clock on 27 June. We are treating this as a supplier delay for the purposes of amendment #3.\n\n"+
+      "I have copied Sarah Mansour in Legal, who needs this evidenced before the amendment can be issued.\n\nRegards,\nAhmad Farahat\nDelivery, Magna"};
+  $("#mcTo").value=draft.to; $("#mcCc").value=draft.cc; $("#mcSubj").value=draft.subj; $("#mcBody").value=draft.body;
+  $("#mcNote").innerHTML=I.warn+'<span><b>Magna drafted this. Magna will not send it.</b> It quotes '+draft.internal.length+
+    ' internal documents and goes to an address outside Magna — check both before you send.</span>';
+  $("#mcScope").innerHTML = MAIL.scopes.send
+    ? 'Send scope granted · sends from '+MAIL.account
+    : '<b style="color:var(--part)">Send scope not granted</b> — you can still copy this out, or grant the scope.';
+  openDialog("mailComp");
+}
+function reviewSend(){
+  draft.to=$("#mcTo").value.trim(); draft.cc=$("#mcCc").value.trim();
+  draft.subj=$("#mcSubj").value.trim(); draft.body=$("#mcBody").value;
+  var pub=(tier==="public");
+  $("#scList").innerHTML=
+    '<div class="r"><span class="k">From</span><span class="v">'+MAIL.display+' &lt;'+MAIL.account+'&gt;</span></div>'+
+    '<div class="r"><span class="k">To</span><span class="v">'+(draft.to||"—")+' <span class="sp warn" style="font-weight:500">outside Magna</span></span></div>'+
+    '<div class="r"><span class="k">Cc</span><span class="v">'+(draft.cc||"—")+'</span></div>'+
+    '<div class="r"><span class="k">Subject</span><span class="v">'+(draft.subj||"—")+'</span></div>'+
+    '<div class="r"><span class="k">Quotes</span><span class="v">'+draft.internal.length+' internal documents — '+draft.internal.join(" · ")+'</span></div>'+
+    '<div class="r"><span class="k">Server</span><span class="v">'+providerName()+' · '+
+      (providerLeaves()?"traffic leaves your network":"on-prem, Riyadh DC-1")+'</span></div>';
+  $("#scQuote").textContent=draft.body;
+  var send=$("#scSend");
+  if(!MAIL.scopes.send){
+    send.disabled=true; send.textContent="Send — scope not granted";
+    $("#scResidency").innerHTML='<button data-act="mail-scopes" style="color:var(--accent);font-weight:600">Grant “Send mail as you”</button> to enable this.';
+  } else if(pub){
+    send.disabled=false; send.textContent="Switch to Private & send";
+    $("#scResidency").innerHTML='<b style="color:var(--public)">This thread is on the Public tier.</b> Sending would quote '+
+      draft.internal.length+' internal documents. Magna will move the thread back to Private first.';
+  } else {
+    send.disabled=false; send.textContent="Send";
+    $("#scResidency").textContent="Sent from your mailbox and logged in Connections › Activity.";
+  }
+  closeDialog(); openDialog("sendConfirm");
+}
+function doSend(){
+  if(tier==="public") setTier("private");
+  var when=nowTime();
+  SENT.unshift({id:"s"+Date.now(), from:MAIL.display, addr:draft.to, org:"Sent", subj:draft.subj,
+    prev:draft.body.slice(0,110)+"…", when:when, unread:false, body:draft.body.split("\n\n")});
+  logAct("magna-mail.send","Magna Mail","You approved · chat","ok","To "+draft.to+" · cc "+draft.cc+" · "+draft.internal.length+" internal quotes");
+  closeDialog();
+  toast("Sent "+when+" to "+draft.to+" — logged in Connections › Activity.");
+  if(VIEW==="mail"){ mailTab="sent"; mailSel=SENT[0].id; renderMail(); }
+  if(VIEW==="chat"){
+    pushMsg('<div class="turn-ai">'+aiTop()+
+      '<div class="body"><div class="conf" data-level="high"><span class="cl">'+I.check.replace("ico xs","ico sm")+'</span>'+
+      '<span class="ct"><b>Sent at '+when+'.</b> To '+draft.to+', cc '+draft.cc+'. It is in your Sent list and in the activity log, '+
+      'with the two internal documents it quoted recorded against it.</span></div></div></div>');
+    toBottom(true);
+  }
+  renderNav();
+}
+
+/* ============================================================
+   24 · v2/v3 — one delegated handler for every new control
+   ============================================================ */
+document.addEventListener("click",function(e){
+  var nav=e.target.closest("[data-nav]");
+  if(nav){ route(nav.getAttribute("data-nav")); return; }
+  var t=e.target.closest("[data-act]"); if(!t) return;
+  var a=t.getAttribute("data-act"), id=t.getAttribute("data-id");
+
+  /* navigation + tabs */
+  if(a==="go"){ route(id); }
+  else if(a==="conn-tab"){ connTab=id; renderConnections(); }
+  else if(a==="k-tab"){ kTab=id; renderKnowledge(); }
+  else if(a==="k-space"){ kSpace=id; kAnswer=false; renderKnowledge(); }
+  else if(a==="k-ask"){ kAnswer=true; kTab="ask"; renderKnowledge(); }
+  else if(a==="k-tochat"){ route("chat"); ta.value="What did we agree with Gulf MEP on valve lead times, and what has changed since?";
+    autoGrow(); updateSend(); ta.focus(); toast("Question carried into chat — press send when you are ready."); }
+  else if(a==="k-upload"){ LS.set("mv5.kdoc","1"); renderNav();
+    toast("In the real app this opens a file picker. Marked as done in your setup checklist."); }
+  else if(a==="mail-tab"){ mailTab=id; mailSel=(id==="sent"&&SENT[0])?SENT[0].id:"m1"; renderMail(); }
+  else if(a==="mail-open"){ mailSel=id;
+    var mm=MAILBOX.filter(function(x){return x.id===id;})[0]; if(mm) mm.unread=false;
+    renderMail(); renderNav(); }
+  else if(a==="mail-open-view"){ route("mail"); mailTab="inbox"; mailSel=id; renderMail(); }
+
+  /* connectors */
+  else if(a==="conn-start"){ openConnect(id); }
+  else if(a==="connect-src"){
+    var srv=MCPSERVERS.filter(function(m){ return m.twin===id; })[0];
+    if(srv) openConnect(srv.id); else toast("No connector is published for that source yet — ask your administrator.");
+  }
+  else if(a==="wz-var"){ cw.variant=id; cw.authorised=false; renderWizard(); }
+  else if(a==="wz-scope"){ cw.scopes[id]=!cw.scopes[id]; renderWizard(); }
+  else if(a==="wz-next"){ cw.step++; renderWizard(); }
+  else if(a==="wz-back"){ cw.step--; renderWizard(); }
+  else if(a==="wz-cancel"){ closeDialog(); if(VIEW!=="chat") renderPage(VIEW); }
+  else if(a==="wz-auth"){
+    var b=t; b.disabled=true;
+    b.innerHTML='<span class="spin"></span> '+(cw.cfg.kind==="account"?"Waiting for approval…":"Reaching server…");
+    setTimeout(function(){ cw.authorised=true; renderWizard(); },1300);
+  }
+  else if(a==="wz-finish"){ commitConnect(); }
+  else if(a==="wz-try"){
+    var mm2=mcpById(id); closeDialog(); route("chat");
+    ta.value=mm2.example; autoGrow(); updateSend(); ta.focus();
+    toast("Example loaded into the composer — nothing sends until you press send.");
+  }
+  else if(a==="test-conn"){ testConn(id); }
+  else if(a==="mail-disconnect"){ disconnectServer("magna-mail"); renderPage(VIEW); }
+  else if(a==="mail-scopes"){ closeDialog(); openConnect("magna-mail",3); }
+
+  /* skills */
+  else if(a==="skill-cat"){ skillFilter=id; renderConnections(); }
+  else if(a==="skill-ready"){ skillReadyOnly=!skillReadyOnly; renderConnections(); }
+  else if(a==="skill-toggle"){
+    var sk=SKILLCAT.filter(function(s){return s.id===id;})[0];
+    if(sk){ sk.on=!sk.on; if(sk.on){ LS.set("mv5.skillOn","1"); } renderConnections(); renderNav();
+      toast(sk.n+(sk.on?" is on — type / in the composer to run it.":" is off.")); }
+  }
+  else if(a==="skill-try"){
+    var sk2=SKILLCAT.filter(function(s){return s.id===id;})[0];
+    route("chat"); ta.value="/"+sk2.id+" "+sk2.ex; autoGrow(); updateSend(); ta.focus();
+    toast("Example prompt drafted into the composer. Nothing sends until you press send.");
+  }
+  else if(a==="skill-add"){ openSkillWiz(); }
+  else if(a==="mcp-add"){ toast("Add a server: from the catalogue below, from a template, or import a config. The catalogue is the fast path."); }
+  else if(a==="sw-route"){ sw2.route=id; renderSkillWiz(); }
+  else if(a==="sw-back"){ sw2.route=null; sw2.err=null; renderSkillWiz(); }
+  else if(a==="sw-catalogue"){ closeDialog(); connTab="skills"; route("connections"); }
+  else if(a==="sw-need"){ var i2=sw2.needs.indexOf(id); if(i2>-1) sw2.needs.splice(i2,1); else sw2.needs.push(id); renderSkillWiz(); }
+  else if(a==="sw-trig"){ sw2.trigger=id; renderSkillWiz(); }
+  else if(a==="sw-create"){
+    if(!sw2.name.trim()||!sw2.what.trim()){ toast("Give it a name and say what it should do — both appear on the card."); return; }
+    SKILLCAT.unshift({id:sw2.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""), n:sw2.name, c:"Admin", on:true,
+      d:sw2.what, needs:sw2.needs.slice(), ex:"Run "+sw2.name+" for Package 4."});
+    LS.set("mv5.skillOn","1"); sw2.route="done"; renderSkillWiz(); renderNav();
+  }
+  else if(a==="sw-validate"){
+    sw2.err='<span class="mono" style="font-size:11.5px">line 4, column 14</span> — the <span class="mono">"prompt"</span> string is never closed, '+
+      'so everything after it is read as part of the prompt and the file ends unexpectedly. '+
+      'Two other problems will also need fixing: <span class="mono">"tools": ["web_search"]</span> requests a tool this workspace does not expose, '+
+      'and the skill has no <span class="mono">"category"</span>, so it cannot be filed in the catalogue.';
+    renderSkillWiz();
+  }
+  else if(a==="sw-try"){ closeDialog(); route("chat"); ta.value="/"+(sw2.name||"new-skill").toLowerCase().replace(/[^a-z0-9]+/g,"-")+" ";
+    autoGrow(); updateSend(); ta.focus(); }
+  else if(a==="how-hide"){ LS.set("mv5.how"+id,"1"); renderConnections(); }
+
+  /* agents + automations */
+  else if(a==="agent-mode"){ agentMode=id; renderAgents(); }
+  else if(a==="use-template"){
+    var tp=TEMPLATES[+id];
+    AGENTS.push({id:"a"+Date.now(), name:tp.n, colour:"var(--accent)", purpose:tp.d, model:"Kimi K2 Instruct",
+      access:"Documents & reports", tools:["Company Knowledge"], trigger:"Manual", last:"Never run",
+      lastOut:"Not run yet — press Run now to test it before you enable a trigger.", runs:0, on:false, interrupt:true});
+    LS.set("mv5.agent","1"); agentMode="list"; renderAgents(); renderNav();
+    toast(tp.n+" created from a template. Nothing runs until you enable it.");
+  }
+  else if(a==="agent-toggle"){
+    var ag=AGENTS.filter(function(x){return x.id===id;})[0];
+    ag.on=!ag.on; renderAgents(); renderNav();
+    toast(ag.name+(ag.on?" enabled — next run "+ag.trigger.toLowerCase()+".":" paused. Nothing it was watching will be missed; it just will not run."));
+  }
+  else if(a==="agent-run"){
+    var ag2=AGENTS.filter(function(x){return x.id===id;})[0];
+    t.disabled=true; t.innerHTML='<span class="spin"></span> Running…';
+    setTimeout(function(){
+      ag2.last="Just now"; ag2.runs++;
+      ag2.lastOut="Ran on demand · used "+ag2.tools.length+" tools · nothing needed your attention.";
+      logAct("agent.run", ag2.name, "You · Agents", "ok", "Manual run · "+ag2.tools.length+" tools");
+      renderAgents(); toast(ag2.name+" finished. Result is on its card and in the activity log.");
+    },1500);
+  }
+  else if(a==="auto-toggle"){
+    var au=AUTOS.filter(function(x){return x.id===id;})[0];
+    if(au.id==="t5"&&!MAIL.connected){ toast("Connect Magna Mail first — this automation reads overnight mail."); return; }
+    au.on=!au.on; if(au.id==="t5"&&au.on){ au.res="ok"; au.out="Ready — first run tomorrow 05:00"; au.next="Tomorrow 05:00"; }
+    renderAutomations(); renderNav();
+  }
+  else if(a==="auto-run"){
+    var au2=AUTOS.filter(function(x){return x.id===id;})[0];
+    $("#dwTitle").textContent=au2.name;
+    $("#dwBody").innerHTML='<div class="v-card"><b style="font-size:12.8px">'+au2.human+'</b>'+
+      '<p style="font-size:12.2px;color:var(--tx-2);line-height:1.6;margin-top:5px">'+au2.what+'</p>'+
+      '<div class="mono" style="font-size:10.5px;color:var(--tx-3);margin-top:8px">'+au2.cron+'</div></div>'+
+      '<div class="v-sec">Last run · '+au2.last+'<span class="ln"></span></div>'+
+      '<div class="v-card">'+
+        (au2.res==="fail"
+          ? '<div class="resid pub"><b>Failed.</b> '+au2.out+'. The SAP extract endpoint returned no data within the 120-second limit. '+
+            'Nothing partial was written.</div>'
+          : au2.res==="blocked"
+          ? '<div class="resid pub"><b>Blocked.</b> '+au2.out+'</div>'
+          : '<div class="runrow"><span class="st" style="background:var(--ok)"></span><span style="flex:1">Read the connected sources</span><span class="dim">1.2s</span></div>'+
+            '<div class="runrow"><span class="st" style="background:var(--ok)"></span><span style="flex:1">Ran the skill</span><span class="dim">3.4s</span></div>'+
+            '<div class="runrow"><span class="st" style="background:var(--ok)"></span><span style="flex:1">Wrote the result</span><span class="dim">0.4s</span></div>'+
+            '<div class="resid" style="margin-top:11px"><b>Result.</b> '+au2.out+'</div>')+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
+        '<button class="btn sm primary" data-act="auto-tochat" data-id="'+au2.id+'">Send to chat</button>'+
+        '<button class="btn sm" data-act="soon">Adjust this automation</button></div>';
+    openDialog("drawer");
+  }
+  else if(a==="auto-tochat"){
+    var au3=AUTOS.filter(function(x){return x.id===id;})[0];
+    closeDialog(); route("chat");
+    ta.value="The "+au3.name+" automation reported: "+au3.out+". What should I do about it?";
+    autoGrow(); updateSend(); ta.focus();
+  }
+  else if(a==="auto-new"){ toast("New automation: name it, choose Every / At / Cron with a plain-English preview, describe the job, and decide whether it may use tools that normally ask."); }
+
+  /* setup checklist */
+  else if(a==="setup-hide"){ LS.set("mv5.setupHidden","1"); renderSetup(); }
+  else if(a==="go-skills"){ connTab="skills"; route("connections"); }
+  else if(a==="go-knowledge"){ route("knowledge"); }
+  else if(a==="go-agents"){ agentMode="templates"; route("agents"); }
+
+  /* approvals, mail draft/send, account menu */
+  else if(a==="approve"){ resolveApproval(t.getAttribute("data-mode"), decodeURIComponent(t.getAttribute("data-text"))); }
+  else if(a==="open-draft"){ if(!MAIL.connected){ openConnect("magna-mail"); return; } openDraft(id||"m1"); }
+  else if(a==="mail-summarise"){
+    var ms=MAILBOX.filter(function(x){return x.id===id;})[0];
+    route("chat"); ta.value="Summarise this email and tell me what it changes: "+ms.subj;
+    autoGrow(); updateSend(); ta.focus(); toast("Drafted into the composer — press send to run it.");
+  }
+  else if(a==="mail-tochat"){
+    var ms2=MAILBOX.filter(function(x){return x.id===id;})[0];
+    route("chat"); ta.value="What does this mail mean for the Package 4 handover? "+ms2.subj;
+    autoGrow(); updateSend(); ta.focus();
+  }
+  else if(a==="um"){
+    closeMenus();
+    if(id==="settings") openSettings("general");
+    else if(id==="signout") signOut();
+    else if(id==="setup"){ LS.set("mv5.setupHidden",""); renderSetup(); toast("Setup checklist is back in the sidebar."); }
+    else if(id==="workspace"){ pendingUser={email:SESSION.email,name:SESSION.name,org:SESSION.org}; openAuth("workspace"); }
+  }
+  else if(a==="mail-reask"){
+    route("chat"); ta.value="Now that my mail is connected, what actually caused the MEP slip on Package 4?";
+    autoGrow(); updateSend(); send();
+  }
+  else if(a==="soon"){ toast("Not wired in this prototype — the flow it would open is the same four-step pattern."); }
+  else if(a==="doc-act"){ toast("Reindexing "+id+" — it stays in this space and never leaves Riyadh DC-1."); }
+  else if(a==="noop"){ /* completed checklist row */ }
+});
+
+/* the command palette reaches every view and every new flow (§19) */
+[["Chat","The transcript and the context rail","chat"],
+ ["Mail","Inbox, drafts and everything you have sent","mail"],
+ ["Knowledge","Spaces, documents and a synthesised Ask","knowledge"],
+ ["Connections","Skills, MCP servers, channels and the activity log","connections"],
+ ["Agents","Configured specialists and their runs","agents"],
+ ["Automations","Scheduled and watching work","automations"]
+].forEach(function(v){
+  ACTIONS.push({n:"Go to "+v[0], d:v[1], run:function(){ route(v[2]); }});
+});
+ACTIONS.push({n:"Connect Magna Mail", d:"Four guided steps — adds a 17th twin source",
+  run:function(){ openConnect("magna-mail"); }});
+ACTIONS.push({n:"Add a skill", d:"From the catalogue, described in plain language, or imported",
+  run:function(){ connTab="skills"; route("connections"); openSkillWiz(); }});
+ACTIONS.push({n:"Finish setting up", d:"The remaining steps, each with what it unlocks",
+  run:function(){ LS.set("mv5.setupHidden",""); renderSetup(); toast("Setup checklist is in the sidebar."); }});
+ACTIONS.push({n:"Sign out", d:"Clears the local session and returns to the login screen",
+  run:function(){ signOut(); }});
+
+/* dialog buttons that are not delegated */
+$("#wzClose").addEventListener("click",function(){ closeDialog(); if(VIEW!=="chat") renderPage(VIEW); });
+$("#mcClose").addEventListener("click",closeDialog);
+$("#mcCancel").addEventListener("click",function(){ closeDialog(); toast("Draft discarded. Nothing was sent."); });
+$("#mcReview").addEventListener("click",reviewSend);
+$("#scCancel").addEventListener("click",function(){ closeDialog(); toast("Cancelled. Nothing left your mailbox."); });
+$("#scEdit").addEventListener("click",function(){ closeDialog(); openDialog("mailComp"); });
+$("#scSend").addEventListener("click",doSend);
+$("#dwClose").addEventListener("click",closeDialog);
+
+/* the composer's Company Knowledge chip explains its scope */
+$("#kbToggle").addEventListener("click",function(){
+  if(this.getAttribute("aria-pressed")==="true") toast("Magna will search 3 spaces · 8,400 documents before answering.");
+});
+
+/* ============================================================
+   25 · v2/v3 — restore persisted state
+   ============================================================ */
+function totalSrc(){ return SOURCES.filter(function(s){ return !s.candidate; }).length; }
+function restoreV2(){
+  try{ var s=LS.get("mv5.session",""); if(s) SESSION=JSON.parse(s); }catch(e){}
+  try{
+    var m=LS.get("mv5.mail","");
+    if(m){ var d=JSON.parse(m);
+      if(d && d.connected){
+        MAIL.connected=true; MAIL.provider=d.provider||"magna"; MAIL.account=d.account||MAIL.account;
+        MAIL.display=d.display||MAIL.display; MAIL.scopes=d.scopes||MAIL.scopes;
+        MAIL.synced=d.synced||nowTime(); MAIL.approvals=d.approvals||{};
+      }
+    }
+  }catch(e){}
+  MCPSERVERS.forEach(function(x){
+    if(LS.get("mv5.conn."+x.id,"")==="1"){
+      x.state="connected"; if(!x.sync) x.sync="restored";
+      if(x.twin&&SRC[x.twin]){ var s2=SRC[x.twin]; s2.s="connected"; s2.on=true; s2.candidate=false; s2.meta=x.name+" · connected"; }
+      if(!MCPS.filter(function(y){return y.n===x.idn;}).length) MCPS.push({n:x.idn,d:x.val,server:x.id});
+    }
+  });
+  if(MAIL.connected){
+    var mm=mcpById("magna-mail"); mm.state="connected"; mm.sync=MAIL.synced;
+    document.body.setAttribute("data-mail","connected");
+    var sm=SRC.mail; sm.s="connected"; sm.on=true; sm.candidate=false; sm.meta=providerName()+" · synced "+MAIL.synced;
+    if(!MCPS.filter(function(y){return y.n==="magna-mail";}).length) MCPS.push({n:"magna-mail",d:mm.val,server:"magna-mail"});
+  }
+  renderUserMenu();
+}
+
 /* ============================================================
    14 · init
    ============================================================ */
@@ -2703,12 +5100,19 @@ setSide(!narrow() && LS.get("mv5.side","expanded")!=="collapsed");
 setRail(!narrow() && LS.get("mv5.rail","open")!=="collapsed");
 setModelSilent(model);
 setTier("private",true);
-renderConv();
+restoreV2();
+$("#openSettingsUser").addEventListener("click",function(e){
+  e.stopPropagation(); renderUserMenu(); openMenu(this,$("#userMenu"));
+});
+if(SESSION){ enterApp(false); }
+else {
+  document.body.setAttribute("data-view","chat");
+  renderNav(); renderConv(); openAuth("login");
+}
 updateSend();
-startTour(false);
-ta.focus();
 
 })();
 </script>
+
 </body>
 </html>

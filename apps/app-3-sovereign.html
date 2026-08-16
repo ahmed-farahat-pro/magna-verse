@@ -10,6 +10,7 @@ try{ var t = localStorage.getItem("mv3.theme");
   if(t && t !== "system") document.documentElement.setAttribute("data-theme", t); }catch(e){}
 /* stage is decided before paint so a signed-in reload never flashes the login screen */
 document.addEventListener("DOMContentLoaded", function(){
+  if(document.body.hasAttribute("data-stage")) return;   /* the app script already decided */
   var s = null; try{ s = localStorage.getItem("mv3.session"); }catch(e){}
   document.body.setAttribute("data-stage", s ? "app" : "auth");
   document.body.setAttribute("data-view", "chat");
@@ -1901,6 +1902,7 @@ body[data-view="mail"] #page .pg-scroll{overflow:hidden}
         <button role="tab" aria-selected="false" data-set="models"><svg class="ico sm"><use href="#i-cpu"></use></svg>Models</button>
         <button role="tab" aria-selected="false" data-set="connectors"><svg class="ico sm"><use href="#i-plug"></use></svg>Connectors</button>
         <button role="tab" aria-selected="false" data-set="skills"><svg class="ico sm"><use href="#i-slash"></use></svg>Skills &amp; MCP</button>
+        <button role="tab" aria-selected="false" data-set="permissions"><svg class="ico sm"><use href="#i-shield"></use></svg>Permissions</button>
         <button role="tab" aria-selected="false" data-set="privacy"><svg class="ico sm"><use href="#i-lock"></use></svg>Privacy &amp; data</button>
         <button role="tab" aria-selected="false" data-set="help"><svg class="ico sm"><use href="#i-info"></use></svg>Help</button>
       </nav>
@@ -2821,7 +2823,14 @@ function renderSidebar(){
     if(!g){ g = {name:c.group, items:[]}; groups.push(g); }
     g.items.push(c);
   });
-  $("#convlist").innerHTML = groups.map(g=>
+  const projHTML =
+    '<div class="grp"><span class="eyebrow">Projects</span><span class="ln"></span></div>'+
+    PROJECTS.map(p=>
+      '<button class="conv" data-project="'+p.id+'">'+
+        '<span class="tierdot" style="background:'+p.col+'"></span>'+
+        '<span class="ct"><b>'+esc(p.n)+'</b><i>'+p.chats+' chats · '+p.files+' file'+(p.files===1?'':'s')+'</i></span>'+
+      '</button>').join("");
+  $("#convlist").innerHTML = projHTML + groups.map(g=>
     '<div class="grp"><span class="eyebrow">'+esc(g.name)+'</span><span class="ln"></span></div>'+
     g.items.map(c=>
       '<button class="conv" data-convo="'+c.id+'" data-tier="'+c.tier+'" aria-current="'+(c.id===state.convo)+'">'+
@@ -2832,6 +2841,10 @@ function renderSidebar(){
   $$("#convlist [data-convo]").forEach(b=> b.addEventListener("click", ()=>{
     openConvo(b.dataset.convo);
     if(isNarrow()) openDrawer(false);          /* selecting a thread closes the mobile drawer */
+  }));
+  $$("#convlist [data-project]").forEach(b=> b.addEventListener("click", ()=>{
+    const p = PROJECTS.filter(x=>x.id===b.dataset.project)[0];
+    toast(p.n+" — "+p.chats+" chats, "+p.files+" file"+(p.files===1?"":"s")+" in this project","i-list");
   }));
 }
 
@@ -3501,9 +3514,9 @@ const CANNED = [
        "Doing neither pushes the decision into the acceptance window, where options narrow sharply."],
     end:"I have not written anything to Jira or SAP — this is a draft until you say otherwise." }
 ];
-function assistantEl(rid){
+function assistantEl(rid, customBody){
   const r = RECEIPTS[rid], pub = r.tier==="public";
-  const c = CANNED[(state.seq-1) % CANNED.length];
+  const c = CANNED[Math.abs(state.seq-1) % CANNED.length];
   const el = document.createElement("article");
   el.className = "msg ai"; el.dataset.receipt = rid; el.dataset.tier = r.tier; el.tabIndex = -1;
   el.innerHTML =
@@ -3525,11 +3538,12 @@ function assistantEl(rid){
       '<li><span class="s">Composed answer on '+esc(r.node)+'</span><span class="d">'+esc(r.lat)+' s</span></li>'+
     '</ul>'+
     '<div class="mbody">'+
-      (pub?'<p><strong>This ran Public.</strong> Company Knowledge, SAP, P6 and the HR connector were unavailable, and the '+
-           'whole thread was transmitted to a third-party cloud — '+nf(r.egress)+' bytes.</p>':'')+
-      c.p.map(p=>'<p>'+esc(p)+'</p>').join("")+
-      '<ul>'+c.l.map(li=>'<li>'+esc(li)+'</li>').join("")+'</ul>'+
-      '<p>'+esc(c.end)+'</p>'+
+      (customBody ? customBody :
+        (pub?'<p><strong>This ran Public.</strong> Company Knowledge, SAP, P6 and the HR connector were unavailable, and the '+
+             'whole thread was transmitted to a third-party cloud — '+nf(r.egress)+' bytes.</p>':'')+
+        c.p.map(p=>'<p>'+esc(p)+'</p>').join("")+
+        '<ul>'+c.l.map(li=>'<li>'+esc(li)+'</li>').join("")+'</ul>'+
+        '<p>'+esc(c.end)+'</p>')+
     '</div>'+
     '<div class="mact">'+
       '<button class="act" data-act="copy"><svg class="ico sm"><use href="#i-copy"></use></svg>Copy</button>'+
@@ -3589,6 +3603,9 @@ function send(){
   t.appendChild(u);
   ta.value = ""; autosize(ta);
   const sz = $("#scrollzone"); sz.scrollTop = sz.scrollHeight;
+
+  /* a question about mail takes the MCP path: tool approval, then a grounded answer */
+  if(maybeMailFlow(text)) return;
 
   /* pending state: the Magna mark, looping, plus status that actually progresses */
   $$("#transcript .typing").forEach(el=>el.remove());          /* never two indicators at once */
@@ -3700,8 +3717,10 @@ function handleSlashInput(){
 function renderSlash(q){
   const ql = q.toLowerCase();
   const hit = x => (x.n+" "+x.d).toLowerCase().indexOf(ql)>=0;
-  const mcp = MCPS.filter(hit).map(x=> ({n:x.n, d:x.d, kind:"mcp", where:x.where}));
-  const sk  = SKILLS.filter(hit).map(x=> ({n:x.n, d:x.d, kind:"skill"}));
+  const mcp = mcpList().filter(hit).map(x=> ({n:x.n, d:x.d, kind:"mcp", where:x.where,
+    locked:x.locked, connect:x.connect, connectName:x.connectName}));
+  const sk  = SKILLS.filter(hit).map(x=> ({n:x.n, d:x.d, kind:"skill",
+    off: (typeof skillState==="function") && skillState(x.n)==="off"}));
   slashItems = mcp.concat(sk);
   slashIdx = 0;
   $("#slashCount").textContent = slashItems.length+" of "+(MCPS.length+SKILLS.length);
@@ -3730,10 +3749,16 @@ function renderSlash(q){
   $("#slash").classList.add("open");
   paintSlash();
   function optHTML(x, i){
-    return '<button type="button" class="opt" role="option" aria-selected="false" data-slash-i="'+i+'">'+
+    let tag;
+    if(x.locked)            tag = '<span class="pill xs public"><svg class="ico xs"><use href="#i-lock"></use></svg>Connect '+esc(x.connectName)+'</span>';
+    else if(x.kind==="mcp") tag = '<span class="pill xs '+(x.where==="on-prem"?"private":"public")+'">'+esc(x.where||"on-prem")+'</span>';
+    else if(x.off)          tag = '<span class="pill xs">off · press ↵ to turn on</span>';
+    else                    tag = '<span class="pill xs private">on</span>';
+    return '<button type="button" class="opt" role="option" aria-selected="false" data-slash-i="'+i+'"'+
+      (x.locked||x.off?' style="opacity:.62"':'')+'>'+
       '<span class="oi"><svg class="ico sm"><use href="#'+(x.kind==="mcp"?"i-plug":"i-bolt")+'"></use></svg></span>'+
       '<span class="ot"><b>/'+esc(x.n)+'</b><span>'+esc(x.d)+'</span></span>'+
-      '<span class="oa">'+(x.kind==="mcp"?'<span class="pill xs private">on-prem</span>':'<span class="pill xs">skill</span>')+'</span></button>';
+      '<span class="oa">'+tag+'</span></button>';
   }
 }
 function paintSlash(){
@@ -3752,6 +3777,19 @@ function slashKey(k){
 }
 function insertSlash(item){
   if(!item) return;
+  /* a locked tool is an invitation to connect, not a dead row */
+  if(item.locked){
+    closeSlash();
+    route("connections"); v2.connTab = "mcp"; renderConnections();
+    connectWizard(item.connect);
+    return;
+  }
+  /* an off skill turns itself on when you pick it */
+  if(item.off){
+    v2.skills[item.n] = "on"; saveSkills();
+    toast("“"+(SKILLMETA[item.n]?SKILLMETA[item.n].t:item.n)+"” turned on","i-check");
+    renderNav();
+  }
   const pos = ta.selectionStart;
   const before = ta.value.slice(0,pos).replace(/(^|\s)\/[A-Za-z0-9-]*$/, "$1");
   ta.value = before + ta.value.slice(pos);
@@ -3784,12 +3822,23 @@ function paletteSource(){
        applyTheme(cur==="dark"?"light":"dark"); }},
     {g:"Actions", t:"Replay the first-run tour", s:"The three-point welcome card", i:"i-info", run:()=>{ closeScrim("#palScrim"); showTour(true); }}
   ];
+  const views = [].concat.apply([], NAV.map(g=>g.items)).map(it=>
+    ({g:"Go to", t:it.n, s:"Open the "+it.n.toLowerCase()+" view", i:it.i,
+      run:()=>{ closeScrim("#palScrim"); route(it.id); }}))
+    .concat([
+      {g:"Go to", t:"Settings", s:"Appearance, sovereignty, permissions, privacy", i:"i-gear",
+       run:()=>{ closeScrim("#palScrim"); openSettings("general"); }},
+      {g:"Go to", t:"Switch workspace", s:"Production or Sandbox — changes the tier everywhere", i:"i-server",
+       run:()=>{ closeScrim("#palScrim"); renderWorkspaces(); setStage("workspace"); }},
+      {g:"Go to", t:"Sign out", s:"Clears the local session and returns to the login screen", i:"i-lock",
+       run:()=>{ closeScrim("#palScrim"); signOut(); }}
+    ]);
   const convos = CONVOS.map(c=> ({g:"Conversations", t:c.title, s:c.meta+" · "+TIERS[c.tier].name, i:"i-list",
-    run:()=>{ closeScrim("#palScrim"); openConvo(c.id); }}));
+    run:()=>{ closeScrim("#palScrim"); route("chat"); openConvo(c.id); }}));
   const docs = DOCS.map(d=> ({g:"Documents", t:d.n, s:d.s, i:"i-doc", tag:d.c,
     run:()=>{ closeScrim("#palScrim"); state.attached.push({name:d.n, kind:"file"}); renderAttached();
       toast("Attached "+d.n,"i-attach"); }}));
-  return acts.concat(convos, docs);
+  return acts.concat(views, convos, docs);
 }
 function renderPal(q){
   const ql = (q||"").toLowerCase();
@@ -3908,6 +3957,21 @@ function setPane(key){
     row("Most used this month","<span class=\"mono\">hse-digest</span> 41 · <span class=\"mono\">jira-ticket-definer</span> 28 · <span class=\"mono\">p6-float-watch</span> 19",
       '<span class="pill">18 available</span>');
 
+  if(key==="permissions"){
+    const ex = Object.keys(v2.perm);
+    return '<h3>Permissions</h3><p class="lead">Three risk tiers. Anything that sends, publishes or deletes always asks — '+
+      'that is a workspace policy, not a preference.</p>'+
+      row("Read","Look things up: search Company Knowledge, read a document, open a message.",
+        '<span class="pill private"><span class="dot"></span>Auto</span>')+
+      row("Write &amp; create","Make things: draft a document, create a ticket, save an artifact. Every action is logged.",
+        '<span class="pill">Auto · logged</span>')+
+      row("Send, publish, delete","Actions other people will see, or that cannot be undone — sending mail, posting to a channel.",
+        '<span class="pill public"><svg class="ico xs"><use href="#i-lock"></use></svg>Always ask</span>')+
+      row("Exceptions you have set", ex.length
+          ? ex.map(k=>'<span class="mono">'+esc(k)+'</span> — '+esc(v2.perm[k])).join("<br>")
+          : "None yet. When a tool asks for approval in chat, choosing “Always allow” pins it here.",
+        ex.length? '<button class="btn sm" data-clearperm>Clear all</button>' : '<span class="pill">0</span>');
+  }
   if(key==="privacy") return '<h3>Privacy &amp; data</h3><p class="lead">What is kept, for how long, and what never happens.</p>'+
     row("Prompts and answers used for training","Never. Contractually excluded for on-prem tenancies.",'<span class="pill private"><svg class="ico xs"><use href="#i-lock"></use></svg>never</span>')+
     row("Thread retention","Threads are kept for 90 days, then deleted with their receipts.",'<span class="pill mono">90 days</span>')+
@@ -3920,6 +3984,10 @@ function setPane(key){
   return '<h3>Help</h3><p class="lead">Shortcuts, the tour, and what is genuinely coming next.</p>'+
     row("Replay the first-run tour","The tour shows once. This puts it back on screen on demand — it will not reappear at every login.",
       '<button class="btn sm" data-replay><svg class="ico xs"><use href="#i-retry"></use></svg>Replay tour</button>')+
+    row("Show the setup checklist","Six steps, each one unlocking something specific. It disappears once complete.",
+      '<button class="btn sm" data-showsetup>Show setup</button>')+
+    row("Show “How skills work” again","The three-step explainer at the top of the Skills catalogue.",
+      '<button class="btn sm" data-showhow>Show it</button>')+
     row("Keyboard shortcuts",
       '<span class="mono">'+(isMac?"⌘K":"Ctrl K")+'</span> commands · <span class="mono">/</span> skills and MCP · '+
       '<span class="mono">↵</span> send · <span class="mono">⇧↵</span> new line · <span class="mono">esc</span> close any overlay',
@@ -3963,14 +4031,20 @@ function wireSettings(pane){
     state.model = b.dataset.modelSet; syncModelUI(); openSettings("models");
     toast(modelById(state.model).name+" selected","i-cpu");
   }));
-  const rp = $("[data-replay]", pane); if(rp) rp.addEventListener("click", ()=>{ closeScrim("#setScrim"); showTour(true); });
+  const rp = $("[data-replay]", pane); if(rp) rp.addEventListener("click", ()=>{ closeScrim("#setScrim"); route("chat"); showTour(true); });
+  const ss = $("[data-showsetup]", pane); if(ss) ss.addEventListener("click", ()=>{
+    store.set("setupHidden",""); closeScrim("#setScrim"); route("connections"); v2.connTab="mcp"; renderConnections(); });
+  const sh = $("[data-showhow]", pane); if(sh) sh.addEventListener("click", ()=>{
+    store.set("skillsHow",""); closeScrim("#setScrim"); route("connections"); v2.connTab="skills"; renderConnections(); });
+  const cp = $("[data-clearperm]", pane); if(cp) cp.addEventListener("click", ()=>{
+    v2.perm = {}; openSettings("permissions"); toast("Tool exceptions cleared","i-check"); });
   const ex = $("[data-export-all]", pane); if(ex) ex.addEventListener("click", ()=>{
     download("magnaverse-export-"+state.convo+".json", JSON.stringify({user:"Ahmad Farahat", tenancy:"magna-ksa-prod",
       generated:"16 Aug 2026", receipts:RECEIPTS}, null, 2), "application/json");
   });
 }
 $$(".set-nav [data-set]").forEach(b=> b.addEventListener("click", ()=> openSettings(b.dataset.set)));
-$("#btnSettings").addEventListener("click", ()=> openSettings("general"));
+/* the account row opens the account menu; Settings is one of its entries (see §18) */
 
 /* ============================================================
    13 · first-run tour (D10)
@@ -4271,6 +4345,8 @@ const v2 = {
   mail:{connected:false, provider:"magna", address:"ahmad.farahat@magna.ai", display:"Ahmad Farahat",
         scopes:{read:true, send:false, contacts:false, calendar:false}, since:null, authorised:false},
   perm:{},            /* toolName -> "once" | "thread" | "always" | "deny" */
+  skills:{}, conn:{}, mailOpen:false, agCat:"All", auFilter:"all",
+  skillQ:"", skillCat:"All", skillFilter:"all", uRange:3,
   mailSel:"m1", mailTab:"inbox", connTab:"mcp", usageTab:"dash", usageScope:"me",
   agentDraft:null, wizStep:0, wizProvider:"magna", wizScopes:null, pendingDraft:null,
   audit:[]
@@ -4369,8 +4445,11 @@ function enterWorkspace(id){
   toast("Signed in to "+w.name, w.tier==="public"?"i-globe":"i-shield-ok");
   if(!isNarrow()) setTimeout(()=>ta.focus({preventScroll:true}), 200);
 }
+/* pristine copy of the seeded receipts so a workspace switch is reversible in both directions */
+const SEED_RECEIPTS = JSON.parse(JSON.stringify(RECEIPTS));
 function applyWorkspace(){
   const w = wsById(v2.ws);
+  Object.keys(SEED_RECEIPTS).forEach(k=>{ RECEIPTS[k] = JSON.parse(JSON.stringify(SEED_RECEIPTS[k])); });
   $("#wsName").textContent = w.name;
   $("#wsTier").textContent = (w.tier==="public"?"Public allowed · ":"Private · ") + w.cluster.split(" · ")[0];
   $("#wsDot").className = "statusdot " + (w.tier==="public" ? "warn" : "ok");
@@ -4453,8 +4532,14 @@ const NAV = [
   ]},
   {g:"Govern", items:[
     {id:"governance", n:"Governance",   i:"i-shield"},
-    {id:"usage",      n:"Usage & budget", i:"i-bolt"}
+    {id:"usage",      n:"Usage & budget", i:"i-bolt"},
+    {id:"settings",   n:"Settings",     i:"i-gear"}
   ]}
+];
+const PROJECTS = [
+  {id:"p1", n:"Riyadh DC-2 Expansion", chats:12, files:3, col:"#1E50C8"},
+  {id:"p2", n:"Q3 Procurement",        chats:8,  files:2, col:"#2FB44A"},
+  {id:"p3", n:"HSE Compliance 2026",   chats:5,  files:1, col:"#DC3232"}
 ];
 function navCount(id){
   if(id==="mail") return v2.mail.connected ? {t:String(MAIL.filter(m=>m.unread).length), c:"on"} : {t:"off", c:"off"};
@@ -4466,7 +4551,16 @@ function navCount(id){
   return null;
 }
 function renderNav(){
-  $("#sbNav").innerHTML = NAV.map(g=>
+  /* the setup checklist is reachable from the sidebar until it is complete */
+  let setupRow = "";
+  if(store.get("setupHidden","")!=="1" && typeof setupItems==="function" && !setupDone()){
+    const it = setupItems(), done = it.filter(x=>x.done).length;
+    setupRow = '<button class="nav-item" data-gosetup style="border:1px dashed var(--line-2);margin-bottom:4px">'+
+      '<svg class="ico sm" style="color:var(--accent)"><use href="#i-sparkle"></use></svg>'+
+      '<span class="lbl">Finish setting up</span>'+
+      '<span class="cnt on">'+done+'/'+it.length+'</span></button>';
+  }
+  $("#sbNav").innerHTML = setupRow + NAV.map(g=>
     '<div class="nav-grp">'+esc(g.g)+'</div>'+
     g.items.map(it=>{
       const c = navCount(it.id);
@@ -4479,6 +4573,11 @@ function renderNav(){
     route(b.dataset.nav);
     if(isNarrow()) openDrawer(false);
   }));
+  const gs = $("[data-gosetup]", $("#sbNav"));
+  if(gs) gs.addEventListener("click", ()=>{
+    route("connections"); v2.connTab = "mcp"; renderConnections();
+    if(isNarrow()) openDrawer(false);
+  });
 }
 const VIEWS = {
   mail:        {t:"Mail",              s:"magna-mail · MCP"},
@@ -4490,6 +4589,7 @@ const VIEWS = {
   usage:       {t:"Usage & budget",    s:"Consumption, attribution and forecast"}
 };
 function route(view){
+  if(view==="settings"){ openSettings("general"); return; }   /* a modal, not a page */
   v2.view = view;
   document.body.setAttribute("data-view", view);
   $("#convScroll").hidden = (view!=="chat");
@@ -4537,10 +4637,14 @@ function closeGen(){ closeScrim("#genScrim"); }
 function mailProvider(){ return MAIL_PROVIDERS.filter(p=>p.id===v2.mail.provider)[0] || MAIL_PROVIDERS[0]; }
 function grantedScopes(){ return MAIL_SCOPES.filter(s=>v2.mail.scopes[s.id]); }
 function mcpList(){
-  const base = MCPS.slice();
-  if(v2.mail.connected){
-    MAIL_TOOLS.forEach(t=> base.push({n:t.n, d:t.d, where: mailProvider().local?"on-prem":"external"}));
-  }
+  const base = MCPS.map(m=>({n:m.n, d:m.d, where:"on-prem", locked:false}));
+  CATALOGUE.forEach(c=>{
+    const on = connOK(c.id);
+    const local = c.id==="mail" ? mailProvider().local : false;
+    c.tools.forEach(t=> base.push({n:t.n, d:t.d,
+      where: on ? (local?"on-prem":"external") : "",
+      locked: !on, connect:c.id, connectName:c.n}));
+  });
   return base;
 }
 function saveMail(){ store.set("mail", JSON.stringify(v2.mail)); }
@@ -4549,169 +4653,690 @@ function loadMail(){
 }
 
 const SERVERS = [
-  {id:"sap",  n:"SAP S/4HANA",  d:"Read purchase orders, vendors and confirmation status.",
-   tools:6, local:true, sync:"16 Aug 09:41", tech:"mcp+https://sap-po.dc1.magna.internal/v1", transport:"HTTP (streamable)"},
-  {id:"jira", n:"Jira",         d:"Search, read and draft issues across the MFG and HSE projects.",
-   tools:9, local:true, sync:"16 Aug 09:38", tech:"mcp+https://jira.dc1.magna.internal/v1", transport:"HTTP (streamable)"},
-  {id:"p6",   n:"Primavera P6", d:"Baselines, float, progress and lookahead for every programme.",
-   tools:5, local:true, sync:"16 Aug 06:31", tech:"mcp+https://p6.dc1.magna.internal/v1", transport:"SSE"},
-  {id:"conf", n:"Confluence",   d:"Read the governance and delivery spaces.",
-   tools:4, local:true, sync:"16 Aug 09:47", tech:"mcp+https://confluence.dc1.magna.internal/v1", transport:"HTTP (streamable)"},
-  {id:"know", n:"Company Knowledge", d:"Search the 8,400-document index behind every answer.",
-   tools:3, local:true, sync:"16 Aug 06:12", tech:"internal · co-located with the cluster", transport:"in-process"}
+  {id:"sap",  n:"SAP purchase orders", sys:"SAP S/4HANA", cat:"Work systems", icon:"i-db",
+   what:"Look up purchase orders, vendors and confirmation status without leaving chat.",
+   plain:["Find a purchase order","List a vendor's orders","Check confirmation status","Export a PO extract","Read vendor master","Flag overdue confirmations"],
+   tools:6, local:true, sync:"16 Aug 09:41", tech:"mcp+https://sap-po.dc1.magna.internal/v1",
+   transport:"HTTP (streamable)", id_:"sap-po-lookup"},
+  {id:"jira", n:"Jira", sys:"Jira · MFG and HSE projects", cat:"Work systems", icon:"i-list",
+   what:"Search Jira issues, read them, and draft tickets with acceptance criteria.",
+   plain:["Search issues","Read an issue","Draft a ticket","Link related issues"],
+   tools:9, local:true, sync:"16 Aug 09:38", tech:"mcp+https://jira.dc1.magna.internal/v1",
+   transport:"HTTP (streamable)", id_:"jira-search"},
+  {id:"p6",   n:"Primavera P6", sys:"Primavera P6", cat:"Work systems", icon:"i-flow",
+   what:"Compare a schedule update against baseline and see what lost float.",
+   plain:["Read a baseline","Compare an update","List activities losing float"],
+   tools:5, local:true, sync:"16 Aug 06:31", tech:"mcp+https://p6.dc1.magna.internal/v1",
+   transport:"SSE", id_:"p6-schedule"},
+  {id:"conf", n:"Confluence", sys:"Confluence", cat:"Work systems", icon:"i-doc",
+   what:"Read the governance and delivery spaces so answers can cite the policy in force.",
+   plain:["Search a space","Read a page","List recent changes"],
+   tools:4, local:true, sync:"16 Aug 09:47", tech:"mcp+https://confluence.dc1.magna.internal/v1",
+   transport:"HTTP (streamable)", id_:"confluence"},
+  {id:"know", n:"Company Knowledge", sys:"Company Knowledge", cat:"Knowledge", icon:"i-db",
+   what:"Search the 8,400-document index that sits behind every grounded answer.",
+   plain:["Search documents","Read a document","Show what a space contains"],
+   tools:3, local:true, sync:"16 Aug 06:12", tech:"internal · co-located with the cluster",
+   transport:"in-process", id_:"knowledge_search"}
 ];
+/* a connected server pointing at a sandbox endpoint — exactly what Test connection must surface */
+const SALESFORCE = {
+  id:"sfdc", n:"Salesforce (UAT)", sys:"salesforce-uat-api", cat:"Work systems", icon:"i-plug",
+  what:"Read accounts and opportunities. Currently pointing at a non-production org.",
+  plain:["Read accounts","Read opportunities"],
+  tools:2, local:false, sync:"14 Aug 22:10",
+  tech:"https://magna--uat.sandbox.my.salesforce.com/services/data/v60.0",
+  transport:"HTTP (streamable)", id_:"salesforce-uat-api", broken:true
+};
 
+/* connectable catalogue entries — every one uses the same 4-step stepper */
+const CATALOGUE = [
+  {id:"mail", n:"Magna Mail", cat:"Communication", icon:"i-book",
+   what:"Read and send mail from inside MagnaVERSE — search a thread, summarise it, draft a reply you approve before it goes.",
+   plain:["Search mail","Read a message","Draft a reply","Send mail"],
+   variants:MAIL_PROVIDERS, scopes:MAIL_SCOPES, tools:MAIL_TOOLS,
+   example:"What is in my inbox about PO-4478, and what do I owe anyone today?",
+   cta:"Connect Magna Mail"},
+  {id:"teams", n:"Microsoft Teams", cat:"Communication", icon:"i-share",
+   what:"Post automation results into a channel, and read the channels you choose.",
+   plain:["Read a channel","Post a message"],
+   variants:[{id:"m365", name:"Microsoft 365", sub:"Teams cloud", local:false,
+     d:"Channel messages are read from and posted to Microsoft's cloud.",
+     residency:"Channel content is fetched from and written to Microsoft's cloud. <b>Traffic leaves your network</b> on every read and post."}],
+   scopes:[
+     {id:"read", n:"Read channel messages", d:"See messages in the channels you pick.", def:true, risk:"Read"},
+     {id:"post", n:"Post as you", d:"Write messages into a channel under your name. Every post stops for confirmation.", def:false, risk:"Send"}],
+   tools:[{n:"teams.read", d:"Read recent messages in a channel", risk:"Read"},
+          {n:"teams.post", d:"Post a message after your confirmation", risk:"Send"}],
+   example:"Post the overnight HSE digest into the Delivery channel for me to review.",
+   cta:"Connect Microsoft Teams"}
+];
+const catById = id => CATALOGUE.filter(c=>c.id===id)[0];
+
+/* ---------- skills: plain names, categories, examples, requirements ---------- */
+const SKILLMETA = {
+  "heartbeat":            {t:"Standing watch",            cat:"Admin",       req:["sap"],  on:true,
+    ex:"Watch SAP for purchase orders past their confirmation window and tell me when a new one appears."},
+  "hse-digest":           {t:"Weekly HSE digest",         cat:"HSE",         req:["know"], on:true,
+    ex:"Summarise this week's HSE incidents for the steering pack, grouped by area."},
+  "jira-ticket-definer":  {t:"Ticket writer",             cat:"Engineering", req:["jira"], on:true,
+    ex:"Turn the three open HSE actions into Jira tickets with acceptance criteria."},
+  "po-exception-report":  {t:"Overdue PO report",         cat:"Procurement", req:["sap"],  on:true,
+    ex:"Which purchase orders are past their confirmation window this week?"},
+  "p6-float-watch":       {t:"Float alarm",               cat:"Engineering", req:["p6"],   on:true,
+    ex:"Which Line 4 activities dropped below two days of float in update 41?"},
+  "sop-lookup":           {t:"Find the governing SOP",    cat:"HSE",         req:["know"], on:true,
+    ex:"Which SOP covers lockout/tagout on the weld cells, and when was it last revised?"},
+  "vendor-risk-score":    {t:"Vendor risk score",         cat:"Procurement", req:["sap","know"], on:false,
+    ex:"Score Gulf Precision Casting on concentration, delivery history and financial signals."},
+  "meeting-minutes":      {t:"Minutes from a meeting",    cat:"Admin",       req:["mail"], on:false,
+    ex:"Turn Sunday's Procurement Council invite and notes into decisions, owners and dates."},
+  "arabic-brief":         {t:"Bilingual one-pager",       cat:"Reporting",   req:[],       on:false,
+    ex:"Give me this thread as a bilingual one-page brief for the executive committee."},
+  "contract-clause-diff": {t:"Clause comparison",         cat:"Procurement", req:["know"], on:false,
+    ex:"Compare clause 7.2 of amendment A-14 against the approved playbook."},
+  "rfq-comparator":       {t:"Quote comparison",          cat:"Procurement", req:["sap"],  on:false,
+    ex:"Normalise the four castings quotes into one comparable table."},
+  "shift-handover":       {t:"Shift handover note",       cat:"Engineering", req:["mail"], on:false,
+    ex:"Compose tonight's shift handover from line events and open work."},
+  "capex-case":           {t:"Capex justification",       cat:"Reporting",   req:["know"], on:false,
+    ex:"Draft the capex justification for the second casting source in the approved format."},
+  "incident-rca":         {t:"Root-cause guide",          cat:"HSE",         req:["know"], on:false,
+    ex:"Walk me through a five-whys on near-miss NM-2026-114 with evidence links."},
+  "knowledge-gap-finder": {t:"Knowledge gap finder",      cat:"Reporting",   req:["know"], on:false,
+    ex:"Which questions can Company Knowledge not answer for Procurement yet?"},
+  "headcount-modeller":   {t:"Headcount model",           cat:"Admin",       req:["know"], on:false,
+    ex:"Model the Q3 establishment change against the approved band structure."},
+  "audit-evidence-pack":  {t:"Audit evidence pack",       cat:"Reporting",   req:[],       on:false,
+    ex:"Assemble the receipts and sources for this thread as an audit pack."},
+  "translation-review":   {t:"Terminology check",         cat:"Admin",       req:[],       on:false,
+    ex:"Check the Arabic and English versions of this notice for terminology drift."}
+};
+const SKILL_CATS = ["All","Procurement","HSE","Engineering","Reporting","Admin"];
+const RECOMMENDED = ["po-exception-report","vendor-risk-score","contract-clause-diff","rfq-comparator"];
+
+function connOK(id){
+  if(id==="mail") return v2.mail.connected;
+  if(id==="teams") return !!v2.conn.teams;
+  return true;                       /* the five on-prem servers ship connected */
+}
+function connName(id){
+  const c = catById(id); if(c) return c.n;
+  const s = SERVERS.filter(x=>x.id===id)[0]; return s? s.n : id;
+}
+function skillState(id){
+  if(v2.skills[id]!==undefined) return v2.skills[id];
+  return SKILLMETA[id] && SKILLMETA[id].on ? "on" : "off";
+}
+function skillReady(id){ return (SKILLMETA[id].req||[]).every(connOK); }
+function skillsOnCount(){ return SKILLS.filter(s=>skillState(s.n)!=="off").length; }
+function saveSkills(){ store.set("skills", JSON.stringify(v2.skills)); }
+function connectedCount(){
+  return SERVERS.length + (v2.mail.connected?1:0) + (v2.conn.teams?1:0);
+}
+
+/* ============================================================
+   21b · setup checklist — real completion state, persisted
+   ============================================================ */
+function setupItems(){
+  return [
+    {id:"signin",  n:"Sign in",                 benefit:"You are in.", done:true},
+    {id:"ws",      n:"Choose a workspace",      benefit:"Sets which cluster answers you.", done:true},
+    {id:"mail",    n:"Connect your mail",       benefit:"Unlocks reading and drafting from chat.",
+     done:v2.mail.connected, go:()=>{ route("connections"); v2.connTab="mcp"; renderConnections(); connectWizard("mail"); }},
+    {id:"skill",   n:"Turn on your first skill",benefit:"Try the weekly HSE digest.",
+     done:skillsOnCount()>0, go:()=>{ route("connections"); v2.connTab="skills"; renderConnections(); }},
+    {id:"know",    n:"Add a knowledge source",  benefit:"So answers cite your documents, not the internet.",
+     done:!!v2.conn.uploaded, go:()=>route("knowledge")},
+    {id:"agent",   n:"Create your first agent", benefit:"Something that runs while you sleep.",
+     done:!!v2.conn.agentMade, go:()=>{ route("agents"); openAgentGallery(); }}
+  ];
+}
+function setupDone(){ return setupItems().every(i=>i.done); }
+function saveConn(){ store.set("conn", JSON.stringify(v2.conn)); }
+function renderSetupCard(){
+  const items = setupItems();
+  const n = items.filter(i=>i.done).length;
+  return '<div class="gcard"><div class="gcard-hd">'+
+    '<svg class="ico sm" style="color:var(--accent)"><use href="#i-sparkle"></use></svg>'+
+    '<span class="t">Finish setting up<span>'+n+' of '+items.length+' done — each one unlocks something specific</span></span>'+
+    '<span class="pill xs accent">'+n+'/'+items.length+'</span>'+
+    '<button class="iconbtn" data-setup-hide aria-label="Hide the setup checklist"><svg class="ico sm"><use href="#i-x"></use></svg></button>'+
+    '</div><div class="gcard-bd flush">'+
+    items.map(i=>
+      '<button class="conn" data-setup="'+i.id+'" style="width:100%;text-align:left;'+(i.done?'opacity:.72':'')+'">'+
+        '<span class="logo" style="'+(i.done?'border-color:color-mix(in srgb,var(--private) 45%,transparent);background:var(--private-dim);color:var(--private-tx)':'')+'">'+
+        '<svg class="ico"><use href="#'+(i.done?"i-check":"i-chev-r")+'"></use></svg></span>'+
+        '<span class="ct"><b>'+esc(i.n)+'</b><p>'+esc(i.benefit)+'</p></span>'+
+        '<span class="ca">'+(i.done?'<span class="pill xs private">done</span>':'<span class="pill xs accent">start</span>')+'</span>'+
+      '</button>').join("")+
+    '</div></div>';
+}
+function wireSetupCard(root){
+  const h = $("[data-setup-hide]", root);
+  if(h) h.addEventListener("click", ()=>{ store.set("setupHidden","1"); renderCurrentView(); toast("Hidden — bring it back from Settings → Help","i-check"); });
+  $$("[data-setup]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const it = setupItems().filter(x=>x.id===b.dataset.setup)[0];
+    if(it && it.go) it.go(); else toast("Already done","i-check");
+  }));
+}
+function renderCurrentView(){ route(v2.view); }
+
+/* ============================================================
+   21c · Connections view — Knowledge · Skills · Tools & MCP · Channels
+   ============================================================ */
 function renderConnections(){
   const tabs = [["knowledge","Knowledge"],["skills","Skills"],["mcp","Tools &amp; MCP"],["channels","Channels"]];
   let body = '<div class="seg2" role="tablist" aria-label="Connections sections">'+
-    tabs.map(t=>'<button role="tab" data-ctab="'+t[0]+'" aria-selected="'+(v2.connTab===t[0])+'">'+t[1]+'</button>').join("")+
+    tabs.map(t=>'<button role="tab" data-ctab="'+t[0]+'" aria-selected="'+(v2.connTab===t[0])+'">'+t[1]+
+      (t[0]==="skills"?' <span class="pill xs">'+skillsOnCount()+' on</span>':'')+
+      (t[0]==="mcp"?' <span class="pill xs">'+connectedCount()+'</span>':'')+'</button>').join("")+
     '</div>';
 
-  if(v2.connTab==="mcp"){
-    const p = mailProvider();
-    body +=
-    '<div class="pg-hd"><h2>Tools &amp; MCP servers</h2>'+
-      '<p>Model Context Protocol servers give MagnaVERSE read and write access to a system. '+
-      'Everything below runs inside your network unless the card says otherwise.</p></div>'+
-
-    '<div class="gcard"><div class="gcard-hd"><svg class="ico sm" style="color:var(--tx-3)"><use href="#i-plug"></use></svg>'+
-      '<span class="t">Connected servers<span>'+SERVERS.length+' on-prem servers · '+
-      SERVERS.reduce((a,s)=>a+s.tools,0)+' tools discovered</span></span>'+
-      '<span class="pill private"><span class="dot"></span>0 bytes egress</span></div>'+
-      '<div class="gcard-bd flush">'+
-      SERVERS.map(s=>
-        '<div class="conn"><span class="logo"><svg class="ico"><use href="#i-server"></use></svg></span>'+
-        '<span class="ct"><b>'+esc(s.n)+'</b><p>'+esc(s.d)+'</p>'+
-        '<span class="meta"><span class="pill xs private"><span class="dot"></span>Connected · '+s.tools+' tools</span>'+
-        '<span class="pill xs">on-prem</span><span class="pill xs">synced '+esc(s.sync)+'</span></span></span>'+
-        '<span class="ca"><button class="btn sm" data-test="'+s.id+'">Test connection</button></span></div>').join("")+
-      '</div>'+
-      '<div class="disclose"><button aria-expanded="false" data-disclose>'+
-        '<svg class="ico xs chev"><use href="#i-chev-r"></use></svg>Technical details — endpoints and transport (admins)</button>'+
-        '<div class="dbody" hidden>'+
-        SERVERS.map(s=>'<div class="toolline"><span class="tn">'+esc(s.n)+'</span>'+
-          '<span class="td mono">'+esc(s.tech)+'</span><span class="pill xs">'+esc(s.transport)+'</span></div>').join("")+
-        '</div></div>'+
-    '</div>'+
-
-    /* ---- the email MCP ---- */
-    '<div class="gcard"><div class="gcard-hd">'+
-      '<svg class="ico sm" style="color:var('+(v2.mail.connected?"--private":"--tx-3")+')"><use href="#i-book"></use></svg>'+
-      '<span class="t">Email<span>Read and send mail from inside MagnaVERSE, through an MCP server</span></span>'+
-      (v2.mail.connected
-        ? '<span class="pill private"><span class="dot"></span>Connected</span>'
-        : '<span class="pill"><span class="dot"></span>Not connected</span>')+'</div>'+
-      '<div class="gcard-bd flush"><div class="conn">'+
-        '<span class="logo" style="'+(v2.mail.connected?'border-color:color-mix(in srgb,var(--private) 45%,transparent);background:var(--private-dim);color:var(--private-tx)':'')+'">'+
-          '<svg class="ico"><use href="#i-book"></use></svg></span>'+
-        '<span class="ct"><b>Magna Mail</b><p>'+
-          (v2.mail.connected
-            ? esc(p.name)+' · '+esc(v2.mail.address)+'. '+esc(p.d)
-            : 'Not connected. Connect a mailbox to search it from chat, summarise threads, and draft replies you approve before they send.')+
-        '</p><span class="meta">'+
-        (v2.mail.connected
-          ? '<span class="pill xs '+(p.local?"private":"public")+'"><span class="dot"></span>'+
-              (p.local?"on-prem · 0 bytes egress":"traffic leaves your network")+'</span>'+
-            '<span class="pill xs">'+MAIL_TOOLS.length+' tools</span>'+
-            grantedScopes().map(s=>'<span class="pill xs '+(s.id==="send"?"public":"")+'">'+esc(s.n)+'</span>').join("")+
-            '<span class="pill xs">last synced '+esc(v2.mail.since||"just now")+'</span>'
-          : '<span class="pill xs">4 tools available after connecting</span>'+
-            '<span class="pill xs">send is off by default</span>')+
-        '</span></span>'+
-        '<span class="ca">'+
-        (v2.mail.connected
-          ? '<button class="btn sm" data-mail="scopes">Permissions</button>'+
-            '<button class="btn sm" data-mail="disconnect">Disconnect</button>'
-          : '<button class="btn primary sm" data-mail="connect">Connect</button>')+
-        '</span></div></div>'+
-      (v2.mail.connected
-        ? '<div class="disclose"><button aria-expanded="false" data-disclose>'+
-            '<svg class="ico xs chev"><use href="#i-chev-r"></use></svg>Discovered tools and their permission tier</button>'+
-            '<div class="dbody" hidden>'+MAIL_TOOLS.map(t=>
-              '<div class="toolline"><span class="tn">'+esc(t.n)+'</span><span class="td">'+esc(t.d)+'</span>'+
-              '<span class="pill xs '+(t.risk==="Send"?"public":"")+'">'+esc(t.risk)+'</span>'+
-              (t.risk==="Send" && !v2.mail.scopes.send
-                ? '<span class="pill xs">scope not granted</span>'
-                : '<span class="pill xs private">available</span>')+'</div>').join("")+
-            '</div></div>'
-        : '')+
-    '</div>'+
-
-    '<div class="gcard"><div class="gcard-hd"><svg class="ico sm" style="color:var(--tx-3)"><use href="#i-plus"></use></svg>'+
-      '<span class="t">Add a custom MCP server<span>Bring your own — URL, transport, auth, then a tool-discovery preview</span></span></div>'+
-      '<div class="gcard-bd"><button class="btn" data-mail="custom">'+
-      '<svg class="ico sm"><use href="#i-plus"></use></svg>Add server</button></div></div>';
-  }
-
-  if(v2.connTab==="knowledge"){
-    body += '<div class="pg-hd"><h2>Knowledge sources</h2><p>What Company Knowledge indexes, and where each source lives.</p></div>'+
-      '<div class="gcard"><div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
-      '<thead><tr><th>Source</th><th>Space</th><th class="num">Documents</th><th class="num">Chunks</th><th>Residency</th><th>Last indexed</th></tr></thead><tbody>'+
-      [["Company Knowledge","Procurement, HSE, Delivery, People, Legal",8400,"1.42M","16 Aug 06:12"],
-       ["SAP S/4HANA export","Procurement",1204,"1,204","16 Aug 06:12"],
-       ["Primavera P6","Delivery",96,"96","16 Aug 06:31"],
-       ["Confluence","Governance",214,"1,880","16 Aug 09:47"]].map(r=>
-        '<tr><td class="nm">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td class="num">'+nf(r[2])+'</td>'+
-        '<td class="num">'+esc(r[3])+'</td><td><span class="pill xs private"><span class="dot"></span>in-tenancy</span></td>'+
-        '<td class="mono">'+esc(r[4])+'</td></tr>').join("")+
-      '</tbody></table></div></div></div>'+
-      '<button class="btn" data-goto="knowledge"><svg class="ico sm"><use href="#i-db"></use></svg>Open the document list</button>';
-  }
-  if(v2.connTab==="skills"){
-    body += '<div class="pg-hd"><h2>Skills</h2><p>18 installed. Skills load only when invoked — type <code>/</code> in the composer to search them by what they do.</p></div>'+
-      '<div class="gcard"><div class="gcard-bd flush">'+SKILLS.map(s=>
-        '<div class="toolline" style="padding:9px 13px"><span class="tn">/'+esc(s.n)+'</span>'+
-        '<span class="td">'+esc(s.d)+'</span><span class="pill xs private">on-prem</span></div>').join("")+
-      '</div></div>';
-  }
-  if(v2.connTab==="channels"){
-    body += '<div class="pg-hd"><h2>Channels</h2><p>Where MagnaVERSE can reach you outside the app.</p></div>'+
-      '<div class="gcard"><div class="gcard-bd flush">'+
-      [["In-app notifications","Always on. Automation results and agent questions.","connected"],
-       ["Email digest","Daily summary to "+(v2.mail.connected? v2.mail.address : "your work address"),
-        v2.mail.connected?"connected":"needs mail"],
-       ["Microsoft Teams","Post automation results into a channel.","not connected"]].map(c=>
-       '<div class="conn"><span class="logo"><svg class="ico"><use href="#i-bell"></use></svg></span>'+
-       '<span class="ct"><b>'+esc(c[0])+'</b><p>'+esc(c[1])+'</p></span>'+
-       '<span class="ca"><span class="pill xs '+(c[2]==="connected"?"private":"")+'">'+esc(c[2])+'</span></span></div>').join("")+
-      '</div></div>';
-  }
+  if(v2.connTab==="mcp") body += mcpTabHTML();
+  if(v2.connTab==="skills") body += skillsTabHTML();
+  if(v2.connTab==="knowledge") body += knowSourcesHTML();
+  if(v2.connTab==="channels") body += channelsHTML();
 
   $("#pgScroll").innerHTML = '<div class="pg">'+body+'</div>';
-  $$("[data-ctab]").forEach(b=> b.addEventListener("click", ()=>{ v2.connTab = b.dataset.ctab; renderConnections(); }));
-  $$("[data-disclose]").forEach(b=> b.addEventListener("click", ()=>{
+  const root = $("#pgScroll");
+  $$("[data-ctab]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.connTab = b.dataset.ctab; renderConnections(); }));
+  $$("[data-disclose]", root).forEach(b=> b.addEventListener("click", ()=>{
     const on = b.getAttribute("aria-expanded")==="true";
-    b.setAttribute("aria-expanded", String(!on));
-    b.nextElementSibling.hidden = on;
+    b.setAttribute("aria-expanded", String(!on)); b.nextElementSibling.hidden = on;
   }));
-  $$("[data-test]").forEach(b=> b.addEventListener("click", ()=>{
-    const old = b.textContent; b.disabled = true; b.textContent = "Reaching server…";
-    setTimeout(()=>{ b.textContent = "Discovering tools…"; }, 500);
-    setTimeout(()=>{ b.disabled=false; b.textContent = old; toast("Connection healthy · tools rediscovered","i-check"); }, 1100);
-  }));
-  const gk = $("[data-goto=knowledge]"); if(gk) gk.addEventListener("click", ()=>route("knowledge"));
-  $$("[data-mail]").forEach(b=> b.addEventListener("click", ()=>{
-    const a = b.dataset.mail;
-    if(a==="connect")      startMailWizard();
-    else if(a==="scopes")  { v2.wizStep = 2; v2.wizProvider = v2.mail.provider;
-                             v2.wizScopes = Object.assign({}, v2.mail.scopes); wizRender(true); }
-    else if(a==="disconnect") confirmDisconnect();
-    else openGen({title:"Add a custom MCP server", size:"sm",
-      body:'<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6">Custom servers need a URL, a transport, an auth '+
-        'method and a successful health check before MagnaVERSE will discover their tools. In this prototype the catalogue '+
-        'is fixed — the flow is represented, not wired.</p>',
-      foot:'<button class="btn" data-close="genScrim">Close</button>',
-      wire:(b2,f)=>{ $("[data-close]",f).addEventListener("click", closeGen); }});
-  }));
+  wireMcpTab(root); wireSkillsTab(root); wireSetupCard(root);
+  const gk = $("[data-goto=knowledge]", root); if(gk) gk.addEventListener("click", ()=>route("knowledge"));
 }
 
-/* ---------- the email connect wizard ---------- */
-const WIZ = ["Provider","Account","Scopes","Residency","Done"];
-function startMailWizard(){
-  v2.wizStep = 0;
-  v2.wizProvider = "magna";
-  v2.wizScopes = {read:true, send:false, contacts:false, calendar:false};
-  v2.mail.authorised = false;
+/* ---------- Tools & MCP ---------- */
+function serverCard(s, connected, state){
+  const chip = s.local
+    ? '<span class="pill xs private"><span class="dot"></span>on-prem · 0 bytes egress</span>'
+    : '<span class="pill xs public"><span class="dot"></span>leaves your network</span>';
+  const status = state==="error"
+    ? '<span class="pill xs public"><span class="dot"></span>Error · sandbox endpoint</span>'
+    : connected ? '<span class="pill xs private"><span class="dot"></span>Connected · '+
+        (typeof s.tools==="number"?s.tools:s.tools.length)+' tools</span>'
+      : '<span class="pill xs">Not connected</span>';
+  return '<div class="conn">'+
+    '<span class="logo" style="'+(connected&&state!=="error"?'border-color:color-mix(in srgb,var(--private) 45%,transparent);background:var(--private-dim);color:var(--private-tx)':'')+
+      (state==="error"?'border-color:color-mix(in srgb,var(--public) 45%,transparent);background:var(--public-dim);color:var(--public-tx)':'')+'">'+
+      '<svg class="ico"><use href="#'+(s.icon||"i-server")+'"></use></svg></span>'+
+    '<span class="ct"><b>'+esc(s.n)+' <span class="mono dim" style="font-size:10.5px;font-weight:400">'+esc(s.id_||s.id)+'</span></b>'+
+      '<p>'+esc(s.what)+'</p>'+
+      '<p style="margin-top:5px"><span class="dim" style="font-size:11px">Tools: </span>'+
+        esc((s.plain||[]).join(" · "))+'</p>'+
+      '<span class="meta">'+status+chip+
+        (connected? '<span class="pill xs">last sync '+esc(s.sync||"just now")+'</span>':'')+'</span>'+
+      '<span class="testout" data-out="'+s.id+'"></span></span>'+
+    '<span class="ca">'+
+      (connected
+        ? '<button class="btn sm" data-test="'+s.id+'"><svg class="ico xs"><use href="#i-bolt"></use></svg>Test connection</button>'+
+          (s.id==="mail"? '<button class="btn sm" data-mail="scopes">Permissions</button>'+
+                          '<button class="btn sm" data-mail="disconnect">Disconnect</button>' : '')+
+          (s.id==="teams"? '<button class="btn sm" data-discon="teams">Disconnect</button>' : '')+
+          (state==="error"? '<button class="btn warn sm" data-fix="sfdc">Fix endpoint</button>' : '')
+        : '<button class="btn primary sm" data-connect="'+s.id+'">'+
+          '<svg class="ico xs"><use href="#i-plug"></use></svg>Connect</button>')+
+    '</span></div>';
+}
+function mcpTabHTML(){
+  let h = '<div class="pg-hd"><h2>Tools &amp; MCP servers</h2>'+
+    '<p><b>An MCP server is a connector.</b> It gives MagnaVERSE a named set of actions against one '+
+    'system — searching your mail, reading a purchase order, drafting a ticket — and nothing else. '+
+    'You choose which servers exist and what each one is allowed to do.</p></div>';
+
+  if(store.get("setupHidden","")!=="1" && !setupDone()) h += renderSetupCard();
+
+  h += '<div class="gcard"><div class="gcard-hd"><svg class="ico sm" style="color:var(--tx-3)"><use href="#i-plug"></use></svg>'+
+    '<span class="t">Available to connect<span>Four steps: choose, configure, permissions, done</span></span></div>'+
+    '<div class="gcard-bd flush">'+
+    CATALOGUE.map(c=>{
+      const on = connOK(c.id);
+      const s = {id:c.id, n:c.n, id_:c.id==="mail"?"magna-mail":"teams", icon:c.icon, what:c.what,
+        plain:c.plain, tools:c.tools, local:(c.id==="mail"? mailProvider().local : false),
+        sync:(c.id==="mail"? (v2.mail.since||"just now") : "just now")};
+      return serverCard(s, on, null);
+    }).join("")+
+    '</div></div>';
+
+  h += '<div class="gcard"><div class="gcard-hd"><svg class="ico sm" style="color:var(--private)"><use href="#i-server"></use></svg>'+
+    '<span class="t">Connected · your systems<span>'+SERVERS.length+' on-prem servers · '+
+      SERVERS.reduce((a,s)=>a+s.tools,0)+' tools discovered</span></span>'+
+    '<span class="pill private"><span class="dot"></span>0 bytes egress</span></div>'+
+    '<div class="gcard-bd flush">'+SERVERS.map(s=>serverCard(s,true,null)).join("")+
+    serverCard(SALESFORCE,true,"error")+'</div>'+
+    '<div class="disclose"><button aria-expanded="false" data-disclose>'+
+      '<svg class="ico xs chev"><use href="#i-chev-r"></use></svg>Technical details — endpoints and transport (admins)</button>'+
+      '<div class="dbody" hidden>'+
+      SERVERS.concat([SALESFORCE]).map(s=>'<div class="toolline"><span class="tn">'+esc(s.n)+'</span>'+
+        '<span class="td mono">'+esc(s.tech)+'</span><span class="pill xs'+(s.broken?" public":"")+'">'+esc(s.transport)+'</span></div>').join("")+
+      '</div></div></div>';
+
+  h += '<div class="gcard"><div class="gcard-hd"><svg class="ico sm" style="color:var(--tx-3)"><use href="#i-plus"></use></svg>'+
+    '<span class="t">Add a server<span>Three routes — pick the one that matches what you have</span></span></div>'+
+    '<div class="gcard-bd"><div class="paths">'+
+      '<button class="path" data-addsrv="cat"><b><svg class="ico sm"><use href="#i-list"></use></svg>From the catalogue</b>'+
+        '<span>The common path. Pick a system above and follow four steps.</span></button>'+
+      '<button class="path" data-addsrv="tpl"><b><svg class="ico sm"><use href="#i-terminal"></use></svg>From a template</b>'+
+        '<span>Name, transport, endpoint and auth — then a tool-discovery preview.</span></button>'+
+      '<button class="path" data-addsrv="imp"><b><svg class="ico sm"><use href="#i-download"></use></svg>Import a config</b>'+
+        '<span>Paste an MCP server definition. It is validated before anything is saved.</span></button>'+
+    '</div></div></div>';
+  return h;
+}
+function wireMcpTab(root){
+  $$("[data-connect]", root).forEach(b=> b.addEventListener("click", ()=> connectWizard(b.dataset.connect)));
+  $$("[data-test]", root).forEach(b=> b.addEventListener("click", ()=> testConnection(b.dataset.test, b)));
+  $$("[data-fix]", root).forEach(b=> b.addEventListener("click", ()=> fixSandbox()));
+  $$("[data-discon]", root).forEach(b=> b.addEventListener("click", ()=>{
+    v2.conn.teams = false; saveConn(); renderConnections(); renderNav();
+    toast("Microsoft Teams disconnected","i-x");
+  }));
+  $$("[data-mail]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const a = b.dataset.mail;
+    if(a==="scopes"){ v2.wizId="mail"; v2.wizStep=2; v2.wizVariant=v2.mail.provider;
+      v2.wizScopes = Object.assign({}, v2.mail.scopes); wizRender(true); }
+    else if(a==="disconnect") confirmDisconnect();
+  }));
+  $$("[data-addsrv]", root).forEach(b=> b.addEventListener("click", ()=> addServerRoute(b.dataset.addsrv)));
+}
+function testConnection(id, btn){
+  const out = $('[data-out="'+id+'"]');
+  const label = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="ico xs"><use href="#i-clock"></use></svg>Reaching server…';
+  if(out) out.innerHTML = '';
+  setTimeout(()=>{ btn.innerHTML = '<svg class="ico xs"><use href="#i-clock"></use></svg>Discovering tools…'; }, 520);
+  setTimeout(()=>{
+    btn.disabled = false; btn.innerHTML = label;
+    if(id==="sfdc"){
+      if(out) out.innerHTML = '<span class="sendcheck" style="display:block;margin-top:9px">'+
+        '<b><svg class="ico xs"><use href="#i-alert"></use></svg>Reachable — but this is not a production org</b>'+
+        '<span class="sl"><span class="k">Endpoint</span><span class="v mono">magna--uat.sandbox.my.salesforce.com</span></span>'+
+        '<span class="sl"><span class="k">Verdict</span><span class="v">2 of 2 tools responded in 310 ms, but the host is a '+
+          '<b>Salesforce sandbox</b>. Answers built on it will quote non-production data, and it sits outside your network.</span></span>'+
+        '<span class="sl"><span class="k">Recommended</span><span class="v">Repoint at the production org or remove the server. '+
+          'It should not be visible to end users in this state.</span></span></span>';
+      toast("Salesforce (UAT) is pointing at a sandbox endpoint","i-alert");
+      return;
+    }
+    const s = SERVERS.filter(x=>x.id===id)[0] || catById(id);
+    const nTools = s ? (typeof s.tools==="number"? s.tools : s.tools.length) : 3;
+    const ms = 40 + (id.length*13)%180;
+    if(out) out.innerHTML = '<span class="sendcheck" style="display:block;margin-top:9px;'+
+      'border-color:color-mix(in srgb,var(--private) 45%,transparent);background:var(--private-dim)">'+
+      '<b style="color:var(--private-tx)"><svg class="ico xs"><use href="#i-check"></use></svg>Healthy</b>'+
+      '<span class="sl"><span class="k">Tools</span><span class="v">'+nTools+' of '+nTools+' responded</span></span>'+
+      '<span class="sl"><span class="k">Latency</span><span class="v mono">'+ms+' ms</span></span>'+
+      '<span class="sl"><span class="k">Route</span><span class="v">'+
+        ((s&&s.local!==false)? 'in-tenancy · <b style="color:var(--private-tx)">0 bytes left your network</b>'
+                             : 'external provider · egress counted per call')+'</span></span></span>';
+    toast("Connection healthy · "+nTools+" tools responded","i-check");
+  }, 1150);
+}
+function fixSandbox(){
+  openGen({title:"Salesforce (UAT) points at a sandbox", icon:"i-alert", iconWarn:true, size:"sm",
+    body:'<p style="font-size:12.8px;color:var(--tx-2);line-height:1.6">'+
+      'The endpoint <span class="mono">magna--uat.sandbox.my.salesforce.com</span> is a Salesforce sandbox. '+
+      'Any answer that cites it is quoting test data, and the host is outside your network.</p>'+
+      '<p style="font-size:12px;color:var(--tx-3);margin-top:10px">A non-production connector should never be '+
+      'visible to end users. Remove it until an administrator repoints it.</p>',
+    foot:'<button class="btn" data-x="c">Leave it</button><span class="sp"></span>'+
+         '<button class="btn warn" data-x="r">Remove the server</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=r]",f).addEventListener("click", ()=>{
+        SALESFORCE.removed = true; closeGen();
+        const i = SERVERS.indexOf(SALESFORCE); if(i>=0) SERVERS.splice(i,1);
+        SALESFORCE.hidden = true; renderConnections();
+        audit("Removed Salesforce (UAT) — sandbox endpoint","salesforce-uat-api",0,"You");
+        toast("Removed · it will not appear to end users","i-check");
+      });
+    }});
+}
+function addServerRoute(kind){
+  if(kind==="cat"){
+    v2.connTab="mcp"; renderConnections();
+    toast("Pick a system from “Available to connect”","i-info"); return;
+  }
+  if(kind==="tpl"){
+    openGen({title:"Add a server from a template", icon:"i-terminal", size:"md",
+      body:'<div class="field"><label for="tName">Name shown to users</label>'+
+        '<input class="inp" id="tName" placeholder="e.g. Warehouse stock"></div>'+
+        '<div class="field"><label for="tUrl">Server URL</label>'+
+        '<input class="inp" id="tUrl" placeholder="mcp+https://…" spellcheck="false"></div>'+
+        '<div class="field"><label for="tTrans">Transport</label>'+
+        '<select class="inp" id="tTrans"><option>HTTP (streamable)</option><option>SSE</option><option>stdio</option></select></div>'+
+        '<div class="field"><label for="tAuth">Authentication</label>'+
+        '<select class="inp" id="tAuth"><option>None (inside the network)</option><option>OAuth</option><option>Bearer token</option><option>Custom header</option></select></div>'+
+        '<p style="font-size:11.6px;color:var(--tx-3);line-height:1.55">MagnaVERSE runs a health check and shows you the '+
+        'tools it discovered before anything is saved. Nothing is enabled until you grant permissions in step 3.</p>'+
+        '<div id="tOut"></div>',
+      foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+           '<button class="btn primary" data-x="t">Test connection</button>',
+      wire:(b,f)=>{
+        $("[data-x=c]",f).addEventListener("click", closeGen);
+        $("[data-x=t]",f).addEventListener("click", ()=>{
+          const url = $("#tUrl",b).value.trim();
+          const out = $("#tOut",b);
+          if(!url){ out.innerHTML = '<p style="color:var(--danger);font-size:11.8px;margin-top:8px">Enter a server URL first.</p>'; return; }
+          out.innerHTML = '<div class="authsim" style="margin-top:10px"><span class="spin"></span><p>Reaching server…</p></div>';
+          setTimeout(()=>{
+            const sandbox = /sandbox|uat|\.test\./i.test(url);
+            out.innerHTML = sandbox
+              ? '<div class="sendcheck" style="margin-top:10px"><b><svg class="ico xs"><use href="#i-alert"></use></svg>'+
+                'That looks like a non-production endpoint</b><span class="sl"><span class="k">Host</span>'+
+                '<span class="v mono">'+esc(url)+'</span></span><span class="sl"><span class="k">Why it matters</span>'+
+                '<span class="v">Answers would quote test data. MagnaVERSE will not expose a sandbox connector to end users.</span></span></div>'
+              : '<div class="sendcheck" style="margin-top:10px;border-color:color-mix(in srgb,var(--private) 45%,transparent);background:var(--private-dim)">'+
+                '<b style="color:var(--private-tx)"><svg class="ico xs"><use href="#i-check"></use></svg>Reached the server</b>'+
+                '<span class="sl"><span class="k">Discovered</span><span class="v">3 tools · you will grant permissions next</span></span></div>';
+          }, 1200);
+        });
+      }});
+    return;
+  }
+  openGen({title:"Import a server config", icon:"i-download", size:"md",
+    body:'<div class="field"><label for="impSrv">Paste an MCP server definition</label>'+
+      '<textarea class="inp" id="impSrv" style="height:auto;min-height:150px;font-family:var(--mono);font-size:11.6px" '+
+      'spellcheck="false">{ "name": "warehouse-stock", "url": "mcp+https://wms.dc1.magna.internal/v1", "transport": "http" </textarea></div>'+
+      '<div id="impOut"></div>',
+    foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="v">Validate</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=v]",f).addEventListener("click", ()=>{
+        const txt = $("#impSrv",b).value;
+        const out = $("#impOut",b);
+        try{ JSON.parse(txt); out.innerHTML =
+            '<div class="sendcheck" style="margin-top:10px;border-color:color-mix(in srgb,var(--private) 45%,transparent);background:var(--private-dim)">'+
+            '<b style="color:var(--private-tx)"><svg class="ico xs"><use href="#i-check"></use></svg>Valid definition</b>'+
+            '<span class="sl"><span class="k">Next</span><span class="v">You would grant permissions before it becomes usable.</span></span></div>';
+        }catch(err){
+          out.innerHTML = importError("server definition", String(err.message||err), txt);
+        }
+      });
+    }});
+}
+function importError(what, msg, txt){
+  const m = /position (\d+)/.exec(msg);
+  let ctx = "";
+  if(m){
+    const i = Number(m[1]);
+    ctx = esc(txt.slice(Math.max(0,i-34), i)) + '<b style="color:var(--danger)">▶</b>' + esc(txt.slice(i, i+34));
+  }
+  return '<div class="sendcheck" style="margin-top:10px;border-color:color-mix(in srgb,var(--danger) 50%,transparent);'+
+    'background:var(--danger-dim)"><b style="color:var(--danger)"><svg class="ico xs"><use href="#i-alert"></use></svg>'+
+    'This '+esc(what)+' could not be parsed</b>'+
+    '<span class="sl"><span class="k">Error</span><span class="v">'+esc(msg)+'</span></span>'+
+    (ctx? '<span class="sl"><span class="k">Near</span><span class="v mono" style="font-size:11px">…'+ctx+'…</span></span>':'')+
+    '<span class="sl"><span class="k">What now</span><span class="v">Nothing was saved. A definition that fails to parse is '+
+    'never shown in the user-facing list — it stays here until it is fixed.</span></span></div>';
+}
+
+/* ---------- Skills catalogue ---------- */
+function skillCardHTML(s){
+  const m = SKILLMETA[s.n] || {t:s.n, cat:"Admin", req:[], ex:""};
+  const ready = skillReady(s.n);
+  const st = skillState(s.n);
+  const missing = (m.req||[]).filter(r=>!connOK(r));
+  return '<div class="acard" style="cursor:default">'+
+    '<div class="at"><b>'+esc(m.t)+'</b>'+
+      (RECOMMENDED.indexOf(s.n)>=0? '<span class="pill xs accent">for your role</span>':'')+
+      '<span class="pill xs">'+esc(m.cat)+'</span></div>'+
+    '<div class="mono dim" style="font-size:10.5px;margin-bottom:6px">/'+esc(s.n)+'</div>'+
+    '<p>'+esc(s.d)+'</p>'+
+    '<div style="font-size:11.2px;color:var(--tx-3);margin-bottom:8px">'+
+      '<b style="color:var(--tx-2);font-weight:600">Example:</b> “'+esc(m.ex)+'”</div>'+
+    '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:9px">'+
+      (missing.length
+        ? '<span class="pill xs public"><svg class="ico xs"><use href="#i-alert"></use></svg>Needs: '+
+          missing.map(connName).map(esc).join(", ")+'</span>'
+        : '<span class="pill xs private"><span class="dot"></span>Ready to use</span>')+
+      ((m.req||[]).filter(connOK).length
+        ? '<span class="pill xs">Uses: '+(m.req||[]).filter(connOK).map(connName).map(esc).join(", ")+'</span>' : '')+
+    '</div>'+
+    '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+      '<div class="seg" role="group" aria-label="'+esc(m.t)+' state">'+
+        ["off","on","auto"].map(v=>'<button data-skst="'+s.n+'" data-v="'+v+'" aria-pressed="'+(st===v)+'"'+
+          (!ready&&v!=="off"?' disabled title="Connect '+esc(missing.map(connName).join(", "))+' first"':'')+'>'+
+          (v==="off"?"Off":v==="on"?"On":"Auto")+'</button>').join("")+'</div>'+
+      '<button class="btn sm" data-tryskill="'+s.n+'"><svg class="ico xs"><use href="#i-play"></use></svg>Try it</button>'+
+    '</div></div>';
+}
+function skillsTabHTML(){
+  const q = (v2.skillQ||"").toLowerCase();
+  const cat = v2.skillCat || "All";
+  const filt = v2.skillFilter || "all";
+  const list = SKILLS.filter(s=>{
+    const m = SKILLMETA[s.n]; if(!m) return false;
+    if(cat!=="All" && m.cat!==cat) return false;
+    if(filt==="on"   && skillState(s.n)==="off") return false;
+    if(filt==="ready"&& !skillReady(s.n)) return false;
+    if(filt==="needs"&& skillReady(s.n)) return false;
+    if(q && (s.n+" "+s.d+" "+m.t).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+  let h = '<div class="pg-hd"><h2>Skills</h2>'+
+    '<p>A skill is a saved way of doing one job. Turn one on and it becomes available in chat — '+
+    'by name, or by typing <code>/</code>. '+skillsOnCount()+' of '+SKILLS.length+' are on.</p></div>';
+
+  if(store.get("skillsHow","")!=="done"){
+    h += '<div class="gcard"><div class="gcard-hd">'+
+      '<svg class="ico sm" style="color:var(--accent)"><use href="#i-info"></use></svg>'+
+      '<span class="t">How skills work</span>'+
+      '<button class="btn sm" data-howdone>Got it</button></div>'+
+      '<div class="gcard-bd"><div class="paths" style="margin:0">'+
+        '<div class="path" style="cursor:default"><b><span class="aav" style="background:var(--accent);width:20px;height:20px;border-radius:99px;font-size:9.5px">1</span>Turn one on</b>'+
+          '<span>Use the Off / On / Auto control on any card below. Auto lets Magna decide when it applies.</span></div>'+
+        '<div class="path" style="cursor:default"><b><span class="aav" style="background:var(--accent);width:20px;height:20px;border-radius:99px;font-size:9.5px">2</span>Ask for it in chat</b>'+
+          '<span>Say what you want, or type <code>/</code> and pick it from the list. “Try it” drafts an example for you.</span></div>'+
+        '<div class="path" style="cursor:default"><b><span class="aav" style="background:var(--accent);width:20px;height:20px;border-radius:99px;font-size:9.5px">3</span>See what it did</b>'+
+          '<span>The reasoning line names the skill, and the residency receipt records where it ran.</span></div>'+
+      '</div></div></div>';
+  }
+
+  h += '<div class="gcard"><div class="gcard-bd">'+
+    '<div class="field" style="margin-bottom:10px"><label for="skq">Search skills</label>'+
+      '<input class="inp" id="skq" placeholder="Search by name, description or id — try “PO”, “HSE”, “clause”" value="'+esc(v2.skillQ||"")+'"></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+      '<div class="seg" role="group" aria-label="Category">'+SKILL_CATS.map(c=>
+        '<button data-skcat="'+c+'" aria-pressed="'+(cat===c)+'">'+esc(c)+'</button>').join("")+'</div>'+
+      '<div class="seg" role="group" aria-label="State">'+
+        [["all","All"],["on","On"],["ready","Ready to use"],["needs","Needs a connection"]].map(f=>
+        '<button data-skfilt="'+f[0]+'" aria-pressed="'+(filt===f[0])+'">'+esc(f[1])+'</button>').join("")+'</div>'+
+      '<span style="flex:1"></span>'+
+      '<button class="btn sm" data-addskill><svg class="ico xs"><use href="#i-plus"></use></svg>Add skill</button>'+
+    '</div></div></div>';
+
+  h += list.length
+    ? '<div class="agrid">'+list.map(skillCardHTML).join("")+'</div>'
+    : '<div class="gcard"><div class="emptybox"><div class="ic"><svg class="ico lg"><use href="#i-search"></use></svg></div>'+
+      '<h4>No skill matches that</h4><p>Clear the search or switch the category. '+
+      'If nothing here does the job, you can build one from a template in two minutes.</p>'+
+      '<button class="btn primary" data-addskill>Add a skill</button></div></div>';
+  return h;
+}
+function wireSkillsTab(root){
+  const q = $("#skq", root);
+  if(q) q.addEventListener("input", ()=>{
+    v2.skillQ = q.value; const at = document.activeElement===q;
+    renderConnections();
+    if(at){ const nq = $("#skq"); nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); }
+  });
+  $$("[data-skcat]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.skillCat=b.dataset.skcat; renderConnections(); }));
+  $$("[data-skfilt]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.skillFilter=b.dataset.skfilt; renderConnections(); }));
+  $$("[data-skst]", root).forEach(b=> b.addEventListener("click", ()=>{
+    if(b.disabled) return;
+    v2.skills[b.dataset.skst] = b.dataset.v; saveSkills(); renderConnections(); renderNav();
+    toast(SKILLMETA[b.dataset.skst].t+" — "+b.dataset.v, b.dataset.v==="off"?"i-x":"i-check");
+  }));
+  $$("[data-tryskill]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const id = b.dataset.tryskill;
+    route("chat");
+    ta.value = SKILLMETA[id].ex; autosize(ta);
+    if(!state.attached.some(a=>a.name===id)) state.attached.push({name:id, kind:"skill"});
+    renderAttached();
+    if(!isNarrow()) ta.focus();
+    toast("Example drafted into the composer — nothing sent","i-attach");
+  }));
+  const hd = $("[data-howdone]", root);
+  if(hd) hd.addEventListener("click", ()=>{ store.set("skillsHow","done"); renderConnections(); });
+  $$("[data-addskill]", root).forEach(b=> b.addEventListener("click", addSkillRoutes));
+}
+function addSkillRoutes(){
+  openGen({title:"Add a skill", icon:"i-bolt", size:"md",
+    body:'<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6;margin-bottom:13px">'+
+      'Three routes. Most people want the first one.</p><div class="paths" style="margin:0">'+
+      '<button class="path" data-route="cat"><b><svg class="ico sm"><use href="#i-list"></use></svg>From the catalogue</b>'+
+        '<span>18 ready-made skills. One click to turn one on.</span></button>'+
+      '<button class="path" data-route="tpl"><b><svg class="ico sm"><use href="#i-sparkle"></use></svg>From a template</b>'+
+        '<span>Name it, say what it should do in plain language, pick its connections and trigger.</span></button>'+
+      '<button class="path" data-route="imp"><b><svg class="ico sm"><use href="#i-download"></use></svg>Import a definition</b>'+
+        '<span>Paste a skill file. It is validated before it can appear anywhere.</span></button></div>',
+    foot:'<button class="btn" data-x="c">Cancel</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $$("[data-route]",b).forEach(x=> x.addEventListener("click", ()=>{
+        const r = x.dataset.route;
+        if(r==="cat"){ closeGen(); v2.skillFilter="all"; v2.skillCat="All"; renderConnections();
+          toast("Pick a card below and set it to On","i-info"); }
+        else if(r==="tpl") skillTemplateFlow();
+        else skillImportFlow();
+      }));
+    }});
+}
+function skillTemplateFlow(){
+  const draft = {t:"", d:"", req:[], trig:"request"};
+  const render = ()=> openGen({title:"Build a skill from a template", icon:"i-sparkle", size:"md",
+    body:'<div class="field"><label for="sT">What should people call it?</label>'+
+      '<input class="inp" id="sT" placeholder="e.g. Overdue PO report" value="'+esc(draft.t)+'"></div>'+
+      '<div class="field"><label for="sD">What should it do? Plain language.</label>'+
+      '<textarea class="inp" id="sD" style="height:auto;min-height:84px">'+esc(draft.d)+'</textarea></div>'+
+      '<div class="field"><label>Which connections may it use?</label>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+
+        SERVERS.concat(v2.mail.connected?[{id:"mail",n:"Magna Mail"}]:[]).map(s=>
+        '<button class="btn sm" data-req="'+s.id+'" aria-pressed="'+(draft.req.indexOf(s.id)>=0)+'" '+
+        'style="'+(draft.req.indexOf(s.id)>=0?'border-color:var(--accent);background:var(--accent-dim);color:var(--accent-tx)':'')+'">'+
+        esc(s.n)+'</button>').join("")+'</div></div>'+
+      '<div class="field"><label for="sTrig">When does it run?</label>'+
+      '<select class="inp" id="sTrig">'+
+        '<option value="request"'+(draft.trig==="request"?" selected":"")+'>On request — when someone asks for it</option>'+
+        '<option value="sched"'+(draft.trig==="sched"?" selected":"")+'>On a schedule</option>'+
+        '<option value="agent"'+(draft.trig==="agent"?" selected":"")+'>When an agent calls it</option>'+
+      '</select></div>'+
+      '<div class="gcard" style="margin:14px 0 0"><div class="gcard-hd"><span class="t">Live preview</span></div>'+
+      '<div class="gcard-bd"><div class="acard" style="cursor:default;margin:0">'+
+        '<div class="at"><b>'+esc(draft.t||"Untitled skill")+'</b><span class="pill xs">Custom</span></div>'+
+        '<div class="mono dim" style="font-size:10.5px;margin-bottom:6px">/'+
+          esc((draft.t||"untitled").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))+'</div>'+
+        '<p>'+esc(draft.d||"Describe what it should do and this preview updates as you type.")+'</p>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+          (draft.req.length? '<span class="pill xs">Uses: '+draft.req.map(connName).map(esc).join(", ")+'</span>'
+                           : '<span class="pill xs private"><span class="dot"></span>No connections needed</span>')+
+          '<span class="pill xs">'+(draft.trig==="request"?"On request":draft.trig==="sched"?"Scheduled":"Agent-invoked")+'</span>'+
+        '</div></div></div></div>',
+    foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="s">Create skill</button>',
+    wire:(b,f)=>{
+      const sync = ()=>{ draft.t=$("#sT",b).value; draft.d=$("#sD",b).value; draft.trig=$("#sTrig",b).value; };
+      $("#sT",b).addEventListener("input", ()=>{ sync(); render(); setTimeout(()=>{ const e=$("#sT"); e.focus(); e.setSelectionRange(e.value.length,e.value.length); },0); });
+      $("#sD",b).addEventListener("input", ()=>{ sync(); render(); setTimeout(()=>{ const e=$("#sD"); e.focus(); e.setSelectionRange(e.value.length,e.value.length); },0); });
+      $("#sTrig",b).addEventListener("change", ()=>{ sync(); render(); });
+      $$("[data-req]",b).forEach(x=> x.addEventListener("click", ()=>{
+        sync(); const i=draft.req.indexOf(x.dataset.req);
+        if(i>=0) draft.req.splice(i,1); else draft.req.push(x.dataset.req);
+        render();
+      }));
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=s]",f).addEventListener("click", ()=>{
+        sync();
+        if(!draft.t.trim()){ toast("Give it a name first","i-alert"); return; }
+        const id = draft.t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+        SKILLS.push({n:id, d:draft.d||"Custom skill."});
+        SKILLMETA[id] = {t:draft.t, cat:"Admin", req:draft.req.slice(), on:true,
+          ex:draft.d||("Run "+draft.t)};
+        v2.skills[id]="on"; saveSkills();
+        closeGen(); renderConnections(); renderNav();
+        toast("“"+draft.t+"” created and turned on","i-check");
+      });
+    }});
+  render();
+}
+function skillImportFlow(){
+  openGen({title:"Import a skill definition", icon:"i-download", size:"md",
+    body:'<p style="font-size:12.4px;color:var(--tx-2);line-height:1.6;margin-bottom:11px">'+
+      'Paste a skill file. It is parsed and validated here — a definition that fails is never added to the '+
+      'catalogue and never shown to end users.</p>'+
+      '<div class="field"><label for="impSk">Skill definition</label>'+
+      '<textarea class="inp" id="impSk" spellcheck="false" style="height:auto;min-height:160px;font-family:var(--mono);font-size:11.4px">'+
+      esc('{\n  "id": "elon-musk-perspective-en",\n  "name": "Perspective",\n  "description": "Rewrite in a founder voice",\n  "prompt": "Rewrite the following: {{input}\n}') +
+      '</textarea>'+
+      '<span class="hint">This sample is deliberately broken — press Validate to see how a bad definition is reported.</span></div>'+
+      '<div id="impSkOut"></div>',
+    foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="v">Validate</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=v]",f).addEventListener("click", ()=>{
+        const txt = $("#impSk",b).value, out = $("#impSkOut",b);
+        let parsed = null;
+        try{ parsed = JSON.parse(txt); }
+        catch(err){ out.innerHTML = importError("skill definition", String(err.message||err), txt); return; }
+        if(!parsed.id || !parsed.name || !parsed.description){
+          out.innerHTML = importError("skill definition",
+            "Missing required field: "+["id","name","description"].filter(k=>!parsed[k]).join(", "), txt);
+          return;
+        }
+        out.innerHTML = '<div class="sendcheck" style="margin-top:10px;border-color:color-mix(in srgb,var(--private) 45%,transparent);'+
+          'background:var(--private-dim)"><b style="color:var(--private-tx)"><svg class="ico xs"><use href="#i-check"></use></svg>'+
+          'Valid — ready to add</b><span class="sl"><span class="k">Name</span><span class="v">'+esc(parsed.name)+'</span></span>'+
+          '<span class="sl"><span class="k">Id</span><span class="v mono">'+esc(parsed.id)+'</span></span></div>';
+      });
+    }});
+}
+
+/* ---------- Knowledge sources + Channels tabs ---------- */
+function knowSourcesHTML(){
+  return '<div class="pg-hd"><h2>Knowledge sources</h2><p>What Company Knowledge indexes, and where each source physically sits.</p></div>'+
+    '<div class="gcard"><div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
+    '<thead><tr><th>Source</th><th>Spaces</th><th class="num">Documents</th><th class="num">Chunks</th><th>Residency</th><th>Last indexed</th></tr></thead><tbody>'+
+    [["Company Knowledge","Procurement, HSE, Delivery, People, Legal",8400,"1.42M","16 Aug 06:12"],
+     ["SAP S/4HANA export","Procurement",1204,"1,204","16 Aug 06:12"],
+     ["Primavera P6","Delivery",96,"96","16 Aug 06:31"],
+     ["Confluence","Governance",214,"1,880","16 Aug 09:47"]].map(r=>
+      '<tr><td class="nm">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td class="num">'+nf(r[2])+'</td>'+
+      '<td class="num">'+esc(r[3])+'</td><td><span class="pill xs private"><span class="dot"></span>in-tenancy</span></td>'+
+      '<td class="mono">'+esc(r[4])+'</td></tr>').join("")+
+    '</tbody></table></div></div></div>'+
+    '<button class="btn" data-goto="knowledge"><svg class="ico sm"><use href="#i-db"></use></svg>Open the document list</button>';
+}
+function channelsHTML(){
+  return '<div class="pg-hd"><h2>Channels</h2><p>Where MagnaVERSE can reach you outside the app.</p></div>'+
+    '<div class="gcard"><div class="gcard-bd flush">'+
+    [["In-app notifications","Always on. Automation results and agent questions.","connected"],
+     ["Email digest", v2.mail.connected? "Daily summary to "+v2.mail.address : "Connect a mailbox to enable this.",
+      v2.mail.connected?"connected":"needs mail"],
+     ["Microsoft Teams","Post automation results into a channel.", v2.conn.teams?"connected":"not connected"]].map(c=>
+     '<div class="conn"><span class="logo"><svg class="ico"><use href="#i-bell"></use></svg></span>'+
+     '<span class="ct"><b>'+esc(c[0])+'</b><p>'+esc(c[1])+'</p></span>'+
+     '<span class="ca"><span class="pill xs '+(c[2]==="connected"?"private":"")+'">'+esc(c[2])+'</span></span></div>').join("")+
+    '</div></div>';
+}
+
+/* ============================================================
+   21d · the generic 4-step connect stepper
+        Choose → Configure → Permissions → Done
+   ============================================================ */
+const WIZ = ["Choose","Configure","Permissions","Done"];
+function connectWizard(id){
+  const c = catById(id); if(!c) return;
+  v2.wizId = id; v2.wizStep = 0;
+  v2.wizVariant = c.variants[0].id;
+  v2.wizScopes = {}; c.scopes.forEach(s=> v2.wizScopes[s.id] = !!s.def);
+  v2.wizAuth = false;
   wizRender();
 }
 function wizSteps(){
@@ -4720,140 +5345,176 @@ function wizSteps(){
     '<span class="wz-step '+(i<v2.wizStep?"done":(i===v2.wizStep?"now":""))+'">'+
       '<span class="n">'+(i<v2.wizStep?"✓":(i+1))+'</span><span class="lb">'+s+'</span></span>').join("")+'</div>';
 }
+function wizVariant(){
+  const c = catById(v2.wizId);
+  return c.variants.filter(x=>x.id===v2.wizVariant)[0] || c.variants[0];
+}
+function scopeResidency(scope, p){
+  /* every scope states its residency consequence in receipt language */
+  const local = p.local;
+  if(scope.risk==="Send"){
+    return local
+      ? {txt:"Runs on-prem. Delivery inside magna.ai adds <b>0 bytes</b> of egress; an external recipient is counted and shown on the receipt.", cls:"private"}
+      : {txt:"Relayed through "+esc(p.name)+". <b>Every send leaves your network</b> and the byte count is written to the receipt.", cls:"public"};
+  }
+  return local
+    ? {txt:"Runs on-prem beside the cluster. Searching and reading add <b>0 bytes</b> of egress.", cls:"private"}
+    : {txt:"Queries and message bodies are fetched from "+esc(p.name)+". <b>Traffic leaves your network</b> on every call.", cls:"public"};
+}
 function wizRender(scopesOnly){
-  const p = MAIL_PROVIDERS.filter(x=>x.id===v2.wizProvider)[0];
-  let body="", foot="";
+  const c = catById(v2.wizId), p = wizVariant();
   const step = v2.wizStep;
+  let body="", foot="";
 
   if(step===0){
     body = '<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6;margin-bottom:13px">'+
-      'Where does your mail live? This decides whether searching and sending stay inside your network.</p>'+
-      MAIL_PROVIDERS.map(x=>
-        '<button class="pick'+(x.id===v2.wizProvider?" sel":"")+'" data-prov="'+x.id+'">'+
+      esc(c.what)+'<br><b>Where does it live?</b> This decides whether using it stays inside your network.</p>'+
+      c.variants.map(x=>
+        '<button class="pick'+(x.id===v2.wizVariant?" sel":"")+'" data-prov="'+x.id+'">'+
         '<span class="ptop"><svg class="ico sm" style="color:var('+(x.local?"--private":"--public")+')">'+
-        '<use href="#'+(x.local?"i-server":"i-globe")+'"></use></svg>'+
-        '<b>'+esc(x.name)+'</b>'+
+        '<use href="#'+(x.local?"i-server":"i-globe")+'"></use></svg><b>'+esc(x.name)+'</b>'+
         (x.local? '<span class="pill xs private"><span class="dot"></span>0 bytes leave your network</span>'
                 : '<span class="pill xs public"><span class="dot"></span>traffic leaves your network</span>')+
-        '</span><p>'+esc(x.sub)+' — '+esc(x.d)+'</p></button>').join("");
+        '</span><p>'+esc(x.sub)+' — '+esc(x.d)+'</p></button>').join("")+
+      '<p style="font-size:11.4px;color:var(--tx-3);margin-top:6px">Next you will point it at an account. '+
+      'MagnaVERSE never asks for that account’s password.</p>';
     foot = '<button class="btn" data-wz="cancel">Cancel</button><span class="sp"></span>'+
            '<button class="btn primary" data-wz="next">Continue</button>';
   }
   else if(step===1){
-    body = '<div class="field"><label for="wzAddr">Mailbox address</label>'+
-      '<input class="inp" id="wzAddr" type="email" value="'+esc(v2.mail.address)+'" spellcheck="false" autocomplete="off"></div>'+
+    body = '<div class="field"><label for="wzAddr">'+(v2.wizId==="mail"?"Mailbox address":"Account")+'</label>'+
+      '<input class="inp" id="wzAddr" type="text" spellcheck="false" autocomplete="off" value="'+
+      esc(v2.wizId==="mail"? v2.mail.address : "ahmad.farahat@magna.ai")+'"></div>'+
       '<div class="field"><label for="wzName">Display name</label>'+
-      '<input class="inp" id="wzName" type="text" value="'+esc(v2.mail.display)+'" autocomplete="off"></div>'+
+      '<input class="inp" id="wzName" type="text" autocomplete="off" value="'+esc(v2.mail.display)+'"></div>'+
       '<div class="authsim" id="wzAuth">'+
-        (v2.mail.authorised
+        (v2.wizAuth
           ? '<span class="chk" style="width:30px;height:30px"><svg class="ico sm"><use href="#i-check"></use></svg></span>'+
-            '<p><b>Authorised with '+esc(p.name)+'.</b> MagnaVERSE holds a scoped token. '+
-            'You can revoke it from your provider or by disconnecting here.</p>'
+            '<p><b>Authorised with '+esc(p.name)+'.</b> MagnaVERSE holds a scoped token and can revoke it at any time. '+
+            'Next you decide what that token is allowed to do.</p>'
           : '<svg class="ico lg" style="color:var(--tx-3)"><use href="#i-lock"></use></svg>'+
-            '<p>MagnaVERSE never sees your password. You will approve this in '+esc(p.name)+
-            '’s own sign-in window, and it returns a scoped token.</p>'+
+            '<p><b>MagnaVERSE never sees your password.</b> You approve this in '+esc(p.name)+
+            '’s own sign-in window, which returns a scoped token.</p>'+
             '<button class="btn primary" id="wzAuthBtn">Authorise in provider →</button>')+
       '</div>';
     foot = '<button class="btn" data-wz="back">Back</button><span class="sp"></span>'+
-           '<button class="btn primary" data-wz="next"'+(v2.mail.authorised?"":" disabled")+'>Continue</button>';
+           '<button class="btn primary" data-wz="next"'+(v2.wizAuth?"":" disabled")+'>Continue</button>';
   }
   else if(step===2){
     body = '<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6;margin-bottom:11px">'+
-      'Grant only what you need. <b>Send is off by default</b> — and even once granted, every send stops for your confirmation.</p>'+
-      MAIL_SCOPES.map(s=>
-        '<div class="scope"><span class="st"><b>'+esc(s.n)+'</b>'+
-        '<span'+(s.id==="send"?' class="warn"':'')+'>'+esc(s.d)+'</span></span>'+
-        '<span class="pill xs '+(s.risk==="Send"?"public":"")+'">'+esc(s.risk)+'</span>'+
-        '<button class="switch" role="switch" aria-checked="'+(v2.wizScopes[s.id]?"true":"false")+
-        '" data-scope="'+s.id+'" aria-label="'+esc(s.n)+'"></button></div>').join("");
+      'Grant only what you need. <b>Anything with a side effect is off by default.</b> '+
+      'Each line states what it can reach and what it costs you in egress.</p>'+
+      c.scopes.map(s=>{
+        const r = scopeResidency(s, p);
+        return '<div class="scope"><span class="st"><b>'+esc(s.n)+'</b>'+
+          '<span>'+esc(s.d)+'</span>'+
+          '<span style="display:flex;gap:6px;align-items:flex-start;margin-top:6px">'+
+            '<svg class="ico xs" style="flex:none;margin-top:2px;color:var('+(r.cls==="private"?"--private":"--public")+')">'+
+            '<use href="#'+(r.cls==="private"?"i-shield-ok":"i-arrow-out")+'"></use></svg>'+
+            '<span style="color:var('+(r.cls==="private"?"--private-tx":"--public-tx")+');font-size:11.2px;line-height:1.45">'+
+            r.txt+'</span></span></span>'+
+          '<span class="pill xs '+(s.risk==="Send"?"public":"")+'">'+esc(s.risk)+'</span>'+
+          '<button class="switch" role="switch" aria-checked="'+(v2.wizScopes[s.id]?"true":"false")+
+          '" data-scope="'+s.id+'" aria-label="'+esc(s.n)+'"></button></div>';
+      }).join("")+
+      '<div class="gcard" style="margin:14px 0 0"><div class="gcard-hd">'+
+        '<span class="chk'+(p.local?"":" warn")+'"><svg class="ico xs"><use href="#'+(p.local?"i-check":"i-alert")+'"></use></svg></span>'+
+        '<span class="t">Residency for '+esc(p.name)+'</span></div>'+
+        '<div class="gcard-bd" style="padding-bottom:4px"><p style="font-size:12.2px;line-height:1.6;color:var(--tx-2)">'+
+        p.residency+'</p></div>'+
+        '<div class="boundary" style="padding:2px 10px 2px">'+boundarySVG(p.local?"sealed":"proxy")+'</div>'+
+        '<div class="bd-legend" style="padding:0 13px 11px">'+
+          '<i><b></b>indexed inside your network</i>'+
+          (p.local? '<i class="x"><b></b>no external endpoint</i>' : '<i class="w"><b></b>provider fetch on every call</i>')+
+        '</div></div>';
     foot = scopesOnly
       ? '<button class="btn" data-wz="cancel">Cancel</button><span class="sp"></span>'+
         '<button class="btn primary" data-wz="savescopes">Save permissions</button>'
       : '<button class="btn" data-wz="back">Back</button><span class="sp"></span>'+
-        '<button class="btn primary" data-wz="next">Continue</button>';
-  }
-  else if(step===3){
-    body = '<div class="gcard" style="margin-bottom:12px"><div class="gcard-hd">'+
-        '<span class="chk'+(p.local?"":" warn")+'"><svg class="ico xs"><use href="#'+(p.local?"i-check":"i-alert")+'"></use></svg></span>'+
-        '<span class="t">'+esc(p.name)+' · residency</span></div>'+
-        '<div class="gcard-bd"><p style="font-size:12.6px;line-height:1.6;color:var(--tx-2)">'+p.residency+'</p></div>'+
-        '<div class="boundary" style="padding:6px 10px 2px">'+boundarySVG(p.local?"sealed":"proxy")+'</div>'+
-        '<div class="bd-legend" style="padding:0 13px 11px">'+
-          '<i><b></b>indexed inside your network</i>'+
-          (p.local? '<i class="x"><b></b>no external endpoint</i>' : '<i class="w"><b></b>provider fetch on every sync</i>')+
-        '</div></div>'+
-      '<div class="rows" style="border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)">'+
-        '<div class="row"><span class="k">Index</span><span class="v">'+(p.local
-          ? 'Mail bodies are chunked and embedded on the DC-1 volume'
-          : 'Only message metadata is cached locally; bodies are fetched on demand')+'</span></div>'+
-        '<div class="row"><span class="k">Retention</span><span class="v">Mail index 30 days · drafts 90 days · never used for training</span></div>'+
-        '<div class="row"><span class="k">Egress</span><span class="v '+(p.local?"":"")+'">'+(p.local
-          ? '<b style="color:var(--private-tx)">0 bytes</b> per search or send'
-          : '<b style="color:var(--public-tx)">counted per call</b> and written to every receipt')+'</span></div>'+
-      '</div>';
-    foot = '<button class="btn" data-wz="back">Back</button><span class="sp"></span>'+
-           '<button class="btn primary" data-wz="next">I understand — connect</button>';
+        '<button class="btn primary" data-wz="commit">'+esc(c.cta)+'</button>';
   }
   else {
-    body = '<div class="emptybox" style="padding:14px 8px 6px">'+
+    const granted = c.scopes.filter(s=>v2.wizScopes[s.id]);
+    body = '<div class="emptybox" style="padding:12px 8px 4px">'+
       '<div class="ic" style="background:var(--private-dim);border-color:color-mix(in srgb,var(--private) 45%,transparent);color:var(--private-tx)">'+
       '<svg class="ico lg"><use href="#i-check"></use></svg></div>'+
-      '<h4>Magna Mail is connected</h4>'+
-      '<p>The mail tools are now in the <code>/</code> menu and available to agents and automations that you give access to.</p></div>'+
+      '<h4>'+esc(c.n)+' is connected</h4>'+
+      '<p>Here is how to use it right now.</p></div>'+
+      '<div class="gcard" style="margin-bottom:12px"><div class="gcard-hd"><span class="t">Its tools are now in the <code>/</code> menu</span></div>'+
+      '<div class="gcard-bd flush">'+c.tools.map(t=>
+        '<div class="toolline" style="padding:9px 13px"><span class="tn">/'+esc(t.n)+'</span>'+
+        '<span class="td">'+esc(t.d)+'</span>'+
+        '<span class="pill xs '+(t.risk==="Send"?"public":"")+'">'+esc(t.risk)+'</span>'+
+        ((t.risk==="Send" && !v2.wizScopes[(c.scopes.filter(s=>s.risk==="Send")[0]||{}).id])
+          ? '<span class="pill xs">scope not granted</span>' : '<span class="pill xs private">available</span>')+
+        '</div>').join("")+'</div></div>'+
       '<div class="rows" style="border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)">'+
-        '<div class="row"><span class="k">Provider</span><span class="v">'+esc(p.name)+'</span>'+
+        '<div class="row"><span class="k">Account</span><span class="v mono">'+esc(v2.mail.address)+'</span></div>'+
+        '<div class="row"><span class="k">Runs on</span><span class="v">'+esc(p.name)+'</span>'+
           (p.local?'<span class="pill xs private">on-prem</span>':'<span class="pill xs public">external</span>')+'</div>'+
-        '<div class="row"><span class="k">Mailbox</span><span class="v mono">'+esc(v2.mail.address)+'</span></div>'+
-        '<div class="row"><span class="k">Scopes</span><span class="v">'+
-          MAIL_SCOPES.filter(s=>v2.wizScopes[s.id]).map(s=>esc(s.n)).join(" · ")+
-          (v2.wizScopes.send?'':'<span class="sd">Sending is not granted — you can add it later from Permissions.</span>')+
+        '<div class="row"><span class="k">Granted</span><span class="v">'+
+          (granted.length? granted.map(s=>esc(s.n)).join(" · ") : "nothing yet")+
+          (v2.wizScopes.send||v2.wizScopes.post ? '' :
+            '<span class="sd">Nothing with a side effect was granted. You can add it later from Permissions.</span>')+
           '</span></div>'+
-        '<div class="row"><span class="k">Tools</span><span class="v mono">'+MAIL_TOOLS.map(t=>t.n).join(", ")+'</span></div>'+
-        '<div class="row"><span class="k">Last synced</span><span class="v mono">just now · 7 messages</span></div>'+
-      '</div>';
-    foot = '<button class="btn" data-wz="mail">Open Mail</button><span class="sp"></span>'+
-           '<button class="btn primary" data-wz="done">Done</button>';
+      '</div>'+
+      '<p style="font-size:12px;color:var(--tx-2);line-height:1.6;margin-top:12px">'+
+      '<b>Try it:</b> “'+esc(c.example)+'”</p>';
+    foot = '<button class="btn" data-wz="try"><svg class="ico xs"><use href="#i-play"></use></svg>Try it in chat</button>'+
+      (v2.wizId==="mail"? '<button class="btn" data-wz="mail">Open Mail</button>':'')+
+      '<span class="sp"></span><button class="btn primary" data-wz="done">Done</button>';
   }
 
   openGen({
-    title: scopesOnly ? "Magna Mail permissions" : "Connect Magna Mail",
-    icon:"i-book", size:"md",
+    title: scopesOnly ? (c.n+" permissions") : ("Connect "+c.n),
+    icon: c.icon, size:"md",
     steps: scopesOnly ? "" : wizSteps(),
     body: body, foot: foot,
     wire:(b,f)=>{
-      $$("[data-prov]", b).forEach(x=> x.addEventListener("click", ()=>{ v2.wizProvider = x.dataset.prov; wizRender(); }));
+      $$("[data-prov]", b).forEach(x=> x.addEventListener("click", ()=>{ v2.wizVariant = x.dataset.prov; wizRender(); }));
       const ab = $("#wzAuthBtn", b);
       if(ab) ab.addEventListener("click", ()=>{
         const box = $("#wzAuth", b);
         box.innerHTML = '<span class="spin"></span><p>Opening '+esc(p.name)+' sign-in…<br>'+
-          '<span class="dim" style="font-size:11px">MagnaVERSE is waiting for a scoped token. Your password is never seen by this app.</span></p>';
+          '<span class="dim" style="font-size:11px">Waiting for a scoped token. Your password is never seen by this app.</span></p>';
         setTimeout(()=>{
-          v2.mail.address = ($("#wzAddr", b)||{value:v2.mail.address}).value || v2.mail.address;
-          v2.mail.authorised = true; wizRender();
+          const a = $("#wzAddr", b); if(a && v2.wizId==="mail") v2.mail.address = a.value || v2.mail.address;
+          v2.wizAuth = true; wizRender();
           toast("Authorised with "+p.name+" — scoped token received","i-check");
         }, 1500);
       });
       $$("[data-scope]", b).forEach(x=> x.addEventListener("click", ()=>{
         const id = x.dataset.scope, on = x.getAttribute("aria-checked")!=="true";
         v2.wizScopes[id] = on; x.setAttribute("aria-checked", String(on));
-        if(id==="send" && on) toast("Send granted — every send still asks for confirmation","i-alert");
+        const sc = c.scopes.filter(s=>s.id===id)[0];
+        if(on && sc.risk==="Send") toast(sc.n+" granted — every one still asks for confirmation","i-alert");
       }));
       $$("[data-wz]", f).forEach(x=> x.addEventListener("click", ()=>{
         const a = x.dataset.wz;
         if(a==="cancel"){ closeGen(); return; }
         if(a==="back"){ v2.wizStep--; wizRender(); return; }
         if(a==="savescopes"){
-          v2.mail.scopes = Object.assign({}, v2.wizScopes); saveMail(); closeGen();
-          renderConnections(); renderNav();
-          toast("Mail permissions updated","i-check"); return;
+          if(v2.wizId==="mail"){ v2.mail.scopes = Object.assign({}, v2.wizScopes); saveMail(); }
+          else { v2.conn.teamsScopes = Object.assign({}, v2.wizScopes); saveConn(); }
+          closeGen(); renderConnections(); renderNav(); renderSlashIfOpen();
+          toast("Permissions updated","i-check"); return;
         }
         if(a==="next"){
           if(v2.wizStep===1){
-            v2.mail.address = ($("#wzAddr", b)||{value:v2.mail.address}).value || v2.mail.address;
-            v2.mail.display = ($("#wzName", b)||{value:v2.mail.display}).value || v2.mail.display;
+            const ad=$("#wzAddr", b), nm=$("#wzName", b);
+            if(v2.wizId==="mail"){
+              if(ad) v2.mail.address = ad.value || v2.mail.address;
+              if(nm) v2.mail.display = nm.value || v2.mail.display;
+            }
           }
-          if(v2.wizStep===3) finishMailConnect();
           v2.wizStep++; wizRender(); return;
+        }
+        if(a==="commit"){ commitConnect(); v2.wizStep = 3; wizRender(); return; }
+        if(a==="try"){
+          closeGen(); route("chat");
+          ta.value = c.example; autosize(ta);
+          if(!isNarrow()) ta.focus();
+          toast("Example drafted — press Enter when you are ready","i-attach"); return;
         }
         if(a==="mail"){ closeGen(); route("mail"); return; }
         closeGen();
@@ -4861,23 +5522,32 @@ function wizRender(scopesOnly){
     }
   });
 }
-function finishMailConnect(){
-  v2.mail.connected = true;
-  v2.mail.provider  = v2.wizProvider;
-  v2.mail.scopes    = Object.assign({}, v2.wizScopes);
-  v2.mail.since     = "just now";
-  saveMail();
-  renderNav();
-  audit("Connected Magna Mail ("+mailProvider().name+")", "magna-mail", mailProvider().local?0:0, "You");
-  toast("Magna Mail connected · "+MAIL_TOOLS.length+" tools discovered","i-plug");
+function commitConnect(){
+  const c = catById(v2.wizId), p = wizVariant();
+  if(v2.wizId==="mail"){
+    v2.mail.connected = true; v2.mail.provider = p.id;
+    v2.mail.scopes = Object.assign({}, v2.wizScopes);
+    v2.mail.since = "just now"; v2.mail.authorised = true;
+    saveMail();
+  }else{
+    v2.conn.teams = true; v2.conn.teamsScopes = Object.assign({}, v2.wizScopes); saveConn();
+  }
+  /* the visible consequence: nav counts, slash menu, dependent skills, setup checklist */
+  renderNav(); renderSlashIfOpen();
+  audit("Connected "+c.n+" ("+p.name+")", c.id==="mail"?"magna-mail":"teams", 0, "You");
+  toast(c.n+" connected · "+c.tools.length+" tools now in the / menu","i-plug");
+}
+function renderSlashIfOpen(){
+  if($("#slash").classList.contains("open")) handleSlashInput();
 }
 function confirmDisconnect(){
   openGen({
     title:"Disconnect Magna Mail", icon:"i-alert", iconWarn:true, size:"sm",
     body:'<p style="font-size:12.8px;color:var(--tx-2);line-height:1.6">This revokes the scoped token, removes the four '+
       '<span class="mono">magna-mail</span> tools from the <code>/</code> menu, and drops the local mail index. '+
-      'Agents and automations that use those tools will stop at their next run and notify you.</p>'+
-      '<p style="font-size:12px;color:var(--tx-3);margin-top:10px">Sent mail already delivered is unaffected. '+
+      'Two skills that depend on it will go back to “Needs a connection”, and agents using those tools will stop at '+
+      'their next run and notify you.</p>'+
+      '<p style="font-size:12px;color:var(--tx-3);margin-top:10px">Mail already delivered is unaffected. '+
       'The audit trail of what was sent is retained.</p>',
     foot:'<button class="btn" data-x="c">Keep it connected</button><span class="sp"></span>'+
          '<button class="btn warn" data-x="d">Disconnect</button>',
@@ -4887,11 +5557,11 @@ function confirmDisconnect(){
         v2.mail.connected=false; v2.mail.authorised=false; v2.mail.since=null;
         v2.mail.scopes={read:true,send:false,contacts:false,calendar:false};
         Object.keys(v2.perm).forEach(k=>{ if(k.indexOf("magna-mail")===0) delete v2.perm[k]; });
-        saveMail(); closeGen(); renderNav();
+        saveMail(); closeGen(); renderNav(); renderSlashIfOpen();
         if(v2.view==="connections") renderConnections();
         if(v2.view==="mail") route("connections");
         audit("Disconnected Magna Mail", "magna-mail", 0, "You");
-        toast("Magna Mail disconnected","i-x");
+        toast("Magna Mail disconnected · 2 skills now need a connection","i-x");
       });
     }
   });
@@ -4910,7 +5580,7 @@ function renderMail(){
       'On the on-prem provider, none of that leaves your network.</p>'+
       '<button class="btn primary" id="mailConnectCta"><svg class="ico sm"><use href="#i-plug"></use></svg>Connect a mailbox</button>'+
       '</div></div></div></div>';
-    $("#mailConnectCta").addEventListener("click", ()=>{ route("connections"); v2.connTab="mcp"; renderConnections(); startMailWizard(); });
+    $("#mailConnectCta").addEventListener("click", ()=>{ route("connections"); v2.connTab="mcp"; renderConnections(); connectWizard("mail"); });
     return;
   }
   const p = mailProvider();
@@ -5197,6 +5867,828 @@ function audit(action, system, egress, actor){
 }
 
 /* ============================================================
+   23 · Agents
+   ============================================================ */
+function accessName(id){ const a=ACCESS_PRESETS.filter(x=>x.id===id)[0]; return a?a.n:id; }
+function renderAgents(){
+  $("#pgBarActs").innerHTML =
+    '<button class="btn sm" id="agTemplates">Start from a template</button>'+
+    '<button class="btn primary sm" id="agNew"><svg class="ico xs"><use href="#i-plus"></use></svg>Create agent</button>';
+  let h = '<div class="pg-hd"><h2>Agents</h2><p>An agent is a named specialist with its own instructions, model, '+
+    'tool access and trigger. Delegate repeatable work to one and it runs whether you are here or not.</p></div>';
+
+  if(store.get("setupHidden","")!=="1" && !setupDone()) h += renderSetupCard();
+
+  if(!AGENTS.length){
+    h += agentGalleryHTML();
+  }else{
+    h += '<div class="gcard"><div class="gcard-hd"><svg class="ico sm" style="color:var(--tx-3)"><use href="#i-user"></use></svg>'+
+      '<span class="t">Your agents<span>'+AGENTS.filter(a=>a.enabled).length+' enabled · '+
+      AGENTS.reduce((a,x)=>a+x.runs,0)+' runs this month</span></span></div>'+
+      '<div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
+      '<thead><tr><th>Agent</th><th>Access</th><th>Trigger</th><th>Last run</th><th class="num">Runs</th><th>Enabled</th><th></th></tr></thead><tbody>'+
+      AGENTS.map(a=>
+        '<tr><td class="nm"><span style="display:flex;align-items:center;gap:8px">'+
+          '<span class="aav" style="background:'+a.col+'">'+esc(a.n.split(/\s+/).map(x=>x[0]).slice(0,2).join(""))+'</span>'+
+          '<span>'+esc(a.n)+'<span>'+esc(a.purpose)+'</span></span></span></td>'+
+        '<td>'+esc(accessName(a.access))+'<span style="display:block;font-size:10.6px;color:var(--tx-3)" class="mono">'+
+          esc(a.tools.join(", "))+'</span></td>'+
+        '<td>'+esc(a.trigger)+'</td>'+
+        '<td><span class="statusdot '+(a.ok?"ok":"bad")+'"></span> '+esc(a.last)+'</td>'+
+        '<td class="num">'+a.runs+'</td>'+
+        '<td><button class="switch" role="switch" aria-checked="'+a.enabled+'" data-agtog="'+a.id+'" aria-label="Enable '+esc(a.n)+'"></button></td>'+
+        '<td><span class="rowacts"><button class="btn sm" data-agrun="'+a.id+'">Run now</button>'+
+          '<button class="btn sm" data-agview="'+a.id+'">Runs</button></span></td></tr>').join("")+
+      '</tbody></table></div></div></div>';
+  }
+  $("#pgScroll").innerHTML = '<div class="pg">'+h+'</div>';
+  const root = $("#pgScroll");
+  wireSetupCard(root);
+  $("#agNew").addEventListener("click", openAgentGallery);
+  $("#agTemplates").addEventListener("click", openAgentGallery);
+  $$("[data-agtog]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const a = AGENTS.filter(x=>x.id===b.dataset.agtog)[0];
+    a.enabled = !a.enabled; b.setAttribute("aria-checked", String(a.enabled));
+    renderNav(); toast(a.n+(a.enabled?" enabled":" paused"), a.enabled?"i-check":"i-pause");
+  }));
+  $$("[data-agrun]", root).forEach(b=> b.addEventListener("click", ()=> runAgent(b.dataset.agrun, b)));
+  $$("[data-agview]", root).forEach(b=> b.addEventListener("click", ()=> agentRuns(b.dataset.agview)));
+  $$("[data-usetpl]", root).forEach(b=> b.addEventListener("click", ()=> agentEditor(AGENT_TEMPLATES[+b.dataset.usetpl])));
+  $$("[data-apath]", root).forEach(b=> b.addEventListener("click", ()=> agentPath(b.dataset.apath)));
+  $$("[data-agcat]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.agCat = b.dataset.agcat; renderAgents(); }));
+}
+function agentGalleryHTML(){
+  const cats = ["All","Procurement","Delivery","Compliance","Research","Productivity"];
+  const cat = v2.agCat || "All";
+  return '<div class="paths">'+
+    '<button class="path" data-apath="tpl"><b><svg class="ico sm"><use href="#i-list"></use></svg>Start from a template</b>'+
+      '<span>Ten roles written for this business. Edit every field before saving.</span></button>'+
+    '<button class="path" data-apath="ai"><b><svg class="ico sm"><use href="#i-sparkle"></use></svg>Describe it</b>'+
+      '<span>Say what you want in a sentence and Magna drafts the configuration.</span></button>'+
+    '<button class="path" data-apath="man"><b><svg class="ico sm"><use href="#i-terminal"></use></svg>Build manually</b>'+
+      '<span>Start from an empty agent and fill it in yourself.</span></button>'+
+    '<button class="path" data-apath="imp"><b><svg class="ico sm"><use href="#i-download"></use></svg>Import JSON</b>'+
+      '<span>Bring a definition from another workspace. Validated before it is saved.</span></button>'+
+    '</div>'+
+    '<div class="gcard"><div class="gcard-hd"><span class="t">Templates'+
+      '<span>Pick a starting point. You can edit every field before saving.</span></span>'+
+      '<div class="seg" role="group" aria-label="Category">'+cats.map(c=>
+        '<button data-agcat="'+c+'" aria-pressed="'+(cat===c)+'">'+esc(c)+'</button>').join("")+'</div></div>'+
+      '<div class="gcard-bd"><div class="agrid">'+
+      AGENT_TEMPLATES.map((t,i)=> (cat==="All"||t.cat===cat)
+        ? '<div class="acard" style="cursor:default"><div class="at"><b>'+esc(t.n)+'</b>'+
+          '<span class="pill xs">'+esc(t.cat)+'</span></div><p>'+esc(t.d)+'</p>'+
+          '<button class="btn sm" data-usetpl="'+i+'">Use this</button></div>' : "").join("")+
+      '</div></div></div>';
+}
+function openAgentGallery(){
+  route("agents");
+  const prev = AGENTS.slice();
+  openGen({title:"Create an agent", icon:"i-user", size:"lg",
+    body:'<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6;margin-bottom:13px">'+
+      'Pick a starting point. Nothing is saved until you press Create at the end.</p>'+agentGalleryHTML(),
+    foot:'<button class="btn" data-x="c">Cancel</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $$("[data-usetpl]",b).forEach(x=> x.addEventListener("click", ()=> agentEditor(AGENT_TEMPLATES[+x.dataset.usetpl])));
+      $$("[data-agcat]",b).forEach(x=> x.addEventListener("click", ()=>{ v2.agCat = x.dataset.agcat; openAgentGallery(); }));
+      $$("[data-apath]",b).forEach(x=> x.addEventListener("click", ()=> agentPath(x.dataset.apath)));
+    }});
+}
+function agentPath(kind){
+  if(kind==="tpl"){ openAgentGallery(); return; }
+  if(kind==="man"){ agentEditor({n:"", cat:"Productivity", d:""}); return; }
+  if(kind==="ai"){
+    openGen({title:"Describe the agent you want", icon:"i-sparkle", size:"md",
+      body:'<div class="field"><label for="aiDesc">In one or two sentences</label>'+
+        '<textarea class="inp" id="aiDesc" style="height:auto;min-height:88px">Watch our castings suppliers and tell me the moment one of them threatens the Line 4 date.</textarea></div>'+
+        '<div id="aiOut"></div>',
+      foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+           '<button class="btn primary" data-x="d">Draft it</button>',
+      wire:(b,f)=>{
+        $("[data-x=c]",f).addEventListener("click", closeGen);
+        $("[data-x=d]",f).addEventListener("click", ()=>{
+          $("#aiOut",b).innerHTML = '<div class="authsim" style="margin-top:10px"><span class="spin"></span>'+
+            '<p>Drafting a configuration from your description…</p></div>';
+          setTimeout(()=> agentEditor({n:"Castings Supply Watch", cat:"Procurement",
+            d:"Watch castings suppliers for anything that threatens the Line 4 acceptance date, and say what it moves."}), 1300);
+        });
+      }});
+    return;
+  }
+  openGen({title:"Import an agent definition", icon:"i-download", size:"md",
+    body:'<div class="field"><label for="impAg">Paste JSON</label>'+
+      '<textarea class="inp" id="impAg" spellcheck="false" style="height:auto;min-height:150px;font-family:var(--mono);font-size:11.4px">'+
+      esc('{ "name": "Vendor Risk Screener", "purpose": "Score suppliers", "access": "read" ')+'</textarea></div><div id="impAgOut"></div>',
+    foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="v">Validate</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=v]",f).addEventListener("click", ()=>{
+        const txt=$("#impAg",b).value, out=$("#impAgOut",b);
+        try{ const j=JSON.parse(txt); agentEditor({n:j.name||"Imported agent", cat:"Productivity", d:j.purpose||""}); }
+        catch(err){ out.innerHTML = importError("agent definition", String(err.message||err), txt); }
+      });
+    }});
+}
+function agentEditor(tpl){
+  const d = v2.agentDraft = {n:tpl.n||"", purpose:tpl.d||"", model:"kimi", access:"read",
+    interrupt:true, approveSend:true, col:["#2FB44A","#1E50C8","#DC3232","#1F8F86"][AGENTS.length%4]};
+  const render = ()=> openGen({title:(d.n? "Configure “"+d.n+"”" : "Configure agent"), icon:"i-user", size:"lg",
+    body:
+      '<div class="seg2" style="margin-bottom:14px"><button aria-selected="true">Identity</button>'+
+      '<button aria-selected="false" disabled>Access</button><button aria-selected="false" disabled>Autonomy</button>'+
+      '<button aria-selected="false" disabled>Test</button></div>'+
+      '<div class="field"><label for="agN">Name</label><input class="inp" id="agN" value="'+esc(d.n)+'" placeholder="e.g. Procurement Analyst"></div>'+
+      '<div class="field"><label for="agP">One-line purpose</label><input class="inp" id="agP" value="'+esc(d.purpose)+'"></div>'+
+      '<div class="field"><label for="agM">Model</label><select class="inp" id="agM">'+
+        '<option value="inherit">Same as chat (recommended)</option>'+
+        MODELS.map(m=>'<option value="'+m.id+'"'+(d.model===m.id?" selected":"")+'>'+esc(m.name)+' · '+esc(m.short)+'</option>').join("")+
+      '</select></div>'+
+      '<div class="field"><label>Access — what it may reach</label>'+
+        '<div class="presets" style="margin-top:6px">'+ACCESS_PRESETS.map(a=>
+          '<button class="preset'+(d.access===a.id?" sel":"")+'" data-acc="'+a.id+'">'+
+          '<b><svg class="ico xs"><use href="#'+(a.id==="full"?"i-alert":"i-shield-ok")+'"></use></svg>'+esc(a.n)+'</b>'+
+          '<span>'+esc(a.d)+'</span>'+
+          '<span style="display:block;margin-top:6px;font-size:10.8px;color:var('+
+            (a.id==="full"?"--public-tx":"--private-tx")+')">'+
+            (a.id==="full" ? "Can cause egress. Requires admin approval."
+                           : "Stays inside your network on the Private tier.")+'</span></button>').join("")+
+        '</div></div>'+
+      '<div class="field"><label>Autonomy</label>'+
+        '<div class="srow"><span class="st"><b>May pause to ask you a question</b>'+
+          '<span>Turn off for fully automated agents that must never block.</span></span>'+
+          '<span class="sc"><button class="switch" role="switch" aria-checked="'+d.interrupt+'" data-ag="interrupt" aria-label="May pause"></button></span></div>'+
+        '<div class="srow"><span class="st"><b>Requires approval before actions that send, publish or delete</b>'+
+          '<span>Locked on for every access preset except read-only. This is a workspace policy, not a preference.</span></span>'+
+          '<span class="sc"><button class="switch" role="switch" aria-checked="true" data-ag="approve" aria-label="Requires approval" disabled style="opacity:.6"></button></span></div>'+
+      '</div>',
+    foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+         '<button class="btn" data-x="t">Test it</button>'+
+         '<button class="btn primary" data-x="s">Create agent</button>',
+    wire:(b,f)=>{
+      const sync=()=>{ d.n=$("#agN",b).value; d.purpose=$("#agP",b).value; d.model=$("#agM",b).value; };
+      $$("[data-acc]",b).forEach(x=> x.addEventListener("click", ()=>{ sync(); d.access=x.dataset.acc; render(); }));
+      const iv = $('[data-ag="interrupt"]',b);
+      iv.addEventListener("click", ()=>{ d.interrupt=!d.interrupt; iv.setAttribute("aria-checked",String(d.interrupt)); });
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=t]",f).addEventListener("click", ()=>{ sync(); agentTest(d); });
+      $("[data-x=s]",f).addEventListener("click", ()=>{
+        sync();
+        if(!d.n.trim()){ toast("Give the agent a name","i-alert"); return; }
+        AGENTS.push({id:"ag"+(AGENTS.length+1), n:d.n, col:d.col, purpose:d.purpose||"—",
+          model:d.model==="inherit"?state.model:d.model, access:d.access,
+          tools:(d.access==="read"?["knowledge_search"]:d.access==="docs"?["knowledge_search","confluence"]:
+                 ["sap-po-lookup","jira-search","p6-schedule"]),
+          trigger:"Manual", last:"never run", ok:true, runs:0, enabled:true,
+          interrupt:d.interrupt, approveSend:true, history:[]});
+        v2.conn.agentMade = true; saveConn();
+        closeGen(); renderAgents(); renderNav();
+        toast("“"+d.n+"” created — run it now or give it a trigger","i-check");
+      });
+    }});
+  render();
+}
+function agentTest(d){
+  openGen({title:"Test “"+(d.n||"agent")+"” before saving", icon:"i-play", size:"md",
+    body:'<div class="field"><label for="agTP">Sample prompt</label>'+
+      '<input class="inp" id="agTP" value="Which suppliers threaten the Line 4 date this week?"></div>'+
+      '<div id="agTOut"></div>',
+    foot:'<button class="btn" data-x="c">Back</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="r">Run test</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", ()=> agentEditor({n:d.n, d:d.purpose}));
+      $("[data-x=r]",f).addEventListener("click", ()=>{
+        const out=$("#agTOut",b);
+        out.innerHTML = '<div class="authsim" style="margin-top:10px"><span class="spin"></span><p>Running against the draft configuration…</p></div>';
+        setTimeout(()=>{
+          out.innerHTML = '<div class="gcard" style="margin-top:12px"><div class="gcard-hd">'+
+            '<span class="chk"><svg class="ico xs"><use href="#i-check"></use></svg></span>'+
+            '<span class="t">Used 2 tools · asked 0 questions · 3.4 s</span>'+
+            '<span class="pill xs private"><span class="dot"></span>0 bytes egress</span></div>'+
+            '<div class="gcard-bd"><div class="timeline">'+
+            '<div class="tl"><span class="d">0.7 s</span><b>knowledge_search</b> — Procurement space, 3 hits</div>'+
+            '<div class="tl"><span class="d">1.2 s</span><b>sap-po-lookup</b> — 19 PO rows, on-prem</div>'+
+            '<div class="tl"><span class="d">1.5 s</span><b>Composed answer</b> — Gulf Precision named as the single-source risk</div>'+
+            '</div></div></div>';
+        }, 1300);
+      });
+    }});
+}
+function runAgent(id, btn){
+  const a = AGENTS.filter(x=>x.id===id)[0];
+  const label = btn.innerHTML;
+  btn.disabled = true; btn.textContent = "Running…";
+  setTimeout(()=>{
+    btn.disabled = false; btn.innerHTML = label;
+    a.runs++; a.ok = true;
+    const res = ["3 items flagged","nothing new since the last run","2 actions overdue","1 issue triaged"][a.runs%4];
+    a.last = "just now · "+res;
+    a.history.unshift(["just now", res, (1.5+(a.runs%4)).toFixed(1)+" s"]);
+    const rid = mailReceipt("agent."+a.id, "Agent run: "+a.n, 0, "agent ran entirely on-prem");
+    RECEIPTS[rid].tools = a.tools.map(t=>({n:t, local:true, ms:"0.9 s", d:"invoked by "+a.n}));
+    RECEIPTS[rid].model = modelById(a.model).name;
+    audit("Ran agent "+a.n+" — "+res, "agents", 0, "You");
+    renderAgents();
+    toast(a.n+" finished · "+res,"i-check");
+  }, 1400);
+}
+function agentRuns(id){
+  const a = AGENTS.filter(x=>x.id===id)[0];
+  openGen({title:a.n+" · run history", icon:"i-clock", size:"md",
+    body:'<div class="rows" style="border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);margin-bottom:12px">'+
+      '<div class="row"><span class="k">Purpose</span><span class="v">'+esc(a.purpose)+'</span></div>'+
+      '<div class="row"><span class="k">Model</span><span class="v">'+esc(modelById(a.model).name)+'</span></div>'+
+      '<div class="row"><span class="k">Access</span><span class="v">'+esc(accessName(a.access))+
+        '<span class="sd mono">'+esc(a.tools.join(", "))+'</span></span></div>'+
+      '<div class="row"><span class="k">Trigger</span><span class="v">'+esc(a.trigger)+'</span></div>'+
+      '<div class="row"><span class="k">Residency</span><span class="v">Every run so far stayed in-tenancy</span>'+
+        '<span class="pill xs private">0 bytes</span></div>'+
+      '</div>'+
+      (a.history.length
+        ? '<div class="gcard"><div class="gcard-hd"><span class="t">Runs</span></div><div class="gcard-bd flush">'+
+          a.history.map(r=>'<div class="runline" style="padding:9px 13px"><span class="rt"><b>'+esc(r[1])+'</b>'+
+          esc(r[0])+'</span><span class="rd">'+esc(r[2])+'</span></div>').join("")+'</div></div>'
+        : '<div class="emptybox"><h4>No runs yet</h4><p>Press Run now on the agent list to see the trace.</p></div>'),
+    foot:'<button class="btn" data-x="c">Close</button>',
+    wire:(b,f)=>{ $("[data-x=c]",f).addEventListener("click", closeGen); }});
+}
+
+/* ============================================================
+   24 · Automations
+   ============================================================ */
+function cronPreview(mode, every, unit, at, cron){
+  if(mode==="every") return "Every "+every+" "+unit+(Number(every)===1?"".replace(/s$/,""):"");
+  if(mode==="at")    return "Every day at "+at+" Riyadh";
+  const map = {"0 6 * * 1-5":"Weekdays at 06:00 Riyadh","*/30 * * * *":"Every 30 minutes",
+               "0 * * * *":"Every hour, on the hour","0 7 * * 0":"Sundays at 07:00 Riyadh",
+               "0 8 1 * *":"The 1st of each month at 08:00 Riyadh"};
+  return map[cron] || "Custom schedule — "+cron;
+}
+function renderAutomations(){
+  $("#pgBarActs").innerHTML = '<button class="btn primary sm" id="auNew">'+
+    '<svg class="ico xs"><use href="#i-plus"></use></svg>New automation</button>';
+  const filt = v2.auFilter || "all";
+  const list = AUTOMATIONS.filter(a=> filt==="all" ? true :
+    filt==="sched" ? a.trig==="schedule" : filt==="watch" ? a.trig==="watch" : !a.on);
+  let h = '<div class="pg-hd"><h2>Automations</h2><p>Work that runs without you. Two triggers: '+
+    'on a schedule, or watching continuously for a condition.</p></div>'+
+    '<div class="seg2">'+[["all","All"],["sched","Scheduled"],["watch","Watching"],["paused","Paused"]].map(f=>
+      '<button data-aufilt="'+f[0]+'" aria-selected="'+(filt===f[0])+'">'+f[1]+'</button>').join("")+'</div>'+
+    '<div class="gcard"><div class="gcard-bd flush">'+
+    (list.length? list.map(a=>
+      '<div class="auto-row'+(a.ok?"":" failed")+'">'+
+        '<span class="an"><b>'+esc(a.n)+'</b><span class="sub">'+
+          '<span class="pill xs '+(a.trig==="watch"?"accent":"")+'">'+esc(a.when)+'</span>'+
+          '<span><span class="statusdot '+(a.ok?"ok":"bad")+'"></span> '+esc(a.last)+' · '+esc(a.result)+'</span>'+
+          (a.ok?'':'<button class="btn sm" data-auerr="'+a.id+'">View error</button>')+
+        '</span></span>'+
+        '<span class="ar"><b>next '+esc(a.next)+'</b>'+(a.autoTools?"tools auto-approved":"pauses for approval")+'</span>'+
+        '<button class="switch" role="switch" aria-checked="'+a.on+'" data-autog="'+a.id+'" aria-label="Enable '+esc(a.n)+'"></button>'+
+        '<button class="btn sm" data-aurun="'+a.id+'">Run</button>'+
+      '</div>').join("")
+     : '<div class="emptybox"><div class="ic"><svg class="ico lg"><use href="#i-clock"></use></svg></div>'+
+       '<h4>Nothing here with that filter</h4><p>An automation is a standing instruction — a schedule or a watch — '+
+       'that produces a result you can read in the morning.</p><button class="btn primary" id="auNew2">New automation</button></div>')+
+    '</div></div>';
+  $("#pgScroll").innerHTML = '<div class="pg">'+h+'</div>';
+  const root = $("#pgScroll");
+  const nb = $("#auNew2", root); if(nb) nb.addEventListener("click", newAutomation);
+  $("#auNew").addEventListener("click", newAutomation);
+  $$("[data-aufilt]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.auFilter=b.dataset.aufilt; renderAutomations(); }));
+  $$("[data-autog]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const a=AUTOMATIONS.filter(x=>x.id===b.dataset.autog)[0];
+    a.on=!a.on; b.setAttribute("aria-checked",String(a.on)); renderNav();
+    toast(a.n+(a.on?" enabled":" paused"), a.on?"i-check":"i-pause");
+  }));
+  $$("[data-aurun]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const a=AUTOMATIONS.filter(x=>x.id===b.dataset.aurun)[0];
+    b.disabled=true; b.textContent="Running…";
+    setTimeout(()=>{ b.disabled=false; b.textContent="Run"; runDrawer(a); }, 1100);
+  }));
+  $$("[data-auerr]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const a=AUTOMATIONS.filter(x=>x.id===b.dataset.auerr)[0];
+    openGen({title:a.n+" failed", icon:"i-alert", iconWarn:true, size:"sm",
+      body:'<div class="sendcheck"><b><svg class="ico xs"><use href="#i-alert"></use></svg>Last run failed</b>'+
+        '<div class="sl"><span class="k">When</span><span class="v">'+esc(a.last)+'</span></div>'+
+        '<div class="sl"><span class="k">Reason</span><span class="v">The Confluence space this automation reads was moved '+
+          'or renamed. The connector returned 404 for <span class="mono">/spaces/CONTRACTS</span>.</span></div>'+
+        '<div class="sl"><span class="k">Effect</span><span class="v">The automation paused itself rather than reporting '+
+          'an empty result. Nothing was sent.</span></div></div>',
+      foot:'<button class="btn" data-x="c">Close</button><span class="sp"></span>'+
+           '<button class="btn primary" data-x="f">Pick the new space</button>',
+      wire:(b2,f)=>{ $("[data-x=c]",f).addEventListener("click", closeGen);
+        $("[data-x=f]",f).addEventListener("click", ()=>{ a.ok=true; a.on=true; a.result="repointed · awaiting next run";
+          closeGen(); renderAutomations(); toast("Repointed at Confluence › Legal","i-check"); }); }});
+  }));
+}
+function runDrawer(a){
+  const rid = mailReceipt("automation."+a.id, "Automation run: "+a.n, 0, "ran entirely on-prem");
+  audit("Ran automation "+a.n, "automations", 0, "You");
+  openGen({title:a.n+" · run detail", icon:"i-clock", size:"md",
+    body:'<div class="gcard" style="margin-bottom:12px"><div class="gcard-hd">'+
+      '<span class="chk"><svg class="ico xs"><use href="#i-check"></use></svg></span>'+
+      '<span class="t">Finished · '+esc(a.result)+'</span>'+
+      '<span class="pill xs private"><span class="dot"></span>0 bytes egress</span></div>'+
+      '<div class="gcard-bd"><div class="timeline">'+
+      '<div class="tl"><span class="d">0.3 s</span><b>Trigger</b> — '+esc(a.when)+'</div>'+
+      '<div class="tl"><span class="d">1.1 s</span><b>Read the source</b> — on-prem connector</div>'+
+      '<div class="tl"><span class="d">0.9 s</span><b>Applied the condition</b> — '+esc(a.what.slice(0,72))+'…</div>'+
+      '<div class="tl"><span class="d">0.4 s</span><b>Notified you</b> — in-app, no external channel</div>'+
+      '</div></div></div>'+
+      '<p style="font-size:11.8px;color:var(--tx-3);line-height:1.55">Receipt <span class="mono">'+
+      esc(RECEIPTS[rid].id)+'</span> was written for this run and appears in the audit log.</p>',
+    foot:'<button class="btn" data-x="chat">Send to chat</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="c">Close</button>',
+    wire:(b,f)=>{
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=chat]",f).addEventListener("click", ()=>{ closeGen(); route("chat");
+        ta.value = "Walk me through what “"+a.n+"” found on its last run."; autosize(ta); if(!isNarrow()) ta.focus(); });
+    }});
+}
+function newAutomation(){
+  const d = {n:"", trig:"schedule", mode:"cron", every:"30", unit:"minutes", at:"06:00",
+             cron:"0 6 * * 1-5", what:"", on:true, autoTools:false, cond:""};
+  const render = ()=> openGen({title:"New automation", icon:"i-clock", size:"md",
+    body:'<div class="field"><label for="auN">Name</label><input class="inp" id="auN" value="'+esc(d.n)+'" placeholder="Morning brief"></div>'+
+      '<div class="field"><label>Trigger</label><div class="seg" style="margin-top:5px">'+
+        '<button data-tr="schedule" aria-pressed="'+(d.trig==="schedule")+'">On a schedule</button>'+
+        '<button data-tr="watch" aria-pressed="'+(d.trig==="watch")+'">Watch continuously</button></div></div>'+
+      (d.trig==="schedule"
+        ? '<div class="field"><label>When</label><div class="seg" style="margin-top:5px">'+
+            ["every","at","cron"].map(m=>'<button data-md="'+m+'" aria-pressed="'+(d.mode===m)+'">'+
+              (m==="every"?"Every":m==="at"?"At":"Cron")+'</button>').join("")+'</div></div>'+
+          (d.mode==="every"
+            ? '<div style="display:flex;gap:8px"><div class="field" style="flex:0 0 92px">'+
+              '<input class="inp" id="auEv" value="'+esc(d.every)+'"></div>'+
+              '<div class="field" style="flex:1"><select class="inp" id="auUn">'+
+              ["minutes","hours","days"].map(u=>'<option'+(d.unit===u?" selected":"")+'>'+u+'</option>').join("")+
+              '</select></div></div>'
+            : d.mode==="at"
+            ? '<div class="field"><label for="auAt">Time (Riyadh)</label><input class="inp" id="auAt" value="'+esc(d.at)+'"></div>'
+            : '<div class="field"><label for="auCr">Cron expression</label><input class="inp mono" id="auCr" value="'+esc(d.cron)+'" spellcheck="false"></div>')+
+          '<div class="cronprev"><svg class="ico xs"><use href="#i-calendar"></use></svg>'+
+            esc(cronPreview(d.mode,d.every,d.unit,d.at,d.cron))+'</div>'
+        : '<div class="field"><label for="auCond">Only notify me when…</label>'+
+          '<input class="inp" id="auCond" value="'+esc(d.cond)+'" placeholder="a new purchase order goes past its confirmation window"></div>'+
+          '<div class="cronprev"><svg class="ico xs"><use href="#i-clock"></use></svg>Checks every 30 minutes and stays quiet unless the condition is met</div>')+
+      '<div class="field" style="margin-top:12px"><label for="auWhat">What should this do?</label>'+
+        '<textarea class="inp" id="auWhat" style="height:auto;min-height:84px" placeholder="Describe it in plain language — no syntax to learn.">'+esc(d.what)+'</textarea>'+
+        '<span class="hint">Need help? <a href="#" data-designchat style="color:var(--accent-tx)">Design it in chat →</a></span></div>'+
+      '<div class="srow"><span class="st"><b>Enabled</b><span>Runs from the next trigger.</span></span>'+
+        '<span class="sc"><button class="switch" role="switch" aria-checked="'+d.on+'" data-au="on" aria-label="Enabled"></button></span></div>'+
+      '<div class="srow"><span class="st"><b>Auto-approve tools</b>'+
+        '<span>Let this run tools that normally ask for approval — for example sending mail. '+
+        'Off: the run pauses and notifies you instead.</span></span>'+
+        '<span class="sc"><button class="switch" role="switch" aria-checked="'+d.autoTools+'" data-au="auto" aria-label="Auto-approve tools"></button></span></div>',
+    foot:'<button class="btn" data-x="c">Cancel</button><span class="sp"></span>'+
+         '<button class="btn primary" data-x="s">Create automation</button>',
+    wire:(b,f)=>{
+      const sync=()=>{
+        d.n=$("#auN",b).value; d.what=$("#auWhat",b).value;
+        const e=$("#auEv",b), u=$("#auUn",b), at=$("#auAt",b), cr=$("#auCr",b), cd=$("#auCond",b);
+        if(e) d.every=e.value; if(u) d.unit=u.value; if(at) d.at=at.value; if(cr) d.cron=cr.value; if(cd) d.cond=cd.value;
+      };
+      $$("[data-tr]",b).forEach(x=> x.addEventListener("click", ()=>{ sync(); d.trig=x.dataset.tr; render(); }));
+      $$("[data-md]",b).forEach(x=> x.addEventListener("click", ()=>{ sync(); d.mode=x.dataset.md; render(); }));
+      ["#auEv","#auAt","#auCr"].forEach(sel=>{ const el=$(sel,b); if(el) el.addEventListener("input", ()=>{ sync(); render();
+        setTimeout(()=>{ const e2=$(sel); if(e2){ e2.focus(); e2.setSelectionRange(e2.value.length,e2.value.length);} },0); }); });
+      const un=$("#auUn",b); if(un) un.addEventListener("change", ()=>{ sync(); render(); });
+      $$("[data-au]",b).forEach(x=> x.addEventListener("click", ()=>{
+        const k=x.dataset.au, on=x.getAttribute("aria-checked")!=="true";
+        if(k==="on") d.on=on; else d.autoTools=on;
+        x.setAttribute("aria-checked",String(on));
+        if(k==="auto"&&on) toast("Tools will run without asking — including sends","i-alert");
+      }));
+      const dc=$("[data-designchat]",b); if(dc) dc.addEventListener("click", ev=>{ ev.preventDefault(); closeGen(); route("chat");
+        ta.value="Help me design an automation that watches for "; autosize(ta); if(!isNarrow()) ta.focus(); });
+      $("[data-x=c]",f).addEventListener("click", closeGen);
+      $("[data-x=s]",f).addEventListener("click", ()=>{
+        sync();
+        if(!d.n.trim()){ toast("Give it a name first","i-alert"); return; }
+        AUTOMATIONS.unshift({id:"au"+(AUTOMATIONS.length+1), n:d.n, trig:d.trig,
+          when: d.trig==="watch" ? "Every 30 min · watching" : cronPreview(d.mode,d.every,d.unit,d.at,d.cron),
+          cron:d.cron, what:d.what||d.cond||"—", last:"never run", result:"awaiting first run",
+          ok:true, next:"next trigger", on:d.on, autoTools:d.autoTools});
+        closeGen(); renderAutomations(); renderNav();
+        toast("“"+d.n+"” created","i-check");
+      });
+    }});
+  render();
+}
+
+/* ============================================================
+   25 · Knowledge
+   ============================================================ */
+function renderKnowledge(){
+  $("#pgBarActs").innerHTML = '<button class="btn primary sm" id="kUp">'+
+    '<svg class="ico xs"><use href="#i-plus"></use></svg>Add documents</button>';
+  const h = '<div class="pg-hd"><h2>Knowledge</h2><p>Everything MagnaVERSE can cite. Indexing runs on the same '+
+    'hardware as inference — no document is sent anywhere to be embedded.</p></div>'+
+    '<div class="tiles">'+
+      '<div class="tile"><span class="k"><svg class="ico xs"><use href="#i-db"></use></svg>Documents</span>'+
+        '<span class="v">8,400</span><span class="d">across 5 spaces</span></div>'+
+      '<div class="tile"><span class="k"><svg class="ico xs"><use href="#i-hash"></use></svg>Chunks</span>'+
+        '<span class="v">1.42<small>M</small></span><span class="d">bge-m3 · 1024 dims</span></div>'+
+      '<div class="tile good"><span class="k"><svg class="ico xs"><use href="#i-shield-ok"></use></svg>Embedding egress</span>'+
+        '<span class="v">0 <small>bytes</small></span><span class="d">indexed inside DC-1</span></div>'+
+      '<div class="tile"><span class="k"><svg class="ico xs"><use href="#i-clock"></use></svg>Last index</span>'+
+        '<span class="v">06:12</span><span class="d">today · nightly at 06:00</span></div>'+
+    '</div>'+
+    '<div class="gcard"><div class="gcard-hd"><span class="t">Documents<span>'+KDOCS.length+' shown of 8,400 — '+
+      'the rest are reachable through search</span></span>'+
+      '<span class="pill xs private"><span class="dot"></span>all in-tenancy</span></div>'+
+      '<div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
+      '<thead><tr><th>Document</th><th>Source</th><th class="num">Size</th><th class="num">Chunks</th>'+
+      '<th>Classification</th><th>Last indexed</th></tr></thead><tbody id="kbody">'+
+      KDOCS.map(d=>'<tr><td class="nm">'+esc(d.n)+'</td><td>'+esc(d.src)+'</td>'+
+        '<td class="num">'+esc(d.size)+'</td><td class="num">'+nf(d.chunks)+'</td>'+
+        '<td><span class="pill xs '+(d.cls==="restricted"?"public":"")+'">'+esc(d.cls)+'</span></td>'+
+        '<td class="mono">'+esc(d.idx)+'</td></tr>').join("")+
+      '</tbody></table></div></div></div>';
+  $("#pgScroll").innerHTML = '<div class="pg">'+h+'</div>';
+  $("#kUp").addEventListener("click", ()=>{
+    openGen({title:"Add documents to Company Knowledge", icon:"i-db", size:"sm",
+      body:'<p style="font-size:12.6px;color:var(--tx-2);line-height:1.6">Files are chunked and embedded on the '+
+        'DC-1 volume. Nothing is uploaded to an external embedding service — that is the whole point of the on-prem index.</p>'+
+        '<div class="authsim" style="margin-top:12px"><svg class="ico lg" style="color:var(--tx-3)"><use href="#i-attach"></use></svg>'+
+        '<p>Drop files here, or pick a connected source to sync.</p>'+
+        '<button class="btn primary" id="kPick">Add “Contract-Amendment-A-14.pdf”</button></div>',
+      foot:'<button class="btn" data-x="c">Cancel</button>',
+      wire:(b,f)=>{
+        $("[data-x=c]",f).addEventListener("click", closeGen);
+        $("#kPick",b).addEventListener("click", ()=>{
+          KDOCS.unshift({n:"Contract-Amendment-A-14.pdf", src:"Uploaded · Company Knowledge · Legal",
+            size:"720 KB", chunks:0, idx:"indexing…", cls:"restricted"});
+          v2.conn.uploaded = true; saveConn();
+          closeGen(); renderKnowledge();
+          setTimeout(()=>{ KDOCS[0].chunks=118; KDOCS[0].idx="just now";
+            if(v2.view==="knowledge") renderKnowledge();
+            audit("Indexed Contract-Amendment-A-14.pdf","knowledge",0,"You");
+            toast("Indexed · 118 chunks · 0 bytes left your network","i-check"); }, 1700);
+          toast("Indexing on DC-1…","i-clock");
+        });
+      }});
+  });
+}
+
+/* ============================================================
+   26 · Governance
+   ============================================================ */
+function renderGovernance(){
+  const rs = Object.keys(RECEIPTS).map(k=>RECEIPTS[k]);
+  const priv = rs.filter(r=>r.tier==="private").length, pub = rs.length-priv;
+  const eg = rs.reduce((a,r)=>a+r.egress,0);
+  const pii = rs.reduce((a,r)=>a+(r.pii?r.pii.n:0),0);
+  const risks = [];
+  if(v2.mail.connected && !mailProvider().local)
+    risks.push(["High","Magna Mail is connected to an external provider — every search and send leaves your network.","Review provider"]);
+  if(!SALESFORCE.hidden)
+    risks.push(["High","1 connector points at a sandbox endpoint (<span class=\"mono\">magna--uat.sandbox.my.salesforce.com</span>) and is visible to end users.","Fix endpoint"]);
+  if(pub>0) risks.push(["Medium",pub+" answer"+(pub===1?"":"s")+" ran on the Public tier and left the network.","Open the ledger"]);
+  if(wsById(v2.ws).tier==="public")
+    risks.push(["Medium","This workspace defaults new threads to Public. Restricted connectors are detached, but nothing is on-prem.","Switch workspace"]);
+  risks.push(["Low","PII detection is enabled for Procurement and People, but not for the Delivery space.","Enable it"]);
+
+  const h = '<div class="pg-hd"><h2>Governance</h2><p>Posture, residency and the audit trail. Every number here is '+
+    'derived from the same receipts the chat panel shows — nothing is asserted without evidence.</p></div>'+
+    '<div class="tiles">'+
+      '<div class="tile"><span class="k"><svg class="ico xs"><use href="#i-shield"></use></svg>Active policy</span>'+
+        '<span class="v" style="font-size:13px;font-family:var(--sans);font-weight:650">'+esc(wsById(v2.ws).policy.split(" — ")[0])+'</span>'+
+        '<span class="d">'+esc(wsById(v2.ws).policy.split(" — ")[1]||"")+'</span></div>'+
+      '<div class="tile '+(pub?"warn":"good")+'"><span class="k"><svg class="ico xs"><use href="#i-globe"></use></svg>Residency split</span>'+
+        '<span class="v">'+Math.round(priv/rs.length*100)+'<small>% private</small></span>'+
+        '<span class="d">'+priv+' in-tenancy · '+pub+' public</span></div>'+
+      '<div class="tile '+(eg?"warn":"good")+'"><span class="k"><svg class="ico xs"><use href="#i-arrow-out"></use></svg>Egress · 30 days</span>'+
+        '<span class="v">'+nf(eg)+' <small>bytes</small></span><span class="d">across '+rs.length+' recorded actions</span></div>'+
+      '<div class="tile"><span class="k"><svg class="ico xs"><use href="#i-mask"></use></svg>PII redactions</span>'+
+        '<span class="v">'+nf(pii)+'</span><span class="d">masked before the model call</span></div>'+
+    '</div>'+
+    '<div class="gcard"><div class="gcard-hd"><span class="t">Where your data went<span>By destination, last 30 days</span></span></div>'+
+      '<div class="gcard-bd">'+
+      [["In-tenancy GPU cluster",  priv, "alt", "in-tenancy"],
+       ["On-prem embedding service", rs.length, "alt", "in-tenancy"],
+       ["Approved egress proxy",   rs.filter(r=>r.egress>0&&r.tier==="private").length, "", "allowlisted"],
+       ["Public cloud inference",  pub, "ext", "external"]].map(w=>{
+        const pct = Math.round(w[1]/Math.max(1,rs.length)*100);
+        return '<div class="wbar"><span class="wl">'+esc(w[0])+'</span>'+
+          '<span class="wt"><i class="'+w[2]+'" style="width:'+Math.max(2,pct)+'%"></i></span>'+
+          '<span class="wv">'+w[1]+' action'+(w[1]===1?"":"s")+'</span>'+
+          '<span class="pill xs '+(w[3]==="external"?"public":w[3]==="allowlisted"?"":"private")+'">'+w[3]+'</span></div>';
+      }).join("")+'</div></div>'+
+    '<div class="gcard"><div class="gcard-hd"><span class="t">Open risks<span>Each one links to what produced it</span></span>'+
+      '<span class="pill xs '+(risks.filter(r=>r[0]==="High").length?"public":"")+'">'+risks.length+' open</span></div>'+
+      '<div class="gcard-bd flush">'+risks.map(r=>
+      '<div class="conn"><span class="logo" style="'+(r[0]==="High"?'border-color:color-mix(in srgb,var(--public) 45%,transparent);background:var(--public-dim);color:var(--public-tx)':'')+'">'+
+      '<svg class="ico"><use href="#i-alert"></use></svg></span>'+
+      '<span class="ct"><b>'+esc(r[0])+'</b><p>'+r[1]+'</p></span>'+
+      '<span class="ca"><button class="btn sm" data-risk="'+esc(r[2])+'">'+esc(r[2])+'</button></span></div>').join("")+
+      '</div></div>'+
+    '<div class="gcard"><div class="gcard-hd"><span class="t">Audit log<span>Actor · action · system · tier · egress · trace</span></span>'+
+      '<button class="btn sm" id="gExport"><svg class="ico xs"><use href="#i-download"></use></svg>Export CSV</button></div>'+
+      '<div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
+      '<thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>System</th><th>Tier</th><th class="num">Egress B</th><th>Trace</th></tr></thead><tbody>'+
+      auditRows().map(r=>'<tr><td class="mono">'+esc(r.time)+'</td><td>'+esc(r.actor)+'</td>'+
+        '<td class="nm" style="font-weight:550">'+esc(r.action)+'</td><td class="mono">'+esc(r.system)+'</td>'+
+        '<td><span class="pill xs '+(r.tier==="public"?"public":"private")+'"><span class="dot"></span>'+esc(r.tier)+'</span></td>'+
+        '<td class="num">'+nf(r.egress)+'</td><td class="mono">'+esc(r.trace)+'</td></tr>').join("")+
+      '</tbody></table></div></div></div>';
+  $("#pgScroll").innerHTML = '<div class="pg">'+h+'</div>';
+  const root = $("#pgScroll");
+  $$("[data-risk]", root).forEach(b=> b.addEventListener("click", ()=>{
+    const a = b.dataset.risk;
+    if(a==="Fix endpoint"){ route("connections"); v2.connTab="mcp"; renderConnections(); fixSandbox(); }
+    else if(a==="Open the ledger"){ route("chat"); state.tab="ledger"; syncTabs(); renderPanel();
+      if(isNarrow()) openSheet(true); }
+    else if(a==="Switch workspace"){ renderWorkspaces(); setStage("workspace"); }
+    else if(a==="Review provider"){ route("connections"); v2.connTab="mcp"; renderConnections(); }
+    else toast("PII detection enabled for the Delivery space","i-check");
+  }));
+  $("#gExport").addEventListener("click", ()=>{
+    const rows = auditRows();
+    const csv = ["time,actor,action,system,tier,egress_bytes,trace"]
+      .concat(rows.map(r=>[r.time,r.actor,'"'+r.action+'"',r.system,r.tier,r.egress,r.trace].join(",")))
+      .join("\n");
+    download("magnaverse-audit-"+v2.ws+".csv", csv, "text/csv");
+  });
+}
+function auditRows(){
+  const out = v2.audit.map(a=>({
+    time: String(a.t.getHours()).padStart(2,"0")+":"+String(a.t.getMinutes()).padStart(2,"0"),
+    actor:a.actor, action:a.action, system:a.system, tier:a.tier, egress:a.egress, trace:"—"
+  }));
+  Object.keys(RECEIPTS).forEach(k=>{
+    const r = RECEIPTS[k];
+    out.push({time:(r.ts.split("·")[1]||"").trim().slice(0,5), actor:"You",
+      action:r.label, system:(r.tools[0]?r.tools[0].n:"chat"), tier:r.tier,
+      egress:r.egress, trace:r.id});
+  });
+  return out.slice(0,24);
+}
+
+/* ============================================================
+   27 · Usage & budget (§15)
+   ============================================================ */
+function renderUsage(){
+  const tokTotal = USAGE_MODELS.reduce((a,m)=>a+m.p+m.c,0);
+  const reqTotal = USAGE_MODELS.reduce((a,m)=>a+m.req,0);
+  const failTotal= USAGE_MODELS.reduce((a,m)=>a+m.fail,0);
+  const spent = 3180, cap = 5000;
+  $("#pgBarActs").innerHTML =
+    '<div class="seg" role="group" aria-label="Scope">'+
+      '<button data-uscope="me" aria-pressed="'+(v2.usageScope==="me")+'">My usage</button>'+
+      '<button data-uscope="org" aria-pressed="'+(v2.usageScope==="org")+'">Organisation</button></div>';
+  let h = '<div class="seg2">'+
+    [["dash","Dashboard"],["req","Budget requests"]].map(t=>
+    '<button data-utab="'+t[0]+'" aria-selected="'+(v2.usageTab===t[0])+'">'+t[1]+'</button>').join("")+'</div>';
+
+  if(v2.usageTab==="dash"){
+    h += '<div class="seg2" style="margin-bottom:12px">'+
+      ["Today","7 days","30 days","Month to date","Year to date"].map((r,i)=>
+      '<button data-urange="'+i+'" aria-selected="'+((v2.uRange||3)===i)+'">'+r+'</button>').join("")+'</div>'+
+      '<div class="budget"><div class="btop"><div class="bt"><b>Monthly budget · '+
+        (v2.usageScope==="org"?"Organisation":"Manufacturing engineering")+'</b>'+
+        '<span>Resets 1 September 2026 · Riyadh</span></div>'+
+        '<button class="btn sm" id="uReq">Request an increase</button></div>'+
+        '<div class="bbar"><span class="spent" style="width:'+(spent/cap*100)+'%"></span>'+
+          '<span class="fore" style="width:14%"></span></div>'+
+        '<div class="bcap"><svg class="ico xs"><use href="#i-info"></use></svg>'+
+          'At the current rate you will reach <b>SAR '+nf(spent+700)+'</b> of <b>SAR '+nf(cap)+'</b> by 31 Aug. '+
+          'Spent so far <b>SAR '+nf(spent)+'</b>.</div></div>'+
+      '<div class="tiles">'+
+        '<div class="tile"><span class="k">Requests</span><span class="v">'+nf(reqTotal)+'</span>'+
+          '<span class="d">+18% on last month</span>'+spark([4,6,5,9,7,11,10,13])+'</div>'+
+        '<div class="tile good"><span class="k">Success rate</span><span class="v">'+
+          (100-failTotal/reqTotal*100).toFixed(1)+'<small>%</small></span>'+
+          '<span class="d">'+failTotal+' failures</span>'+spark([9,9,10,9,10,10,9,10])+'</div>'+
+        '<div class="tile"><span class="k">Tokens</span><span class="v">'+(tokTotal/1000).toFixed(1)+'<small>k</small></span>'+
+          '<span class="d">prompt + completion</span>'+spark([5,7,6,10,8,12,11,14])+'</div>'+
+        '<div class="tile '+(USAGE_MODELS.filter(m=>!m.local).reduce((a,m)=>a+m.req,0)?"warn":"good")+'">'+
+          '<span class="k">External requests</span><span class="v">'+
+          USAGE_MODELS.filter(m=>!m.local).reduce((a,m)=>a+m.req,0)+'</span>'+
+          '<span class="d">ran outside your network</span>'+spark([0,0,1,0,2,1,3,2])+'</div>'+
+      '</div>'+
+      '<div class="chartcard">'+
+        chart("Tokens over time","prompt vs completion",[[38,12],[46,15],[41,13],[62,21],[55,18],[71,24],[66,22],[80,28]],["p","c"])+
+        chart("Requests over time","successful vs failed",[[30,0],[36,1],[33,0],[48,0],[41,2],[55,0],[50,1],[62,0]],["s","f"])+
+      '</div>'+
+      '<div class="gcard"><div class="gcard-hd"><span class="t">Where it went<span>By the work it did, not by model</span></span></div>'+
+        '<div class="gcard-bd">'+USAGE_WORK.map(w=>{
+          const pct = Math.round(w.tok/USAGE_WORK.reduce((a,x)=>a+x.tok,0)*100);
+          return '<div class="wbar"><span class="wl">'+esc(w.n)+'</span>'+
+            '<span class="wt"><i class="'+w.cls+'" style="width:'+pct+'%"></i></span>'+
+            '<span class="wv">'+(w.tok/1000).toFixed(1)+'k</span>'+
+            '<span class="pill xs '+(w.cls==="ext"?"public":"private")+'">'+(w.cls==="ext"?"external":"in-tenancy")+'</span></div>';
+        }).join("")+'</div></div>'+
+      '<div class="gcard"><div class="gcard-hd"><span class="t">By model<span>Residency is a column here, not a footnote</span></span></div>'+
+        '<div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
+        '<thead><tr><th>Model</th><th>Residency</th><th class="num">Prompt</th><th class="num">Completion</th>'+
+        '<th class="num">Total</th><th class="num">Requests</th><th class="num">Failures</th></tr></thead><tbody>'+
+        USAGE_MODELS.map(m=>'<tr><td class="nm" title="'+esc(m.tech)+'">'+esc(m.n)+'<span>'+esc(m.role)+' · '+
+          '<span class="mono">'+esc(m.tech)+'</span></span></td>'+
+          '<td><span class="pill xs '+(m.local?"private":"public")+'"><span class="dot"></span>'+
+            (m.local?"In-tenancy":"External provider")+'</span></td>'+
+          '<td class="num">'+nf(m.p)+'</td><td class="num">'+nf(m.c)+'</td>'+
+          '<td class="num">'+nf(m.p+m.c)+'</td><td class="num">'+m.req+'</td><td class="num">'+m.fail+'</td></tr>').join("")+
+        '</tbody><tfoot><tr><td>Total</td><td></td><td class="num">'+nf(USAGE_MODELS.reduce((a,m)=>a+m.p,0))+'</td>'+
+        '<td class="num">'+nf(USAGE_MODELS.reduce((a,m)=>a+m.c,0))+'</td><td class="num">'+nf(tokTotal)+'</td>'+
+        '<td class="num">'+reqTotal+'</td><td class="num">'+failTotal+'</td></tr></tfoot></table></div></div></div>'+
+      '<p style="font-size:11.4px;color:var(--tx-3);line-height:1.55">Per-request currency is not configured for this '+
+      'tenancy, so tokens are shown rather than a column of <span class="mono">$0.0000</span>. '+
+      'The budget above is the contracted envelope, tracked separately by Finance.</p>';
+  }else{
+    h += '<div class="gcard"><div class="gcard-hd"><span class="t">Request a budget increase</span></div>'+
+      '<div class="gcard-bd"><div class="field"><label for="brAmt">Amount</label>'+
+      '<input class="inp" id="brAmt" value="SAR 25,000"></div>'+
+      '<div class="field"><label for="brWhy">Justification</label>'+
+      '<textarea class="inp" id="brWhy" style="height:auto;min-height:76px">Line 4 recovery modelling through September.</textarea></div>'+
+      '<div class="field"><label for="brUrg">Urgency</label><select class="inp" id="brUrg">'+
+      '<option>Normal</option><option>Before the next council</option><option>Urgent</option></select></div>'+
+      '<button class="btn primary" id="brSend">Send to approver</button></div></div>'+
+      '<div class="gcard"><div class="gcard-hd"><span class="t">Past requests</span></div>'+
+      '<div class="gcard-bd flush"><div class="tblscroll"><table class="dt">'+
+      '<thead><tr><th>Raised</th><th class="num">Amount</th><th>Justification</th><th>Status</th><th>Approver</th><th>Decided</th></tr></thead><tbody>'+
+      BUDGET_REQS.map(r=>'<tr><td class="mono">'+esc(r.when)+'</td><td class="num">'+esc(r.amt)+'</td>'+
+        '<td>'+esc(r.why)+'</td><td><span class="pill xs '+(r.st==="Approved"?"private":r.st==="Declined"?"public":"")+'">'+
+        esc(r.st)+'</span></td><td>'+esc(r.by)+'</td><td class="mono">'+esc(r.on)+'</td></tr>').join("")+
+      '</tbody></table></div></div></div>';
+  }
+  $("#pgScroll").innerHTML = '<div class="pg">'+h+'</div>';
+  const root = $("#pgScroll");
+  $$("[data-utab]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.usageTab=b.dataset.utab; renderUsage(); }));
+  $$("[data-urange]", root).forEach(b=> b.addEventListener("click", ()=>{ v2.uRange=+b.dataset.urange; renderUsage(); }));
+  $$("[data-uscope]").forEach(b=> b.addEventListener("click", ()=>{ v2.usageScope=b.dataset.uscope; renderUsage(); }));
+  const ur = $("#uReq", root); if(ur) ur.addEventListener("click", ()=>{ v2.usageTab="req"; renderUsage(); });
+  const bs = $("#brSend", root); if(bs) bs.addEventListener("click", ()=>{
+    BUDGET_REQS.unshift({when:"16 Aug 2026", amt:$("#brAmt").value, why:$("#brWhy").value,
+      st:"Pending", by:"H. Al-Qahtani", on:"—"});
+    renderUsage(); toast("Request sent to H. Al-Qahtani","i-send");
+  });
+}
+function spark(v){
+  const m = Math.max.apply(null,v);
+  return '<span class="spark">'+v.map((x,i)=>'<i class="'+(i===v.length-1?"hi":"")+'" style="height:'+
+    Math.max(8,x/m*100)+'%"></i>').join("")+'</span>';
+}
+function chart(title, sub, data, cls){
+  const max = Math.max.apply(null, data.map(d=>d[0]+d[1]));
+  return '<div class="gcard" style="margin:0"><div class="gcard-hd"><span class="t">'+esc(title)+
+    '<span>'+esc(sub)+'</span></span></div><div class="gcard-bd">'+
+    '<div class="bars">'+data.map(d=>'<span class="col">'+
+      '<i class="'+cls[1]+'" style="height:'+(d[1]/max*100)+'px"></i>'+
+      '<i class="'+cls[0]+'" style="height:'+(d[0]/max*100)+'px"></i></span>').join("")+'</div>'+
+    '<div class="legend"><i><b style="background:var(--accent)"></b>'+esc(sub.split(" vs ")[0])+'</i>'+
+    '<i><b style="background:'+(cls[1]==="c"?"#8B5CF6":"var(--danger)")+'"></b>'+esc(sub.split(" vs ")[1]||"")+'</i>'+
+    '<span style="margin-left:auto">last 8 days</span></div></div></div>';
+}
+
+/* ============================================================
+   28 · chat ↔ mail: tool approval (§13) and a grounded mail answer
+   ============================================================ */
+function askApproval(tool, opts, cb){
+  const p = v2.perm[tool];
+  if(p==="always" || p==="thread"){ cb(true); return; }
+  if(p==="deny"){ toast("Blocked — "+tool+" is denied in this thread","i-x"); cb(false); return; }
+  const risky = opts.risk==="Send";
+  const local = opts.local!==false;
+  const el = document.createElement("div");
+  el.className = "approve"+(risky?" risky":"");
+  el.innerHTML =
+    '<div class="ah"><span class="ic"><svg class="ico sm"><use href="#'+(risky?"i-send":"i-search")+'"></use></svg></span>'+
+      '<b>Magna wants to run <span class="mono">'+esc(tool)+'</span></b>'+
+      '<span class="pill xs '+(risky?"public":"")+'">'+esc(opts.risk||"Read")+'</span></div>'+
+    '<div class="sum">'+
+      '<div class="sl"><span class="k">What it does</span><span class="v">'+esc(opts.what)+'</span></div>'+
+      '<div class="sl"><span class="k">Against</span><span class="v">'+esc(opts.against)+'</span></div>'+
+      '<div class="sl"><span class="k">Data used</span><span class="v">'+esc(opts.data)+'</span></div>'+
+    '</div>'+
+    '<div class="resline" style="color:var('+(local?"--private-tx":"--public-tx")+')">'+
+      '<svg class="ico xs"><use href="#'+(local?"i-shield-ok":"i-arrow-out")+'"></use></svg>'+
+      (local? "Runs on-prem. This adds 0 bytes of egress." : "This leaves your network. Egress will be counted on the receipt.")+
+    '</div>'+
+    '<div class="aact">'+
+      '<button class="btn primary sm" data-ap="once">Allow once</button>'+
+      '<button class="btn sm" data-ap="thread">Allow for this thread</button>'+
+      '<button class="btn sm" data-ap="always">Always allow</button>'+
+      '<button class="btn sm" data-ap="deny">Don’t allow</button>'+
+      '<span style="flex:1"></span><button class="why" data-ap="why">Why is it asking?</button>'+
+    '</div>';
+  $("#transcript").appendChild(el);
+  $("#scrollzone").scrollTop = $("#scrollzone").scrollHeight;
+  $$("[data-ap]", el).forEach(b=> b.addEventListener("click", ()=>{
+    const a = b.dataset.ap;
+    if(a==="why"){
+      toast("Read actions are auto-approved; anything that sends, publishes or deletes always asks","i-info");
+      return;
+    }
+    if(a!=="once") v2.perm[tool] = a;
+    el.classList.add("resolved");
+    $(".aact", el).outerHTML = a==="deny"
+      ? '<div class="verdict no"><svg class="ico sm"><use href="#i-x"></use></svg>Denied — the tool did not run.</div>'
+      : '<div class="verdict"><svg class="ico sm"><use href="#i-check"></use></svg>Allowed '+
+        (a==="once"?"once":a==="thread"?"for this thread":"always")+' — recorded in Settings → Permissions.</div>';
+    cb(a!=="deny");
+  }));
+}
+function mailQueryHits(text){
+  const words = text.toLowerCase().match(/[a-z0-9-]{3,}/g) || [];
+  const scored = MAIL.map(m=>{
+    const hay = (m.from+" "+m.subj+" "+m.pv+" "+(m.tags||[]).join(" ")).toLowerCase();
+    return {m:m, s:words.filter(w=>hay.indexOf(w)>=0).length};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  return (scored.length? scored : MAIL.filter(m=>m.unread).map(m=>({m:m,s:0}))).slice(0,3).map(x=>x.m);
+}
+function maybeMailFlow(text){
+  if(!/\b(inbox|mail|email|e-mail|message|reply|wrote|sent me)\b/i.test(text)) return false;
+  if(!v2.mail.connected){
+    const el = document.createElement("div");
+    el.className = "notice";
+    el.innerHTML = '<svg class="ico sm" style="margin-top:1px"><use href="#i-plug"></use></svg>'+
+      '<span><b>Mail is not connected.</b> Connect a mailbox through the <span class="mono">magna-mail</span> MCP '+
+      'server and I can search it, summarise a thread and draft replies you approve.</span>'+
+      '<button class="btn sm" id="noticeConnect">Connect</button>';
+    $("#transcript").appendChild(el);
+    $("#scrollzone").scrollTop = $("#scrollzone").scrollHeight;
+    $("#noticeConnect").addEventListener("click", ()=>{
+      route("connections"); v2.connTab="mcp"; renderConnections(); connectWizard("mail");
+    });
+    return true;
+  }
+  const p = mailProvider();
+  askApproval("magna-mail.search", {
+    risk:"Read", local:p.local,
+    what:"Search your mailbox and read the matching messages",
+    against:p.name+" · "+v2.mail.address,
+    data:"Your query text and the matching message bodies"
+  }, ok=>{
+    if(!ok) return;
+    mailAnswer(text);
+  });
+  return true;
+}
+function mailAnswer(text){
+  const p = mailProvider(), hits = mailQueryHits(text);
+  const t = $("#transcript"), sz = $("#scrollzone");
+  const typing = document.createElement("div");
+  typing.className = "typing"; typing.setAttribute("role","status");
+  typing.innerHTML =
+    '<svg class="magna-mark mg-thinking" viewBox="0 0 640 440" aria-hidden="true">'+
+    '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-msg)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-msg)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+    '<span class="tstat"><b>Searching your mailbox…</b><i>magna-mail.search · '+
+    (p.local?"on-prem, 0 bytes egress":"fetching from "+esc(p.name))+'</i></span>';
+  t.appendChild(typing); sz.scrollTop = sz.scrollHeight;
+
+  setTimeout(()=>{
+    typing.remove();
+    state.seq++;
+    const eg = p.local ? 0 : 6400 + hits.length*900;
+    let h = 0x5f3a91c7; for(let i=0;i<text.length;i++){ h=((h<<5)-h+text.charCodeAt(i))>>>0; }
+    const hex = (h.toString(16)+"c40ae19b73d5f286").slice(0,16);
+    const rid = "mailans-"+state.seq;
+    RECEIPTS[rid] = {
+      id:"TR-95"+String(10+state.seq), ts:"16 Aug 2026 · "+
+        String(new Date().getHours()).padStart(2,"0")+":"+String(new Date().getMinutes()).padStart(2,"0")+":00 AST",
+      tier: eg>0 ? "public" : state.tier, label:"Inbox question",
+      model: modelById(state.model).name+" · "+modelById(state.model).short,
+      node: state.tier==="public" ? "shared public tenancy" : "r1-h200-0"+(1+(state.seq%8)),
+      cluster: state.tier==="public" ? "Public cloud inference · eu-central" : "Magna cluster DC-1 · 8×H200",
+      tenancy: state.tier==="public" ? "provider-managed, not yours" : "magna-ksa-prod",
+      city: state.tier==="public" ? "Frankfurt, Germany" : "Riyadh, Saudi Arabia",
+      geo: state.tier==="public" ? "50.11°N 8.68°E · outside KSA" : "24.71°N 46.68°E · KSA data-residency zone",
+      egress: eg, egressNote: eg? "mail fetched from "+p.name : "mailbox is indexed inside DC-1",
+      lat:"2.1"+(state.seq%9), tin:1800+hits.length*420, tout:640, gpus:(9+(h%22)).toFixed(1),
+      tools:[{n:"magna-mail.search", local:p.local, ms:"0.62 s", d:hits.length+" of "+MAIL.length+" messages matched"},
+             {n:"magna-mail.read", local:p.local, ms:"0.38 s", d:"opened "+hits.length+" message"+(hits.length===1?"":"s")}],
+      data: hits.map(m=>({f:m.subj, s:"mail from "+m.from, c:m.ext?"external sender":"internal"})),
+      pii:{n:0, txt:"sender addresses are not sent to the model; display names only"},
+      retention:"Mail index 30 days · thread 90 days · never used for training",
+      hash:"sha256:"+hex+"…"+hex.slice(0,4)
+    };
+    const body =
+      '<p>Three things in your inbox need you today. I read '+hits.length+' message'+(hits.length===1?"":"s")+
+      ' through <code>magna-mail.read</code>'+(p.local? ' — all of it stayed on the DC-1 volume.' : ' from '+esc(p.name)+'.')+'</p>'+
+      '<ul>'+hits.map(m=>'<li><strong>'+esc(m.from)+' — '+esc(m.subj)+'</strong> ('+esc(m.t)+'). '+
+        esc(m.pv.replace(/…$/,""))+'</li>').join("")+'</ul>'+
+      '<h4>What you owe someone</h4><ul>'+
+      '<li>Faisal at Gulf Precision needs a yes/no on the 40 % part-shipment <strong>by Thursday</strong>.</li>'+
+      '<li>Nasser needs the sequence-of-events section for NM-2026-114 <strong>before 22:40 today</strong>.</li>'+
+      '<li>Reem wants the Q2 concentration figure in writing before she answers Al-Rajhi’s counsel.</li></ul>'+
+      '<p>I can draft any of those replies. I will put the draft in front of you — nothing is sent without your confirmation'+
+      (v2.mail.scopes.send ? '.' : ', and the <em>Send mail as you</em> scope is not granted yet, so I could not send even if you asked.')+'</p>';
+    const el = assistantEl(rid, body);
+    t.appendChild(el); bindScope(el);
+    const row = $(".mact", el);
+    const btn = document.createElement("button");
+    btn.className = "act"; btn.innerHTML = '<svg class="ico sm"><use href="#i-book"></use></svg>Draft a reply';
+    btn.addEventListener("click", ()=> draftReplyTo(hits[0]));
+    row.insertBefore(btn, row.firstChild);
+    inspect(rid);
+    sz.scrollTop = sz.scrollHeight;
+  }, 1700);
+}
+
+/* ============================================================
    16 · init
    ============================================================ */
 applyTheme(store.get("theme","system"));
@@ -5207,11 +6699,30 @@ $("#btnKnow").setAttribute("aria-pressed", String(state.knowledge));
 if(!isMac){ $("#kbdHint").textContent = "Ctrl K"; $("#kbdHint2").textContent = "Ctrl K"; }
 if(store.get("rpDefault","on")!=="on"){ state.rpCollapsed = true; }
 syncLayout();
+
+/* v2/v3 persisted state */
+loadMail();
+try{ const sk = store.get("skills",""); if(sk) v2.skills = JSON.parse(sk); }catch(e){}
+try{ const cn = store.get("conn","");   if(cn) v2.conn  = JSON.parse(cn); }catch(e){}
+if(!v2.skills) v2.skills = {};
+if(!v2.conn)   v2.conn   = {};
+
+const signedIn = loadSession();
+document.body.setAttribute("data-view","chat");
 renderSidebar();
+renderNav();
 openConvo("c1");
+applyWorkspace();
 showTour(false);
 autosize(ta);
-if(!isNarrow()) setTimeout(()=>ta.focus({preventScroll:true}), 120);
+
+if(signedIn){
+  setStage("app");
+  if(!isNarrow()) setTimeout(()=>ta.focus({preventScroll:true}), 120);
+}else{
+  renderWorkspaces();
+  setStage("auth");
+}
 
 })();
 </script>
