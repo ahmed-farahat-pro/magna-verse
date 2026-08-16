@@ -1150,6 +1150,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
 .tab .n{font-family:var(--mono);font-size:11px;color:var(--tx-3);margin-left:5px}
 
 .sect{margin-bottom:26px}
+.sect > h3 code,h4 code{text-transform:none;letter-spacing:0}
 .sect > h3{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);font-weight:700;margin-bottom:10px}
 .cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:12px}
 .ccard{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:15px;display:flex;flex-direction:column;gap:9px}
@@ -1496,6 +1497,10 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
   .sw::before{content:"";position:absolute;top:50%;left:50%;
     width:44px;height:44px;transform:translate(-50%,-50%)}
   /* v5 controls */
+  /* inline links inside a warning keep their type size and gain a 44px hit area */
+  .blocked button.link,.mini button.link{position:relative}
+  .blocked button.link::after,.mini button.link::after{content:"";position:absolute;
+    top:50%;left:0;right:0;height:44px;transform:translateY(-50%)}
   .kvrow input,.kvrow .kbtn{min-height:44px;height:auto}
   .kvrow .kbtn{width:44px}
   .disc > summary{min-height:44px}
@@ -1970,6 +1975,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
             <button class="chip" data-draft="automate"><svg class="ico sm"><use href="#i-bolt"/></svg>Automate</button>
             <button class="chip" data-draft="create"><svg class="ico sm"><use href="#i-edit"/></svg>Create</button>
             <button class="chip" data-draft="simulate"><svg class="ico sm"><use href="#i-flow"/></svg>Simulate</button>
+            <button class="chip" data-draft="act"><svg class="ico sm"><use href="#i-send-mail"/></svg>Act on something</button>
           </div>
           <p class="chip-note" id="chipNote" hidden>Chips write an editable draft into the box above. Nothing is ever sent until you press Enter.</p>
 
@@ -3161,6 +3167,7 @@ function scrollToEnd(smooth){
 
 var DRAFTS = {
   analyse:  "Analyse the cost exposure on Package C2 if the rebar delay runs to [45] days. Use PO 4500219871 from SAP and the RYD-M3 Baseline r7 schedule in P6, show the working, and tell me which assumption is weakest.",
+  act: "Reply to Al-Rashid about the rebar slip and raise a Jira issue for the delay.",
   automate: "Draft a heartbeat that reads P6 every morning at 06:00 AST, finds any RYD-M3 activity slipping more than [5] days, and posts a summary to the [#ryd-m3-delivery] channel. Show me the definition before creating anything.",
   create:   "Create a one-page variation notice to [Al-Rajhi Steel] covering the C2 rebar delay, using the liquidated-damages wording from Subcontract GC-8 clause 8.4. Keep it to plain English and leave the commercial figure blank for me.",
   simulate: "Simulate the RYD-M3 schedule if we split the remaining C2 rebar across [2] suppliers from [01 Sep 2026]. Show the effect on the critical path, on Package C3, and on total exposure."
@@ -3270,6 +3277,23 @@ function send(){
 
   ta.value = ""; autoGrow(); syncSend();
   scrollToEnd();
+
+  /* two write tools in one sentence — one approval, one confirmation (brief v5 §4) */
+  if(isDualAction(text)){
+    if(!mail.connected){
+      var nm2 = el("div","msg ai");
+      nm2.innerHTML = replyHTML("__nomail__");
+      transcript.appendChild(nm2); decorateActions(nm2); scrollToEnd(true);
+      return;
+    }
+    var dp = el("div","msg ai");
+    dp.innerHTML = "<div class='ai-top'><svg class='magna-mark' viewBox='0 0 640 440' aria-hidden='true'><use href='#i-magna'/></svg>" +
+                   "<span class='who'>MagnaVERSE · " + esc(MODELS[state.model].name) + "</span></div>" + dualApprovalHTML();
+    transcript.appendChild(dp);
+    scrollToEnd(true);
+    announce("MagnaVERSE is asking permission to draft a reply and a Jira issue.");
+    return;
+  }
 
   /* a question about mail routes through the MCP tool-approval gate first */
   if(isMailQuestion(text)){
@@ -3397,10 +3421,18 @@ function replyFor(text){
 function replyHTML(text){
   var pub = state.tier === "public";
   var isMail = isMailQuestion(text) && text !== "__nomail__" && text !== "__denied__";
-  var line = isMail
+  var isDual = text === "__dual__";
+  var line = isDual
+    ? "Thought for 4s · mcp: magna-mail, magna-p6, magna-sap · 2 drafts held for you"
+    : isMail
     ? "Thought for 3s · mcp: magna-mail · read 3 messages"
     : "Thought for 2s · " + (state.kb ? "searched 2 documents · " : "no document search · ") + "1 tool";
-  var steps = isMail
+  var steps = isDual
+    ? '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-mail.search_messages</b> — you approved this · found the Al-Rashid notice of 16 Aug · 0.8s</span></div>' +
+      '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-p6.compare_baseline</b> — C2 fixing sequence against Baseline r7 · <b>snapshot is 6 days old</b> · 1.1s</span></div>' +
+      '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-sap.get_purchase_order</b> — 4500219871 lot dates · 0.7s</span></div>' +
+      '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-pause"/></svg></span><span><b>magna-mail.reply</b> and <b>magna-jira.create_issue</b> — <b>drafted, not executed</b>. Both wait for one confirmation · 1.0s</span></div>'
+    : isMail
     ? '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-mail.search_messages</b> — you approved this · query “Package C2, PO 4500219871” · 14 of 2,140 messages matched · 0.9s</span></div>' +
       '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-mail.get_message</b> — opened 3 messages in full · 0.6s</span></div>' +
       '<div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Cross-checked the thread</b> — reconciled the amendment against the exposure model above · 0.5s</span></div>' +
@@ -3735,34 +3767,44 @@ var PANES = {
         "<button class='btn sm' data-action='residency'><svg class='ico xs'><use href='#i-download'/></svg>Download</button>");
   },
   connectors: function(){
-    var list = [["SAP S/4HANA","Purchase orders, vendor master, goods receipts","connected"],
-                ["Primavera P6","Activities, baselines, float, nightly snapshots","connected"],
-                ["Jira","DEL and OPS boards, read-only by default","connected"],
-                ["Company Knowledge","8,400 documents indexed 16 Aug 2026 04:00","connected"],
-                ["HR system","Org chart, leave calendar, competencies","connected"],
-                ["Salesforce","Opportunities and accounts","not connected"]];
-    var rows = list.map(function(c){
-      return "<div class='list-line'><div><div class='nm'>" + c[0] + "</div><div class='d'>" + c[1] + "</div></div>" +
-             "<div class='rt'>" + (c[2] === "connected"
-               ? "<span class='tag priv'>connected</span><button class='btn sm' data-action='noop'>Manage</button>"
-               : "<span class='tag'>not connected</span><button class='btn sm' data-action='connect' data-name='" + c[0] + "'>Connect</button>") + "</div></div>";
+    /* one source of truth: this reads the same SERVERS catalogue the Connections view does */
+    var rows = Object.keys(SERVERS).map(function(k){
+      var s = SERVERS[k], st = serverState(k);
+      var wr = s.tools.filter(function(t){ return t.w; });
+      return "<div class='list-line'><div><div class='nm'>" + esc(s.name) + "</div>" +
+        "<div class='d'><code>" + esc(s.id) + "</code> · " + s.tools.length + " tools · " + wr.length + " write · " +
+        (s.onprem ? "on-prem" : "leaves your network") + "</div></div>" +
+        "<div class='rt'>" +
+        (st === "ok" ? "<span class='tag priv'>connected</span>"
+         : st === "degraded" ? "<span class='tag pub'>degraded</span>"
+         : st === "error" ? "<span class='tag pub'>error</span>"
+         : "<span class='tag'>not connected</span>") +
+        "<button class='btn sm' data-act3='srv-detail' data-k='" + k + "'>" + (st === "off" ? "What it gives you" : "Manage") + "</button></div></div>";
     }).join("");
-    return "<h3>Connectors</h3><p class='pane-sub'>Every connector runs inside your network. Nothing here reaches the public internet.</p>" + rows +
-      "<div class='emptybox' style='margin-top:18px'><b>No custom connectors yet</b>" +
-      "<p>A custom connector lets MagnaVERSE read a system we do not ship an adapter for — a site IoT feed, a cost tool, a document store. Your admin builds one from an OpenAPI spec in about an hour.</p>" +
-      "<button class='btn' data-action='noop'>Browse the connector catalogue</button></div>";
+    var custom = Object.keys(SERVERS).filter(function(k){ return SERVERS[k].custom; });
+    return "<h3>Connectors</h3><p class='pane-sub'>Every connector states where it runs. The ones marked <b>leaves your network</b> cross your boundary when they are called — that is stated on the card, in the <code>/</code> menu and on every approval prompt.</p>" + rows +
+      (custom.length
+        ? "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:20px 0 6px'>Built by you · " + custom.length + "</h4>" +
+          "<p class='pane-sub'>Custom MCP servers you added yourself. Their JSON config is on each connector's detail view, ready to copy into a deployment.</p>"
+        : "<div class='emptybox' style='margin-top:18px'><b>No custom connectors yet</b>" +
+          "<p>A custom connector is any MCP server you run — a local stdio process or a remote HTTP endpoint. MagnaVERSE runs the <code>initialize</code> handshake, shows you every tool it publishes with its input schema, and gives you the JSON config at the end.</p>" +
+          "<button class='btn' data-act3='add-custom'>Connect your own server</button></div>");
   },
   skills: function(){
-    var rows = SKILLS.slice(0,5).map(function(s){
-      return "<div class='list-line'><div><div class='nm'>/" + s.n + "</div><div class='d'>" + s.d + "</div></div>" +
-             "<div class='rt'>" + sw("sk-" + s.n, false) + "</div></div>";
+    var rows = SKILLS_CAT.filter(function(s){ return s.on; }).slice(0,6).map(function(s){
+      return "<div class='list-line'><div><div class='nm'>/" + esc(s.id) + " " + srcBadge(s) + "</div><div class='d'>" + esc(s.d) + "</div></div>" +
+             "<div class='rt'><span class='tag priv'>on</span></div></div>";
     }).join("");
-    var mrows = MCPS.map(function(s){
-      return "<div class='list-line'><div><div class='nm'>@" + s.n + "</div><div class='d'>" + s.d + "</div></div>" +
-             "<div class='rt'><span class='tag priv'>runs local</span></div></div>";
+    var mrows = Object.keys(SERVERS).filter(function(k){ return serverConnected(k); }).map(function(k){
+      var s = SERVERS[k];
+      return "<div class='list-line'><div><div class='nm'>@" + esc(s.id) + "</div><div class='d'>" +
+             esc(s.tools.filter(toolOn).map(function(t){ return t.n; }).slice(0,4).join(" · ")) + "</div></div>" +
+             "<div class='rt'>" + (s.onprem ? "<span class='tag priv'>runs local</span>" : "<span class='tag pub'>leaves network</span>") + "</div></div>";
     }).join("");
-    return "<h3>Skills &amp; MCP</h3><p class='pane-sub'>18 skills published, 4 MCP servers connected. Nothing is switched on by default — a skill runs only when you name it with <code>/</code> or pin it here.</p>" +
-      "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:6px 0 2px'>Pinned skills</h4>" + rows +
+    return "<h3>Skills &amp; MCP</h3><p class='pane-sub'>" + SKILLS_CAT.length + " skills available, " + skillsOnCount() +
+      " on. " + connectedCount() + " of " + serverCount() + " MCP servers healthy, exposing " + toolCount() +
+      " tools. Nothing that writes is on until you tick it.</p>" +
+      "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:6px 0 2px'>Skills that are on</h4>" + rows +
       "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:20px 0 2px'>MCP servers</h4>" + mrows;
   },
   account: function(){
@@ -4119,6 +4161,30 @@ var AGENT_VERSIONS = {
             ["add","Write for the safety committee, not for engineers."]] },
     { v:1, at:"18 Jul 08:40", by:"Ahmad Farahat", note:"Created from the HSE Incident Reporter template.",
       diff:[["add","Summarise the incident register for RYD-M3."],["add","Flag anything that looks serious."]] }
+  ],
+  a2:[
+    { v:2, at:"09 Aug 15:12", by:"Ahmad Farahat", note:"Stopped it reporting slips that sit inside float.",
+      diff:[["ctx","Compare every released purchase order against the live P6 snapshot."],
+            ["del","Report anything past its promised date."],
+            ["add","Report a slip only when it consumes float or moves the package finish."],
+            ["add","Always state which snapshot you used and how old it is."]] },
+    { v:1, at:"21 Jul 07:55", by:"Ahmad Farahat", note:"Created from the Schedule Slip Analyst template.",
+      diff:[["add","Compare every released purchase order against the live P6 snapshot."],["add","Report anything past its promised date."]] }
+  ],
+  a4:[
+    { v:4, at:"12 Aug 16:02", by:"Fatima Al-Harbi", note:"Told it to delegate rather than recompute.",
+      diff:[["ctx","Assemble the commercial and schedule narrative for the board pack."],
+            ["del","Compute the slip table yourself from P6."],
+            ["add","Ask PO Slippage Watch for the slip table rather than recomputing it — one number, one owner."],
+            ["add","Ask HSE Digest for the safety paragraph."],
+            ["ctx","Never present a figure without the clause or the snapshot behind it."]] },
+    { v:3, at:"05 Aug 09:40", by:"Ahmad Farahat", note:"Added the provenance rule.",
+      diff:[["ctx","Assemble the commercial and schedule narrative for the board pack."],
+            ["add","Never present a figure without the clause or the snapshot behind it."]] },
+    { v:2, at:"29 Jul 11:20", by:"Ahmad Farahat", note:"Narrowed it to commercial and schedule.",
+      diff:[["del","Assemble the board pack."],["add","Assemble the commercial and schedule narrative for the board pack."]] },
+    { v:1, at:"22 Jul 08:15", by:"Ahmad Farahat", note:"Created from the Board Pack Drafter template.",
+      diff:[["add","Assemble the board pack."]] }
   ]
 };
 
@@ -4227,7 +4293,7 @@ var SERVERS = {
 
   p6: { id:"magna-p6", name:"Primavera P6", cat:"Work management", onprem:true, connected:true, degraded:true, icon:"i-clock",
     sync:"6 days ago", warn:"Snapshot is six days old. The nightly ETL has failed every night since 10 Aug — the P6 service account password rotated and the job still holds the old one.",
-    fix:"Renew the credential in Settings › Secrets (`P6_SVC_PASS`), then run the ETL manually. Until then, any answer using P6 is quoting the 10 Aug snapshot and MagnaVERSE will say so.",
+    fix:"Renew the credential in Settings › Secrets (<code>P6_SVC_PASS</code>), then run the ETL manually. Until then, any answer using P6 is quoting the 10 Aug snapshot and MagnaVERSE will say so.",
     what:"Activities, baselines, float and the nightly schedule snapshots for every project.",
     egress:"P6 EPPM on p6.magna.internal. Stays inside the network.",
     cfg:{ command:"npx", args:["-y","@magna/p6-mcp"], cwd:"/opt/magna/mcp",
@@ -4269,8 +4335,8 @@ var SERVERS = {
 
   teams: { id:"magna-teams", name:"Slack / Teams", cat:"Communication", onprem:false, connected:true, error:true, icon:"i-msg",
     sync:"failed 2 days ago",
-    warn:"Authentication is failing. The bot token was revoked on 14 Aug when the workspace owner rotated app credentials. Every call returns `invalid_auth` from `auth.test`.",
-    fix:"Re-install the MagnaVERSE app in the Slack workspace, then paste the new bot token into Secrets (`SLACK_BOT_TOKEN`). Nothing this connector was scheduled to post has been posted — those runs paused rather than failing silently.",
+    warn:"Authentication is failing. The bot token was revoked on 14 Aug when the workspace owner rotated app credentials. Every call returns <code>invalid_auth</code> from <code>auth.test</code>.",
+    fix:"Re-install the MagnaVERSE app in the Slack workspace, then paste the new bot token into Secrets (<code>SLACK_BOT_TOKEN</code>). Nothing this connector was scheduled to post has been posted — those runs paused rather than failing silently.",
     what:"Read a channel your team has invited MagnaVERSE into, and post automation results back to it.",
     egress:"LEAVES YOUR NETWORK. Channel history and anything posted go to Slack's cloud.",
     cfg:{ url:"https://mcp.magna.internal/slack", transport:"sse",
@@ -5082,7 +5148,7 @@ function mcpCatalogue(){
     out += errs.concat(degs).map(function(k){
       var s = SERVERS[k];
       return "<div class='blocked' style='margin-bottom:10px'><svg class='ico sm'><use href='#i-warn'/></svg><span>" +
-        "<b>" + esc(s.name) + " · " + (s.error ? "error" : "degraded") + ".</b> " + esc(s.warn) +
+        "<b>" + esc(s.name) + " · " + (s.error ? "error" : "degraded") + ".</b> " + s.warn +
         " <button type='button' class='link' data-act3='srv-detail' data-k='" + k + "'>Open " + esc(s.name) + "</button></span></div>";
     }).join("");
   }
@@ -5439,13 +5505,25 @@ document.addEventListener("click", function(e){
   if(a === "mail-summarise")   return summariseMail(b.getAttribute("data-id"));
   if(a === "mail-tochat")      return mailToChat(b.getAttribute("data-id"));
   if(a === "run-agent")        return runAgent(b.getAttribute("data-id"), b);
-  if(a === "open-agent")       return openAgent(b.getAttribute("data-id"));
+  if(a === "open-agent")       return openAgent(b.getAttribute("data-id"), b.getAttribute("data-tab"));
   if(a === "new-agent")        return newAgentSheet();
   if(a === "new-schedule")     return newScheduleSheet();
   if(a === "sched-error")      return schedError(b.getAttribute("data-id"));
   if(a === "goto-knowledge")   return setView("knowledge");
   if(a === "test-one"){ b.textContent = "Reaching…"; setTimeout(function(){ b.textContent = "Test"; toast("Reached " + b.getAttribute("data-name") + " · 5 tools discovered · 42 ms, all inside Riyadh DC-1."); }, 900); return; }
-  if(a === "test-all"){ toast("Testing 6 connectors… all reachable except Salesforce, which is not connected in this workspace."); return; }
+  if(a === "test-all"){
+    var okN = 0, errN = [], degN = [];
+    Object.keys(SERVERS).forEach(function(k){
+      var st = serverState(k);
+      if(st === "ok") okN++;
+      else if(st === "error") errN.push(SERVERS[k].name);
+      else if(st === "degraded") degN.push(SERVERS[k].name);
+    });
+    toast("Tested " + serverCount() + " servers · " + okN + " healthy" +
+      (degN.length ? " · " + degN.join(", ") + " degraded" : "") +
+      (errN.length ? " · " + errN.join(", ") + " failing" : "") + ".");
+    return;
+  }
   if(a === "connect-req"){ toast("Connecting " + b.getAttribute("data-name") + " needs a workspace admin. A request has been drafted for you."); return; }
   if(a === "upload"){ toast("File picker is not wired in this prototype — the index and its counts are real dummy data."); return; }
   if(a === "add-mcp"){ toast("Add-server flow is represented, not built, in this prototype. Magna Mail shows the full connect journey."); return; }
@@ -5467,17 +5545,36 @@ document.addEventListener("click", function(e){
     setTimeout(function(){ b.textContent = "Discovering tools…"; }, 700);
     setTimeout(function(){
       b.disabled = false; b.textContent = "Test connection";
+      var st9 = serverState(key), onTools = srv.tools.filter(toolOn);
       openSheet({
-        title:"Test result · " + srv.name, icon:"i-bolt",
-        body:"<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>Reached the server</span><span class='tm'>38 ms</span></div>" +
-          "<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>Authorisation accepted</span><span class='tm'>12 ms</span></div>" +
-          srv.tools.map(function(t){
-            return "<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>" + esc(t.n) +
-                   " <code style='font-size:11px'>" + esc(t.id) + "</code> responded</span><span class='tm'>ok</span></div>";
-          }).join("") +
-          "<div class='callout' style='margin-top:14px'><b>" + srv.tools.length + " of " + srv.tools.length + " tools responded.</b> " +
-          "Round trip 38 ms, " + (srv.onprem ? "entirely inside Riyadh DC-1." : "crossing your network boundary.") + "</div>",
-        foot:"<button class='btn primary' data-close='sheetScrim'>Close</button>"
+        title:"Test result · " + srv.name, icon: st9 === "error" ? "i-warn" : "i-bolt",
+        body:"<div class='hs'>" +
+          "<div><span class='o'>&rarr;</span> initialize <span class='m'>{\"protocolVersion\":\"2025-06-18\"}</span></div>" +
+          (st9 === "error"
+            ? "<div><span class='e'>&#10007;</span> " + esc(srv.id) + " &mdash; invalid_auth · 0 tools reachable</div>"
+            : "<div><span class='i'>&larr;</span> initialize <span class='m'>protocolVersion 2025-06-18 · serverInfo " + esc(srv.id) + "</span></div>" +
+              "<div><span class='o'>&rarr;</span> tools/list</div>" +
+              "<div><span class='i'>&larr;</span> tools/list <span class='m'>" + srv.tools.length + " tools · " + onTools.length + " enabled · 38 ms</span></div>") +
+          "</div>" +
+          (st9 === "error"
+            ? "<div class='blocked'><svg class='ico sm'><use href='#i-warn'/></svg><span><b>The server is reachable but rejects us.</b> " + srv.warn + "</span></div>" +
+              "<div class='callout'><b>How to fix it.</b> " + srv.fix + "</div>"
+            : (st9 === "degraded"
+                ? "<div class='blocked'><svg class='ico sm'><use href='#i-warn'/></svg><span><b>Every tool answered, but the data behind them is stale.</b> " + srv.warn + "</span></div>" +
+                  "<div class='callout' style='margin-bottom:12px'><b>How to fix it.</b> " + srv.fix + "</div>"
+                : "") +
+              onTools.map(function(t){
+                return "<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>" + esc(t.n) +
+                       " <code style='font-size:11px'>" + esc(t.id) + "</code> responded</span><span class='tm'>ok</span></div>";
+              }).join("") +
+              srv.tools.filter(function(t){ return !toolOn(t); }).map(function(t){
+                return "<div class='drawer-line'><span class='tk' style='color:var(--tx-3)'><svg class='ico xs'><use href='#i-x'/></svg></span><span>" + esc(t.n) +
+                       " <code style='font-size:11px'>" + esc(t.id) + "</code> — not exposed, so not tested</span><span class='tm'>off</span></div>";
+              }).join("") +
+              "<div class='callout' style='margin-top:14px'><b>" + onTools.length + " of " + srv.tools.length + " tools responded.</b> " +
+              "Round trip 38 ms, " + (srv.onprem ? "entirely inside Riyadh DC-1." : "crossing your network boundary.") + "</div>"),
+        foot:"<button class='btn' data-act3='srv-detail' data-k='" + key + "'>Open the connector</button>" +
+             "<button class='btn primary' data-close='sheetScrim'>Close</button>"
       });
     }, 1500);
     return;
@@ -5538,7 +5635,7 @@ function addServerTemplate(){
       row("Transport","How MagnaVERSE talks to it. If you are unsure, leave it on HTTP.", seg("transport","http",[["http","HTTP"],["sse","SSE"],["stdio","stdio"]])) +
       row("Authentication","OAuth opens the provider's own window. We never store a password.", seg("auth","oauth",[["oauth","OAuth"],["bearer","Token"],["none","None"]])) +
       "<p class='mini' style='margin-top:12px'>Next: we test the connection and show you which tools it exposes before anything is saved.</p>",
-    foot:"<button class='btn' data-close='sheetScrim'>Cancel</button><button class='btn primary' data-act3='noop3'>Test connection</button>"
+    foot:"<button class='btn' data-close='sheetScrim'>Cancel</button><button class='btn primary' data-act3='add-custom'>Continue in the full flow</button>"
   });
 }
 function addSkillTemplate(){
@@ -5567,13 +5664,28 @@ function wizStepsStatic(on){
   }).join("") + "</div>";
 }
 var BAD_SKILL = 'name: elon-musk-perspective-en\ndescription: "Answer in the style of a famous founder\nmodel: __inherit__\ntools:\n  - web_search\n';
+var BAD_MCP = '{\n  "mcpServers": {\n    "magna-inspections": {\n      "command": "npx",\n      "args": "-y @magna/inspection-mcp",\n      "env": {\n        "INSPECT_API_KEY": "sk-live-8f21c07b4e93"\n      }\n    }\n  }\n}';
 function importSheet(kind){
   openSheet({
     title: kind === "skill" ? "Import a skill definition" : "Import an MCP config", icon:"i-file",
     body: wizStepsStatic(2) +
-      "<p style='font-size:13.4px;color:var(--tx-2);line-height:1.6;margin-bottom:12px'>Paste the definition below. We validate it before it goes anywhere near your workspace — a file that will not parse is never added to your list.</p>" +
-      "<div class='codeblock' data-wrap='1'><div class='cb-head'><span class='cb-lang'>yaml</span><span class='cb-file'>pasted definition</span></div>" +
-      "<div class='cb-body'><pre><code id='importText' contenteditable='true' spellcheck='false' style='outline:none;min-height:110px'>" + esc(BAD_SKILL) + "</code></pre></div></div>" +
+      (kind === "skill"
+        ? "<div class='pick' style='margin-bottom:14px'>" +
+          "<button type='button' aria-checked='true'><span class='lead'><svg class='ico sm'><use href='#i-file'/></svg></span>" +
+          "<span><span class='t'>Paste a definition <span class='tag acc'>you are here</span></span>" +
+          "<span class='d'>Paste the file below and press Validate.</span></span></button>" +
+          "<button type='button' data-act3='upload-skill'><span class='lead'><svg class='ico sm'><use href='#i-download'/></svg></span>" +
+          "<span><span class='t'>Upload a file</span><span class='d'>Choose a <code>SKILL.md</code> or <code>.yaml</code> from this device. It is parsed and shown here before anything is saved.</span></span></button>" +
+          "<button type='button' data-act3='add-skill-github'><span class='lead'><svg class='ico sm'><use href='#i-code'/></svg></span>" +
+          "<span><span class='t'>From a GitHub repository</span><span class='d'>Paste a repo URL and pick from everything it holds.</span></span></button>" +
+          "</div>"
+        : "") +
+      "<p style='font-size:13.4px;color:var(--tx-2);line-height:1.6;margin-bottom:12px'>Paste the " +
+      (kind === "skill" ? "definition" : "<code>mcpServers</code> block") + " below. We validate it before it goes anywhere near your workspace — a file that will not parse is never added to your list.</p>" +
+      "<div class='codeblock' data-wrap='1'><div class='cb-head'><span class='cb-lang'>" + (kind === "skill" ? "yaml" : "json") + "</span>" +
+      "<span class='cb-file'>" + (kind === "skill" ? "pasted definition" : "pasted mcp.json") + "</span></div>" +
+      "<div class='cb-body'><pre><code id='importText' contenteditable='true' spellcheck='false' style='outline:none;min-height:110px'>" +
+      esc(kind === "skill" ? BAD_SKILL : BAD_MCP) + "</code></pre></div></div>" +
       "<div id='importResult' style='margin-top:14px'></div>",
     foot:"<button class='btn' data-close='sheetScrim'>Cancel</button><button class='btn primary' data-act7='validate' data-kind='" + kind + "'>Validate</button>"
   });
@@ -5582,6 +5694,27 @@ $("#sheetScrim").addEventListener("click", function(e){
   var b = e.target.closest("[data-act7]"); if(!b) return;
   var txt = ($("#importText") || {}).textContent || "";
   var res = $("#importResult");
+  if(b.getAttribute("data-kind") !== "skill"){
+    var problems = [];
+    try{ JSON.parse(txt); }
+    catch(err){ problems.push(["—","That is not valid JSON. <code>" + esc(String(err.message)) + "</code>","Fix the syntax and validate again."]); }
+    if(/"args"\s*:\s*"/.test(txt)) problems.push(["5","<code>args</code> is a string. It must be an array of strings — the runtime passes each element as one argv entry, so a single string would be treated as one long argument and <code>npx</code> would fail with <code>could not determine executable</code>.","Write <code>\"args\": [\"-y\", \"@magna/inspection-mcp\"]</code>."]);
+    if(/sk-live-[A-Za-z0-9]/.test(txt)) problems.push(["8","A literal secret is in the config. Anything under <code>env</code> is written to disk and usually ends up in git.","Replace it with a reference: <code>\"INSPECT_API_KEY\": \"${MAGNA_SECRET:inspect_api_key}\"</code>, then add the value on the Secrets step."]);
+    if(problems.length){
+      res.innerHTML = "<div class='blocked'><svg class='ico sm'><use href='#i-warn'/></svg><span>" +
+        "<b>" + problems.length + " problem" + (problems.length===1?"":"s") + " — nothing was added.</b></span></div>" +
+        "<div class='risk' style='margin-top:12px'><div class='rh'><svg class='ico sm'><use href='#i-warn'/></svg>What is wrong</div><ul>" +
+        problems.map(function(p){
+          return "<li><svg class='ico sm'><use href='#i-warn'/></svg><span><b>" + (p[0]==="—" ? "" : "Line " + p[0] + ": ") + "</b>" + p[1] +
+                 "<span class='src'>Fix: " + p[2] + "</span></span></li>";
+        }).join("") + "</ul></div>" +
+        "<p class='mini' style='margin-top:10px'>Fix them above and press Validate again — the paste box is editable.</p>";
+    } else {
+      res.innerHTML = "<div class='callout'><b>Valid.</b> 1 server · stdio transport · no literal secret. " +
+        "Press Continue and MagnaVERSE will run the <code>initialize</code> handshake before anything is saved.</div>";
+    }
+    return;
+  }
   var unbalanced = (txt.match(/"/g) || []).length % 2 === 1;
   var inherit = /__inherit__/.test(txt);
   if(unbalanced || inherit){
@@ -6211,6 +6344,9 @@ function openSheet(o){
 function slugify(s){
   return String(s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "custom-server";
 }
+function secretName(s){
+  return String(s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"") || "secret";
+}
 function parseArgs(s){
   var m = String(s || "").match(/(?:[^\s"]+|"[^"]*")+/g) || [];
   return m.map(function(x){ return x.replace(/^"|"$/g,""); });
@@ -6313,7 +6449,7 @@ function cwizConfigJSON(kind){
   var env = {}, hasEnv = false;
   cwiz.env.forEach(function(r){
     if(!r.k) return; hasEnv = true;
-    env[r.k] = r.s ? "${MAGNA_SECRET:" + slugify(r.k) + "}" : r.v;
+    env[r.k] = r.s ? "${MAGNA_SECRET:" + secretName(r.k) + "}" : r.v;
   });
   if(kind === "stdio"){
     o[slug] = { command: cwiz.command || "npx", args: parseArgs(cwiz.args) };
@@ -6322,8 +6458,8 @@ function cwizConfigJSON(kind){
   } else {
     o[slug] = { url: cwiz.url || "https://mcp.magna.internal/your-server", transport: cwiz.remoteKind };
     var h = {};
-    if(cwiz.auth === "bearer") h.Authorization = "Bearer ${MAGNA_SECRET:" + slug + "-token}";
-    cwiz.headers.forEach(function(r){ if(r.k) h[r.k] = r.s ? "${MAGNA_SECRET:" + slugify(r.k) + "}" : r.v; });
+    if(cwiz.auth === "bearer") h.Authorization = "Bearer ${MAGNA_SECRET:" + secretName(slug) + "_token}";
+    cwiz.headers.forEach(function(r){ if(r.k) h[r.k] = r.s ? "${MAGNA_SECRET:" + secretName(r.k) + "}" : r.v; });
     if(Object.keys(h).length) o[slug].headers = h;
     if(cwiz.auth === "oauth") o[slug].oauth = {
       authorizationUrl:"https://id.magna.internal/oauth2/authorize",
@@ -6546,10 +6682,16 @@ function cwizTestHTML(){
   }
   if(f === "401"){
     return "<div class='hs'>" + open +
-      "<div><span class='i'>←</span> <span class='e'>HTTP/1.1 401 Unauthorized</span></div>" +
-      "<div><span class='m'>  WWW-Authenticate: Bearer error=\"invalid_token\",</span></div>" +
-      "<div><span class='m'>    error_description=\"token expired at 2026-08-09T02:14:00Z\"</span></div>" +
-      "<div><span class='m'>  elapsed 84 ms · 0 tools discovered</span></div></div>" +
+      (cwiz.transport === "stdio"
+        ? "<div><span class='o'>→</span> initialize</div>" +
+          "<div><span class='e'>✗</span> stderr: <span class='w'>InspectionsMCP: upstream returned HTTP 401 Unauthorized</span></div>" +
+          "<div><span class='m'>  WWW-Authenticate: Bearer error=\"invalid_token\",</span></div>" +
+          "<div><span class='m'>    error_description=\"token expired at 2026-08-09T02:14:00Z\"</span></div>" +
+          "<div><span class='m'>  child exited code 1 · elapsed 620 ms · 0 tools discovered</span></div>"
+        : "<div><span class='i'>←</span> <span class='e'>HTTP/1.1 401 Unauthorized</span></div>" +
+          "<div><span class='m'>  WWW-Authenticate: Bearer error=\"invalid_token\",</span></div>" +
+          "<div><span class='m'>    error_description=\"token expired at 2026-08-09T02:14:00Z\"</span></div>" +
+          "<div><span class='m'>  elapsed 84 ms · 0 tools discovered</span></div>") + "</div>" +
       failBox("The server answered, but rejected the credential.",
         ["The connection is good — this is an auth problem, not a network one. That is the useful half of a 401.",
          "The token expired on 9 August. Replace it on the Secrets step and test again.",
@@ -6583,6 +6725,8 @@ function cwizTestHTML(){
   }
   /* success */
   cwiz.discovered = CUSTOM_DISCOVERED;
+  /* reads on, writes off — the default is set the moment they are discovered */
+  if(!Object.keys(cwiz.on).length) CUSTOM_DISCOVERED.forEach(function(t){ cwiz.on[t.id] = !t.w; });
   return "<div class='hs'>" + open +
     "<div><span class='o'>→</span> initialize <span class='m'>{\"protocolVersion\":\"2025-06-18\",\"clientInfo\":{\"name\":\"magnaverse\",\"version\":\"3.4.0\"}}</span></div>" +
     "<div><span class='i'>←</span> initialize <span class='m'>protocolVersion <b style='color:var(--tx)'>2025-06-18</b> · serverInfo " + esc(slug) + " 1.4.2 · capabilities: tools{listChanged}, logging</span></div>" +
@@ -6617,6 +6761,17 @@ function failBox(headline, points){
     points.map(function(p){ return "<li><svg class='ico sm'><use href='#i-chev-r'/></svg><span>" + p + "</span></li>"; }).join("") +
     "</ul></div>";
 }
+
+/* segmented controls inside a sheet — the settings modal has its own handler,
+   sheets did not, so every seg in a wizard was inert until now. */
+$("#sheetScrim").addEventListener("click", function(e){
+  var segBtn = e.target.closest(".seg button"); if(!segBtn) return;
+  var grp = segBtn.closest(".seg"), nm = grp.getAttribute("data-seg"), v = segBtn.getAttribute("data-val");
+  $$("button", grp).forEach(function(x){ x.setAttribute("aria-pressed", String(x === segBtn)); });
+  if(nm === "cwkind" && cwiz){ cwizHarvest(); cwiz.remoteKind = v; renderCwiz(); return; }
+  if(nm === "cwauth" && cwiz){ cwizHarvest(); cwiz.auth = v; renderCwiz(); return; }
+  if(nm === "agev" && awiz){ awizHarvest(); awiz.event = v; renderAwiz(); return; }
+});
 
 /* ---- custom-server wizard plumbing ---- */
 $("#sheetScrim").addEventListener("click", function(e){
@@ -6715,12 +6870,12 @@ $("#sheetScrim").addEventListener("click", function(e){
         : "Calls " + cwiz.url + " — inside your network.",
       cfg: cwiz.transport === "stdio"
         ? { command:cwiz.command, args:parseArgs(cwiz.args), cwd:cwiz.cwd, env:(function(){
-              var o = {}; cwiz.env.forEach(function(r){ if(r.k) o[r.k] = r.s ? "${MAGNA_SECRET:" + slugify(r.k) + "}" : r.v; }); return o;
+              var o = {}; cwiz.env.forEach(function(r){ if(r.k) o[r.k] = r.s ? "${MAGNA_SECRET:" + secretName(r.k) + "}" : r.v; }); return o;
             })() }
         : { url:cwiz.url, transport:cwiz.remoteKind, headers:(function(){
               var h = {};
-              if(cwiz.auth === "bearer") h.Authorization = "Bearer ${MAGNA_SECRET:" + cwiz.slug + "-token}";
-              cwiz.headers.forEach(function(r){ if(r.k) h[r.k] = r.s ? "${MAGNA_SECRET:" + slugify(r.k) + "}" : r.v; });
+              if(cwiz.auth === "bearer") h.Authorization = "Bearer ${MAGNA_SECRET:" + secretName(cwiz.slug) + "_token}";
+              cwiz.headers.forEach(function(r){ if(r.k) h[r.k] = r.s ? "${MAGNA_SECRET:" + secretName(r.k) + "}" : r.v; });
               return h;
             })() },
       tools: cwiz.discovered.map(function(t){
@@ -6736,6 +6891,7 @@ $("#sheetScrim").addEventListener("click", function(e){
     logActivity("Added MCP server " + srv.name, srv.id,
       cwiz.discovered.filter(function(t){ return cwiz.on[t.id]; }).length + " of " + cwiz.discovered.length + " tools exposed", "You");
     refreshMailUI();
+    if(view === "connections") renderView();   /* the catalogue behind the sheet gains a card */
     cwiz.step = 6;
     renderCwiz();
     toast(srv.name + " connected. " + srv.tools.filter(toolOn).length + " tools are live in chat.");
@@ -6762,7 +6918,7 @@ function openServerDetail(k){
 
   if(st === "error" || st === "degraded"){
     body += "<div class='blocked'><svg class='ico sm'><use href='#i-warn'/></svg><span><b>" +
-      (st === "error" ? "This connector is failing." : "This connector is degraded.") + "</b> " + esc(s.warn) + "</span></div>" +
+      (st === "error" ? "This connector is failing." : "This connector is degraded.") + "</b> " + s.warn + "</span></div>" +
       "<div class='callout' style='margin-bottom:14px'><b>How to fix it.</b> " + s.fix + "</div>";
   }
   body += "<p style='font-size:13.6px;color:var(--tx-2);line-height:1.6'>" + esc(s.what) + "</p>" +
@@ -7203,9 +7359,9 @@ var AGENT_TEMPLATES = [
   { k:"clause",n:"Contract Clause Reviewer",   d:"Find the governing clause for a question and quote it with its number and page.",
     model:"kimi", tools:["magna-knowledge.search","magna-knowledge.get_document"], trig:"request", out:"chat" },
   { k:"hse",   n:"HSE Incident Reporter",      d:"Turn the incident register into a committee-ready digest and flag threshold breaches.",
-    model:"qwen", tools:["magna-knowledge.search"], trig:"schedule", out:"email" },
-  { k:"slip",  n:"Schedule Slip Analyst",      d:"Compare the live P6 snapshot against baseline and cost the variance package by package.",
-    model:"deepseek", tools:["magna-p6.compare_baseline","magna-sap.get_purchase_order"], trig:"schedule", out:"chat" },
+    model:"qwen", tools:["magna-knowledge.search","magna-mail.send_message"], trig:"schedule", out:"email" },
+  { k:"slip",  n:"Schedule Slip Analyst",      d:"Compare the live P6 snapshot against baseline, cost the variance package by package, and raise an issue for anything that moves the package finish.",
+    model:"deepseek", tools:["magna-p6.compare_baseline","magna-sap.get_purchase_order","magna-jira.create_issue"], trig:"schedule", out:"chat" },
   { k:"vendor",n:"Vendor Prequal Screener",    d:"Score a vendor on delivery history, financial health and prequalification category.",
     model:"nemotron", tools:["magna-sap.search_vendors","magna-knowledge.search"], trig:"agent", out:"chat" },
   { k:"triage",n:"Inbox Triage",               d:"Read the mailbox and surface only the messages that need you today, with the reason.",
@@ -7220,6 +7376,13 @@ var AGENT_TEMPLATES = [
     model:"kimi", tools:["magna-jira.search_issues","magna-jira.add_comment"], trig:"event", out:"jira" }
 ];
 /* the allow-list a new agent may draw from — read/write and egress are stated per tool */
+function isWriteId(id){
+  var hit = null;
+  Object.keys(SERVERS).forEach(function(k){
+    SERVERS[k].tools.forEach(function(t){ if(t.id === id) hit = t; });
+  });
+  return !!(hit && hit.w);
+}
 function grantableTools(){
   var out = [];
   Object.keys(SERVERS).forEach(function(k){
@@ -7246,7 +7409,9 @@ function startAgentWizard(tplKey){
             always:{ send:true, forward:true, transition:true, upload:false } },
     tested:false
   };
-  t.tools.forEach(function(id){ awiz.grants[id] = true; });
+  /* reads are pre-ticked from the template; writes never are (brief v5 §4) */
+  awiz.suggest = t.tools.filter(isWriteId);
+  t.tools.forEach(function(id){ if(!isWriteId(id)) awiz.grants[id] = true; });
   renderAwiz();
 }
 function awizHarvest(){
@@ -7297,8 +7462,8 @@ function renderAwiz(){
             "<span><span class='t'>" + esc(o[1]) + (o[0]==="__same__" ? " <span class='tag priv'>default</span>" : " <span class='tag'>pinned</span>") + "</span>" +
             "<span class='d'>" + esc(o[2]) + "</span></span></button>";
         }).join("") + "</div>" +
-      "<p class='mini' style='margin-top:12px'>Pinning a model makes runs reproducible; following the default keeps the agent current. There is no <code>__inherit__</code> here — " +
-      "if it follows the workspace default, the card says which model that is today.</p>";
+      "<p class='mini' style='margin-top:12px'>Pinning a model makes runs reproducible; following the default keeps the agent current. No internal placeholder is ever shown here — " +
+      "if the agent follows the workspace default, its card names the model that resolves to today.</p>";
     foot = "<button class='btn' data-acta='back'>Back</button><button class='btn primary' data-acta='next'>Continue</button>";
   }
 
@@ -7312,6 +7477,12 @@ function renderAwiz(){
       "An explicit allow-list. The agent cannot reach for anything that is not ticked here, even if its instructions ask for it.</p>" +
       "<p class='mini' style='margin-bottom:14px'><b style='color:var(--tx)'>" + chosen.length + " tools granted</b>" +
       (wr.length ? " · <b style='color:var(--public)'>" + wr.length + " of them write</b>" : " · none of them write") + "</p>" +
+      ((awiz.suggest || []).filter(function(id){ return !awiz.grants[id]; }).length
+        ? "<div class='blocked' style='margin-bottom:14px'><svg class='ico sm'><use href='#i-warn'/></svg><span>" +
+          "<b>This template suggests a tool that writes: " + awiz.suggest.map(function(id){ return "<code>" + esc(id) + "</code>"; }).join(", ") + ".</b> " +
+          "It is <b>not</b> ticked — a write tool is never on by default, not even when a template asks for it. " +
+          "Tick it below if you want this agent to be able to do that, and the dry run on the last step will show you the exact payload it would send.</span></div>"
+        : "") +
       Object.keys(byServer).map(function(srv){
         return "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:16px 0 6px'>" + esc(srv) + "</h4>" +
           byServer[srv].map(function(t){
@@ -7599,13 +7770,15 @@ $("#sheetScrim").addEventListener("click", function(e){
 });
 
 /* ---- agent detail: overview · runs · instructions · delegation ---- */
-var agTab = "overview";
+var agTab = "overview", agOpen = null;
 function openAgent(id, tab){
   var a = AGENTS.filter(function(x){ return x.id === id; })[0]; if(!a) return;
   agTab = tab || "overview";
+  agOpen = a.id;
   renderAgentSheet(a);
 }
 function renderAgentSheet(a){
+  agOpen = a.id;
   var runs = RUNS[a.id] || [];
   var tabs = "<div class='tabs' role='tablist' style='margin-top:0;margin-bottom:14px'>" +
     [["overview","Overview",""],["runs","Run history",String(runs.length)],
@@ -7748,13 +7921,12 @@ $("#sheetScrim").addEventListener("click", function(e){
   var b;
   if((b = e.target.closest("[data-agtab]"))){
     agTab = b.getAttribute("data-agtab");
-    var cur = AGENTS.filter(function(x){ return x.name === $("#sheetTitle").textContent; })[0];
+    var cur = AGENTS.filter(function(x){ return x.id === agOpen; })[0];
     if(cur) renderAgentSheet(cur);
     return;
   }
   if((b = e.target.closest("[data-agrun]"))){
-    var nm = $("#sheetTitle").textContent;
-    var ag = AGENTS.filter(function(x){ return x.name === nm; })[0];
+    var ag = AGENTS.filter(function(x){ return x.id === agOpen; })[0];
     if(ag) agentRunTrace(ag, Number(b.getAttribute("data-agrun")));
     return;
   }
@@ -8127,6 +8299,17 @@ document.addEventListener("click", function(e){
   if(a === "add-skill-github")return startGithubSkillWizard();
   if(a === "skill-updates")   return skillUpdateCheck(b.getAttribute("data-id"));
   if(a === "digest")          return digestSheet();
+  if(a === "upload-skill"){
+    var code = $("#importText");
+    if(code){
+      code.textContent = "---\nname: rfi-responder\ndescription: Draft a response to a contractor RFI from the governing clause\ncategory: Procurement\nmodel: same-as-chat\nrequired_connections: [magna-knowledge]\ntrigger: on-request\n---\n\nYou are drafting a response to a contractor RFI on the RYD-M3 project.\nFind the governing clause in the subcontract before you answer anything.\n";
+      var rr = $("#importResult");
+      if(rr) rr.innerHTML = "<div class='callout'><b>rfi-responder.SKILL.md loaded — 2.1 KB.</b> " +
+        "Nothing has been added yet. Press Validate to parse it, then it appears in your catalogue as <b>Off</b> with a <b>Custom</b> source badge.</div>";
+    }
+    toast("File picker is simulated in this prototype — a real skill file has been loaded into the box.");
+    return;
+  }
   if(a === "dual-open")       return openDualComposer();
   if(a === "dual-addjira"){ DUAL.mailOnly = false; openDualComposer(); return; }
   if(a === "srv-connect"){
@@ -8172,7 +8355,7 @@ function mcpSlashHTML(ql){
   /* not connected — shown, greyed, with the way to fix it. This is the sales case. */
   var off = Object.keys(SERVERS).filter(function(k){ return !serverConnected(k) && k !== "magnamail"; });
   if(off.length && !ql){
-    html += '<div class="slash-sec">Not connected yet <span class="cnt">' + off.length + " servers</span></div>";
+    html += '<div class="slash-sec">Not connected — what you would get <span class="cnt">' + off.length + " servers</span></div>";
     off.forEach(function(k){
       var s = SERVERS[k];
       html += "<div class='si' style='opacity:.6;cursor:default'>" +

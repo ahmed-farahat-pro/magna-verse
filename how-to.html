@@ -473,7 +473,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2)}
 /* ══════════════════════════ connectors: read / write tool chips ══════════════════════════ */
 .tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .tchip{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:3px 9px 3px 5px;
-  font-size:11.8px;font-weight:570;line-height:1.55;white-space:nowrap;
+  font-size:11.8px;font-weight:570;line-height:1.55;white-space:normal;max-width:100%;
   border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx-2)}
 .tchip .rw{font-family:var(--mono);font-size:9.2px;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;border-radius:4px;padding:2px 4px;border:1px solid transparent;flex:none}
@@ -1042,8 +1042,8 @@ table.cat .none{color:var(--tx-3);font-style:italic}
           before you choose, not after.</figcaption>
       </figure>
 
-      <ol class="steps" style="margin-top:22px">
-        <li value="4" style="counter-reset:st 3"><b>Step 2 — Configure the account.</b>
+      <ol class="steps" style="margin-top:22px;counter-reset:st 3">
+        <li value="4"><b>Step 2 — Configure the account.</b>
           <p>Your email address and the display name to send under. <b>There is no password field,
             and there should never be one.</b> Press <span class="ui pri">Authorise in provider →</span>
             and your mail provider's own sign-in window opens. You approve it there, in the window you
@@ -1190,7 +1190,7 @@ table.cat .none{color:var(--tx-3);font-style:italic}
               <span class="tchip read"><span class="rw">read</span>Search issues</span>
               <span class="tchip read"><span class="rw">read</span>Read an issue</span>
               <span class="tchip read"><span class="rw">read</span>List boards and sprints</span>
-              <span class="tchip read"><span class="rw">read</span>List the statuses an issue can move to</span>
+              <span class="tchip read"><span class="rw">read</span>List available statuses</span>
             </div>
 
             <div class="grp">Writes — off, until you tick them yourself</div>
@@ -1273,13 +1273,13 @@ table.cat .none{color:var(--tx-3);font-style:italic}
               </tr>
               <tr>
                 <td class="rowh">SAP S/4HANA<span class="cid">sap-po-lookup</span></td>
-                <td><span class="chip ok"><span class="dot"></span>on-prem</span> Your own SAP, inside the building.</td>
+                <td><span class="chip ok"><span class="dot"></span>on-prem</span><br style="line-height:2.2">Your own SAP, inside the building.</td>
                 <td class="reads">Look up a purchase order · Goods-receipt status · Vendor master record</td>
                 <td><span class="none">None in this release — read-only by design.</span></td>
               </tr>
               <tr>
                 <td class="rowh">Primavera P6<span class="cid">p6-schedule</span></td>
-                <td><span class="chip ok"><span class="dot"></span>on-prem</span> Reads the nightly schedule snapshot.</td>
+                <td><span class="chip ok"><span class="dot"></span>on-prem</span><br style="line-height:2.2">Reads the nightly schedule snapshot.</td>
                 <td class="reads">Read a schedule · Critical path · Compare against baseline</td>
                 <td><span class="none">None in this release — read-only by design.</span></td>
               </tr>
@@ -1291,7 +1291,7 @@ table.cat .none{color:var(--tx-3);font-style:italic}
               </tr>
               <tr>
                 <td class="rowh">Slack / Teams<span class="cid">magna-chat</span></td>
-                <td><span class="chip warn"><span class="dot"></span>leaves your network</span> Both are cloud services.</td>
+                <td><span class="chip warn"><span class="dot"></span>leaves your network</span><br style="line-height:2.2">Both are cloud services.</td>
                 <td class="reads">Read a channel · Search messages · List the channels you are in</td>
                 <td><div class="tools">
                   <span class="tchip write"><span class="rw">write</span>Post a message</span>
@@ -1318,7 +1318,7 @@ table.cat .none{color:var(--tx-3);font-style:italic}
               </tr>
               <tr>
                 <td class="rowh">HR system<span class="cid">magna-hr</span></td>
-                <td><span class="chip ok"><span class="dot"></span>on-prem</span> Restricted — your admin grants it per person.</td>
+                <td><span class="chip ok"><span class="dot"></span>on-prem</span><br style="line-height:2.2">Restricted — your admin grants it per person.</td>
                 <td class="reads">Headcount by department · Org-chart lookup · Who reports to whom</td>
                 <td><span class="none">None. This connector can never write.</span></td>
               </tr>
@@ -1606,8 +1606,8 @@ table.cat .none{color:var(--tx-3);font-style:italic}
           test, the permissions, done.</figcaption>
       </figure>
 
-      <ol class="steps" style="margin-top:22px">
-        <li value="2" style="counter-reset:st 1"><b>Identity.</b>
+      <ol class="steps" style="margin-top:22px;counter-reset:st 1">
+        <li value="2"><b>Identity.</b>
           <p>A display name your colleagues will read, one line describing what it gives them, an icon
             colour, and which workspace it belongs to. This is what turns a hostname into a card.</p></li>
         <li><b>Secrets.</b>
@@ -1649,8 +1649,8 @@ table.cat .none{color:var(--tx-3);font-style:italic}
           that the current build has no way to give.</figcaption>
       </figure>
 
-      <ol class="steps" style="margin-top:22px">
-        <li value="5" style="counter-reset:st 4"><b>Permissions.</b>
+      <ol class="steps" style="margin-top:22px;counter-reset:st 4">
+        <li value="5"><b>Permissions.</b>
           <p>The discovered tools, each with a plain-language label and a toggle. Read-only tools are on.
             Anything that writes, sends or deletes is off, and has to be ticked one at a time — the same
             rule as every catalogue connector.</p></li>

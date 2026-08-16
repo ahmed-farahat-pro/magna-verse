@@ -1627,6 +1627,32 @@ tr.cx-blk.on{display:table-row}
   .cx-tool .ms{margin-left:0;width:100%;padding-left:20px}
   .cx-demo .cx-bar b,.cx-demo .cx-bar #cxScene{display:none}
 }
+
+/* ============================================================
+   34 · v5 — controls introduced by the v5 flows
+   key/value secret rows, colour swatches, and the little inline
+   buttons that live inside a scope row.
+   ============================================================ */
+/* a connector/agent row body is prose — bold inside it must stay inline,
+   not inherit the block styling of the row's title */
+.conn .ct p b,.conn .ct p strong,.conn .ct p i{display:inline;font-size:inherit;margin:0;font-weight:600}
+.kvwrap{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+.kvrow{display:flex;gap:6px;align-items:center;padding:7px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.kvrow:last-child{border-bottom:0}
+.kvrow .inp{height:36px;min-width:0;padding:0 10px;border-radius:var(--r);border:1px solid var(--line-2);
+  background:var(--surface);color:var(--tx);font-size:11.6px;transition:border-color .12s,box-shadow .12s}
+.kvrow .inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.kvrow .k1{flex:1 1 128px}
+.kvrow .v1{flex:2 1 150px}
+.kvempty{padding:12px;font-size:11.6px;color:var(--tx-3)}
+.swatch{width:44px;height:32px;border-radius:var(--r);border:1px solid var(--line-2)}
+.swatch[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:2px}
+.inline-act{height:28px;padding:0 9px;font-size:11px}
+@media (max-width:767px){
+  .kvrow .inp{height:44px}
+  .swatch{height:44px}
+  .inline-act{height:44px;min-width:44px;padding:0 12px}
+}
 </style>
 </head>
 <body>
@@ -4708,15 +4734,15 @@ let AGENTS = [
       text:"Compose the weekly HSE digest from the incident log and open actions."}],
    history:[
     {when:"16 Aug 06:00", trig:"Schedule · weekdays 06:00", dur:"1.9 s", tok:"4,120", ok:true,
-     outcome:"6 open actions, 2 overdue", eg:0,
+     outcome:"6 open actions, 2 overdue", eg:0, receipt:"MR-4381",
      steps:[["0.2 s","Trigger","cron 0 6 * * 1-5 fired · Riyadh"],
             ["0.7 s","knowledge_search","Incident-Log-2026.xlsx · 41 rows in window"],
             ["1.2 s","magna-confluence.page","Escalation-Matrix-v4 read for owner mapping"],
             ["1.7 s","Composed","6 actions, 2 past due — Nasser and Reem named"],
             ["1.9 s","Delivered","posted into chat · no write tools used"]]},
-    {when:"15 Aug 06:00", trig:"Schedule · weekdays 06:00", dur:"1.7 s", tok:"3,880", ok:true, outcome:"4 open actions", eg:0,
+    {when:"15 Aug 06:00", trig:"Schedule · weekdays 06:00", dur:"1.7 s", tok:"3,880", ok:true, outcome:"4 open actions", eg:0, receipt:"MR-4372",
      steps:[["0.2 s","Trigger","cron fired"],["0.9 s","knowledge_search","38 rows"],["1.7 s","Composed","4 actions"]]},
-    {when:"14 Aug 06:00", trig:"Schedule · weekdays 06:00", dur:"2.1 s", tok:"4,010", ok:true, outcome:"5 open actions", eg:0,
+    {when:"14 Aug 06:00", trig:"Schedule · weekdays 06:00", dur:"2.1 s", tok:"4,010", ok:true, outcome:"5 open actions", eg:0, receipt:"MR-4364",
      steps:[["0.2 s","Trigger","cron fired"],["1.1 s","knowledge_search","44 rows"],["2.1 s","Composed","5 actions"]]}]},
 
   {id:"ag2", n:"PO Slippage Watch", col:"#1E50C8",
@@ -4734,15 +4760,15 @@ let AGENTS = [
       text:"Watch SAP purchase orders for confirmation-window breaches and tell me when a new one appears."}],
    history:[
     {when:"16 Aug 09:00", trig:"Event · MFG issue entered Blocked", dur:"2.4 s", tok:"6,240", ok:true,
-     outcome:"3 breaches flagged", eg:0,
+     outcome:"3 breaches flagged", eg:0, receipt:"MR-4390",
      steps:[["0.3 s","Trigger","MFG-2291 entered Blocked"],
             ["0.9 s","magna-sap.po","19 open POs · 3 past their confirmation window"],
             ["1.6 s","magna-sap.vendor","Gulf Precision, Al-Rajhi Steel, Hail Fabricators"],
             ["2.1 s","magna-jira.search","MFG-2291 linked to PO-4478"],
             ["2.4 s","Delivered","posted into chat · 0 write tools ran"]]},
-    {when:"16 Aug 08:00", trig:"Event · scheduled sweep", dur:"2.2 s", tok:"6,100", ok:true, outcome:"3 breaches flagged", eg:0,
+    {when:"16 Aug 08:00", trig:"Event · scheduled sweep", dur:"2.2 s", tok:"6,100", ok:true, outcome:"3 breaches flagged", eg:0, receipt:"MR-4388",
      steps:[["0.3 s","Trigger","hourly sweep"],["1.4 s","magna-sap.po","3 breaches"],["2.2 s","Delivered","no change since 07:00"]]},
-    {when:"16 Aug 07:00", trig:"Event · scheduled sweep", dur:"2.3 s", tok:"6,090", ok:true, outcome:"2 breaches flagged", eg:0,
+    {when:"16 Aug 07:00", trig:"Event · scheduled sweep", dur:"2.3 s", tok:"6,090", ok:true, outcome:"2 breaches flagged", eg:0, receipt:"MR-4386",
      steps:[["0.3 s","Trigger","hourly sweep"],["1.5 s","magna-sap.po","2 breaches"],["2.3 s","Delivered","PO-4483 newly breached"]]}]},
 
   {id:"ag3", n:"Jira Intake Triage", col:"#DC3232",
@@ -4757,7 +4783,7 @@ let AGENTS = [
       text:"Read new MFG and HSE issues, deduplicate them against the last 90 days, and propose a priority with a one-line reason."}],
    history:[
     {when:"15 Aug 16:41", trig:"Event · 6 issues entered Backlog", dur:"8.0 s", tok:"11,400", ok:false,
-     outcome:"Failed · Jira returned 429 Too Many Requests after 3 retries", eg:0,
+     outcome:"Failed · Jira returned 429 Too Many Requests after 3 retries", eg:0, receipt:"MR-4359",
      err:{code:"HTTP 429", where:"magna-jira.search",
           why:"The triage sweep and the nightly Jira reindex both ran at 16:40. Together they went over the 500 requests/minute "+
               "budget the Jira Data Center connector is allowed, and Jira shed the load.",
@@ -4770,7 +4796,7 @@ let AGENTS = [
             ["5.2 s","magna-jira.search","batch 2 of 3 · 429 · retry in 2s"],
             ["8.0 s","Aborted","3 retries exhausted · no comment was posted, nothing partially written"]]},
     {when:"15 Aug 14:02", trig:"Event · 4 issues entered Backlog", dur:"3.1 s", tok:"7,220", ok:true,
-     outcome:"4 issues triaged · 1 duplicate found", eg:0,
+     outcome:"4 issues triaged · 1 duplicate found", eg:0, receipt:"MR-4357",
      steps:[["0.3 s","Trigger","4 issues entered Backlog"],
             ["1.2 s","magna-jira.search","90-day window · 412 issues compared"],
             ["2.1 s","Proposed","MFG-2288 duplicate of MFG-2201"],
@@ -4792,7 +4818,7 @@ let AGENTS = [
       text:"Assemble the monthly delivery and risk pack from P6, SAP and the risk register."}],
    history:[
     {when:"01 Aug 10:22", trig:"On request · you", dur:"41.0 s", tok:"38,900", ok:true,
-     outcome:"14-page draft saved to Company Knowledge › Delivery", eg:0,
+     outcome:"14-page draft saved to Company Knowledge › Delivery", eg:0, receipt:"MR-4301",
      steps:[["0.4 s","Trigger","you pressed Run now"],
             ["6.2 s","magna-p6.baseline","update 40 vs baseline 7 · 11-day slip"],
             ["14.8 s","Delegated → PO Slippage Watch","asked for the current breach list · returned 3 POs · its own receipt written"],
@@ -5752,6 +5778,18 @@ function connState(c){
   return c.status;
 }
 function residency(c){ return RESID[c.where] || RESID["in-tenancy"]; }
+/* the mail scopes are the gate; keep the per-tool toggles honest about them */
+function syncMailTools(){
+  const c = connById("mail"); if(!c) return;
+  const s = v2.mail.scopes || {};
+  c.tools.forEach(t=>{
+    const on = t.risk==="Read" ? !!s.read
+      : (t.id==="magna-mail.draft" || t.id==="magna-mail.flag" || t.id==="magna-mail.attachment") ? !!s.read
+      : !!s.send;
+    setToolOn(c, t, on);
+  });
+  c.sync = v2.mail.since || "just now";
+}
 
 /* connectable catalogue entries — every one uses the same 4-step stepper */
 const CATALOGUE = [
@@ -6618,13 +6656,13 @@ function srvSteps(){
       '<span class="n">'+(i<v2.srvDraft.step?"✓":(i+1))+'</span><span class="lb">'+s+'</span></span>').join("")+'</div>';
 }
 function srvKvRows(list, kind){
-  return '<div style="border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:8px">'+
+  return '<div class="kvwrap">'+
     (list.length? list.map((r,i)=>
-      '<div style="display:flex;gap:6px;align-items:center;padding:7px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap">'+
-        '<input class="inp mono" data-kv="'+kind+'" data-i="'+i+'" data-f="k" value="'+esc(r.k)+'" spellcheck="false" '+
-          'style="flex:1 1 130px;min-width:0;height:34px;font-size:11.6px" aria-label="Name">'+
-        '<input class="inp mono" data-kv="'+kind+'" data-i="'+i+'" data-f="v" type="'+((r.secret&&!v2.srvDraft.reveal[kind+i])?"password":"text")+'" '+
-          'value="'+esc(r.v)+'" spellcheck="false" style="flex:2 1 150px;min-width:0;height:34px;font-size:11.6px" aria-label="Value">'+
+      '<div class="kvrow">'+
+        '<input class="inp mono k1" data-kv="'+kind+'" data-i="'+i+'" data-f="k" value="'+esc(r.k)+'" spellcheck="false" '+
+          'aria-label="Name">'+
+        '<input class="inp mono v1" data-kv="'+kind+'" data-i="'+i+'" data-f="v" type="'+((r.secret&&!v2.srvDraft.reveal[kind+i])?"password":"text")+'" '+
+          'value="'+esc(r.v)+'" spellcheck="false" aria-label="Value">'+
         '<button class="btn sm" data-kvsec="'+kind+'" data-i="'+i+'" aria-pressed="'+(r.secret?"true":"false")+'" '+
           'title="Treat this value as a secret" style="'+(r.secret?'border-color:var(--accent);color:var(--accent-tx)':'')+'">'+
           '<svg class="ico xs"><use href="#i-lock"></use></svg>secret</button>'+
@@ -6634,7 +6672,7 @@ function srvKvRows(list, kind){
         '<button class="btn sm" data-kvdel="'+kind+'" data-i="'+i+'" aria-label="Remove this row">'+
           '<svg class="ico xs"><use href="#i-x"></use></svg></button>'+
       '</div>').join("")
-     : '<div style="padding:12px;font-size:11.6px;color:var(--tx-3)">No rows yet.</div>')+
+     : '<div class="kvempty">No rows yet.</div>')+
     '</div>'+
     '<button class="btn sm" data-kvadd="'+kind+'"><svg class="ico xs"><use href="#i-plus"></use></svg>Add a row</button>';
 }
@@ -6677,8 +6715,15 @@ function srvHandshakeLog(d, cl, res){
   return '<div class="codeblk" style="margin-bottom:11px"><div class="code-hd"><span class="lang">jsonrpc</span>'+
     '<span class="fn">MCP handshake · '+esc(cl.where==="in-tenancy"?"in-tenancy":cl.where||"local")+'</span></div>'+
     '<pre class="blk" style="font-size:11px">'+
-    (res.econn ? esc('→ initialize\n✖ connect ECONNREFUSED '+(cl.host||"127.0.0.1")+':443\n   no listener answered inside the 5s dial timeout')
-     : res.a401 ? esc('→ initialize\n✖ HTTP 401 Unauthorized\n   WWW-Authenticate: Bearer realm="mcp", error="invalid_token"')
+    (res.econn ? esc(d.transportKind==="stdio"
+        ? '→ spawn '+(d.cmd||"npx")+' '+(d.args||"")+'\n✖ spawn '+(d.cmd||"npx")+' ENOENT\n'+
+          '   the command was not found on the host, or it exited before the first frame'
+        : '→ initialize\n✖ connect ECONNREFUSED '+(cl.host||"127.0.0.1")+':443\n'+
+          '   no listener answered inside the 5s dial timeout')
+     : res.a401 ? esc(d.transportKind==="stdio"
+        ? '→ initialize\n✖ server responded: {"code":-32001,"message":"invalid credentials"}\n'+
+          '   the process started, then rejected the token it was given in the environment'
+        : '→ initialize\n✖ HTTP 401 Unauthorized\n   WWW-Authenticate: Bearer realm="mcp", error="invalid_token"')
      : lines.slice(0, stop).map(l=> esc(l[0]+" "+l[1].padEnd(26)+" "+l[2])).join("\n"))+
     '</pre></div>';
 }
@@ -6747,8 +6792,8 @@ function srvRender(){
       '<div class="field"><label for="sDesc">One-line description</label>'+
       '<input class="inp" id="sDesc" value="'+esc(d.desc)+'" placeholder="What it lets someone do, in plain language"></div>'+
       '<div class="field"><label>Colour</label><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:5px">'+
-        SRV_COLS.map(c=>'<button class="btn sm" data-col="'+c+'" aria-pressed="'+(d.col===c)+'" aria-label="Colour '+c+'" '+
-          'style="width:44px;height:32px;background:'+c+';'+(d.col===c?'outline:2px solid var(--accent);outline-offset:2px':'')+'"></button>').join("")+
+        SRV_COLS.map(c=>'<button class="btn sm swatch" data-col="'+c+'" aria-pressed="'+(d.col===c)+'" aria-label="Colour '+c+'" '+
+          'style="background:'+c+'"></button>').join("")+
       '</div></div>'+
       '<div class="field"><label for="sWs">Workspace</label><select class="inp" id="sWs">'+
         WORKSPACES.map(w=>'<option value="'+w.id+'"'+(d.ws===w.id?" selected":"")+'>'+esc(w.name)+'</option>').join("")+
@@ -6959,19 +7004,34 @@ function srvSlug(d){
 function srvResultHTML(d, cl){
   const r = d.result;
   if(!r.ok){
+    const stdio = d.transportKind==="stdio";
     const detail = {
-      econn:["Connection refused",
-        "Nothing is listening on that host and port. MagnaVERSE waited 5 seconds and gave up.",
-        ["Check the server is actually running on the host you typed.",
-         "Check the port — a streamable-HTTP MCP server is usually on <span class=\"mono\">/mcp</span>, not the root.",
-         "If the host is inside DC-1, check the egress policy is not blocking the VLAN hop.",
-         "If you meant a local process, go back and choose <b>Local process</b> instead."]],
-      a401:["Unauthorized",
-        "The server answered, so the host and port are right — it rejected the credential.",
-        ["The bearer token is empty or expired. Paste a current one in step 3.",
-         "Check the token has the <span class=\"mono\">mcp.read</span> scope.",
-         "If the server uses OAuth 2.1, switch Authentication to OAuth and let it run the consent flow.",
-         "Do not put the token in the URL — MagnaVERSE will not send it there."]],
+      econn: stdio
+        ? ["Could not start the process",
+           "<span class=\"mono\">spawn "+esc(d.cmd||"npx")+" ENOENT</span> — the command is not on the host’s PATH, or it exited before the first frame.",
+           ["Check the command exists on the MagnaVERSE host, not just on your laptop.",
+            "Check the working directory — a relative path resolves against the service account’s home.",
+            "If it pulls from a registry, point <span class=\"mono\">npx</span> at the internal mirror; the host has no public egress by default.",
+            "Run it once by hand on the host and confirm it prints an <span class=\"mono\">initialize</span> response on stdout."]]
+        : ["Connection refused",
+           "Nothing is listening on that host and port. MagnaVERSE waited 5 seconds and gave up.",
+           ["Check the server is actually running on the host you typed.",
+            "Check the path — a streamable-HTTP MCP server is usually on <span class=\"mono\">/mcp</span>, not the root.",
+            "If the host is inside DC-1, check the egress policy is not blocking the VLAN hop.",
+            "If you meant a local process, go back and choose <b>Local process</b> instead."]],
+      "401": stdio
+        ? ["Credentials rejected",
+           "The process started and answered, then refused the token it was handed in its environment.",
+           ["Check the value of the token environment variable in step 3 — it may be empty or expired.",
+            "Check the variable name matches what the server actually reads.",
+            "Confirm the token has read scope on the target system.",
+            "Nothing is saved: a server that cannot authenticate never enters the catalogue."]]
+        : ["Unauthorized",
+           "The server answered, so the host and port are right — it rejected the credential.",
+           ["The bearer token is empty or expired. Paste a current one in step 3.",
+            "Check the token has the <span class=\"mono\">mcp.read</span> scope.",
+            "If the server uses OAuth 2.1, switch Authentication to OAuth and let it run the consent flow.",
+            "Do not put the token in the URL — MagnaVERSE will not send it there."]],
       empty:["Handshake fine, but no tools",
         "<span class=\"mono\">initialize</span> succeeded and the protocol version matched. <span class=\"mono\">tools/list</span> returned an empty array.",
         ["The server may expose <i>resources</i> or <i>prompts</i> rather than tools — MagnaVERSE only wires tools.",
@@ -7109,7 +7169,7 @@ function skillCardHTML(s){
         esc(src.repo.replace(/^https:\/\/github\.com\//,""))+'</a> · <span class="mono">'+esc(src.branch)+'</span><br>'+
         '<span class="mono">'+esc(src.path)+'</span><br>'+
         'commit <span class="mono">'+esc(src.commit)+'</span> · '+esc(src.when)+
-        ' <button class="btn sm" data-skupd="'+esc(s.n)+'" style="height:24px;margin-left:4px">Check for updates</button></div>' : '')+
+        ' <button class="btn sm inline-act" data-skupd="'+esc(s.n)+'" style="margin-left:4px">Check for updates</button></div>' : '')+
     '<div style="font-size:11.2px;color:var(--tx-3);margin-bottom:8px">'+
       '<b style="color:var(--tx-2);font-weight:600">Example:</b> “'+esc(m.ex)+'”</div>'+
     '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:9px">'+
@@ -7826,8 +7886,8 @@ function wizRender(scopesOnly){
         if(a==="cancel"){ closeGen(); return; }
         if(a==="back"){ v2.wizStep--; wizRender(); return; }
         if(a==="savescopes"){
-          if(v2.wizId==="mail"){ v2.mail.scopes = Object.assign({}, v2.wizScopes); saveMail(); }
-          else { v2.conn.teamsScopes = Object.assign({}, v2.wizScopes); saveConn(); }
+          if(v2.wizId==="mail"){ v2.mail.scopes = Object.assign({}, v2.wizScopes); saveMail(); syncMailTools(); }
+          else { v2.conn[v2.wizId+"Scopes"] = Object.assign({}, v2.wizScopes); saveConn(); }
           closeGen(); renderConnections(); renderNav(); renderSlashIfOpen();
           toast("Permissions updated","i-check"); return;
         }
@@ -7860,13 +7920,25 @@ function commitConnect(){
     v2.mail.connected = true; v2.mail.provider = p.id;
     v2.mail.scopes = Object.assign({}, v2.wizScopes);
     v2.mail.since = "just now"; v2.mail.authorised = true;
-    saveMail();
+    saveMail(); syncMailTools();
   }else{
-    v2.conn.teams = true; v2.conn.teamsScopes = Object.assign({}, v2.wizScopes); saveConn();
+    v2.conn[v2.wizId] = true;
+    v2.conn[v2.wizId+"Scopes"] = Object.assign({}, v2.wizScopes);
+    /* the granted scopes decide which of the connector's tools are switched on.
+       Read scopes turn read tools on; a write/send scope is needed for anything else. */
+    const cc = connById(v2.wizId);
+    const granted = risk => c.scopes.some(s=> s.risk===risk && v2.wizScopes[s.id]);
+    const byRisk = {Read:granted("Read"), Write:granted("Write"), Send:granted("Send"), Delete:granted("Delete")};
+    if(cc){
+      cc.tools.forEach(t=> setToolOn(cc, t, !!byRisk[t.risk]));
+      cc.sync = "just now";
+    }
+    saveConn();
   }
   /* the visible consequence: nav counts, slash menu, dependent skills, setup checklist */
   renderNav(); renderSlashIfOpen();
-  audit("Connected "+c.n+" ("+p.name+")", c.id==="mail"?"magna-mail":"teams", 0, "You");
+  if(v2.view==="connections") renderConnections();
+  audit("Connected "+c.n+" ("+p.name+")", (connById(c.id)||{id_:c.id}).id_, 0, "You");
   toast(c.n+" connected · "+c.tools.length+" tools now in the / menu","i-plug");
 }
 function renderSlashIfOpen(){
@@ -7888,6 +7960,7 @@ function confirmDisconnect(){
       $("[data-x=d]",f).addEventListener("click", ()=>{
         v2.mail.connected=false; v2.mail.authorised=false; v2.mail.since=null;
         v2.mail.scopes={read:true,send:false,contacts:false,calendar:false};
+        syncMailTools();
         Object.keys(v2.perm).forEach(k=>{ if(k.indexOf("magna-mail")===0) delete v2.perm[k]; });
         saveMail(); closeGen(); renderNav(); renderSlashIfOpen();
         if(v2.view==="connections") renderConnections();
@@ -8534,8 +8607,8 @@ function agWizRender(){
       '<span class="hint">Write it as an instruction, not a title. Be specific about what a good answer looks like.</span></div>'+
       '<div class="field"><label>Colour</label><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:5px">'+
       ["#2FB44A","#1E50C8","#DC3232","#1F8F86","#8B5CF6","#B4791F"].map(c=>
-        '<button class="btn sm" data-agcol="'+c+'" aria-label="Colour '+c+'" style="width:44px;height:32px;background:'+c+';'+
-        (d.col===c?'outline:2px solid var(--accent);outline-offset:2px':'')+'"></button>').join("")+'</div></div>';
+        '<button class="btn sm swatch" data-agcol="'+c+'" aria-pressed="'+(d.col===c)+'" aria-label="Colour '+c+
+        '" style="background:'+c+'"></button>').join("")+'</div></div>';
     foot = '<button class="btn" data-aw="cancel">Cancel</button><span class="sp"></span>'+
            '<button class="btn primary" data-aw="next">Continue</button>';
   }
@@ -8587,7 +8660,7 @@ function agWizRender(){
                 (wr?"Writes. ":"Reads. ")+esc(t.eg)+'</span></span>'+
               (avail? '' : '<span style="display:block;margin-top:6px;font-size:11px;color:var(--tx-3)">'+
                 'Not enabled on this connector, so it cannot be given to an agent. '+
-                '<button class="btn sm" data-agenable="'+c.id+'|'+t.id+'" style="height:26px;margin-top:4px">'+
+                '<button class="btn sm inline-act" data-agenable="'+c.id+'|'+t.id+'" style="margin-top:4px">'+
                 'Enable it on '+esc(c.n)+'</button></span>')+
               '</span>'+
               '<span class="pill xs '+(wr?"public":"")+'">'+esc(t.risk)+'</span>'+
@@ -9311,6 +9384,23 @@ function renderGovernance(){
     risks.push(["High","Magna Mail is connected to an external provider — every search and send leaves your network.","Review provider"]);
   if(!SALESFORCE.hidden)
     risks.push(["High","1 connector points at a sandbox endpoint (<span class=\"mono\">magna--uat.sandbox.my.salesforce.com</span>) and is visible to end users.","Fix endpoint"]);
+  const brokenC = allConnectors().filter(c=> (c.custom?c.status:connState(c))==="error" && c.id!=="sfdc");
+  brokenC.forEach(c=> risks.push(["High", esc(c.n)+" is returning <span class=\"mono\">401 Unauthorized</span>. "+
+    "Every skill and agent that depends on it stops instead of returning an empty answer.","Open connectors"]));
+  const degraded = allConnectors().filter(c=> (c.custom?c.status:connState(c))==="degraded");
+  degraded.forEach(c=> risks.push(["Medium", esc(c.n)+" is reachable but its data is six days old ("+esc(c.sync)+
+    "). Answers that cite it are quoting a superseded baseline.","Open connectors"]));
+  const outside = allConnectors().filter(c=> connLive({status:c.custom?c.status:connState(c)}) && c.where!=="in-tenancy" && c.id!=="sfdc");
+  if(outside.length)
+    risks.push([outside.some(c=>c.where==="external")?"Medium":"Low",
+      outside.length+" connected "+(outside.length===1?"connector reaches":"connectors reach")+
+      " outside your tenancy — "+outside.map(c=>esc(c.n)+" ("+residency(c).lbl+")").join(", ")+
+      ". Every call is counted on a receipt.","Open connectors"]);
+  const ghSkills = Object.keys(SKILLSRC).filter(k=>SKILLSRC[k].src==="GitHub");
+  if(ghSkills.length)
+    risks.push(["Low", ghSkills.length+" skill"+(ghSkills.length===1?" was":"s were")+
+      " imported from a public GitHub repository. "+(ghSkills.length===1?"It is":"They are")+
+      " pinned to a commit, but the instructions were written outside this organisation.","Open skills"]);
   if(pub>0) risks.push(["Medium",pub+" answer"+(pub===1?"":"s")+" ran on the Public tier and left the network.","Open the ledger"]);
   if(wsById(v2.ws).tier==="public")
     risks.push(["Medium","This workspace defaults new threads to Public. Restricted connectors are detached, but nothing is on-prem.","Switch workspace"]);
@@ -9367,6 +9457,8 @@ function renderGovernance(){
     else if(a==="Open the ledger"){ route("chat"); state.tab="ledger"; syncTabs(); renderPanel();
       if(isNarrow()) openSheet(true); }
     else if(a==="Switch workspace"){ renderWorkspaces(); setStage("workspace"); }
+    else if(a==="Open connectors"){ route("connections"); v2.connTab="mcp"; renderConnections(); }
+    else if(a==="Open skills"){ route("connections"); v2.connTab="skills"; renderConnections(); }
     else if(a==="Review provider"){ route("connections"); v2.connTab="mcp"; renderConnections(); }
     else toast("PII detection enabled for the Delivery space","i-check");
   }));
@@ -9783,7 +9875,7 @@ function dualApproval(){
     }
     if(a==="enable"){
       if(!createOn){ setToolOn(jc, tCreate, true); }
-      if(!sendOn){ v2.mail.scopes.send = true; saveMail(); }
+      if(!sendOn){ v2.mail.scopes.send = true; saveMail(); syncMailTools(); }
       el.remove();
       renderSlashIfOpen();
       audit("Enabled magna-jira.create and the mail Send scope", "permissions", 0, "You");

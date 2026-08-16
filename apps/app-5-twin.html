@@ -1756,7 +1756,37 @@ table.pv-tbl{width:100%;border-collapse:collapse;font-size:11.4px;min-width:290p
 .toolchip .tn{font-family:var(--mono);font-size:10.4px;color:var(--tx-3);display:block;margin-top:2px}
 .toolchip .sw{flex:none}
 
+/* touch: the 19 px tick keeps its look and gains a real 44 px hit area */
+@media (max-width:1023px){
+  .repo .box,.arow .box{position:relative}
+  .repo .box::after,.arow .box::after{content:"";position:absolute;left:50%;top:50%;
+    width:44px;height:44px;transform:translate(-50%,-50%)}
+  .frow input,.frow .rv{min-height:44px}
+  .jiracard .jf input,.jiracard .jf select{min-height:44px}
+  .sk-src{gap:0 10px;row-gap:0}
+  .sk-src a,.sk-src button{min-height:44px;display:inline-flex;align-items:center}
+}
+
+/* nothing in v5 may push a horizontal scrollbar at 320 px */
+.cfgbox .ch{flex-wrap:wrap}
+.digest .dh{flex-wrap:wrap}
+.hs-r{flex-wrap:wrap}
+
 @media (max-width:767px){
+  /* agent cards take the same stacked shape as connector cards */
+  .agent{flex-wrap:wrap}
+  .agent .w{flex:1 1 100%;min-width:0}
+  .agent .cta{width:100%;flex-direction:row!important;align-items:center;flex-wrap:wrap}
+  .agent .cta .btn{flex:1 1 auto}
+  .agent .kv .pill,.agent .kv .pill.sm{white-space:normal;height:auto;min-height:22px;
+    padding-top:3px;padding-bottom:3px;line-height:1.35;max-width:100%;text-align:left}
+  .conn .cta{flex-wrap:wrap}
+  .conn .cta .btn{white-space:normal;height:auto;min-height:44px;padding-top:8px;padding-bottom:8px}
+  /* pre-existing: ellipsis needs a block box, and a long address needs to break */
+  .mailrow .subj,.mailrow .prev{display:block}
+  .mailmeta .addr,.mailmeta .who{overflow-wrap:anywhere}
+  .digest .dg{grid-template-columns:1fr}
+  .dgraph{overflow-x:auto}
   .frow{flex-wrap:wrap}
   .frow input.k{max-width:none;flex:1 1 100%}
   .jiracard .jf{grid-template-columns:1fr}
@@ -1765,11 +1795,12 @@ table.pv-tbl{width:100%;border-collapse:collapse;font-size:11.4px;min-width:290p
   .runtab{min-width:520px}
   .runwrap{overflow-x:auto}
   .toolgrid{grid-template-columns:1fr}
-  .repo .box,.arow .box{min-width:19px}
-  .frow .rv,.hs-r{min-height:38px}
+  .frow .rv{min-height:44px}
+  .hs-r{min-height:38px}
 }
 @media (min-width:768px) and (max-width:1023px){
   .repo,.arow,.trow,.toolchip,.frow .rv{min-height:44px}
+  .fchip{min-width:44px;justify-content:center}
 }
 </style>
 
@@ -2296,7 +2327,7 @@ table.pv-tbl{width:100%;border-collapse:collapse;font-size:11.4px;min-width:290p
 
 <div class="dialog" id="wizard" role="dialog" aria-modal="true" aria-labelledby="wzTitle">
   <div class="wz-hd">
-    <span class="conn logo" style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;padding:0;border:1px solid var(--line);background:var(--surface-2)">
+    <span class="conn logo" id="wzIcon" style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;padding:0;border:1px solid var(--line);background:var(--surface-2)">
       <svg class="ico sm" viewBox="0 0 24 24" style="color:var(--accent)"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
     </span>
     <h2 id="wzTitle">Connect Magna Mail</h2>
@@ -2598,6 +2629,7 @@ function renderRail(){
   });
 
   var gaps=SOURCES.filter(function(s){ return s.s==="missing" && !s.candidate; });
+  var cand=SOURCES.filter(function(s){ return s.candidate && s.s==="missing"; });
   if(gaps.length>=2){
     html+='<div class="gapbox">'+
       '<h5>'+I.warn+'Two gaps are capping this answer</h5>'+
@@ -2609,8 +2641,18 @@ function renderRail(){
     html+='<div class="gapbox done">'+
       '<h5>'+I.check.replace("ico xs","ico sm")+'Coverage improved</h5>'+
       '<p>Site telemetry and labour returns are connected, so progress is now measured rather than inferred. '+
-      (gaps.length? 'One gap remains: <b>market &amp; supplier signals</b> — connect it to forecast lead-time risk.' : 'All 16 sources are attached.')+'</p>'+
-      (gaps.length?'<button class="btn full sm" data-act="connect-one" data-id="mkt">'+I.plug+'Connect market &amp; supplier signals</button>':'')+
+      (gaps.length
+        ? 'One gap remains: <b>market &amp; supplier signals</b> — connect it to forecast lead-time risk.'
+        : (cand.length
+            ? 'Every source in the base twin is attached. '+cand.length+' more are published but not connected — each one you add '+
+              'raises the total as well as the count.'
+            : 'Every published source is attached.'))+'</p>'+
+      (gaps.length
+        ? '<button class="btn full sm" data-act="connect-one" data-id="mkt">'+I.plug+'Connect market &amp; supplier signals</button>'
+        : (cand.length
+            ? '<ul>'+cand.map(function(s){ return '<li>'+s.n+'</li>'; }).join("")+'</ul>'+
+              '<button class="btn full sm" data-act="connect-one" data-id="'+cand[0].id+'">'+I.plug+'Connect '+cand[0].short+'</button>'
+            : ''))+
       '</div>';
   }
   body.innerHTML=html;
@@ -3301,11 +3343,18 @@ document.addEventListener("click",function(e){
     s.on=!s.on; renderRail(); syncTwin();
     toast(s.short+(s.on?" re-attached to the twin.":" detached — coverage and confidence updated."));
   }
-  else if(act==="connect-one"){ connectSources([t.getAttribute("data-id")]); }
+  else if(act==="connect-one"){
+    /* a source published by a connector always goes through that connector's real stepper —
+       we never pretend a mailbox or a drive attached itself */
+    var sid=t.getAttribute("data-id");
+    var srv=MCPSERVERS.filter(function(m){ return m.twin===sid && m.state!=="connected"; })[0];
+    if(SRC[sid] && SRC[sid].candidate && srv){ openConnect(srv.id); return; }
+    connectSources([sid]);
+  }
 });
 
 function connectSources(ids){
-  ids.forEach(function(id){ var s=SRC[id]; if(s){ s.s="connected"; s.on=true; } });
+  ids.forEach(function(id){ var s=SRC[id]; if(s){ s.s="connected"; s.on=true; s.candidate=false; } });
   ORDER.forEach(function(cid){
     var c=CONVS[cid];
     ids.forEach(function(id){ if(c.used && c.used.indexOf(id)===-1 && cid==="c1") c.used.push(id); });
@@ -4959,7 +5008,7 @@ function mcpPane(){
                   return '<span class="sp '+(k==="send"?"warn":"ok")+'" style="font-weight:500">'+scopeLabel(k)+'</span>'; }).join(""):'')+
               '<span id="test-'+m.id+'"></span></div>'
             : '<div class="meta"><span class="sp info" style="font-weight:500">unlocks</span>'+m.unlocks+
-              (m.state==="error"?'':'<span id="test-'+m.id+'"></span>')+'</div>')+
+              '<span id="test-'+m.id+'"></span></div>')+
           (tw?'<div class="meta"><span class="sp '+(eff(SRC[m.twin])==="missing"?"off":"ok")+'" style="font-weight:500">twin source</span>'+
               SRC[m.twin].short+(eff(SRC[m.twin])==="missing"
                 ? ' — connecting this server adds it and moves coverage to '+(counts().connected+1)+' of '+(SRC[m.twin].candidate?totalSrc()+1:totalSrc())
@@ -5126,27 +5175,32 @@ function allowRow(x){
 function delegationSVG(){
   var pairs=[];
   AGENTS.forEach(function(a){ (a.calls||[]).forEach(function(c){ pairs.push([a,AGENTS.filter(function(x){return x.id===c;})[0]]); }); });
+  var n=Math.max(AGENTS.length,1);
+  var W=Math.max(112, Math.min(150, Math.floor(616/n)-10));
+  var gap=(660-W*n)/(n+1);
   var cells=AGENTS.map(function(a,i){
-    var x=24+i*(560/AGENTS.length), y=(a.calls&&a.calls.length)?30:118;
-    return {a:a, x:x, y:y, w:118};
+    return {a:a, x:Math.round(gap+i*(W+gap)), y:(a.calls&&a.calls.length)?26:120, w:W};
   });
   function pos(id){ return cells.filter(function(c){ return c.a.id===id; })[0]; }
-  var edges=pairs.map(function(p){
-    var f=pos(p[0].id), t=pos(p[1].id); if(!f||!t) return "";
-    return '<path d="M'+(f.x+59)+' '+(f.y+42)+' C '+(f.x+59)+' '+(f.y+82)+', '+(t.x+59)+' '+(t.y-34)+', '+(t.x+59)+' '+(t.y-4)+'" '+
+  function clip(s,px){ return s.length>px ? s.slice(0,px-1)+"…" : s; }
+  var chars=Math.max(12, Math.floor(W/6.4));
+  var edges=pairs.map(function(pr){
+    var f=pos(pr[0].id), t=pos(pr[1].id); if(!f||!t) return "";
+    var fx=f.x+W/2, tx=t.x+W/2;
+    return '<path d="M'+fx+' '+(f.y+46)+' C '+fx+' '+(f.y+92)+', '+tx+' '+(t.y-40)+', '+tx+' '+(t.y-5)+'" '+
       'fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#agArrow)"/>'+
-      '<text x="'+((f.x+t.x)/2+62)+'" y="'+((f.y+t.y)/2+34)+'" font-size="9.5" fill="var(--tx-3)" text-anchor="middle">calls</text>';
+      '<text x="'+((fx+tx)/2)+'" y="'+((f.y+t.y)/2+34)+'" font-size="10" fill="var(--tx-3)" text-anchor="middle">calls</text>';
   }).join("");
-  return '<svg viewBox="0 0 608 180" role="img" aria-label="Board Pack Drafter delegates to PO Slippage Watch">'+
+  return '<svg viewBox="0 0 660 196" role="img" aria-label="Board Pack Drafter delegates to PO Slippage Watch">'+
     '<defs><marker id="agArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">'+
     '<path d="M0 0 10 5 0 10z" fill="var(--accent)"/></marker></defs>'+edges+
     cells.map(function(c){
-      return '<g><rect x="'+c.x+'" y="'+c.y+'" width="118" height="42" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>'+
-        '<rect x="'+c.x+'" y="'+c.y+'" width="4" height="42" rx="2" fill="'+c.a.colour+'"/>'+
-        '<text x="'+(c.x+13)+'" y="'+(c.y+18)+'" font-size="10.5" font-weight="650" fill="var(--tx)">'+
-          c.a.name.slice(0,17)+'</text>'+
-        '<text x="'+(c.x+13)+'" y="'+(c.y+32)+'" font-size="9" fill="var(--tx-3)">'+
-          (c.a.paused?"paused":trigHuman(c.a).slice(0,20))+'</text></g>';
+      return '<g><rect x="'+c.x+'" y="'+c.y+'" width="'+W+'" height="46" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>'+
+        '<rect x="'+c.x+'" y="'+c.y+'" width="4" height="46" rx="2" fill="'+c.a.colour+'"/>'+
+        '<text x="'+(c.x+13)+'" y="'+(c.y+20)+'" font-size="10.5" font-weight="650" fill="var(--tx)">'+
+          esc2(clip(c.a.name,chars))+'</text>'+
+        '<text x="'+(c.x+13)+'" y="'+(c.y+35)+'" font-size="9" fill="var(--tx-3)">'+
+          esc2(c.a.paused?"paused":clip(trigHuman(c.a),chars+2))+'</text></g>';
     }).join("")+'</svg>';
 }
 function renderAgents(){
@@ -5894,7 +5948,15 @@ function openConnect(id,step){
   renderWizard(); openDialog("wizard");
 }
 function variantOf(){ return cw.cfg.variants.filter(function(v){ return v.id===cw.variant; })[0]; }
+var WZICON={
+  conn:'<svg class="ico sm" viewBox="0 0 24 24" style="color:var(--accent)"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>',
+  skill:I.skill.replace("ico sm",'ico sm" style="color:var(--accent)'),
+  mcpadd:I.mcp.replace("ico sm",'ico sm" style="color:var(--accent)'),
+  custom:I.mcp.replace("ico sm",'ico sm" style="color:var(--accent)'),
+  agent:'<svg class="ico sm" viewBox="0 0 24 24" style="color:var(--accent)"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 13h.01M15 13h.01"/></svg>'
+};
 function renderWizard(){
+  var wi=$("#wzIcon"); if(wi) wi.innerHTML=WZICON[wzMode]||WZICON.conn;
   if(wzMode==="skill")  return renderSkillWiz();
   if(wzMode==="mcpadd") return renderMcpAdd();
   if(wzMode==="custom") return renderCustomWiz();
@@ -6060,13 +6122,20 @@ function testConn(id){
   host.innerHTML='<span class="sp info"><span class="spin" style="width:11px;height:11px;border-width:1.5px"></span>Reaching server…</span>';
   setTimeout(function(){ host.innerHTML='<span class="sp info">Discovering tools…</span>'; },600);
   setTimeout(function(){
-    if(id==="p6-schedule"){
+    if(m.state==="error"){
+      host.innerHTML='<span class="sp err">'+m.err.code+' · unchanged</span>';
+      toast(m.name+" still answers "+m.err.code+". The address is right and the credential is not — update the SNOW_PASSWORD secret, then test again.");
+      logAct(m.idn+".test", m.name, "You · Connections", "fail", m.err.code+" — credential rejected, 0 tools listed");
+      return;
+    }
+    if(m.state==="degraded"){
       host.innerHTML='<span class="sp warn">'+m.tools.length+' tools · progress data 6 days old</span>';
       toast("Primavera P6 answered in 41 ms — but its last progress update is 6 days old, which is why schedule answers stay at medium confidence.");
-    } else {
-      host.innerHTML='<span class="sp ok">'+m.tools.length+' tools responded · 34 ms</span>';
-      toast(m.name+" answered in 34 ms · "+m.tools.length+" tools discovered · "+(m.local?"0 bytes left your network.":"via gateway."));
+      logAct(m.idn+".test", m.name, "You · Connections", "ok", m.tools.length+" tools responded · data 6 days stale");
+      return;
     }
+    host.innerHTML='<span class="sp ok">'+m.tools.length+' tools responded · 34 ms</span>';
+    toast(m.name+" answered in 34 ms · "+m.tools.length+" tools discovered · "+(m.local?"0 bytes left your network.":"via gateway."));
     logAct(m.idn+".test", m.name, "You · Connections", "ok", m.tools.length+" tools responded");
   },1400);
 }
@@ -7193,7 +7262,8 @@ function openSlash(q){
     var hit=(m.name+" "+m.idn+" "+m.val).toLowerCase().indexOf(q)>-1;
     m.tools.forEach(function(t){
       if(!hit && (t.n+" "+t.p).toLowerCase().indexOf(q)===-1) return;
-      if(m.state==="connected") live.push({k:"mcp", s:{n:t.n, d:t.p+" — "+(t.d||m.name)}, server:m.id});
+      if(isLive(m)) live.push({k:"mcp", s:{n:t.n,
+        d:t.p+" — "+(t.d||m.name)+(t.risk!=="read"?" · writes, so it asks you first":"")}, server:m.id});
       else if(off.filter(function(x){return x.server===m.id;}).length===0)
         off.push({k:"connect", s:{n:m.idn, d:m.val}, server:m.id, name:m.name, tools:m.tools.length});
     });

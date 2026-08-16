@@ -3263,11 +3263,11 @@ const stageClose = "</div></div>";
 function peekCards() {
   const rows = [
     ['<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
-     "2 tasks ran overnight", "Vendor risk sweep · Daily pulse — both finished at 05:00"],
+     "5 jobs ran overnight", "13 runs between 22:00 and 06:00 — 4 of them need you"],
     ['<svg class="ico" viewBox="0 0 24 24"><path d="M20 15.5A2.5 2.5 0 0 1 17.5 18H8l-4 3V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5Z"/></svg>',
-     "1 thread needs you", "“Package 4 change orders” is waiting on a file"],
+     "1 connector is failing", "ServiceNow — the service-account password expired on 14 Aug"],
     ['<svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.6 7.8 10.6 15.8M16.4 7.8 13.4 15.8M8.5 6h7"/></svg>',
-     "6 systems connected", "SAP · P6 · Jira · Confluence · HR · Knowledge"]
+     "6 systems connected", "SAP · P6 · Jira · Confluence · HR · Knowledge — mail is still off"]
   ];
   return '<aside class="peeks" aria-label="Waiting for you in this workspace">' +
     '<span class="peeks-l"><span class="dot live" style="color:var(--private)"></span>Waiting for you</span>' +
@@ -3315,7 +3315,7 @@ function renderLogin(err) {
         '<span class="wordmark">Magna<span class="wm">VERSE</span></span>' +
         '<span class="pill sm private"><span class="dot"></span>Riyadh DC-1</span></div>' +
       '<h2 id="liH">Sign in</h2>' +
-      '<p class="sub">Your workspace is already running — 2 tasks finished overnight while you were away.</p>' +
+      '<p class="sub">Your workspace is already running — five jobs finished overnight while you were away, and four of them need you.</p>' +
       '<p class="authnote-mini"><svg class="ico sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.4"/></svg>' +
         "<span>Demo credentials are filled in — just press <strong>Sign in</strong>. Nothing is " +
         "transmitted; state stays on this device.</span></p>" +
@@ -6283,10 +6283,16 @@ window.addEventListener("orientationchange", () => setTimeout(applyViewport, 200
 .auditrow .am b{display:block;font-family:var(--mono);font-size:12.2px;font-weight:600;word-break:break-all}
 .auditrow .am span{display:block;font-size:11.6px;color:var(--tx-3);line-height:1.5;margin-top:3px}
 
+/* long metadata pills (a cron sentence, a tool id) must wrap, not overflow */
+.lrow .lmeta .pill,.dgi-h .chips .pill{max-width:100%;min-width:0;height:auto;min-height:20px;
+  padding-top:2px;padding-bottom:2px;white-space:normal;text-align:left;line-height:1.35}
+
 @media (max-width:1023px){
   .dgnums{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:767px){
+  /* the switch keeps its 38x22 look but gets a 50x44 hit area */
+  .switch::before{content:"";position:absolute;left:-6px;right:-6px;top:-11px;bottom:-11px}
   .toolgrid{grid-template-columns:1fr}
   .dgnums{grid-template-columns:1fr}
   .kvpanel .kvl{flex-direction:column;gap:2px}
@@ -7279,7 +7285,8 @@ const CATALOGUE_EXTRA = [
   ["Snowflake", "Query the reporting warehouse", true]
 ];
 function openAddServer() {
-  const notYet = ALLCX().filter(c => !cxLive(c));
+  const notYet = ALLCX().filter(c => !cxLive(c) && cxState(c) !== "error");
+  const broken = ALLCX().filter(c => cxState(c) === "error");
   openAppModal(modalShell("Add an MCP server",
     '<svg class="ico lg" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
     '<p class="lead">Three ways in. Most people use the first.</p>' +
@@ -7297,6 +7304,11 @@ function openAddServer() {
       "<span style='flex:1;min-width:0'><b>" + esc(c.n) + "</b><span>" + esc(c.v) + "</span></span>" +
       (c.onprem ? '<span class="pill sm private"><span class="dot"></span>on-prem</span>'
                 : '<span class="pill sm public"><span class="dot"></span>leaves your network</span>') + "</button>").join("") +
+    (broken.length ? '<div class="seclabel" style="margin-top:14px">Already added, but failing<span class="ln"></span></div>' +
+      broken.map(c => '<button class="provider" data-conngo="mcp" style="border-color:var(--public-line)">' +
+        '<span class="pv-ic" style="background:' + c.bg + ';color:#fff;border-color:transparent;font-size:8.5px;font-weight:800">' + esc(c.ic) + "</span>" +
+        "<span style='flex:1;min-width:0'><b>" + esc(c.n) + "</b><span>" + esc((c.err || "").split(".")[0]) + " · open the connector for the fix</span></span>" +
+        '<span class="pill sm public"><span class="dot"></span>error</span></button>').join("") : "") +
     '<div class="seclabel" style="margin-top:14px">In the catalogue, not wired in this prototype<span class="ln"></span></div>' +
     CATALOGUE_EXTRA.map(x => '<button class="provider" data-soon="1">' +
       '<span class="pv-ic">' + esc(x[0].slice(0, 2).toUpperCase()) + "</span>" +
@@ -7721,16 +7733,26 @@ const AG = [
     last: "1 Aug 05:00", out: "PAUSED — the Q3 SAP export was never posted to the connector" }
 ];
 const AGENT_TPL_V5 = [
-  ["Procurement Analyst", "Procurement", "Reads POs, receipts and vendor master to explain spend and slippage in plain language."],
-  ["PO Slippage Watch", "Procurement", "Watches goods receipts against promised dates and raises anything past the grace period."],
-  ["Contract Clause Reviewer", "Compliance", "Extracts named clauses with page references and flags what changed between revisions."],
-  ["HSE Incident Reporter", "Compliance", "Classifies site incidents by severity and names repeat causes before the morning shift."],
-  ["Schedule Slip Analyst", "Delivery", "Reads a P6 baseline, names the driving path, and quantifies the slip against it."],
-  ["Jira Intake Triage", "Delivery", "Turns prose requests into well-formed issues with acceptance criteria and an owner."],
-  ["Vendor Risk Screener", "Procurement", "Scores vendors on delivery, quality and price variance before a review."],
-  ["Board Pack Drafter", "Reporting", "Assembles the steering pack in Magna house format from the week's numbers."],
-  ["Tender Comparison", "Procurement", "Puts submissions side by side on price, programme, exclusions and mobilisation."],
-  ["Permit & Certification Watch", "Compliance", "Tracks permits and certifications across sites and flags what expires before you are exposed."]
+  ["Procurement Analyst", "Procurement", "Reads POs, receipts and vendor master to explain spend and slippage in plain language.",
+   ["sap-po-get", "sap-gr-status", "sap-vendor-get", "kb-search"]],
+  ["PO Slippage Watch", "Procurement", "Watches goods receipts against promised dates and raises anything past the grace period.",
+   ["sap-po-get", "sap-gr-status", "kb-search"]],
+  ["Contract Clause Reviewer", "Compliance", "Extracts named clauses with page references and flags what changed between revisions.",
+   ["kb-search", "kb-read"]],
+  ["HSE Incident Reporter", "Compliance", "Classifies site incidents by severity and names repeat causes before the morning shift.",
+   ["kb-search", "kb-read", "jira-search"]],
+  ["Schedule Slip Analyst", "Delivery", "Reads a P6 baseline, names the driving path, and quantifies the slip against it.",
+   ["p6-activities-read", "p6-critical-path", "p6-baseline-compare"]],
+  ["Jira Intake Triage", "Delivery", "Turns prose requests into well-formed issues with acceptance criteria and an owner.",
+   ["jira-search", "jira-issue-get", "jira-transitions-list"]],
+  ["Vendor Risk Screener", "Procurement", "Scores vendors on delivery, quality and price variance before a review.",
+   ["sap-vendor-get", "sap-po-get", "kb-search"]],
+  ["Board Pack Drafter", "Reporting", "Assembles the steering pack in Magna house format from the week's numbers.",
+   ["kb-search", "kb-read", "p6-baseline-compare", "confluence-search"]],
+  ["Tender Comparison", "Procurement", "Puts submissions side by side on price, programme, exclusions and mobilisation.",
+   ["kb-search", "kb-read"]],
+  ["Permit & Certification Watch", "Compliance", "Tracks permits and certifications across sites and flags what expires before you are exposed.",
+   ["kb-search", "hr-certifications"]]
 ];
 
 /* per-agent run history, including a failure with a readable cause */
@@ -8023,7 +8045,8 @@ function newAW(tpl, existing) {
     tools: {}, trigger: { kind: "request", cron: "0 6 * * 0-4", ev: "mail", filter: EVENT_KINDS[0][2] },
     autonomy: "ask", guard: { runs: 5, cost: 40, recipients: "@magna.sa", always: { send: true, create: true, delete: true, external: true } },
     dest: "chat", tested: false };
-  if (tpl) { base.name = tpl[0]; base.purpose = tpl[2]; base.cat = tpl[1]; }
+  if (tpl) { base.name = tpl[0]; base.purpose = tpl[2]; base.cat = tpl[1];
+    (tpl[3] || []).forEach(t => { base.tools[t] = true; }); }
   if (existing) {
     base.id = existing.id; base.name = existing.n; base.purpose = existing.purpose;
     base.model = existing.model.indexOf("Same as chat") === 0 ? "same" : existing.model;
@@ -8084,7 +8107,8 @@ function openAgentWizard(step) {
     body = "<h3>What may it use?</h3>" +
       '<p class="lead">An explicit allow-list, not a preset. Each row says whether it <em>reads</em> or ' +
       "<em>writes</em>, and whether running it sends anything out of your network. " +
-      "Nothing here is ticked because it looked convenient.</p>" +
+      "Only tools already enabled on the connector appear here — an agent can never be given a tool the " +
+      "workspace itself has switched off, so turn it on in <strong>Connections › Tools &amp; MCP</strong> first.</p>" +
       live.map(c => {
         const tools = cxTools(c.id).filter(t => toolOn(t[1]));
         if (!tools.length) return "";
@@ -8242,7 +8266,9 @@ function openAgentTemplates() {
     "there is a dry run before you save, and nothing runs until you enable it.</p>" +
     '<div class="lgrid">' + AGENT_TPL_V5.map((t, i) =>
       '<div class="lcard"><h4>' + esc(t[0]) + '<span class="pill sm">' + esc(t[1]) + "</span></h4><p>" + esc(t[2]) + "</p>" +
-      '<div class="lfoot"><button class="btn sm primary" data-agtpl="' + i + '">Use this</button></div></div>').join("") +
+      '<div class="lfoot"><span class="pill sm private"><span class="dot"></span>' + (t[3] || []).length +
+      " read tools pre-selected</span>" +
+      '<button class="btn sm primary" data-agtpl="' + i + '">Use this</button></div></div>').join("") +
     "</div>" +
     '<button class="starter dash" data-agtpl="blank" style="margin-top:12px">' +
     '<span class="srclogo"><svg class="ico sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>' +
@@ -8251,19 +8277,48 @@ function openAgentTemplates() {
     '<span class="fill"></span><button class="btn" data-appclose="1">Cancel</button>'));
 }
 
+const DRY_OUT = {
+  "sap-po-get": "137 PO lines read · plant RUH-P4",
+  "sap-gr-status": "41 lines past the 7-day grace · SAR 42.5m exposure",
+  "sap-vendor-get": "18 vendors resolved · 2 flagged as blocked",
+  "sap-price-conditions": "condition records read for 41 lines",
+  "sap-po-extract": "CSV extract prepared · 2,140 rows",
+  "kb-search": "9 documents matched · 3 worth citing",
+  "kb-read": "3 passages read with their citations",
+  "jira-search": "12 issues matched the JQL",
+  "jira-issue-get": "PKG4-2104 read with its comments",
+  "jira-boards-list": "3 boards · 2 active sprints",
+  "jira-transitions-list": "4 transitions available on PKG4-2104",
+  "p6-activities-read": "1,284 activities read · baseline Rev 12",
+  "p6-critical-path": "driving path · 11 activities at zero float",
+  "p6-baseline-compare": "19 days behind Rev 12 · snapshot is 6 days old",
+  "p6-float-read": "total float read for 84 activities",
+  "confluence-search": "6 pages matched in ENG and HSE",
+  "confluence-page-get": "read MG-014 Working at Height",
+  "mail-search": "18 messages matched · 3 unread",
+  "mail-read": "3 messages read in full",
+  "mail-threads-list": "9 threads listed in the Package 4 folder",
+  "hr-orgchart": "4 people resolved to a manager and cost centre",
+  "hr-certifications": "31 certifications read · 4 expire inside 60 days",
+  "hr-headcount": "headcount read for 3 disciplines",
+  "hr-roster": "site roster read for the night shift",
+  "snow-incident-search": "5 incidents matched · 1 P2 open",
+  "calendar-freebusy": "free/busy read for 3 people",
+  "files-search": "12 files matched in the Package 4 site",
+  "warranty-search": "26 warranty records matched"
+};
 function awDryRun() {
   const box = $("#awTest");
   if (!box) return;
-  const picked = Object.keys(aw.tools);
+  const picked = Object.keys(aw.tools).filter(k => aw.tools[k]);
   const writes = picked.filter(t => { const f = toolLabel(t); return f && f.t[2] !== "read"; });
   const reads = picked.filter(t => { const f = toolLabel(t); return f && f.t[2] === "read"; });
   box.innerHTML = '<div class="hs" style="margin-top:10px"><span class="spinner" style="display:inline-block;vertical-align:-3px"></span> Dry run started · writes disarmed…</div>';
   setTimeout(() => {
     const steps = [["0.3s", "Planned", "read the inputs, then produce " + ((DESTINATIONS.find(d => d[0] === aw.dest) || DESTINATIONS[0])[1]).toLowerCase()]];
-    reads.slice(0, 3).forEach((t, i) => {
+    reads.slice(0, 4).forEach((t, i) => {
       const f = toolLabel(t);
-      steps.push([(1.4 + i * 1.9).toFixed(1) + "s", f.t[1],
-        i === 0 ? "137 records read · plant RUH-P4" : i === 1 ? "41 past the contractual grace · SAR 42.5m" : "3 supporting documents cited"]);
+      steps.push([(1.4 + i * 1.9).toFixed(1) + "s", f.t[1], DRY_OUT[f.t[1]] || ("returned " + (3 + i * 7) + " results")]);
     });
     if (!reads.length) steps.push(["1.4s", "No read tools on the allow-list", "the agent answered from the model alone — go back to step 3 if that is not what you want"]);
     writes.forEach((t, i) => {
@@ -8284,10 +8339,19 @@ function awDryRun() {
         '<div class="tr">' + esc(s[2]) + "</div></div>").join("") + "</div>" +
       '<div class="seclabel" style="margin-top:12px">What it produced<span class="ln"></span></div>' +
       '<div class="card" style="padding:13px 14px;font-size:12.6px;line-height:1.65;color:var(--tx-2)">' +
-      "<strong style=\"color:var(--tx)\">41 purchase-order lines are past the seven-day grace in clause 8.4</strong>, " +
-      "carrying SAR 42.5m of Package 4 exposure. Three moved past the line since the last sweep: PO-4517 (cable trays, " +
-      "19 days), PO-4602 (containment, 9 days) and PO-4488 (earthing, 8 days). The dominant cause this month is late " +
-      "IFC drawing release, not customs — 17 of the 41." +
+      (reads.indexOf("sap-gr-status") !== -1 || reads.indexOf("sap-po-get") !== -1
+        ? "<strong style=\"color:var(--tx)\">41 purchase-order lines are past the seven-day grace in clause 8.4</strong>, " +
+          "carrying SAR 42.5m of Package 4 exposure. Three moved past the line since the last sweep: PO-4517 (cable trays, " +
+          "19 days), PO-4602 (containment, 9 days) and PO-4488 (earthing, 8 days). The dominant cause this month is late " +
+          "IFC drawing release, not customs — 17 of the 41."
+        : reads.length
+        ? "<strong style=\"color:var(--tx)\">" + esc(aw.name || "The agent") + " produced a result from " + reads.length +
+          " read tool" + (reads.length === 1 ? "" : "s") + "</strong>, citing every source it used. " +
+          "The full text lands wherever you chose on the previous step — " +
+          esc(((DESTINATIONS.find(d => d[0] === aw.dest) || DESTINATIONS[0])[1]).toLowerCase()) + "."
+        : "<strong style=\"color:var(--public)\">Nothing was read.</strong> With no read tools on the allow-list this " +
+          "agent answers from the model alone, which is almost never what you want for a job like this. " +
+          "Go back to <strong>Access</strong> and give it something to look at.") +
       (writes.length ? '<div class="egress out" style="margin-top:11px"><svg class="ico" viewBox="0 0 24 24"><path d="M4 10V7a4 4 0 0 1 8 0v3"/><rect x="4" y="10" width="16" height="10" rx="2.5"/></svg>' +
         "<span><b>Held back by the dry run</b><span>" + writes.map(t => {
           const f = toolLabel(t);
@@ -8444,7 +8508,9 @@ function viewOvernight() {
     '<button class="btn" data-route-go="agents">Agents</button>' +
     '<button class="btn primary" data-dgmail="1">' +
       '<svg class="ico sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>' +
-      (state.digest.mailed ? "Mailed to you at 06:30" : "Mail this to me every morning") + "</button>",
+      (state.digest.mailed
+        ? (mailOn() ? "Mailed to you at 06:30" : "Queued for 06:30 · needs the mail connector")
+        : "Mail this to me every morning") + "</button>",
     body +
     (needs.length
       ? '<div class="seclabel" style="margin-top:18px">Needs a human<span class="ln"></span>' +
@@ -8509,6 +8575,7 @@ function comboWrites() {
 }
 function comboApproval() {
   const w = comboWrites();
+  const off = w.filter(x => !toolOn(x[1]));
   return '<div class="approve" data-approve="combo" style="max-width:640px">' +
     '<div class="approve-h"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3 4.5 6v6c0 4.4 3.2 8.2 7.5 9 4.3-.8 7.5-4.6 7.5-9V6Z"/></svg>' +
     "Magna wants to use four tools across two systems</div>" +
@@ -8516,8 +8583,11 @@ function comboApproval() {
       '<div class="kv"><b>Reads</b><span><span class="mono">magna-mail.mail-read</span> · ' +
         '<span class="mono">magna-sap.sap-gr-status</span> · <span class="mono">magna-jira.jira-search</span>' +
         "<br>To read Al-Rashid's message, check the receipt status on PO-4488, and make sure no issue already exists for it.</span></div>" +
-      '<div class="kv"><b>Writes</b><span>Two, and both are off right now. Tick each one you want to allow — ' +
-        "they stay allowed for this workspace, and every call still shows you the arguments before it runs.</span></div>" +
+      '<div class="kv"><b>Writes</b><span>Two. ' +
+        (off.length === 2 ? "Both are off right now — tick each one you want to allow."
+          : off.length === 1 ? "<strong>" + esc(off[0][2]) + "</strong> is off right now; the other is already allowed. Tick what you want."
+          : "Both are already allowed for this workspace.") +
+        " They stay allowed for this workspace, and every call still shows you the arguments before it runs.</span></div>" +
     "</div>" +
     '<div style="padding:0 13px 11px">' + w.map(t =>
       '<label class="checkrow" style="margin-bottom:7px"><input type="checkbox" data-comboallow="' + t[1] + '"' +
@@ -8884,11 +8954,15 @@ renderStarters = function () {
       '<svg class="ico go" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>').join("");
   ALLCX().filter(c => !cxLive(c)).forEach(c => {
     const n = (c.starters || []).length;
-    h += '<button class="starter dash" data-cxconnect="' + esc(c.id) + '">' +
-      '<span class="srclogo">' + esc(c.ic) + "</span>" +
-      '<span class="tx"><b>Connect ' + esc(c.n) + " to unlock " + n + " more starter" + (n === 1 ? "" : "s") + " and " +
-        cxTools(c.id).length + " tools</b><span>" + esc(c.v) + " · " +
-        (c.onprem ? "on-prem" : "leaves your network") + " · read on, write off</span></span>" +
+    const broken = cxState(c) === "error";
+    h += '<button class="starter dash"' + (broken ? ' data-conngo="mcp" style="border-color:var(--public-line)"'
+        : ' data-cxconnect="' + esc(c.id) + '"') + ">" +
+      '<span class="srclogo"' + (broken ? ' style="background:var(--public-dim);color:var(--public)"' : "") + ">" + esc(c.ic) + "</span>" +
+      '<span class="tx"><b>' + (broken
+        ? esc(c.n) + " is failing — its " + cxTools(c.id).length + " tools are unavailable"
+        : "Connect " + esc(c.n) + " to unlock " + n + " more starter" + (n === 1 ? "" : "s") + " and " + cxTools(c.id).length + " tools") +
+      "</b><span>" + (broken ? esc((c.err || "").split(".")[0]) + " · open the connector to see the fix"
+        : esc(c.v) + " · " + (c.onprem ? "on-prem" : "leaves your network") + " · read on, write off") + "</span></span>" +
       '<svg class="ico go" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>';
   });
   $("#starterList").innerHTML = h;
@@ -9290,7 +9364,7 @@ document.addEventListener("click", function (e) {
           '<button class="btn sm" data-testclose="' + a.id + '" style="display:none"></button>' +
           '<button class="btn sm" data-agout="' + a.id + '">Hide</button></div>';
         logAudit("agent." + a.id + ".run", a.n, "you · Run now",
-          okRun ? a.out : "FAILED · " + a.out);
+          okRun ? a.out : (/^(FAILED|PAUSED)/.test(a.out) ? a.out : "FAILED · " + a.out));
       }, 1500);
     }, 60);
     return;
@@ -9362,7 +9436,7 @@ document.addEventListener("click", function (e) {
       toast(aw.name + " created — it is disabled until you switch it on");
     }
     state.setup.agent = true; saveSetup();
-    closeAppModal(); go("agents"); renderPage("agents");
+    closeAppModal(); go("agents"); renderPage("agents"); syncCounts();
     return;
   }
 
@@ -9384,7 +9458,8 @@ document.addEventListener("click", function (e) {
     if (state.digest.mailed) logAudit("platform.digest-schedule", "Magna Mail", "you", "Overnight digest will be mailed to ahmad.farahat@magna.sa at 06:30 on weekdays");
     keepScroll(() => renderPage("overnight"));
     toast(state.digest.mailed
-      ? "This will land in your inbox at 06:30, weekdays — needs the mail connector"
+      ? (mailOn() ? "This will land in your inbox at 06:30 on weekdays"
+                  : "Queued — it cannot send until Magna Mail is connected")
       : "Turned off — the digest stays in the app only");
     return;
   }

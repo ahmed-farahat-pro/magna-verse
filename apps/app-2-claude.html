@@ -1857,6 +1857,11 @@ button.setuprow:hover .go{color:var(--accent)}
   border-top:1px solid var(--line)}
 .jbar .sp{flex:1}
 
+/* Fix carried over from the audit: .subj and .prev are spans, so nowrap +
+   text-overflow never applied and long subjects pushed the mail list sideways
+   at 320px. They need a block box for the ellipsis to bite. */
+.mailitem .subj,.mailitem .prev{display:block;min-width:0;max-width:100%}
+
 /* ------------------------------ misc v5 bits ---------------------------- */
 .v5note{display:flex;gap:10px;padding:12px 14px;border-radius:12px;border:1px dashed var(--line-2);
   background:var(--surface-2);font-size:12.8px;color:var(--tx-2);line-height:1.6;margin-bottom:14px}
@@ -1882,11 +1887,33 @@ button.setuprow:hover .go{color:var(--accent)}
   .jrow{flex-wrap:wrap} .jrow > label{flex:0 0 100%}
   .kvrow .k,.kvrow .v{flex:1 1 100%}
   .toolrow .rs{flex-direction:column;align-items:flex-end;gap:4px}
-  .btn{min-height:38px}
+}
+/* touch widths: every v5 control gets a real 44px box too */
+@media (max-width:1023px){
+  .disc > summary{min-height:44px}
+  .pickcard,.reporow,.toolrow,.actrow,.digrow{min-height:44px}
+  .jrow input,.jrow select,.jdraft textarea{min-height:44px}
+  .cfgblk .chd2 .cbtn,.shake .hh .cbtn{min-height:44px}
+  .srcbadge{min-height:24px;display:inline-flex;align-items:center}
+}
+/* Narrow phones: the right-hand status stacks under the title rather than
+   squeezing the meta pills into a column that clips. */
+@media (max-width:560px){
+  .agentcard .ahd,.conncard .chd{flex-wrap:wrap}
+  .agentcard .arside{flex-direction:row;flex-wrap:wrap;width:100%;justify-content:flex-start;
+    align-items:center;order:3}
+  .agentcard .ahd .t,.conncard .chd .t{flex:1 1 100%}
+  .cfgblk .chd2,.shake .hh{flex-wrap:wrap;gap:6px}
+  .cfgblk .chd2 .sp,.shake .hh .sp{display:none}
+  .cfgblk .chd2 .cbtn{flex:0 0 auto}
+  .digrow{flex-wrap:wrap}
+  .digrow .tm{order:-1;width:100%}
+  .actrow .t .meta .pill,.actrow .t .meta .kindtag{max-width:100%}
 }
 @media (max-width:359px){
   .conncard .chd .t b,.agentcard .ahd .t b{font-size:13.8px}
   .disc > summary{font-size:12px}
+  .cfgblk pre,.shake pre,.dtool .schema{font-size:10.8px}
 }
 </style>
 </head>
@@ -4148,17 +4175,22 @@ function renderArtifact(){
   /* v5 §1 — an MCP server's config, inspected beside the UI it describes */
   if(state.artifact === "mcpconfig"){
     var sv5 = serverById(V5.cfgServer) || SERVERS[0];
-    body.innerHTML =
-      '<p style="font-size:13.2px;color:var(--tx-2);line-height:1.62;margin-bottom:11px">' +
-      "The configuration <strong>" + esc(sv5.name) + "</strong> runs from, with the tool allow-list the " +
-      "toggles in Connections produce. Paste it into <code class=\"mono\">~/.magna/mcp.json</code> or the " +
-      "workspace config map.</p>" + cfgBlockHTML(sv5) +
-      '<h3 style="font-size:14px;margin:18px 0 4px">Tools this config exposes</h3>' +
-      toolRowsHTML(sv5) +
-      '<p style="font-size:11.8px;color:var(--tx-3);margin-top:12px;line-height:1.6">' +
-      "Secrets appear as <code class=\"mono\">${MAGNA_SECRET:…}</code> references. The literal value stays " +
-      "in the workspace secret store and is substituted when the server starts — it is never written into " +
-      "an exported file and never reaches a model.</p>";
+    body.innerHTML = state.tab === "code"
+      ? '<div class="codeblk"><div class="code-hd"><span class="lang">JSON</span>' +
+        '<span class="fname">' + esc(sv5.id) + '.json</span><span class="acts">' +
+        '<button class="cbtn" data-act="copy-cfg" data-id="' + esc(sv5.id) + '">' +
+        '<svg class="ic sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy</button></span></div>' +
+        '<pre class="code">' + jsonHTML(mcpConfigObj(sv5)) + "</pre></div>"
+      : '<p style="font-size:13.2px;color:var(--tx-2);line-height:1.62;margin-bottom:11px">' +
+        "The configuration <strong>" + esc(sv5.name) + "</strong> runs from, with the tool allow-list the " +
+        "toggles in Connections produce. Paste it into <code class=\"mono\">~/.magna/mcp.json</code> or the " +
+        "workspace config map.</p>" + cfgBlockHTML(sv5) +
+        '<h3 style="font-size:14px;margin:18px 0 4px">Tools this config exposes</h3>' +
+        toolRowsHTML(sv5) +
+        '<p style="font-size:11.8px;color:var(--tx-3);margin-top:12px;line-height:1.6">' +
+        "Secrets appear as <code class=\"mono\">${MAGNA_SECRET:…}</code> references. The literal value stays " +
+        "in the workspace secret store and is substituted when the server starts — it is never written into " +
+        "an exported file and never reaches a model.</p>";
     $("#apName").textContent = sv5.id + ".json";
     $("#apMeta").textContent = "MCP config · " + (sv5.cfg.kind === "stdio" ? "local process" : "remote sse");
     $("#apVer").textContent  = "live";
@@ -4167,7 +4199,8 @@ function renderArtifact(){
       return '<button class="achip" data-act="cfg-panel" data-id="' + esc(x.id) + '" aria-current="' +
         (x.id === sv5.id) + '"><svg class="ic sm" aria-hidden="true"><use href="#i-code"></use></svg>' +
         esc(x.id) + "</button>"; }).join("");
-    $$(".aptab").forEach(function(t){ t.setAttribute("aria-selected", "false"); });
+    $$(".aptab").forEach(function(t){
+      t.setAttribute("aria-selected", t.dataset.tab === state.tab ? "true" : "false"); });
     return;
   }
   if($("#apChips").dataset.orig) $("#apChips").innerHTML = $("#apChips").dataset.orig;
@@ -4591,21 +4624,40 @@ var MCPS = [
 var slashOpen = false, slashIndex = 0, slashItems = [];
 
 function slashHTML(kind, name, desc){
+  var tag = kind === "mcp" ? "MCP · on-prem" : kind === "egress" ? "MCP · egress" : "skill";
   return '<button class="mi" role="option" data-act="slash-pick" data-name="'+name+'">' +
-    '<svg class="ic" aria-hidden="true"><use href="#'+(kind==="mcp"?"i-mcp":"i-skill")+'"></use></svg>' +
+    '<svg class="ic" aria-hidden="true"><use href="#'+(kind==="skill"?"i-skill":"i-mcp")+'"></use></svg>' +
     '<span class="t"><b>/'+name+'</b><span>'+desc+'</span></span>' +
-    '<span class="tagm'+(kind==="mcp"?"":" skill")+'">'+(kind==="mcp"?"MCP · on-prem":"skill")+'</span></button>';
+    '<span class="tagm'+(kind==="mcp"?"":" skill")+'">'+tag+'</span></button>';
+}
+/* Everything the `/` menu may offer, derived from the live connector
+   catalogue — a tool that is switched off in Connections is not here either. */
+function availableTools(){
+  var out = [];
+  SERVERS.forEach(function(s){
+    if(!serverConnected(s)) return;
+    if(s.id === "magna-mail"){
+      /* mail follows the scopes granted in its own connect flow */
+      mailToolsAvailable().forEach(function(t){ out.push([t[0], t[1], "onprem"]); });
+      return;
+    }
+    s.tools.forEach(function(t){
+      if(!t.on) return;
+      out.push([t.id, t.label + " — " + t.note, t.egress ? "egress" : s.where]);
+    });
+  });
+  return out;
 }
 function renderSlash(q){
   var list = $("#slashList"), ql = q.toLowerCase();
-  /* mail tools only exist here once the connector is connected and scoped */
-  var servers = MCPS.concat(mailToolsAvailable().map(function(t){ return [t[0], t[1]]; }));
+  var servers = availableTools();
   var mm = servers.filter(function(m){ return (m[0]+m[1]).toLowerCase().indexOf(ql) > -1; });
   var html = "";
   if(mm.length){
-    html += '<div class="gh">MCP servers <span class="cnt">'+mm.length+' of '+servers.length+
-      ' · all run inside your network</span></div>';
-    mm.forEach(function(m){ html += slashHTML("mcp", m[0], m[1]); });
+    var shown = ql ? mm : mm.slice(0, 8);
+    html += '<div class="gh">Tools from connected servers <span class="cnt">' + shown.length + " of " +
+      servers.length + (ql ? "" : " · type to narrow") + "</span></div>";
+    shown.forEach(function(m){ html += slashHTML(m[2] === "onprem" ? "mcp" : "egress", m[0], m[1]); });
   }
   if(!V.mail.connected && ("mail email inbox".indexOf(ql) > -1 || ql === "")){
     html += '<div class="gh">Not connected</div>' +
@@ -4643,8 +4695,9 @@ function renderSlash(q){
   var sk = onSk;
   if(!html){          /* only when nothing at all was offered, including Connect rows */
     html = '<div class="emptyrow"><b>Nothing matches “'+q+'”</b>' +
-      'There are 18 skills and 4 MCP servers installed. Clear the filter to browse them, or ask in plain ' +
-      'language — I will pick the right tool myself.</div>';
+      'There are ' + SKILL_CAT.length + ' skills and ' + SERVERS.length + ' MCP servers in this workspace, ' +
+      'exposing ' + availableTools().length + ' tools you have switched on. Clear the filter to browse them, ' +
+      'or ask in plain language — I will pick the right tool myself.</div>';
   }
   list.innerHTML = html;
   slashItems = $$('[data-act="slash-pick"]', list);
@@ -5888,9 +5941,15 @@ function renderMailDraft(body){
       '<div class="dbar">' +
         '<span class="pill ok"><span class="dot"></span>Draft only · nothing sent</span>' +
         '<span class="sp"></span>' +
-        '<button class="btn sm" data-act="draft-discard">Discard</button>' +
-        '<button class="btn sm primary" data-act="draft-send"' + (canSend ? "" : " disabled") + '>' +
-        '<svg class="ic sm" aria-hidden="true"><use href="#i-send2"></use></svg>Review &amp; send</button>' +
+        (V5.combo
+          /* in the two-action plan, one confirmation covers both — never two */
+          ? '<button class="btn sm" data-act="combo-cancel">Discard both</button>' +
+            '<button class="btn sm primary" data-act="combo-review">' +
+            '<svg class="ic sm" aria-hidden="true"><use href="#i-check"></use></svg>' +
+            "Review both and confirm</button>"
+          : '<button class="btn sm" data-act="draft-discard">Discard</button>' +
+            '<button class="btn sm primary" data-act="draft-send"' + (canSend ? "" : " disabled") + '>' +
+            '<svg class="ic sm" aria-hidden="true"><use href="#i-send2"></use></svg>Review &amp; send</button>') +
       "</div>" +
     "</div>";
 }
@@ -6659,6 +6718,8 @@ function openSkillStepper(){
               esc(d.importText || BROKEN_SKILL) + "</textarea>" +
               '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
               '<button class="btn sm" data-act="st-validate">Validate</button>' +
+              '<button class="btn sm" data-act="st-upload">' +
+              '<svg class="ic sm" aria-hidden="true"><use href="#i-upload"></use></svg>Upload a file</button>' +
               '<button class="btn sm" data-act="st-loadbad">Load the broken example</button></div>' +
               '<div id="impResult"></div>';
           }
@@ -7413,7 +7474,7 @@ function serverCardHTML(s){
       "</div></div>" +
     '<div class="cbody">' + statusBox +
       '<details class="disc"><summary>' +
-        '<svg class="ic sm" aria-hidden="true"><use href="#i-skill"></use></svg>' +
+        '<svg class="ic sm" aria-hidden="true"><use href="#i-key"></use></svg>' +
         "Tools it exposes (" + s.tools.length + ")</summary>" +
         '<div class="dbody">' + toolRowsHTML(s) +
         '<p class="note">Read tools are on. Every write tool is off until you switch it on here — and even ' +
@@ -7453,7 +7514,14 @@ function serverTest(id){
       "The same handshake the runtime performs: <code class=\"mono\">initialize</code>, then " +
       "<code class=\"mono\">tools/list</code>. Nothing is written and no tool is called.</p>" +
       '<div class="shake"><div class="hh">mcp handshake<span class="sp"></span>' + esc(s.id) +
-      '</div><pre id="hsPre"></pre></div><div id="hsAfter"></div>'
+      '</div><pre id="hsPre"></pre></div><div id="hsAfter"></div>',
+    foot: st === "error"
+      ? '<button class="btn primary" data-act="server-fix" data-id="' + esc(s.id) +
+        '">Rotate the secret and reconnect</button>'
+      : st === "off"
+      ? '<button class="btn primary" data-act="server-connect" data-id="' + esc(s.id) + '">Connect ' +
+        esc(s.name) + "</button>"
+      : '<button class="btn" data-act="cfg-panel" data-id="' + esc(s.id) + '">Open the config</button>'
   });
   var pre = $("#hsPre"), after = $("#hsAfter");
   var on = s.tools.filter(function(t){ return t.on; }).length;
@@ -9907,7 +9975,7 @@ function handleV5(a, el, e){
     return true; }
   case "cfg-panel":
     V5.cfgServer = el.dataset.id;
-    state.artifact = "mcpconfig"; state.tab = "code";
+    state.artifact = "mcpconfig"; state.tab = "preview";
     closeDetail();
     if(V.view !== "chat") setView("chat");
     openArtifact("mcpconfig");
@@ -9962,6 +10030,23 @@ function handleV5(a, el, e){
     stRender();
     return true;
   case "gh-update": ghCheckUpdate(el.dataset.id); return true;
+  case "st-upload": {
+    /* a real file picker, parsed in the browser — nothing is uploaded anywhere */
+    var fi = document.createElement("input");
+    fi.type = "file"; fi.accept = ".md,.json,.yaml,.yml,.txt";
+    fi.addEventListener("change", function(){
+      var f = fi.files && fi.files[0]; if(!f) return;
+      var rd = new FileReader();
+      rd.onload = function(){
+        var box = $("#impBox");
+        if(box){ box.value = String(rd.result); ST.data.importText = box.value; ST.data.parsed = false;
+          validateImport(); }
+        toast(f.name + " read in this browser — the file was never uploaded anywhere");
+      };
+      rd.readAsText(f);
+    });
+    fi.click();
+    return true; }
   case "gh-apply": {
     var gs = SKILL_CAT.filter(function(x){ return x.id === el.dataset.id; })[0];
     if(gs){ gs.commit = "c93e0f1"; logActivity("Updated skill " + gs.id + " to c93e0f1", "skills", "ok"); }
@@ -10075,7 +10160,9 @@ function handleV5(a, el, e){
     openComboConfirm();
     toast("Send scope granted — this confirmation still covers both actions");
     return true;
-  case "jira-field": return true;                      /* handled on input */
+  /* fields whose value is bound on input, not on click */
+  case "jira-field": case "ag-guard": case "ag-purpose":
+  case "cst-hdr": case "cst-secret": return true;
   }
   return false;
 }
@@ -10234,14 +10321,17 @@ document.addEventListener("click", function(e){
   case "artifact-copy": {
     var body = $("#apBody");
     var pre = $("pre", body);
+    /* drafts and configs are artifacts too, and are not in ARTIFACTS */
+    var anam = (ARTIFACTS[state.artifact] || {}).name || $("#apName").textContent;
     copyText(pre ? pre.innerText : body.innerText, function(){
-      flashCopied(el, "Copied"); toast("Copied " + ARTIFACTS[state.artifact].name);
+      flashCopied(el, "Copied"); toast("Copied " + anam);
     });
     break; }
   case "artifact-download": {
     var b2 = $("#apBody"), pre2 = $("pre", b2);
-    downloadText(ARTIFACTS[state.artifact].name, pre2 ? pre2.innerText : b2.innerText);
-    toast("Downloaded " + ARTIFACTS[state.artifact].name);
+    var dnam = (ARTIFACTS[state.artifact] || {}).name || $("#apName").textContent;
+    downloadText(dnam, pre2 ? pre2.innerText : b2.innerText);
+    toast("Downloaded " + dnam);
     break; }
   case "copy-mermaid":
     state.tab = "code"; renderArtifact();
