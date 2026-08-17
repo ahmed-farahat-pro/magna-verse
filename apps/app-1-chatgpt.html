@@ -2572,6 +2572,160 @@ slip <span class="k">AS</span> (
   </div>
 </template>
 
+<template id="tpl-c8">
+  <div class="msg user"><div class="bubble">Set up an agent that checks every open PO against the live P6 baseline every couple of hours and flags anything slipping past 5 days. Read-only for now — I don't want it writing anything on its own yet.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 4s · no tools needed</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Checked the existing catalogue</b> — PO Slippage Watch already compares POs against P6 hourly and raises a Jira issue. This request is read-only and broader, so it's a new agent rather than an edit · 1.1s</span></div>
+        <div class="reason-note">No connected system was touched while planning — configuring an agent only writes its own settings.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Done. <strong>Risk Research Agent</strong> reads live PO status from SAP alongside the P6 schedule and ranks exposure by package — nothing crosses into write territory unless you grant it later.</p>
+      <div class="approve" data-tool="magna-agents.create" data-done="1">
+        <div class="ah"><svg class="ico sm"><use href="#i-plus"/></svg>MagnaVERSE wants to create an agent</div>
+        <div class="ad">"Risk Research Agent" — reads SAP purchase orders and the P6 schedule, ranks exposure, and stops before anything is written.</div>
+        <dl class="sum">
+          <dt>Reads</dt><dd>magna-sap.get_purchase_order · magna-p6.compare_baseline</dd>
+          <dt>Writes</dt><dd>none granted</dd>
+          <dt>Runs</dt><dd>every 2 hours</dd>
+          <dt>Autonomy</dt><dd>Ask me before it acts</dd>
+        </dl>
+        <div class="res"><svg class="ico xs"><use href="#i-shield"/></svg>Runs on the Magna cluster, Riyadh DC-1. Nothing leaves your network.</div>
+        <div class="verdict"><svg class="ico sm" style="color:var(--private)"><use href="#i-check"/></svg><span style="color:var(--private)">Created — no write tool was granted.</span></div>
+      </div>
+      <p>It's live on the <strong>Ask me before it acts</strong> level, so even after you grant it a write tool later, the first one in any thread still stops for your approval.</p>
+      <p><button class="btn sm" data-act3="open-agent" data-id="a6"><svg class="ico xs"><use href="#i-user"/></svg>Open in Agents</button></p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 4.0s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c9">
+  <div class="msg user"><div class="bubble">Every export we hand to a client should get checked first — page count against the source, no garbled Arabic, no blank pages. Can you make that a skill I can just call by name?</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 3s · no tools needed</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Checked the skill catalogue</b> — nothing already does export QA, so this is a new skill, not an overlap · 0.8s</span></div>
+        <div class="reason-note">Named it after what it checks, not the tool it uses, so it reads clearly in the / menu.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Created <strong>PDF export QA</strong> — call it by name or with <code>/</code> and point it at an export plus its source.</p>
+      <div class="approve" data-tool="magna-skills.create" data-done="1">
+        <div class="ah"><svg class="ico sm"><use href="#i-plus"/></svg>MagnaVERSE wants to create a skill</div>
+        <div class="ad">"PDF export QA" — checks a generated PDF against its source before it goes out.</div>
+        <dl class="sum">
+          <dt>Trigger</dt><dd>on request</dd>
+          <dt>Reads</dt><dd>Company Knowledge · the document you point it at</dd>
+          <dt>Writes</dt><dd>none granted</dd>
+          <dt>Category</dt><dd>Reporting</dd>
+        </dl>
+        <div class="res"><svg class="ico xs"><use href="#i-shield"/></svg>Runs on Riyadh DC-1. The PDF itself never leaves this workspace.</div>
+        <div class="verdict"><svg class="ico sm" style="color:var(--private)"><use href="#i-check"/></svg><span style="color:var(--private)">Created — added to your catalogue, switched on.</span></div>
+      </div>
+      <p>It checks page count, broken links, garbled Arabic text and blank pages — and only ever reports what it found, since it has no write tool to act on it.</p>
+      <p><button class="btn sm" data-act3="add-skill"><svg class="ico xs"><use href="#i-spark"/></svg>Open in Skills</button></p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 3.2s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c10">
+  <div class="msg user"><div class="bubble">Board Pack Drafter already writes the narrative — can you get it running automatically every Thursday morning before the 09:00 meeting, instead of me asking for it each time?</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 3s · no tools needed</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Read Board Pack Drafter's configuration</b> — Ask me before it acts, with upload and send mail on the always-ask list · 0.9s</span></div>
+        <div class="reason-note">A schedule only changes when it runs, not what it's allowed to do. It still stops at its first write and waits for you.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Scheduled. <strong>Weekly board pack scheduler</strong> runs Board Pack Drafter every Thursday at 06:00 — three hours ahead of the meeting.</p>
+      <div class="approve" data-tool="magna-automations.create" data-done="1">
+        <div class="ah"><svg class="ico sm"><use href="#i-plus"/></svg>MagnaVERSE wants to create an automation</div>
+        <div class="ad">"Weekly board pack scheduler" — runs Board Pack Drafter on a schedule instead of on request.</div>
+        <dl class="sum">
+          <dt>Agent</dt><dd>Board Pack Drafter</dd>
+          <dt>Runs</dt><dd>every Thursday at 06:00 · Asia/Riyadh</dd>
+          <dt>Reads</dt><dd>inherited from the agent — P6, SAP, Company Knowledge</dd>
+          <dt>Always asks first</dt><dd>upload a file · send mail</dd>
+        </dl>
+        <div class="res"><svg class="ico xs"><use href="#i-shield"/></svg>Runs on the Magna cluster, Riyadh DC-1.</div>
+        <div class="verdict"><svg class="ico sm" style="color:var(--private)"><use href="#i-check"/></svg><span style="color:var(--private)">Created — switched on. First run is this coming Thursday.</span></div>
+      </div>
+      <p>Nothing about the write gate changed — when it reaches the upload, it will pause in your notifications exactly like it does today, just without you having to ask first.</p>
+      <p><button class="btn sm" data-act3="goto-automations"><svg class="ico xs"><use href="#i-clock"/></svg>Open in Automations</button></p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 3.6s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c11">
+  <div class="msg user"><div class="bubble">Now that the Risk Research agent exists, how does it actually work with PO Slippage Watch — are they just duplicating each other?</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 3s · no tools needed</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Compared the two configurations</b> — different schedules, different scope, no delegation between them yet · 0.7s</span></div>
+        <div class="reason-note">This is about how the two agents are configured, not a live run — nothing was called to answer it.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Not duplicating — they sit at different ends of the same job, they just don't hand off to each other yet.</p>
+      <div class="chartcard" style="padding:14px 16px 16px">
+        <div class="chart-title">How the two agents divide the work</div>
+        <div class="scrollx"><svg class="delmap" viewBox="0 0 520 100" role="img" aria-label="PO Slippage Watch gathers slipping purchase orders hourly, then Risk Research Agent analyses and ranks exposure every two hours.">
+          <defs><marker id="dmArrowChain" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0 0 L10 5 L0 10 Z"/></marker></defs>
+          <rect x="6" y="22" width="222" height="56" rx="9"/>
+          <text class="nlab" x="18" y="44">PO Slippage Watch · Gather</text>
+          <text x="18" y="62">hourly · reads SAP + P6 · raw slip list</text>
+          <rect x="294" y="22" width="222" height="56" rx="9"/>
+          <text class="nlab" x="306" y="44">Risk Research Agent · Analyze</text>
+          <text x="306" y="62">every 2h · ranks exposure by package</text>
+          <path d="M228 50 L290 50" marker-end="url(#dmArrowChain)"/>
+        </svg></div>
+      </div>
+      <p><strong>PO Slippage Watch</strong> gathers: narrow and frequent, it only compares released POs to the live P6 snapshot and raises a Jira issue when one slips. <strong>Risk Research Agent</strong> analyzes: wider and slower, it takes that same PO and schedule data and ranks exposure across every open package.</p>
+      <p>Neither calls the other today — both run on their own schedule. If you want a true chain, Risk Research Agent can be granted "called by another agent" as a trigger and PO Slippage Watch can delegate to it, the same way Board Pack Drafter already delegates to two agents.</p>
+      <p><button class="btn sm" data-act3="goto-agents"><svg class="ico xs"><use href="#i-flow"/></svg>See the full map in Agents</button></p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 2.9s</span>
+    </div>
+  </div>
+</template>
+
 <!-- first-run tour card (D10) -->
 <template id="tpl-firstrun">
   <div class="firstrun" id="firstrunCard">
@@ -2762,7 +2916,11 @@ var CONVS = [
   { id:"c4", group:"Yesterday",   title:"Jira tickets for the P6 warehouse integration",   meta:"DeepSeek V3.1 · 2 messages",   live:false, internal:true },
   { id:"c5", group:"Last 7 days", title:"SAP vendor master — duplicate clean-up",          meta:"DeepSeek V3.1 · 2 messages",   live:false, internal:true },
   { id:"c6", group:"Last 7 days", title:"Which model for Arabic–English contract review",  meta:"Kimi K2 Instruct · 2 messages",live:false, internal:false },
-  { id:"c7", group:"Last 7 days", title:"ISO 19650 file naming on RYD-M3",                 meta:"NVIDIA Nemotron · 2 messages", live:false, internal:false }
+  { id:"c7", group:"Last 7 days", title:"ISO 19650 file naming on RYD-M3",                 meta:"NVIDIA Nemotron · 2 messages", live:false, internal:false },
+  { id:"c8", group:"Last 7 days", title:"Creating the Risk Research agent",                meta:"Kimi K2 Instruct · agent created", live:false, internal:true },
+  { id:"c9", group:"Last 7 days", title:"New skill: PDF export QA",                        meta:"Kimi K2 Instruct · skill created", live:false, internal:true },
+  { id:"c10",group:"Last 7 days", title:"Weekly board pack scheduler",                     meta:"Kimi K2 Instruct · automation created", live:false, internal:true },
+  { id:"c11",group:"Last 7 days", title:"Multi-agent chain: Gather → Analyze",              meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true }
 ];
 
 var SKILLS = [
@@ -4114,7 +4272,15 @@ var AGENTS = [
     grants:[["magna-sap.search_vendors","read",false],["magna-knowledge.search","read",false]],
     guard:{ runs:12, cost:"SAR 30", recipients:"— it does not send", always:[] },
     last:"Paused 14 Aug", lastResult:"Paused while the SAP vendor extract is re-cut", runs:31, on:false, colour:"#0F766E",
-    delegatesTo:[], version:1 }
+    delegatesTo:[], version:1 },
+  { id:"a6", name:"Risk Research Agent", purpose:"Score exposure across every open package by combining live PO status from SAP with the P6 schedule, and rank what needs attention first.",
+    model:"kimi", access:"Connected systems", tools:["magna-sap","magna-p6"],
+    trigger:"Every 2 hours", triggerType:"schedule", cron:"0 */2 * * *", triggerEn:"Every 2 hours",
+    autonomy:"ask", output:"chat",
+    grants:[["magna-sap.get_purchase_order","read",false],["magna-p6.compare_baseline","read",false]],
+    guard:{ runs:12, cost:"SAR 20", recipients:"— it does not send", always:[] },
+    last:"Never run", lastResult:"Created just now — dry run passed, nothing written", runs:0, on:true,
+    colour:"var(--accent)", delegatesTo:[], version:1 }
 ];
 /* pause/disable is persisted so a demo survives a reload */
 var AGENT_STATE = loadJSON("mv.agentState", {});
@@ -4164,7 +4330,8 @@ var RUNS = {
   a5:[
     { at:"14 Aug 10:02", trig:"Called by Board Pack Drafter", ms:"18s", tok:"12,600", ok:true, out:"Al-Yamamah Steel scored B+ · category B prequal valid to 2027",
       steps:[["Loaded configuration v1","0.2s"],["magna-sap.search_vendors — LFA1 'Al-Yamamah'","4.0s"],["magna-knowledge.search — prequalification register","3.9s"],["Composed score","9.9s"]] }
-  ]
+  ],
+  a6:[]
 };
 
 /* instruction history you can diff and roll back */
@@ -4218,7 +4385,9 @@ var SCHEDULES = [
   { id:"s4", name:"Vendor master hygiene", cron:"0 2 1 * *", en:"At 02:00 on the 1st of each month",
     agent:"PO Slippage Watch", last:"01 Aug 02:00", ms:"—", ok:false, result:"Failed — SAP service account token expired", next:"01 Sep 02:00", on:true, auto:false },
   { id:"s5", name:"Inbox triage", cron:"*/30 8-18 * * 1-5", en:"Every 30 minutes, 08:00–18:00, weekdays",
-    agent:"Jira Intake Triage", last:"Never run", ms:"—", ok:null, result:"Waiting on Magna Mail — connect it to enable", next:"—", on:false, auto:false, needsMail:true }
+    agent:"Jira Intake Triage", last:"Never run", ms:"—", ok:null, result:"Waiting on Magna Mail — connect it to enable", next:"—", on:false, auto:false, needsMail:true },
+  { id:"s6", name:"Weekly board pack scheduler", cron:"0 6 * * 4", en:"Every Thursday at 06:00 · Asia/Riyadh",
+    agent:"Board Pack Drafter", last:"Never run", ms:"—", ok:null, result:"Created just now — waiting for its first Thursday run", next:"Thu 06:00", on:true, auto:false }
 ];
 
 var DOCS_KB = [
@@ -4515,7 +4684,10 @@ var SKILLS_CAT = [
     needs:[], ex:"Produce an Arabic and English brief of the C2 variation notice.", on:false },
   { id:"mail-triage", name:"Inbox triage", cat:"Admin",
     d:"Reads your mailbox and surfaces only the messages that need you today.",
-    needs:["Magna Mail"], ex:"What in my inbox needs me before Wednesday?", on:false }
+    needs:["Magna Mail"], ex:"What in my inbox needs me before Wednesday?", on:false },
+  { id:"pdf-export-qa", name:"PDF export QA", cat:"Reporting", src:"Custom",
+    d:"Checks a generated PDF export against its source before it goes out — page count, broken links, garbled Arabic text and blank pages.",
+    needs:["Company Knowledge"], ex:"Check this PDF export against the source doc before I send it to the client.", on:true }
 ];
 /* every catalogue skill carries a provenance badge (brief v5 §2) */
 SKILLS_CAT.forEach(function(s){ if(!s.src) s.src = "Catalogue"; });
@@ -5530,6 +5702,8 @@ document.addEventListener("click", function(e){
   if(a === "new-schedule")     return newScheduleSheet();
   if(a === "sched-error")      return schedError(b.getAttribute("data-id"));
   if(a === "goto-knowledge")   return setView("knowledge");
+  if(a === "goto-automations") return setView("automations");
+  if(a === "goto-agents")      return setView("agents");
   if(a === "test-one"){ b.textContent = "Reaching…"; setTimeout(function(){ b.textContent = "Test"; toast("Reached " + b.getAttribute("data-name") + " · 5 tools discovered · 42 ms, all inside Riyadh DC-1."); }, 900); return; }
   if(a === "test-all"){
     var okN = 0, errN = [], degN = [];
