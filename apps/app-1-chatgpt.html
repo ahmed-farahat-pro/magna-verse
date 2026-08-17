@@ -309,6 +309,12 @@ body[data-sidebar="collapsed"] .rail-only{display:flex}
 }
 .sov[data-tier="private"]{color:var(--private);background:var(--private-dim);border-color:color-mix(in srgb,var(--private) 34%,transparent)}
 .sov[data-tier="public"]{color:var(--public);background:var(--public-dim);border-color:color-mix(in srgb,var(--public) 40%,transparent)}
+.ctx-ring{
+  width:15px;height:15px;border-radius:99px;flex:none;
+  background:conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0);
+  transition:background .25s ease;
+}
+#ctxBtn{font-family:var(--mono);font-size:12px}
 .sov .ico{stroke-width:2}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:4px}
 
@@ -2120,6 +2126,22 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
         <svg class="ico xs" style="opacity:.7"><use href="#i-chev-d"/></svg>
       </button>
 
+      <button class="tb-btn" id="ctxBtn" aria-haspopup="menu" aria-expanded="false" title="Context window used">
+        <span class="ctx-ring" id="ctxRing" style="--p:0"></span><span id="ctxPct">0%</span>
+      </button>
+
+      <div class="pop" id="ctxPop" role="menu" aria-label="Context window" style="top:46px;left:12px;min-width:280px">
+        <div class="pop-h">This thread's context window</div>
+        <div style="padding:4px 10px 10px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+            <span id="ctxTokens" style="font-family:var(--mono);font-size:13px;color:var(--tx)">0 / 0 tokens</span>
+            <span id="ctxPct2" style="font-family:var(--mono);font-size:12px;color:var(--tx-3)">0%</span>
+          </div>
+          <div class="bar" style="width:100%"><i id="ctxBar" style="width:0%;background:var(--accent)"></i></div>
+          <p class="pop-note" style="padding:10px 0 0;margin:0">Estimated from this thread's messages, at roughly 4 characters per token. Starting a new chat resets it to zero — nothing here is shared between threads.</p>
+        </div>
+      </div>
+
       <div class="tb-right">
         <button class="tb-btn" id="canvasToggleBtn" aria-pressed="false" aria-label="Open Canvas and Model view">
           <svg class="ico sm"><use href="#i-layers"/></svg><span>Canvas</span>
@@ -3570,10 +3592,10 @@ $("#sbScrim").addEventListener("click", function(){ setSidebar("collapsed"); });
    3 · data
    ============================================================ */
 var MODELS = {
-  kimi:      { name:"Kimi K2 Instruct",  spec:"1T MoE" },
-  deepseek:  { name:"DeepSeek V3.1",     spec:"671B MoE" },
-  qwen:      { name:"Qwen 3",            spec:"235B" },
-  nemotron:  { name:"NVIDIA Nemotron",   spec:"120B" }
+  kimi:      { name:"Kimi K2 Instruct",  spec:"1T MoE",   ctx:256000 },
+  deepseek:  { name:"DeepSeek V3.1",     spec:"671B MoE", ctx:128000 },
+  qwen:      { name:"Qwen 3",            spec:"235B",     ctx:128000 },
+  nemotron:  { name:"NVIDIA Nemotron",   spec:"120B",     ctx:128000 }
 };
 
 var CONVS = [
@@ -3765,6 +3787,7 @@ function newChat(){
   $("#greeting").textContent = (h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening") + ", Ahmad";
   ta.value = ""; autoGrow(); ta.focus();
   syncCanvasToConv(null);
+  updateContextIndicator();
   announce("New chat. The composer is focused.");
 }
 $("#newChatBtn").addEventListener("click", function(){ newChat(); if(isMobile()) setSidebar("collapsed"); });
@@ -3776,7 +3799,8 @@ var pops = [
   { pop:"#modelPop", btn:"#modelBtn" },
   { pop:"#sovPop",   btn:"#sovBtn" },
   { pop:"#acctPop",  btn:"#acctBtn" },
-  { pop:"#notifPop", btn:"#notifBtn" }
+  { pop:"#notifPop", btn:"#notifBtn" },
+  { pop:"#ctxPop",   btn:"#ctxBtn" }
 ];
 function closePops(except){
   pops.forEach(function(p){
@@ -3797,7 +3821,7 @@ function togglePop(sel){
 }
 pops.forEach(function(p){ $(p.btn).addEventListener("click", function(e){ e.stopPropagation(); togglePop(p.pop); }); });
 document.addEventListener("click", function(e){
-  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#sovBtn,#acctBtn,#notifBtn")) closePops();
+  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#sovBtn,#acctBtn,#notifBtn,#ctxBtn")) closePops();
 });
 function anyPopOpen(){ return pops.some(function(p){ return $(p.pop).classList.contains("open"); }); }
 
@@ -3815,6 +3839,20 @@ var COMMS_DIRECTORY = [
   { name:"Sara Al-Qahtani", role:"HSE Lead", online:true },
   { name:"Omar Al-Dosari", role:"Workspace Admin", online:false }
 ];
+/* ---------------- context-window indicator ---------------- */
+function updateContextIndicator(){
+  var ring = $("#ctxRing"), pct = $("#ctxPct"); if(!ring) return;
+  var chars = (transcript.innerText || "").length;
+  var tokens = Math.round(chars / 4);
+  var max = (MODELS[state.model] && MODELS[state.model].ctx) || 128000;
+  var p = Math.max(0, Math.min(99, Math.round(tokens / max * 100)));
+  ring.style.setProperty("--p", p);
+  pct.textContent = p + "%";
+  var p2 = $("#ctxPct2"), tk = $("#ctxTokens"), bar = $("#ctxBar");
+  if(p2) p2.textContent = p + "%";
+  if(tk) tk.textContent = tokens.toLocaleString() + " / " + max.toLocaleString() + " tokens";
+  if(bar) bar.style.width = p + "%";
+}
 function renderNotifPane(){
   var body = $("#notifBody"); if(!body) return;
   if(notifTab === "feed"){
@@ -3854,6 +3892,7 @@ function setModel(key, silent){
     mi.setAttribute("aria-selected", String(on));
   });
   if(!silent) toast("Model for this thread: " + MODELS[key].name + " · " + MODELS[key].spec + " · runs private");
+  updateContextIndicator();
 }
 $("#modelPop").addEventListener("click", function(e){
   var mi = e.target.closest("[data-model]"); if(!mi) return;
@@ -4269,6 +4308,7 @@ function runAnswer(text){
     wrap.innerHTML = replyHTML(text);
     decorateActions(wrap);
     scrollToEnd(true);
+    updateContextIndicator();
     announce("Answer received.");
   }, 2900);
 }
@@ -6213,6 +6253,7 @@ function enterApp(){
   setStage("app");
   applyWorkspace();
   setView("chat");
+  updateContextIndicator();
   if(!isMobile()) setTimeout(function(){ ta.focus(); }, 80);
 }
 function applyWorkspace(){
@@ -6416,6 +6457,23 @@ function mcpCatalogue(){
     "<p class='mini' style='margin-top:10px'>Prefer to paste a config file? <button class='link' data-act3='add-import' style='color:var(--accent);text-decoration:underline'>Import an MCP config →</button></p></div>";
   return out;
 }
+/* Real product marks, as safe colour+letter badges rather than traced vector
+   logos — recognisable at a glance without reproducing anyone's artwork. */
+var BRAND_TILE = {
+  jira:  { bg:"#0052CC", label:"JR" },
+  conf:  { bg:"#1868DB", label:"CF" },
+  sap:   { bg:"#0070D2", label:"SAP" },
+  p6:    { bg:"#C74634", label:"P6" },
+  sp:    { bg:"#038387", label:"SP" },
+  teams: { bg:"#6264A7", label:"T" },
+  snow:  { bg:"#2CA01C", label:"SN" },
+  sf:    { bg:"#00A1E0", label:"SF" }
+};
+function brandTileHTML(k){
+  var b = BRAND_TILE[k]; if(!b) return null;
+  return "<span class='tile brand-tile' style='background:" + b.bg + ";color:#fff;border-color:transparent'>" +
+    "<span style='font-family:var(--sans);font-weight:800;font-size:" + (b.label.length > 2 ? "9px" : "12px") + ";letter-spacing:.01em'>" + esc(b.label) + "</span></span>";
+}
 function serverCard(k){
   var s = SERVERS[k], on = serverConnected(k), st = serverState(k);
   var reads = s.tools.filter(function(t){ return !t.w; }).length;
@@ -6427,8 +6485,9 @@ function serverCard(k){
            : st === "error"    ? statusPill("warn","Error · " + esc(s.sync))
            :                     statusPill("off","Not connected");
   return "<div class='ccard'" + (st==="error" ? " style='border-color:color-mix(in srgb,var(--public) 38%,transparent)'" : "") + ">" +
-    "<div class='ch'><span class='tile'" + (st==="ok" ? " style='color:var(--private)'" : st==="error"||st==="degraded" ? " style='color:var(--public)'" : "") + ">" +
-    "<svg class='ico'><use href='#" + (s.icon || "i-braces") + "'/></svg></span>" +
+    "<div class='ch'>" + (brandTileHTML(k) ||
+    ("<span class='tile'" + (st==="ok" ? " style='color:var(--private)'" : st==="error"||st==="degraded" ? " style='color:var(--public)'" : "") + ">" +
+    "<svg class='ico'><use href='#" + (s.icon || "i-braces") + "'/></svg></span>")) +
     "<div style='min-width:0'><div class='nm'>" + esc(s.name) + "</div>" +
     "<div class='vl'>" + esc(s.what) + "</div></div></div>" +
     (!on && s.would ? "<div class='mini' style='line-height:1.5;font-style:italic'>" + esc(s.would) + "</div>" : "") +
