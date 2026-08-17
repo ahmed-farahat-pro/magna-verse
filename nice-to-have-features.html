@@ -86,7 +86,8 @@ a:hover{text-decoration:underline}
 
 /* ---------------- table of contents ---------------- */
 .toc{max-width:1040px; margin:36px auto 0; padding:0 24px}
-.toc-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:10px}
+.toc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+@media (max-width:720px){ .toc-grid{grid-template-columns:repeat(2,1fr)} }
 .toc a{display:block; border:1px solid var(--line); border-radius:var(--r); padding:12px 14px; color:var(--tx); font-size:12.6px; font-weight:600; text-decoration:none; transition:border-color .15s ease, background .15s ease}
 .toc a:hover{border-color:var(--line-2); background:var(--surface-2)}
 .toc .n{display:block; font-family:var(--mono); font-size:11px; color:var(--tx-3); font-weight:500; margin-bottom:4px}
@@ -135,6 +136,25 @@ h2{font-size:clamp(22px,3vw,30px); font-weight:800; letter-spacing:-.015em; marg
 .tl-item p{font-size:13.6px; color:var(--tx-2); line-height:1.6; margin:0; max-width:62ch}
 .tl-item .release{display:inline-block; margin-top:8px; font-family:var(--mono); font-size:11px; color:var(--tx-3)}
 
+/* ---------------- composer status-bar mockup ---------------- */
+.sb-frame{background:#141414; border:1px solid var(--line-2); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow)}
+.statusbar-mock{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-family:var(--sans); font-size:14px}
+.sb-pill{display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:99px; font-size:13px; font-weight:600}
+.sb-pill.bypass{background:rgba(180,83,9,.22); color:#F0A93C; border:1px solid rgba(240,169,60,.3)}
+.sb-ico-btn{width:26px; height:26px; border-radius:99px; display:grid; place-items:center; color:#8a8a90; font-size:15px}
+.sb-spacer{flex:1}
+.sb-model{color:#e8e8ea; font-size:13.6px}
+.sb-effort{color:#8a8a90; font-size:13.6px}
+.sb-ring-live{width:17px; height:17px}
+.statusbar-legend{display:flex; flex-direction:column; gap:0; margin-top:20px; border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden}
+.statusbar-legend .row{display:flex; gap:14px; padding:15px 18px; border-bottom:1px solid var(--line); align-items:flex-start}
+.statusbar-legend .row:last-child{border-bottom:0}
+.statusbar-legend .row b{display:block; font-size:13.8px; color:var(--tx); margin-bottom:3px}
+.statusbar-legend .row span{font-size:13.2px; color:var(--tx-2); line-height:1.6}
+.statusbar-legend .row .gap-tag{flex:none; align-self:center; font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:4px 9px; border-radius:99px; white-space:nowrap}
+.statusbar-legend .row .gap-tag.proposed{background:var(--amber-dim); color:var(--amber)}
+.statusbar-legend .row .gap-tag.done{background:var(--green-dim); color:var(--green)}
+
 footer{max-width:1040px; margin:0 auto; padding:40px 24px 80px; color:var(--tx-3); font-size:12.6px; border-top:1px solid var(--line)}
 </style>
 </head>
@@ -169,7 +189,8 @@ footer{max-width:1040px; margin:0 auto; padding:40px 24px 80px; color:var(--tx-3
     <a href="#gaps"><span class="n">02</span>Feature gaps vs. ChatGPT/Claude</a>
     <a href="#arabic"><span class="n">03</span>Arabic-specific features</a>
     <a href="#enterprise"><span class="n">04</span>Platform &amp; enterprise features</a>
-    <a href="#roadmap"><span class="n">05</span>Suggested prioritization</a>
+    <a href="#statusbar"><span class="n">05</span>Composer status bar</a>
+    <a href="#roadmap"><span class="n">06</span>Suggested prioritization</a>
   </div>
 </div>
 
@@ -251,8 +272,45 @@ footer{max-width:1040px; margin:0 auto; padding:40px 24px 80px; color:var(--tx-3
   </div>
 </section>
 
+<section id="statusbar">
+  <div class="sect-h"><span class="tag">05</span><h2>Composer status bar</h2></div>
+  <p class="sect-sub">A single-row status bar for the composer, modelled on Claude Code's own session bar — permission mode, quick actions, voice input, model + reasoning effort, and context usage, all in one place instead of spread across menus. One part of this is already live — see the note below.</p>
+
+  <div class="sb-frame">
+    <div class="statusbar-mock">
+      <span class="sb-pill bypass">Bypass permissions</span>
+      <span class="sb-ico-btn">+</span>
+      <span class="sb-ico-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5.5A3.5 3.5 0 0 0 12 15Z"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21M9 21h6"/></svg>
+      </span>
+      <span class="sb-ico-btn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </span>
+      <span class="sb-spacer"></span>
+      <span class="sb-model">Sonnet 5</span>
+      <span class="sb-effort">High</span>
+      <svg class="sb-ring-live" viewBox="0 0 20 20">
+        <circle cx="10" cy="10" r="8" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="2.6"/>
+        <circle cx="10" cy="10" r="8" fill="none" stroke="#D71920" stroke-width="2.6" stroke-linecap="round"
+          stroke-dasharray="50.27" stroke-dashoffset="14" transform="rotate(-90 10 10)"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="statusbar-legend">
+    <div class="row"><span class="gap-tag proposed">Proposed</span>
+      <div class="body"><b>Bypass-permissions mode</b><span>A session-level toggle for power users who want every tool call to run without a per-action approval prompt — with a persistent, unmissable pill so it's never accidentally left on.</span></div></div>
+    <div class="row"><span class="gap-tag proposed">Proposed</span>
+      <div class="body"><b>Voice commands</b><span>A microphone button in the composer for dictating a prompt hands-free — pairs with the Arabic voice-quality work in section 01, since Arabic STT accuracy is the harder half of this.</span></div></div>
+    <div class="row"><span class="gap-tag proposed">Proposed</span>
+      <div class="body"><b>Model + reasoning effort, together</b><span>Choosing a model and how hard it should think (e.g. "Sonnet 5 · High") as one adjacent pair, instead of effort being buried a menu away from the model picker.</span></div></div>
+    <div class="row"><span class="gap-tag done">Already live</span>
+      <div class="body"><b>Context-window ring</b><span>Implemented now, in this exact stroke-ring style — see the small red ring next to the sovereignty pill in the app's own threadbar. Live per-thread, click it for the exact token count.</span></div></div>
+  </div>
+</section>
+
 <section id="roadmap">
-  <div class="sect-h"><span class="tag">05</span><h2>Suggested prioritization</h2></div>
+  <div class="sect-h"><span class="tag">06</span><h2>Suggested prioritization</h2></div>
   <p class="sect-sub">A rough order for the first 2–3 releases, weighted toward daily-use differentiation first, foundational platform capability second, and longer-term moats last.</p>
   <div class="timeline">
     <div class="tl-item" data-n="1">

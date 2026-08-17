@@ -309,11 +309,8 @@ body[data-sidebar="collapsed"] .rail-only{display:flex}
 }
 .sov[data-tier="private"]{color:var(--private);background:var(--private-dim);border-color:color-mix(in srgb,var(--private) 34%,transparent)}
 .sov[data-tier="public"]{color:var(--public);background:var(--public-dim);border-color:color-mix(in srgb,var(--public) 40%,transparent)}
-.ctx-ring{
-  width:15px;height:15px;border-radius:99px;flex:none;
-  background:conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0);
-  transition:background .25s ease;
-}
+.ctx-ring{width:16px;height:16px;flex:none;display:block}
+.ctx-ring #ctxArc{transition:stroke-dashoffset .25s ease}
 #ctxBtn{font-family:var(--mono);font-size:12px}
 .sov .ico{stroke-width:2}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:4px}
@@ -2127,7 +2124,12 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
       </button>
 
       <button class="tb-btn" id="ctxBtn" aria-haspopup="menu" aria-expanded="false" title="Context window used">
-        <span class="ctx-ring" id="ctxRing" style="--p:0"></span><span id="ctxPct">0%</span>
+        <svg class="ctx-ring" id="ctxRing" viewBox="0 0 20 20">
+          <circle cx="10" cy="10" r="8" fill="none" style="stroke:var(--line-2)" stroke-width="2.6"/>
+          <circle cx="10" cy="10" r="8" fill="none" id="ctxArc" style="stroke:var(--accent)" stroke-width="2.6"
+            stroke-linecap="round" stroke-dasharray="50.27" stroke-dashoffset="50.27" transform="rotate(-90 10 10)"/>
+        </svg>
+        <span id="ctxPct">0%</span>
       </button>
 
       <div class="pop" id="ctxPop" role="menu" aria-label="Context window" style="top:46px;left:12px;min-width:280px">
@@ -3840,13 +3842,14 @@ var COMMS_DIRECTORY = [
   { name:"Omar Al-Dosari", role:"Workspace Admin", online:false }
 ];
 /* ---------------- context-window indicator ---------------- */
+var CTX_ARC_LEN = 50.27; /* 2 * PI * r8, matches the #ctxArc circle */
 function updateContextIndicator(){
-  var ring = $("#ctxRing"), pct = $("#ctxPct"); if(!ring) return;
+  var arc = $("#ctxArc"), pct = $("#ctxPct"); if(!arc) return;
   var chars = (transcript.innerText || "").length;
   var tokens = Math.round(chars / 4);
   var max = (MODELS[state.model] && MODELS[state.model].ctx) || 128000;
   var p = Math.max(0, Math.min(99, Math.round(tokens / max * 100)));
-  ring.style.setProperty("--p", p);
+  arc.style.strokeDashoffset = String(CTX_ARC_LEN * (1 - p / 100));
   pct.textContent = p + "%";
   var p2 = $("#ctxPct2"), tk = $("#ctxTokens"), bar = $("#ctxBar");
   if(p2) p2.textContent = p + "%";
