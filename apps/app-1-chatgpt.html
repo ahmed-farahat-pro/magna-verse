@@ -1512,14 +1512,35 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
   font-size:13.2px;line-height:1.6;color:var(--tx);outline:none;resize:vertical;min-height:110px;font-family:var(--sans)}
 
 /* agent cards */
-.agcard{border-left-width:3px;border-left-color:var(--ac, var(--line));transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
-.agcard:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
-.agcard .tile{background:color-mix(in srgb, var(--ac, var(--tx-2)) 16%, var(--surface-2));border-color:color-mix(in srgb, var(--ac, var(--tx-2)) 32%, transparent)}
+.agcard{
+  position:relative;border-left-width:3px;border-left-color:var(--ac, var(--line));overflow:hidden;
+  background:radial-gradient(140% 100% at 0% 0%, color-mix(in srgb, var(--ac, transparent) 9%, transparent), transparent 60%), var(--surface);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.agcard::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--ac, transparent) 65%, transparent), transparent);
+  opacity:.7;
+}
+.agcard:hover{box-shadow:0 10px 28px -8px color-mix(in srgb, var(--ac, var(--tx-3)) 35%, transparent), var(--shadow-sm);transform:translateY(-2px)}
+.agcard .tile{
+  border-radius:99px;background:color-mix(in srgb, var(--ac, var(--tx-2)) 16%, var(--surface-2));
+  border-color:color-mix(in srgb, var(--ac, var(--tx-2)) 34%, transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--ac, transparent) 20%, transparent), 0 0 18px -6px color-mix(in srgb, var(--ac, transparent) 70%, transparent);
+}
 .agcard .cf{gap:7px}
-.agcard.paused{opacity:.72}
-.agcard.paused .tile{background:var(--surface-2);border-color:var(--line)}
+.agcard .status.ok .dot{box-shadow:0 0 0 3px color-mix(in srgb, var(--private) 22%, transparent)}
+@media (prefers-reduced-motion: no-preference){
+  .agcard .status.ok .dot{animation:agPulse 1.8s ease-in-out infinite}
+}
+@keyframes agPulse{0%,100%{box-shadow:0 0 0 3px color-mix(in srgb, var(--private) 22%, transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb, var(--private) 12%, transparent)}}
+.agcard .mini b[style]{font-family:var(--mono)}
+.agcard.paused{opacity:.68}
+.agcard.paused .tile{background:var(--surface-2);border-color:var(--line);box-shadow:none}
+.agcard.paused::before{display:none}
 .agcard.failed{border-color:color-mix(in srgb,var(--public) 38%,transparent)}
 .agcard.failed .tile{background:var(--public-dim);border-color:color-mix(in srgb,var(--public) 34%,transparent)}
+.agcard.failed::before{background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--public) 70%, transparent), transparent)}
 .delmap{width:100%;height:auto;max-width:520px;display:block}
 .delmap text{font-family:var(--sans);font-size:11px;fill:var(--tx-2)}
 .delmap .nlab{font-size:12px;font-weight:600;fill:var(--tx)}
@@ -1714,17 +1735,33 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
 .mc-code{flex:1;min-width:0;background:var(--code-bg);overflow:auto}
 .mc-code pre{margin:0;padding:14px 16px;font-family:var(--mono);font-size:12.4px;line-height:1.7;color:var(--tx)}
 /* chat tab */
-.mc-chat{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--surface)}
-.mc-chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
-.mc-chat-msg{max-width:88%;font-size:12.8px;line-height:1.55;padding:9px 12px;border-radius:12px}
-.mc-chat-msg.user{align-self:flex-end;background:var(--bubble);color:var(--bubble-tx);border-radius:12px 12px 3px 12px}
-.mc-chat-msg.ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:12px 12px 12px 3px}
-.mc-chat-msg.ai b{color:var(--tx)}
-.mc-chat-form{flex:none;display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--surface-2)}
-.mc-chat-form input{flex:1;height:34px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);
-  color:var(--tx);padding:0 11px;font-size:12.8px;outline:none}
-.mc-chat-form input:focus{border-color:var(--signal-bright)}
-.mc-chat-form button{height:34px;padding:0 13px;border-radius:9px;background:var(--accent);color:var(--accent-tx);font-size:12.6px;font-weight:600}
+/* Claude-Code-style CLI transcript */
+.mc-chat{flex:1;display:flex;flex-direction:column;min-height:0;background:#0c0c0e}
+.mc-chat-msgs{flex:1;overflow-y:auto;padding:14px 16px;font-family:var(--mono);font-size:12.4px;line-height:1.7;color:#d4d4d8}
+.cc-welcome{border:1px solid #2a2a30;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#9a9aa2}
+.cc-welcome b{color:#fff}
+.cc-block{margin-bottom:12px}
+.cc-prompt{color:#fff}
+.cc-prompt::before{content:"> ";color:#6a6f7a}
+.cc-tool{display:flex;align-items:baseline;gap:0;color:#e4e4e7}
+.cc-tool::before{content:"⏺ ";color:#5FD98A;flex:none}
+.cc-tool b{color:#fff;font-weight:600}
+.cc-tool .args{color:#9a9aa2}
+.cc-result{color:#6a6f7a;padding-left:2px;margin-top:2px}
+.cc-result::before{content:"⎿  "}
+.cc-say{color:#d4d4d8}
+.cc-say b{color:#fff}
+.cc-diff{margin:6px 0 0;border:1px solid #2a2a30;border-radius:6px;overflow:hidden}
+.cc-diff-head{padding:5px 10px;background:#161618;color:#9a9aa2;font-size:11.5px;border-bottom:1px solid #2a2a30}
+.cc-diff-line{padding:1px 10px;white-space:pre}
+.cc-diff-line.add{background:rgba(63,207,149,.12);color:#8fe0b8}
+.cc-diff-line.del{background:rgba(215,25,32,.14);color:#f0a3a8}
+.cc-diff-line .ln{color:#5a5a62;margin-right:10px;display:inline-block;width:22px;text-align:right}
+.mc-chat-form{flex:none;display:flex;align-items:center;gap:6px;padding:9px 14px;border-top:1px solid #2a2a30;background:#0c0c0e;font-family:var(--mono)}
+.mc-chat-form .cc-caret{color:#6a6f7a;flex:none}
+.mc-chat-form input{flex:1;height:22px;border:0;background:transparent;color:#e4e4e7;font-family:var(--mono);font-size:12.6px;outline:none}
+.mc-chat-form input::placeholder{color:#4b4b52}
+.mc-chat-form .hint{flex:none;font-size:10.5px;color:#4b4b52}
 /* terminal tab */
 .mc-term{flex:1;min-height:0;overflow-y:auto;background:#0a0a0c;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.65;color:#c9c9ce}
 .mc-term .p{color:#5FD98A}
@@ -3084,6 +3121,260 @@ slip <span class="k">AS</span> (
   </div>
 </template>
 
+<template id="tpl-c15">
+  <div class="msg user"><div class="bubble">Between GCP and AWS for our KSA workloads, which is riskier right now?</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · DeepSeek V3.1</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 5s · 2 documents</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Company Knowledge</b> — SDAIA cloud guidance, provider SLA sheets · 1.6s</span></div>
+        <div class="reason-note">A comparison question gets a table, not a paragraph — that was a reported formatting gap and it's fixed here.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>AWS carries more risk today, mainly on data-residency maturity.</p>
+      <div class="tablewrap"><div class="scrollx"><table class="data">
+        <thead><tr><th scope="col">Factor</th><th scope="col">GCP (me-central2)</th><th scope="col">AWS (me-south-1)</th></tr></thead>
+        <tbody>
+          <tr><td>KSA region live</td><td>Yes — Dammam</td><td>Yes — Bahrain-adjacent</td></tr>
+          <tr><td>Data residency cert.</td><td>SDAIA-aligned</td><td>In progress</td></tr>
+          <tr><td>Uptime SLA (12mo)</td><td class="num">99.95%</td><td class="num">99.90%</td></tr>
+          <tr><td>Support tier used</td><td>Premium</td><td>Business</td></tr>
+        </tbody>
+      </table></div><div class="tbl-cap">Source: provider SLA sheets and the SDAIA cloud guidance note, both in Company Knowledge.</div></div>
+      <p>The residency certification gap is the deciding factor — everything else is close enough not to matter for a KSA-hosted workload.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · DeepSeek V3.1 · Riyadh DC-1 · 5.0s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c16">
+  <div class="msg user"><div class="bubble">Explain clause 8.4 of GC-8 in plain language.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Qwen 3 · 235B</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 2s · searched 1 document</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Company Knowledge</b> — GC-8, page 22, clause 8.4 · 0.7s</span></div>
+        <div class="reason-note">Plain-language answers render as short paragraphs and a callout, not a dense legal-style block — that was the reported "old style" complaint.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Clause 8.4 caps liquidated damages at <strong>10% of the package value</strong>, accruing at 0.15% per day of delay.</p>
+      <div class="callout"><b>What that means in practice:</b> at 0.15% a day, the cap only kicks in past <strong>day 67</strong> of delay. Before that, LD is uncapped but small; standby and idle-crew cost usually outweighs it long before the cap matters.</div>
+      <p>It does <em>not</em> cap the Subcontractor's other liabilities — only liquidated damages specifically.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Qwen 3 · 235B · Riyadh DC-1 · 2.1s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c17">
+  <div class="msg user"><div class="bubble">Summarise this 60-page HSE annual report into one page.<br><span class="src" style="display:inline-flex;margin-top:6px"><svg class="ico xs"><use href="#i-file"/></svg>HSE-Annual-2026.pdf · 60 pages</span></div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 6s · 1 upload · 60 pages read</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>HSE-Annual-2026.pdf</b> — uploaded to this thread, indexed on the Private tier · 4.8s</span></div>
+        <div class="reason-note">The upload used to fail intermittently on Private (Public was fine) — this run completed cleanly, and the file stays attached to the thread for follow-ups.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>I have the PDF you uploaded — 60 pages, read in full. Here's the one-page version.</p>
+      <p><strong>1,240</strong> observations logged this year; <strong>96%</strong> of corrective actions closed within 14 days. Two near-miss clusters in the C2 laydown area line up with the weeks of heaviest schedule pressure.</p>
+      <div class="tablewrap"><div class="scrollx"><table class="data">
+        <thead><tr><th scope="col">Category</th><th scope="col">Detail</th><th scope="col" class="num">2026</th></tr></thead>
+        <tbody>
+          <tr><td>Recordable incidents</td><td>None</td><td class="num">0</td></tr>
+          <tr><td>Near misses</td><td>Dropped objects, access</td><td class="num">31</td></tr>
+          <tr><td>Corrective actions</td><td>4 overdue past 14 days</td><td class="num">212</td></tr>
+        </tbody>
+      </table></div></div>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c17"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> — the summary opens beside this chat, not a new tab, and you can still ask me follow-ups against the full 60 pages.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 6.4s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c18">
+  <div class="msg user"><div class="bubble">Translate this variation notice to Arabic and save it as a PDF.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Qwen 3 · 235B</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 4s · no tools needed</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Translated in full</b> — checked for the dropped-paragraph and blank-line issue before export · 2.2s</span></div>
+        <div class="reason-note">Two earlier bugs are fixed here: replies no longer come back with stray blank spaces, and the exported PDF renders Arabic text correctly instead of corrupting it.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Translated and exported — no blank paragraphs, and the Arabic page renders correctly rather than as corrupted glyphs.</p>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c18"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> — page 1 is Arabic, page 2 is the English source, so you can check both side by side.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Qwen 3 · 235B · Riyadh DC-1 · 4.2s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c19">
+  <div class="msg user"><div class="bubble">Draft the amendment letter for GC-8 and let me edit it.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 3s · searched 1 document</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Company Knowledge</b> — GC-8, clause 4.2 for the completion date wording · 0.9s</span></div>
+        <div class="reason-note">The Canvas button now stays in the same place in every reply, and reopening a thread's canvas no longer takes hunting for a hidden control.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Drafted Amendment No. 3 — revised completion date for piers P12–P16, no change to the Subcontract Price.</p>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c19"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> to edit it directly. The button is right here on this message and on the composer toolbar — it won't move or disappear if you close the panel.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 3.3s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c20">
+  <div class="msg user"><div class="bubble">Produce a document I can hand to Legal — make sure it's the whole thing this time, not just the header.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 5s · 2 documents</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Composed all 4 sections</b> — Background, Cause, Contractual position, Recommendation · 3.6s</span></div>
+        <div class="reason-note">The generator used to stop after the header on longer documents. This one is verified complete before the canvas opens.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p><strong>legal-handover-c2.html</strong> — all four sections are there: Background, Cause, Contractual position, Recommendation.</p>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c20"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> to check it end to end before you send it — scroll to the bottom and you'll see the Recommendation section, not a blank page.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 5.2s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c21">
+  <div class="msg user"><div class="bubble">Compute the exposure model for C3 and show the maths, the same way you did for C2.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · DeepSeek V3.1</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 4s · mcp: p6-schedule</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-p6.compare_baseline</b> — Package C3, Baseline r7 vs live · 2.1s</span></div>
+        <div class="reason-note">Numeric answers are double-checked against the source figures before they're shown — the occasional wrong-number slip is what this checks for.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>C3 is <strong>15 days</strong> behind baseline, with <strong>9 days of float</strong> already absorbed on the critical path.</p>
+      <p>Standby cost: 15 days × SAR 9,400/day crew standby = <strong>SAR 141,000</strong>. Liquidated damages: 15 days × 0.12% of package value (SAR 18.4M) = <strong>SAR 331,200</strong>, well under the 10% cap.</p>
+      <p>Total exposure: <strong>SAR 472,200</strong> — small next to C2 because most of C3's slip is still inside its float.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · DeepSeek V3.1 · Riyadh DC-1 · 4.4s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c22">
+  <div class="msg user"><div class="bubble">Find the outliers in the vendor master CSV and reconcile it against SAP — don't guess, use the attached file.<br><span class="src" style="display:inline-flex;margin-top:6px"><svg class="ico xs"><use href="#i-file"/></svg>vendor-master-extract-2026-08.csv</span></div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · DeepSeek V3.1</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 5s · 1 upload · mcp: sap-po-lookup</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Parsed vendor-master-extract-2026-08.csv</b> — 4,182 rows, numeric columns type-checked before comparison · 2.4s</span></div>
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-sap.get_vendor_master</b> — cross-checked every figure below against SAP directly · 3.0s</span></div>
+        <div class="reason-note">Two issues from earlier testing are addressed: CSV columns are parsed by type, not guessed, and every number below traces to the attached file or SAP — none of it is invented.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>3 outliers, all in the same category — payment terms that don't match their prequalification tier.</p>
+      <div class="tablewrap"><div class="scrollx"><table class="data">
+        <thead><tr><th scope="col">Vendor</th><th scope="col">CSV value</th><th scope="col">SAP value</th><th scope="col">Flag</th></tr></thead>
+        <tbody>
+          <tr><td>Al-Yamamah Steel</td><td>Net 90</td><td>Net 45 (category B)</td><td>Mismatch</td></tr>
+          <tr><td>Gulf Formwork Co.</td><td>SAR 0 credit limit</td><td>SAR 2.1M</td><td>Likely blank-field import error</td></tr>
+          <tr><td>Al-Rajhi Steel</td><td>Category A</td><td>Category A</td><td>Confirmed, not an outlier</td></tr>
+        </tbody>
+      </table></div><div class="tbl-cap">Every value above is read from the attached CSV or from SAP — nothing here is estimated.</div></div>
+      <p>Recommend fixing the Gulf Formwork credit limit first — a SAR 0 limit would block their next PO.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · DeepSeek V3.1 · Riyadh DC-1 · 5.4s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c23">
+  <div class="msg user"><div class="bubble">Build the Q3 board deck again, but don't force our branding on it this time — and make it faster.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 3s · no tools needed</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>Switched to the neutral template</b> — Magna's slide theme is now opt-in, not the default · 0.4s</span></div>
+        <div class="reason-note">Two things fixed: the deck no longer defaults to Magna's own branding, and generation is composed as one pass rather than roughly a minute per slide.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>3 slides, neutral template, generated in one pass rather than the ~2 minutes a slide it used to take.</p>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c23"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> — say the word if you want the Magna theme back on for a specific deck; it's a toggle now, not the default.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 3.1s</span>
+    </div>
+  </div>
+</template>
+
 <!-- first-run tour card (D10) -->
 <template id="tpl-firstrun">
   <div class="firstrun" id="firstrunCard">
@@ -3281,7 +3572,16 @@ var CONVS = [
   { id:"c11",group:"Last 7 days", title:"Gather → Analyze chain",              meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true },
   { id:"c12",group:"Last 7 days", title:"C2 status page",                     meta:"Kimi K2 Instruct · html created", live:false, internal:true },
   { id:"c13",group:"Last 7 days", title:"PO lines CSV",                       meta:"Kimi K2 Instruct · csv created", live:false, internal:true },
-  { id:"c14",group:"Last 7 days", title:"Exposure workbook",                  meta:"Kimi K2 Instruct · xlsx created", live:false, internal:true }
+  { id:"c14",group:"Last 7 days", title:"Exposure workbook",                  meta:"Kimi K2 Instruct · xlsx created", live:false, internal:true },
+  { id:"c15",group:"Last 7 days", title:"GCP vs AWS risk",                    meta:"DeepSeek V3.1 · 2 messages", live:false, internal:false },
+  { id:"c16",group:"Last 7 days", title:"GC-8 clause explained",              meta:"Qwen 3 · 2 messages", live:false, internal:true },
+  { id:"c17",group:"Last 7 days", title:"60-page report summary",             meta:"Kimi K2 Instruct · pdf uploaded", live:false, internal:true },
+  { id:"c18",group:"Last 7 days", title:"Arabic variation notice",            meta:"Qwen 3 · pdf created", live:false, internal:true },
+  { id:"c19",group:"Last 7 days", title:"Amendment letter draft",             meta:"Kimi K2 Instruct · html created", live:false, internal:true },
+  { id:"c20",group:"Last 7 days", title:"Legal handover doc",                 meta:"Kimi K2 Instruct · html created", live:false, internal:true },
+  { id:"c21",group:"Last 7 days", title:"C3 exposure maths",                  meta:"DeepSeek V3.1 · 2 messages", live:false, internal:true },
+  { id:"c22",group:"Last 7 days", title:"Vendor master outliers",             meta:"DeepSeek V3.1 · 2 messages", live:false, internal:true },
+  { id:"c23",group:"Last 7 days", title:"Neutral board deck",                 meta:"Kimi K2 Instruct · pptx created", live:false, internal:true }
 ];
 
 var SKILLS = [
@@ -4208,6 +4508,49 @@ var CANVAS_ITEMS = {
   "demo-pptx": { kind:"pptx", name:"q3-board-deck.pptx", size:"1.4 MB", label:"Q3 board deck, 3 slides",
     slides:[
       { title:"Q3 Delivery Review", bullets:["Riyadh Metro Packages C2 · C3 · E4","Prepared by MagnaVERSE, 16 Aug 2026"] },
+      { title:"Schedule exposure", bullets:["C2: SAR 5.32M at 45 days","C3: 15 days behind, float absorbing","E4: on baseline"] },
+      { title:"Actions this week", bullets:["Chase Al-Rajhi mill certificates","Hold second-supplier slot for C2 balance","Reforecast C2 finish date"] }
+    ] },
+  c17: { kind:"pdf", name:"hse-annual-summary.pdf", size:"188 KB", label:"60-page report, summarised to 1 page",
+    pages:[
+      { title:"Annual HSE report — one-page summary", body:"Source: HSE-Annual-2026.pdf, 60 pages, uploaded to this thread. 1,240 observations logged, 96% of corrective actions closed within 14 days. Two near-miss clusters in the C2 laydown area correlate with schedule pressure in weeks 28–33." }
+    ] },
+  c18: { kind:"pdf", name:"c2-variation-notice-ar.pdf", size:"96 KB", label:"Arabic translation, saved as PDF",
+    pages:[
+      { title:"إشعار تغيير — الحزمة C2", body:"أشعرت شركة الراشد للمقاولات بتأخير تسعة أيام في تسلسل تثبيت حديد التسليح للحزمة C2 بتاريخ 16 أغسطس. السبب يعود جزئياً إلى تأكيد دفعة المصنع وجزئياً إلى توقف طاقم التثبيت." },
+      { title:"Variation notice — Package C2 (English)", body:"Al-Rashid Contracting notified a nine-day slip on the Package C2 rebar fixing sequence on 16 August. The cause splits between mill lot confirmation and a fixing-crew stand-down." }
+    ] },
+  c19: { kind:"html", name:"gc8-amendment-3.html", size:"3.4 KB", label:"Contract amendment letter",
+    html:"<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><style>"+
+      "body{font-family:Georgia,serif;background:#f4f5f7;margin:0;padding:40px 20px;color:#1a1a1a}"+
+      ".page{max-width:560px;margin:0 auto;background:#fff;padding:44px 48px;box-shadow:0 10px 30px rgba(0,0,0,.08);line-height:1.7;font-size:14px}"+
+      ".page h1{font-size:16px;text-align:center;letter-spacing:.04em;margin-bottom:28px}"+
+      ".page .ref{color:#666;font-size:12px;margin-bottom:24px}"+
+      "</style></head><body><div class=\"page\">"+
+      "<h1>AMENDMENT No. 3 TO SUBCONTRACT GC-8</h1>"+
+      "<div class=\"ref\">Re: Package C2 — rebar fixing sequence, Riyadh Metro RYD-M3</div>"+
+      "<p>This Amendment No. 3 (\"Amendment\") is made to Subcontract GC-8 between Magna KSA (\"Contractor\") and Al-Rashid Contracting (\"Subcontractor\").</p>"+
+      "<p><b>1. Revised completion.</b> The fixing sequence for piers P12–P16 shall complete no later than 25 September 2026, superseding the date in Clause 4.2.</p>"+
+      "<p><b>2. Consideration.</b> No change to the Subcontract Price arises from this Amendment.</p>"+
+      "<p><b>3. All other terms</b> of GC-8 remain unchanged and in full force.</p>"+
+      "<p style=\"margin-top:36px\">For Magna KSA: ______________________&nbsp;&nbsp;&nbsp; Date: __________</p>"+
+      "</div></body></html>" },
+  c20: { kind:"html", name:"legal-handover-c2.html", size:"5.1 KB", label:"Legal document — full draft, 4 sections",
+    html:"<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><style>"+
+      "body{font-family:Georgia,serif;background:#f4f5f7;margin:0;padding:36px 20px;color:#1a1a1a}"+
+      ".page{max-width:600px;margin:0 auto;background:#fff;padding:40px 46px;box-shadow:0 10px 30px rgba(0,0,0,.08);line-height:1.65;font-size:13.5px}"+
+      ".page h1{font-size:16px;margin-bottom:4px}.page .sub{color:#666;font-size:12px;margin-bottom:22px}"+
+      ".page h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin:22px 0 6px;color:#333}"+
+      "</style></head><body><div class=\"page\">"+
+      "<h1>Package C2 — Notice of Delay, handover to Legal</h1><div class=\"sub\">Prepared for Legal review · 16 Aug 2026</div>"+
+      "<h2>1. Background</h2><p>Al-Rashid Contracting notified a 9-day slip on the C2 rebar fixing sequence (piers P12–P16) on 16 August, against Baseline r7 and PO 4500219871.</p>"+
+      "<h2>2. Cause</h2><p>2 days attributable to mill lot confirmation (Magna); 7 days to the fixing crew stand-down of 11–12 August (Subcontractor).</p>"+
+      "<h2>3. Contractual position</h2><p>Clause 8.4 of GC-8 caps liquidated damages at 10% of package value. At the current forecast the cap is not yet engaged; standby cost is the larger exposure.</p>"+
+      "<h2>4. Recommendation</h2><p>Issue a notice under Clause 12.1 reserving Magna's rights, and request daily manpower returns for 9–14 August before any settlement discussion.</p>"+
+      "</div></body></html>" },
+  c23: { kind:"pptx", name:"q3-board-deck-neutral.pptx", size:"1.2 MB", label:"Q3 board deck — neutral template, 3 slides",
+    slides:[
+      { title:"Q3 Delivery Review", bullets:["Riyadh Metro Packages C2 · C3 · E4","Neutral template — no Magna branding applied"] },
       { title:"Schedule exposure", bullets:["C2: SAR 5.32M at 45 days","C3: 15 days behind, float absorbing","E4: on baseline"] },
       { title:"Actions this week", bullets:["Chase Al-Rajhi mill certificates","Hold second-supplier slot for C2 balance","Reforecast C2 finish date"] }
     ] }
@@ -6099,35 +6442,67 @@ var PROJECTS = [
      { name:"notes.md", code:"# Delivery dashboard\n\nPulled from PO Slippage Watch + HSE Digest. Static demo — wire\nto the live agents once the layout is approved." }] }
 ];
 var mcOpen = null, mcFile = 0, mcDevice = "desktop", mcTab = "code";
+/* Claude-Code-style CLI transcript, per project — a sequence of typed blocks */
 var MC_CHAT = {
   p1: [
-    { role:"user", text:"Add a red pill for anything more than 5 days late, and keep it readable on a phone." },
-    { role:"ai", text:"Done — the <b>Current status</b> badge already turns red past that threshold; I widened its padding slightly so the text doesn't wrap at 375px." }
+    { k:"prompt", text:"Add a red pill for anything more than 5 days late, and keep it readable on a phone." },
+    { k:"tool", name:"Read", args:"index.html", result:"Read 20 lines" },
+    { k:"tool", name:"Update", args:"index.html", result:"Updated index.html with 1 change" },
+    { k:"diff", file:"index.html", lines:[
+      ["del",9,".status{padding:3px 10px;font-size:11.5px}"],
+      ["add",9,".status{padding:4px 12px;font-size:11.5px;white-space:nowrap}"]
+    ] },
+    { k:"say", html:"Done — widened the badge and stopped it wrapping at 375px. The red threshold past 5 days was already wired up." }
   ],
   p2: [
-    { role:"user", text:"Make the stat cards stack in a single column under 480px." },
-    { role:"ai", text:"Added a media query so the grid drops from 2 columns to 1 below 480px wide. Nothing else in the layout changed." }
+    { k:"prompt", text:"Make the stat cards stack in a single column under 480px." },
+    { k:"tool", name:"Read", args:"index.html", result:"Read 18 lines" },
+    { k:"tool", name:"Update", args:"index.html", result:"Updated index.html with 1 change" },
+    { k:"diff", file:"index.html", lines:[
+      ["ctx",6,".grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}"],
+      ["add",7,"@media (max-width:480px){.grid{grid-template-columns:1fr}}"]
+    ] },
+    { k:"say", html:"Added a media query so the grid drops to one column below 480px wide. Nothing else in the layout changed." }
   ]
 };
-var MC_REPLIES = [
-  "I've noted that and would apply it to " + "{file}" + " — this prototype previews changes, it doesn't write them back yet.",
-  "Good call. In the real build that'd be a small CSS change in {file}; here it's a preview surface, so nothing is saved.",
-  "Makes sense. I'd scope that to {file} — flagging it as a note for now, since edits don't persist in this demo."
-];
+function ccBlockHTML(b){
+  if(b.k === "prompt") return "<div class='cc-block cc-prompt'>" + esc(b.text) + "</div>";
+  if(b.k === "tool") return "<div class='cc-block'><div class='cc-tool'><b>" + esc(b.name) + "</b><span class='args'>(" + esc(b.args) + ")</span></div>" +
+    (b.result ? "<div class='cc-result'>" + esc(b.result) + "</div>" : "") + "</div>";
+  if(b.k === "diff") return "<div class='cc-block'><div class='cc-diff'><div class='cc-diff-head'>" + esc(b.file) + "</div>" +
+    b.lines.map(function(l){
+      var type = l[0], ln = l[1], text = l[2];
+      return "<div class='cc-diff-line " + (type === "add" ? "add" : type === "del" ? "del" : "") + "'>" +
+        "<span class='ln'>" + ln + "</span>" + (type === "add" ? "+ " : type === "del" ? "- " : "  ") + esc(text) + "</div>";
+    }).join("") + "</div></div>";
+  if(b.k === "say") return "<div class='cc-block cc-say'>" + b.html + "</div>";
+  return "";
+}
+function mcChatPaneHTML(p){
+  var blocks = MC_CHAT[p.id] || [];
+  return "<div class='mc-chat'><div class='mc-chat-msgs' id='mcChatMsgs'>" +
+    "<div class='cc-welcome'>✻ Welcome to <b>Magna Code</b>. Ask me to build or change something in " + esc(p.name) + ".</div>" +
+    blocks.map(ccBlockHTML).join("") +
+    "</div><div class='mc-chat-form'><span class='cc-caret'>&gt;</span>" +
+    "<input id='mcChatInput' type='text' placeholder='Ask Magna Code to change this project…'>" +
+    "<span class='hint'>↵ send</span></div></div>";
+}
+function scrollChat(){ var box = $("#mcChatMsgs"); if(box) box.scrollTop = box.scrollHeight; }
 function mcChatSend(){
   var input = $("#mcChatInput"); if(!input) return;
   var text = input.value.trim(); if(!text) return;
   var chat = MC_CHAT[mcOpen] || (MC_CHAT[mcOpen] = []);
-  chat.push({ role:"user", text:text });
+  chat.push({ k:"prompt", text:text });
   input.value = "";
   renderView();
-  var box = $("#mcChatMsgs"); if(box) box.scrollTop = box.scrollHeight;
+  scrollChat();
   setTimeout(function(){
     var p = PROJECTS.filter(function(x){ return x.id === mcOpen; })[0];
-    var reply = MC_REPLIES[chat.length % MC_REPLIES.length].replace("{file}", p ? p.files[mcFile].name : "the file");
-    chat.push({ role:"ai", text:esc(reply) });
+    var file = p ? p.files[mcFile].name : "the file";
+    chat.push({ k:"tool", name:"Read", args:file, result:"Read " + (p ? p.files[mcFile].code.split("\n").length : 1) + " lines" });
+    chat.push({ k:"say", html:"Noted. This prototype previews project code — it doesn't write changes back, so I've left that as a note for the next build rather than editing " + esc(file) + "." });
     if(mcOpen && mcTab === "chat") renderView();
-    var box2 = $("#mcChatMsgs"); if(box2) box2.scrollTop = box2.scrollHeight;
+    scrollChat();
   }, 900);
 }
 function mcTerminalHTML(p){
@@ -6164,13 +6539,9 @@ function mcCard(p){
 }
 function magnaCodeEditor(p){
   var f = p.files[mcFile];
-  var chat = MC_CHAT[p.id] || [];
   var pane;
   if(mcTab === "chat"){
-    pane = "<div class='mc-chat'><div class='mc-chat-msgs' id='mcChatMsgs'>" +
-      chat.map(function(m){ return "<div class='mc-chat-msg " + m.role + "'>" + (m.role === "ai" ? m.text : esc(m.text)) + "</div>"; }).join("") +
-      "</div><div class='mc-chat-form'><input id='mcChatInput' type='text' placeholder='Ask Magna Code to change this project…'>" +
-      "<button data-act3='mc-chat-send'><svg class='ico xs'><use href='#i-send'/></svg></button></div></div>";
+    pane = mcChatPaneHTML(p);
   } else if(mcTab === "terminal"){
     pane = mcTerminalHTML(p);
   } else {
@@ -6412,7 +6783,6 @@ document.addEventListener("click", function(e){
     return;
   }
   if(a === "view-flow") return viewAutomationFlow(b.getAttribute("data-id"));
-  if(a === "mc-chat-send") return mcChatSend();
   if(a === "test-one"){ b.textContent = "Reaching…"; setTimeout(function(){ b.textContent = "Test"; toast("Reached " + b.getAttribute("data-name") + " · 5 tools discovered · 42 ms, all inside Riyadh DC-1."); }, 900); return; }
   if(a === "test-all"){
     var okN = 0, errN = [], degN = [];
@@ -6731,6 +7101,7 @@ function schedError(id){
           "<button class='btn' data-close='sheetScrim'>Close</button>"
   });
 }
+var pendingSchedule = null;
 function newScheduleSheet(){
   openSheet({
     title:"New automation", icon:"i-clock",
@@ -6923,13 +7294,27 @@ $("#sheetScrim").addEventListener("click", function(e){
     return;
   }
   if(a4 === "save-schedule"){
-    var nm = ($("#schName") && $("#schName").value.trim()) || "Untitled automation";
-    SCHEDULES.push({ id:"s" + (SCHEDULES.length+1), name:nm, cron:($("#schCron")||{}).value || "0 6 * * 1-5",
-      en:($("#cronEn")||{}).textContent || "Custom schedule", agent:"Board Pack Drafter", last:"Never run", ms:"—",
-      ok:null, result:"Created just now — waiting for its first run", next:"Tomorrow 06:00", on:true, auto:false });
+    pendingSchedule = { name:($("#schName") && $("#schName").value.trim()) || "Untitled automation",
+      cron:($("#schCron")||{}).value || "0 6 * * 1-5", en:($("#cronEn")||{}).textContent || "Custom schedule" };
+    openSheet({
+      title:"Preview — " + pendingSchedule.name, icon:"i-play",
+      body:"<p style='font-size:13.6px;color:var(--tx-2);line-height:1.6'>Before this goes live, here's the shape of its first run and what it would send — approve it, or go back and change something.</p>" +
+        "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:16px 0 8px'>Flow — a typical run</h4>" +
+        runFlowHTML([["Loaded configuration v1","0.2s"],["Called magna-p6.compare_baseline","4.1s"],["Composed digest","2.0s"]]) +
+        "<div class='callout' style='margin-top:4px'><b>Would send:</b> a message in this chat summarising anything slipping more than 5 days. Auto-approve is off, so nothing is posted anywhere else unless you turn that on.</div>",
+      foot:"<button class='btn' data-act4='edit-schedule-back'>Back to edit</button><button class='btn primary' data-act4='confirm-schedule'>Approve and create</button>"
+    });
+    return;
+  }
+  if(a4 === "edit-schedule-back"){ newScheduleSheet(); return; }
+  if(a4 === "confirm-schedule"){
+    var s = pendingSchedule || { name:"Untitled automation", cron:"0 6 * * 1-5", en:"Custom schedule" };
+    SCHEDULES.push({ id:"s" + (SCHEDULES.length+1), name:s.name, cron:s.cron, en:s.en, agent:"Board Pack Drafter",
+      last:"Never run", ms:"—", ok:null, result:"Created just now — waiting for its first run", next:"Tomorrow 06:00", on:true, auto:false });
+    pendingSchedule = null;
     closeOverlay("#sheetScrim");
     setView("automations");
-    toast("“" + nm + "” created. Auto-approve is off, so it will pause rather than send anything on its own.");
+    toast("“" + s.name + "” created. Auto-approve is off, so it will pause rather than send anything on its own.");
     return;
   }
   if(a4 === "design-in-chat"){
