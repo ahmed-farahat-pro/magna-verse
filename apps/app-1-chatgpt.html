@@ -2124,9 +2124,23 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
         <button class="tb-btn" id="canvasToggleBtn" aria-pressed="false" aria-label="Open Canvas and Model view">
           <svg class="ico sm"><use href="#i-layers"/></svg><span>Canvas</span>
         </button>
+        <button class="tb-icon" id="notifBtn" aria-haspopup="menu" aria-expanded="false" aria-label="Notifications" style="position:relative">
+          <svg class="ico sm"><use href="#i-bell"/></svg>
+          <span id="notifDot" style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:99px;background:var(--public)"></span>
+        </button>
         <button class="tb-btn" id="tbSearchBtn" aria-label="Search conversations, documents and actions">
           <svg class="ico sm"><use href="#i-search"/></svg><span class="kbd kbd-hint" aria-hidden="true">⌘K</span>
         </button>
+      </div>
+
+      <!-- notifications -->
+      <div class="pop" id="notifPop" role="menu" aria-label="Notifications" style="top:46px;right:12px;min-width:360px;max-height:70vh;overflow-y:auto">
+        <div class="tabs" role="tablist" style="margin:0 0 10px">
+          <button class="tab" data-notiftab="feed" role="tab" aria-selected="true">Notifications</button>
+          <button class="tab" data-notiftab="activity" role="tab" aria-selected="false">Activity</button>
+          <button class="tab" data-notiftab="comms" role="tab" aria-selected="false">Communication</button>
+        </div>
+        <div id="notifBody"></div>
       </div>
 
       <!-- model picker -->
@@ -2355,8 +2369,12 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
         <button data-pane="appearance"><svg class="ico sm"><use href="#i-sun"/></svg>Appearance</button>
         <button data-pane="models"><svg class="ico sm"><use href="#i-layers"/></svg>Models</button>
         <button data-pane="sovereignty"><svg class="ico sm"><use href="#i-shield"/></svg>Sovereignty &amp; data</button>
+        <button data-pane="governance"><svg class="ico sm"><use href="#i-warn"/></svg>Governance</button>
         <button data-pane="connectors"><svg class="ico sm"><use href="#i-plug"/></svg>Connectors</button>
         <button data-pane="skills"><svg class="ico sm"><use href="#i-braces"/></svg>Skills &amp; MCP</button>
+        <button data-pane="memory"><svg class="ico sm"><use href="#i-book"/></svg>Memory</button>
+        <button data-pane="personality"><svg class="ico sm"><use href="#i-spark"/></svg>Personality</button>
+        <button data-pane="usage"><svg class="ico sm"><use href="#i-table"/></svg>Usage &amp; budget</button>
         <button data-pane="account"><svg class="ico sm"><use href="#i-user"/></svg>Account</button>
         <button data-pane="help"><svg class="ico sm"><use href="#i-help"/></svg>Help &amp; roadmap</button>
       </nav>
@@ -3757,7 +3775,8 @@ $("#newChatBtn").addEventListener("click", function(){ newChat(); if(isMobile())
 var pops = [
   { pop:"#modelPop", btn:"#modelBtn" },
   { pop:"#sovPop",   btn:"#sovBtn" },
-  { pop:"#acctPop",  btn:"#acctBtn" }
+  { pop:"#acctPop",  btn:"#acctBtn" },
+  { pop:"#notifPop", btn:"#notifBtn" }
 ];
 function closePops(except){
   pops.forEach(function(p){
@@ -3770,13 +3789,59 @@ function togglePop(sel){
   var p = pops.filter(function(x){ return x.pop === sel; })[0];
   var el = $(p.pop), open = el.classList.contains("open");
   closePops();
-  if(!open){ el.classList.add("open"); $(p.btn).setAttribute("aria-expanded","true"); el.querySelector(".mi").focus(); }
+  if(!open){
+    el.classList.add("open"); $(p.btn).setAttribute("aria-expanded","true");
+    if(sel === "#notifPop"){ renderNotifPane(); var d = $("#notifDot"); if(d) d.style.display = "none"; }
+    var f = el.querySelector(".mi"); if(f) f.focus();
+  }
 }
 pops.forEach(function(p){ $(p.btn).addEventListener("click", function(e){ e.stopPropagation(); togglePop(p.pop); }); });
 document.addEventListener("click", function(e){
-  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#sovBtn,#acctBtn")) closePops();
+  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#sovBtn,#acctBtn,#notifBtn")) closePops();
 });
 function anyPopOpen(){ return pops.some(function(p){ return $(p.pop).classList.contains("open"); }); }
+
+/* ---------------- notifications ---------------- */
+var notifTab = "feed";
+var BG_LOOPS = [
+  { name:"scheduler-tick", detail:"Checks every automation's next-run time.", last:"a moment ago" },
+  { name:"skill-sync", detail:"Refreshes the skill catalogue from the workspace config.", last:"2 min ago" },
+  { name:"housekeeping-sweep", detail:"Clears expired drafts and stale approval requests.", last:"14 min ago" },
+  { name:"broker-drain", detail:"Flushes queued automation results to their channels.", last:"22 min ago" }
+];
+var COMMS_DIRECTORY = [
+  { name:"Fatima Al-Harbi", role:"Commercial Manager", online:true },
+  { name:"Khalid Al-Otaibi", role:"Al-Rajhi Steel — account contact", online:false },
+  { name:"Sara Al-Qahtani", role:"HSE Lead", online:true },
+  { name:"Omar Al-Dosari", role:"Workspace Admin", online:false }
+];
+function renderNotifPane(){
+  var body = $("#notifBody"); if(!body) return;
+  if(notifTab === "feed"){
+    body.innerHTML = activity.length ? activity.slice(0,8).map(function(a){
+      return "<div class='list-line'><div><div class='nm'>" + esc(a.action) + "</div><div class='d'>" + esc(a.system) + " · " + esc(a.result) + "</div></div>" +
+        "<div class='rt'><span class='mini'>" + esc(a.by) + "</span></div></div>";
+    }).join("") : "<div class='emptybox'><b>Nothing yet</b><p>Approvals, agent runs and automation results show up here as they happen.</p></div>";
+  } else if(notifTab === "activity"){
+    body.innerHTML = BG_LOOPS.map(function(l){
+      return "<div class='list-line'><div><div class='nm'><code>" + esc(l.name) + "</code></div><div class='d'>" + esc(l.detail) + "</div></div>" +
+        "<div class='rt'>" + statusPill("ok","healthy") + "<div class='mini' style='margin-top:3px'>" + esc(l.last) + "</div></div></div>";
+    }).join("");
+  } else {
+    body.innerHTML = COMMS_DIRECTORY.map(function(c){
+      return "<div class='list-line'><div style='display:flex;align-items:center;gap:9px'>" +
+        "<span class='avatar' style='width:26px;height:26px;font-size:10.5px' aria-hidden='true'>" + esc(c.name.split(" ").map(function(p){ return p[0]; }).join("").slice(0,2)) + "</span>" +
+        "<div><div class='nm'>" + esc(c.name) + "</div><div class='d'>" + esc(c.role) + "</div></div></div>" +
+        "<div class='rt'><span class='mini' style='color:" + (c.online ? "var(--private)" : "var(--tx-3)") + "'>●&nbsp;" + (c.online ? "Online" : "Offline") + "</span></div></div>";
+    }).join("");
+  }
+}
+$("#notifPop").addEventListener("click", function(e){
+  var t = e.target.closest("[data-notiftab]"); if(!t) return;
+  notifTab = t.getAttribute("data-notiftab");
+  $$(".tab", $("#notifPop")).forEach(function(x){ x.setAttribute("aria-selected", String(x === t)); });
+  renderNotifPane();
+});
 
 /* model */
 function setModel(key, silent){
@@ -4837,6 +4902,72 @@ var PANES = {
     row("Residency record","Download the signed record of where each answer in this thread ran.",
         "<button class='btn sm' data-action='residency'><svg class='ico xs'><use href='#i-download'/></svg>Download</button>");
   },
+  governance: function(){
+    return "<h3>Governance &amp; security</h3><p class='pane-sub'>What's being enforced across the workspace, and by whom — not per-thread settings, those live under Sovereignty &amp; data.</p>" +
+    "<div class='cardgrid' style='grid-template-columns:repeat(3,1fr);margin-bottom:16px'>" +
+    "<div class='ccard' style='gap:4px'><div class='mini'>PII masked, this month</div><div style='font-size:22px;font-weight:700;color:var(--tx);font-family:var(--mono)'>1,842</div></div>" +
+    "<div class='ccard' style='gap:4px'><div class='mini'>Actions blocked by policy</div><div style='font-size:22px;font-weight:700;color:var(--public);font-family:var(--mono)'>3</div></div>" +
+    "<div class='ccard' style='gap:4px'><div class='mini'>Standards checks passing</div><div style='font-size:22px;font-weight:700;color:var(--private);font-family:var(--mono)'>4 of 4</div></div>" +
+    "</div>" +
+    "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:6px 0 2px'>Standards</h4>" +
+    [["SDAIA cloud policy","Aligned — Private tier only"],["ISO 27001","Certified, renewed Mar 2026"],
+     ["Data residency","All Private-tier inference stays in Riyadh DC-1"],["Access review","Last run 01 Aug 2026, no findings"]]
+      .map(function(s){ return "<div class='list-line'><div><div class='nm'>" + esc(s[0]) + "</div><div class='d'>" + esc(s[1]) + "</div></div>" +
+        "<div class='rt'><span class='tag priv'>passing</span></div></div>"; }).join("") +
+    "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:20px 0 2px'>Access &amp; roles</h4>" +
+    [["Admin","2 people","Full settings, connectors and governance"],["Delivery","14 people","Chat, agents, automations — this seat"],["Read-only","6 people","View threads and knowledge, no write tools"]]
+      .map(function(r){ return "<div class='list-line'><div><div class='nm'>" + esc(r[0]) + "</div><div class='d'>" + esc(r[2]) + "</div></div>" +
+        "<div class='rt'><span class='tag'>" + esc(r[1]) + "</span></div></div>"; }).join("") +
+    "<p class='mini' style='margin-top:14px'>Every blocked or approved action is in the <button class='link' data-action='goto-audit' style='color:var(--accent);text-decoration:underline'>Audit trail</button>, not duplicated here.</p>";
+  },
+  memory: function(){
+    var rows = MEMORIES.map(function(m, i){
+      return "<div class='list-line'><div><div class='nm'>" + esc(m.text) + "</div><div class='d'>" + esc(m.src) + " · " + esc(m.at) + "</div></div>" +
+        "<div class='rt'><button class='btn sm' data-memforget='" + i + "'>Forget</button></div></div>";
+    }).join("");
+    return "<h3>Memory</h3><p class='pane-sub'>Durable facts Magna carries between threads — never your document content, only short standing notes like this.</p>" +
+    row("Remember across chats","Bring relevant memories into new threads automatically.", sw("memRecall", store.get("mv.memRecall","1")==="1")) +
+    row("Recall limit","How many memories can be pulled into a single turn.", seg("memlimit", store.get("mv.memLimit","5"), [["3","3"],["5","5"],["10","10"]])) +
+    row("Learn automatically","Extract new memories from what you say. Off means memory only grows when you explicitly ask Magna to remember something.", sw("memExtract", store.get("mv.memExtract","1")==="1")) +
+    "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:20px 0 2px'>What Magna remembers · " + MEMORIES.length + "</h4>" +
+    (rows || "<p class='mini'>Nothing remembered yet.</p>") +
+    "<p class='mini' style='margin-top:10px'>Forgetting something removes it everywhere, immediately — it does not wait for a nightly job.</p>";
+  },
+  personality: function(){
+    return "<h3>Personality</h3><p class='pane-sub'>How Magna phrases things. This never changes which tools it uses or what it's allowed to do — that's Permissions and Sovereignty, not this.</p>" +
+    row("Tone", "Direct is the default for a delivery workspace.", seg("tone", store.get("mv.tone","direct"), [["direct","Direct"],["warm","Warm"],["formal","Formal"]])) +
+    row("Detail level", "How much explanation comes with an answer by default. You can always ask for more or less in the moment.", seg("verbosity", store.get("mv.verbosity","balanced"), [["brief","Brief"],["balanced","Balanced"],["thorough","Thorough"]])) +
+    "<div class='field' style='margin-top:14px'><label for='customInstr'>Custom instructions</label>" +
+    "<textarea id='customInstr' rows='3' placeholder='Optional — a standing note read before every answer in this workspace.'>Always show the SAR figure alongside any exposure number.</textarea></div>" +
+    "<div class='pane-card' style='margin-top:16px'><div class='ct'><svg class='ico sm'><use href='#i-spark'/></svg>How tone changes the same answer</div>" +
+    "<div class='cd' style='line-height:1.7'><b style='color:var(--tx)'>Direct:</b> “C2 is 11 days late. Standby cost is the driver, not LD.”<br>" +
+    "<b style='color:var(--tx)'>Warm:</b> “Just a heads-up — C2 has slipped 11 days, and it's standby cost driving the number, not LD.”<br>" +
+    "<b style='color:var(--tx)'>Formal:</b> “Package C2 reflects an eleven-day delay against baseline. The principal cost driver is standby, not liquidated damages.”</div></div>";
+  },
+  usage: function(){
+    var byModel = [
+      ["Kimi K2 Instruct","842","6.1M","SAR 412","Private"],
+      ["DeepSeek V3.1","390","2.8M","SAR 188","Private"],
+      ["Qwen 3 · 235B","210","1.4M","SAR 96","Private"],
+      ["NVIDIA Nemotron · 120B","166","0.7M","SAR 41","Private"]
+    ];
+    var spend = 737, budget = 1200, pct = Math.round(spend/budget*100);
+    return "<h3>Usage &amp; budget</h3><p class='pane-sub'>This workspace, this month. Spend is a workspace-admin figure — nothing here changes per thread.</p>" +
+    "<div class='pane-card'><div class='ct'>Monthly budget</div>" +
+    "<div class='cd' style='margin-bottom:10px'>SAR " + spend + " of SAR " + budget + " used (" + pct + "%)</div>" +
+    "<div class='bar' style='width:100%'><i style='width:" + pct + "%;background:var(--accent)'></i></div></div>" +
+    "<div class='cardgrid' style='grid-template-columns:repeat(3,1fr);margin:16px 0'>" +
+    "<div class='ccard' style='gap:4px'><div class='mini'>Requests, this month</div><div style='font-size:22px;font-weight:700;color:var(--tx);font-family:var(--mono)'>1,608</div></div>" +
+    "<div class='ccard' style='gap:4px'><div class='mini'>Tokens, this month</div><div style='font-size:22px;font-weight:700;color:var(--tx);font-family:var(--mono)'>11.0M</div></div>" +
+    "<div class='ccard' style='gap:4px'><div class='mini'>Avg. cost per request</div><div style='font-size:22px;font-weight:700;color:var(--tx);font-family:var(--mono)'>SAR 0.46</div></div>" +
+    "</div>" +
+    "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:6px 0 8px'>By model</h4>" +
+    "<div class='tablecard'><div class='scrollx'><table class='dtable dtable-min'><thead><tr><th>Model</th><th class='num'>Requests</th><th class='num'>Tokens</th><th class='num'>Cost</th><th>Tier</th></tr></thead><tbody>" +
+    byModel.map(function(r){ return "<tr><td>" + esc(r[0]) + "</td><td class='num'>" + r[1] + "</td><td class='num'>" + r[2] + "</td><td class='num'>" + r[3] + "</td><td><span class='tag priv'>" + r[4] + "</span></td></tr>"; }).join("") +
+    "</tbody></table></div></div>" +
+    "<p class='mini' style='margin-top:12px'>All four models run on Magna's own GPUs — there is no separate cloud-provider line item to reconcile.</p>" +
+    "<button class='btn sm' style='margin-top:6px' data-action='noop'>Request a budget increase</button>";
+  },
   connectors: function(){
     /* one source of truth: this reads the same SERVERS catalogue the Connections view does */
     var rows = Object.keys(SERVERS).map(function(k){
@@ -4962,8 +5093,18 @@ $("#setPane").addEventListener("click", function(e){
   }
   var setm = e.target.closest("[data-setmodel]");
   if(setm){ setModel(setm.getAttribute("data-setmodel")); renderPane("models"); return; }
+  var forget = e.target.closest("[data-memforget]");
+  if(forget){
+    MEMORIES.splice(Number(forget.getAttribute("data-memforget")), 1);
+    saveJSON("mv.memories", MEMORIES);
+    renderPane("memory");
+    toast("Forgotten — removed everywhere, immediately.");
+    return;
+  }
   var rep = e.target.closest("[data-action='replay']");
   if(rep){ closeOverlay("#setScrim"); setTimeout(startTour, 220); return; }
+  var goAudit = e.target.closest("[data-action='goto-audit']");
+  if(goAudit){ closeOverlay("#setScrim"); connTab = "audit"; setView("connections"); return; }
   var res = e.target.closest("[data-action='residency']");
   if(res){
     downloadFile("residency-record-" + (state.conv || "new") + ".txt",
@@ -5061,7 +5202,17 @@ var mail     = loadJSON("mv.mail", { connected:false, provider:null, account:nul
                                      scopes:{read:true,send:false,contacts:false,calendar:false}, lastSync:null });
 var toolPerm = loadJSON("mv.toolPerms", {});   /* "magna-mail.search_messages" -> always | thread:<id> | deny */
 var sentMail = loadJSON("mv.sent", []);
-var activity = loadJSON("mv.activity", []);
+var MEMORIES = loadJSON("mv.memories", [
+  { text:"Delivery lead for Riyadh Metro RYD-M3, based in Riyadh.", src:"From onboarding", at:"02 Aug 2026" },
+  { text:"Prefers tables over prose for any vendor or provider comparison.", src:"Learned from this workspace", at:"14 Aug 2026" },
+  { text:"Package C2 rebar delay is the standing priority this quarter.", src:"Learned from this workspace", at:"16 Aug 2026" }
+]);
+var activity = loadJSON("mv.activity", [
+  { t:new Date().toISOString(), action:"Morning delivery brief sent", system:"Automations", result:"1 HSE item above threshold, 2 POs slipping", by:"HSE Digest" },
+  { t:new Date().toISOString(), action:"PO slippage sweep ran", system:"Automations", result:"No change since 13:00", by:"PO Slippage Watch" },
+  { t:new Date().toISOString(), action:"Approved magna-mail.search_messages (thread)", system:"Magna Mail", result:"Read-only, on-prem", by:"You" },
+  { t:new Date().toISOString(), action:"Ran agent HSE Digest", system:"Agents", result:"1 item above threshold · dropped object P14", by:"You" }
+]);
 function persistMail(){ saveJSON("mv.mail", mail); }
 function logActivity(action, system, result, by){
   activity.unshift({ t:new Date().toISOString(), action:action, system:system, result:result, by:by||"You" });
@@ -9624,7 +9775,7 @@ $("#sheetScrim").addEventListener("click", function(e){
     toast("“Create an issue” is on. It still asks you every time it runs.");
     return;
   }
-  if(a === "audit"){ closeOverlay("#sheetScrim"); connTab = "audit"; setView("connections"); return; }
+  if(a === "audit"){ closeOverlay("#sheetScrim"); closeOverlay("#setScrim"); connTab = "audit"; setView("connections"); return; }
 });
 
 /* ---- v5 page actions, delegated alongside the v3/v4 handler ---- */
