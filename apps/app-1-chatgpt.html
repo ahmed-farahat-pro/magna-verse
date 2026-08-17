@@ -611,7 +611,14 @@ a.src:hover .t{text-decoration:underline}
 .empty .sub{font-size:14px;color:var(--tx-2);margin-bottom:4px}
 .empty .runline{display:inline-flex;align-items:center;gap:7px;margin-top:12px;font-size:12.3px;color:var(--tx-3)}
 .empty .runline .dot{background:var(--private)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:var(--col);margin:14px auto 0;padding:0 24px}
+.chips{
+  /* flex-start, not center: centering a scrollable row clips its leading edge out of
+     scroll reach in every browser once content overflows, so it has to stay left-aligned */
+  display:flex;flex-wrap:nowrap;gap:8px;justify-content:flex-start;max-width:var(--col);margin:14px auto 0;padding:0 24px;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none}
 .chip{
   display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--r-pill);
   border:1px solid var(--line-2);background:var(--surface);color:var(--tx-2);font-size:13.2px;font-weight:520;
@@ -828,6 +835,19 @@ select.inp,input.inp{height:32px;border-radius:8px;border:1px solid var(--line-2
   .composer-wrap{padding-left:18px;padding-right:18px}
   .modal.wide{height:560px}
   .set-nav{width:184px}
+  .hint .sep,.hint .hint-2{display:none}
+
+  /* threadbar: model + effort + sovereignty + context + Canvas + notifications + search
+     stop fitting well before the mobile breakpoint — trim text first, then let the bar
+     itself scroll horizontally (not the page) as a safety net so nothing is unreachable */
+  .tb-btn .sub{display:none}
+  #modelBtn{max-width:108px;flex:none}
+  #modelName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:74px}
+  #effortBtn span,#effortBtn svg:last-child{display:none}
+  #canvasToggleBtn span{display:none}
+  .threadbar{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .threadbar::-webkit-scrollbar{display:none}
+  .threadbar>*{flex-shrink:0}
 }
 
 /* --- mobile: <768 · sidebar becomes an off-canvas drawer --- */
@@ -856,18 +876,6 @@ select.inp,input.inp{height:32px;border-radius:8px;border:1px solid var(--line-2
   .composer-wrap{padding:6px 12px 10px}
   .threadbar{padding:0 8px;gap:4px;height:50px}
   .hint{font-size:11px;gap:0;margin-top:7px}
-  .hint .sep,.hint .hint-2{display:none}
-  /* threadbar: model + effort + sovereignty + context + Canvas + notifications + search
-     no longer all fit at 375px even icon-only, so trim text first, then let the bar itself
-     scroll horizontally (not the page) as a safety net — nothing becomes unreachable */
-  .tb-btn .sub{display:none}
-  #modelBtn{max-width:108px;flex:none}
-  #modelName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:74px}
-  #effortBtn span,#effortBtn svg:last-child{display:none}
-  #canvasToggleBtn span{display:none}
-  .threadbar{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .threadbar::-webkit-scrollbar{display:none}
-  .threadbar>*{flex-shrink:0}
   /* composer chips become 44px round icon buttons so the row always fits */
   #slashBtn,#kbBtn{width:44px;padding:0;justify-content:center;border-radius:99px}
   .cmp-label{display:none}
@@ -986,6 +994,12 @@ body:not([data-stage="ws"]) #wsRoot{display:none}
 .auth-card .lede2{font-size:13.8px;color:var(--tx-2);line-height:1.55}
 .auth-theme{position:absolute;top:14px;right:14px;display:flex;gap:2px;
   background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-pill);padding:2px}
+.auth-lang{
+  position:absolute;top:14px;left:14px;height:38px;padding:0 13px;border-radius:var(--r-pill);
+  background:var(--surface-2);border:1px solid var(--line);color:var(--tx-2);font-size:13px;font-weight:600;
+}
+.auth-lang:hover{color:var(--tx);background:var(--surface-3)}
+.auth-lang[aria-pressed="true"]{color:var(--accent);background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 34%,transparent)}
 .auth-theme button{width:34px;height:34px;border-radius:var(--r-pill);display:grid;place-items:center;color:var(--tx-3)}
 .auth-theme button:hover{color:var(--tx)}
 .auth-theme button[aria-pressed="true"]{background:var(--surface);color:var(--tx);box-shadow:var(--shadow-sm)}
@@ -1063,6 +1077,17 @@ body:not([data-stage="ws"]) #wsRoot{display:none}
 .auth-swap button{color:var(--accent);font-weight:560;min-height:44px;padding:0 4px}
 .auth-legal{margin-top:13px;font-size:11.6px;color:var(--tx-3);line-height:1.55;text-align:center}
 .auth-legal .mobonly{display:none}
+.auth-comply{
+  border:1px solid var(--line-2);border-radius:var(--r-lg);background:var(--surface-2);
+  padding:11px 14px;margin:14px 0 4px;font-size:12px;
+}
+.auth-comply .row{display:flex;align-items:center;gap:7px;color:var(--tx-2);white-space:nowrap;overflow:hidden}
+.auth-comply .row+.row{margin-top:6px}
+.auth-comply .dot{width:6px;height:6px;border-radius:99px;background:var(--private);flex:none}
+.auth-comply .k{color:var(--tx);font-weight:600}
+.auth-comply .ms{margin-left:auto;font-family:var(--mono);color:var(--tx-3);font-size:11px;flex:none}
+.auth-comply .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.auth-comply .tag{height:20px;padding:0 8px;font-size:10.2px}
 @media (max-width:767px){ .auth-legal .mobonly{display:inline} }
 .signing{display:flex;align-items:center;gap:11px;font-size:13.8px;color:var(--tx-2);min-height:44px}
 .signing .magna-mark{width:26px}
@@ -1887,6 +1912,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
      below the fold so it can never compete with, block, or slow the form. -->
 <div class="auth" id="authRoot">
   <div class="auth-hero">
+    <button type="button" class="auth-lang" id="authLangBtn" aria-label="Switch composer language to Arabic" title="Composer language">ع / EN</button>
     <div class="auth-theme" role="group" aria-label="Appearance">
       <button type="button" data-theme-set="light" aria-pressed="false" aria-label="Light theme" title="Light"><svg class="ico sm"><use href="#i-sun"/></svg></button>
       <button type="button" data-theme-set="dark" aria-pressed="false" aria-label="Dark theme" title="Dark"><svg class="ico sm"><use href="#i-moon"/></svg></button>
@@ -1901,6 +1927,17 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
         <h1>Sign in to MagnaVERSE</h1>
         <p class="lede2">Your enterprise brain, on Magna's own hardware in Riyadh.</p>
         <span class="auth-badge"><svg class="ico xs"><use href="#i-shield"/></svg>Private · Riyadh DC-1</span>
+      </div>
+
+      <div class="auth-comply" aria-label="Data residency and compliance">
+        <div class="row"><span class="dot"></span><span class="k">Data residency: Saudi Arabia</span><span class="ms">~15 ms</span></div>
+        <div class="row"><svg class="ico xs" style="color:var(--tx-3)"><use href="#i-clock"/></svg><span><bdi dir="rtl">١٧ ربيع الأول ١٤٤٨هـ</bdi> · 17 Aug 2026</span><span class="ms">Next: Maghrib 18:41</span></div>
+        <div class="badges">
+          <span class="tag priv">PDPL aligned</span>
+          <span class="tag priv">NCA ECC-1 controls</span>
+          <span class="tag priv">SDAIA AI ethics</span>
+          <span class="tag">Vision 2030 · sovereign AI</span>
+        </div>
       </div>
 
       <div class="prov">
@@ -2112,6 +2149,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
       <div class="pop" id="acctPop" role="menu" aria-label="Account" style="left:10px;right:10px;bottom:calc(100% - 2px);min-width:0">
         <button class="mi" role="menuitem" data-open-settings="general"><span class="lead"><svg class="ico sm"><use href="#i-gear"/></svg></span><span><span class="t">Settings</span><span class="d">Appearance, models, sovereignty, connectors</span></span></button>
         <button class="mi" role="menuitem" data-open-settings="help"><span class="lead"><svg class="ico sm"><use href="#i-help"/></svg></span><span><span class="t">Help &amp; roadmap</span><span class="d">Shortcuts, replay the tour, what ships next</span></span></button>
+        <button class="mi" role="menuitem" id="langToggleBtn"><span class="lead"><svg class="ico sm"><use href="#i-globe"/></svg></span><span><span class="t">Composer language <span class="tag" id="langToggleTag">EN</span></span><span class="d">Right-aligns the composer and switches placeholders to Arabic</span></span></button>
         <button class="mi" role="menuitem" id="replayTourMini"><span class="lead"><svg class="ico sm"><use href="#i-spark"/></svg></span><span><span class="t">Replay tour</span><span class="d">4 steps · about 40 seconds</span></span></button>
         <button class="mi" role="menuitem" id="setupMini"><span class="lead"><svg class="ico sm"><use href="#i-check"/></svg></span><span><span class="t">Finish setting up</span><span class="d">Connect mail, turn on a skill, create an agent</span></span></button>
         <button class="mi" role="menuitem" id="signOutBtn"><span class="lead"><svg class="ico sm"><use href="#i-lock"/></svg></span><span><span class="t">Sign out</span><span class="d">Returns to the login screen and clears this session</span></span></button>
@@ -2230,6 +2268,11 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
           <span class="d">Most thorough reasoning. Best for multi-step analysis, schedules and numbers.</span></span>
           <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
         </button>
+        <button class="mi" role="menuitemradio" data-effort="max" aria-checked="false">
+          <span><span class="t">Max</span>
+          <span class="d">Deepest, slowest reasoning. Reserve for board-level numbers and multi-document cross-checks.</span></span>
+          <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+        </button>
         <div class="pop-note">Higher effort takes a little longer per answer and uses more of the context window.</div>
       </div>
 
@@ -2325,10 +2368,45 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
             <div class="cmp-row">
               <button class="cbtn-round" id="attachBtn" aria-label="Attach a file" title="Attach a file"><svg class="ico sm"><use href="#i-plus"/></svg></button>
               <button class="cbtn-round" id="micBtn" aria-pressed="false" aria-label="Voice input" title="Voice input — speak your message"><svg class="ico sm"><use href="#i-mic"/></svg></button>
+              <button class="cmp-chip" id="voiceLangBtn" aria-haspopup="menu" aria-expanded="false" title="Reply language and dialect">
+                <svg class="ico sm"><use href="#i-globe"/></svg><span class="cmp-label" id="voiceLangLabel">English</span>
+                <svg class="ico sm" style="opacity:.7"><use href="#i-chev-d"/></svg>
+              </button>
               <button class="cmp-chip" id="slashBtn" aria-label="Open skills and MCP servers" aria-expanded="false"><svg class="ico sm"><use href="#i-braces"/></svg><span class="cmp-label">Skills &amp; MCP</span></button>
               <button class="cmp-chip" id="kbBtn" aria-pressed="true" aria-label="Company Knowledge — search documents before answering"><svg class="ico sm"><use href="#i-book"/></svg><span class="cmp-label">Company Knowledge</span></button>
               <button class="send" id="sendBtn" aria-label="Send message" disabled><svg class="ico sm"><use href="#i-send"/></svg></button>
             </div>
+          </div>
+
+          <!-- reply language & dialect -->
+          <div class="pop" id="voiceLangPop" role="menu" aria-label="Reply language and dialect" style="bottom:calc(100% + 8px);left:0;min-width:300px">
+            <div class="pop-h">Reply language &amp; dialect</div>
+            <button class="mi" role="menuitemradio" data-voicelang="ar-msa" aria-checked="false">
+              <span><span class="t">فصحى <span class="tag">Modern Standard</span></span>
+              <span class="d">Formal written Arabic — letters, notices and board material.</span></span>
+              <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+            </button>
+            <button class="mi" role="menuitemradio" data-voicelang="ar-khaliji" aria-checked="false">
+              <span><span class="t">خليجي <span class="tag">Khaliji</span></span>
+              <span class="d">Gulf conversational Arabic.</span></span>
+              <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+            </button>
+            <button class="mi" role="menuitemradio" data-voicelang="ar-najdi" aria-checked="false">
+              <span><span class="t">نجدي <span class="tag">Najdi</span></span>
+              <span class="d">Central Arabia conversational Arabic.</span></span>
+              <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+            </button>
+            <button class="mi" role="menuitemradio" data-voicelang="ar-hijazi" aria-checked="false">
+              <span><span class="t">حجازي <span class="tag">Hijazi</span></span>
+              <span class="d">Western Arabia conversational Arabic.</span></span>
+              <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+            </button>
+            <button class="mi" role="menuitemradio" data-voicelang="en" aria-checked="true">
+              <span><span class="t">English</span>
+              <span class="d">Replies and drafts in English.</span></span>
+              <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+            </button>
+            <div class="pop-note">Sets the dialect MagnaVERSE drafts and replies in. Voice dictation itself recognises Arabic or English, not individual dialects.</div>
           </div>
 
           <!-- pre-fill chips: these NEVER send (A3) -->
@@ -2338,6 +2416,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
             <button class="chip" data-draft="create"><svg class="ico sm"><use href="#i-edit"/></svg>Create</button>
             <button class="chip" data-draft="simulate"><svg class="ico sm"><use href="#i-flow"/></svg>Simulate</button>
             <button class="chip" data-draft="act"><svg class="ico sm"><use href="#i-send-mail"/></svg>Act on something</button>
+            <button class="chip" data-draft="letter"><svg class="ico sm"><use href="#i-file"/></svg>Official letter</button>
           </div>
           <p class="chip-note" id="chipNote" hidden>Chips write an editable draft into the box above. Nothing is ever sent until you press Enter.</p>
 
@@ -3644,7 +3723,16 @@ var MODELS = {
 var EFFORTS = {
   low:    { name:"Low",    d:"Fastest answers. Best for quick lookups and short replies." },
   medium: { name:"Medium", d:"Balanced speed and depth. A good default for most work." },
-  high:   { name:"High",   d:"Most thorough reasoning. Best for multi-step analysis, schedules and numbers." }
+  high:   { name:"High",   d:"Most thorough reasoning. Best for multi-step analysis, schedules and numbers." },
+  max:    { name:"Max",    d:"Deepest, slowest reasoning. Reserve for board-level numbers and multi-document cross-checks." }
+};
+
+var VOICE_LANGS = {
+  "ar-msa":     { label:"فصحى",  name:"Modern Standard Arabic (فصحى)", speech:"ar-SA" },
+  "ar-khaliji": { label:"خليجي", name:"Khaliji Arabic (خليجي)",        speech:"ar-AE" },
+  "ar-najdi":   { label:"نجدي",  name:"Najdi Arabic (نجدي)",           speech:"ar-SA" },
+  "ar-hijazi":  { label:"حجازي", name:"Hijazi Arabic (حجازي)",         speech:"ar-SA" },
+  "en":         { label:"English", name:"English",                    speech:"en-US" }
 };
 
 var CONVS = [
@@ -3713,6 +3801,8 @@ var MERMAID_SRC = [
 var state = {
   model: store.get("mv.model","kimi"),
   effort: store.get("mv.effort","high"),
+  voiceLang: store.get("mv.voiceLang","en"),
+  lang: store.get("mv.lang","en"),
   tier:  "private",
   conv:  null,
   kb:    store.get("mv.kb","1") === "1",
@@ -3846,12 +3936,13 @@ $("#newChatBtn").addEventListener("click", function(){ newChat(); if(isMobile())
    5 · thread bar popovers  (model · sovereignty · account)
    ============================================================ */
 var pops = [
-  { pop:"#modelPop",  btn:"#modelBtn" },
-  { pop:"#effortPop", btn:"#effortBtn" },
-  { pop:"#sovPop",   btn:"#sovBtn" },
-  { pop:"#acctPop",  btn:"#acctBtn" },
-  { pop:"#notifPop", btn:"#notifBtn" },
-  { pop:"#ctxPop",   btn:"#ctxBtn" }
+  { pop:"#modelPop",     btn:"#modelBtn" },
+  { pop:"#effortPop",    btn:"#effortBtn" },
+  { pop:"#sovPop",       btn:"#sovBtn" },
+  { pop:"#acctPop",      btn:"#acctBtn" },
+  { pop:"#notifPop",     btn:"#notifBtn" },
+  { pop:"#ctxPop",       btn:"#ctxBtn" },
+  { pop:"#voiceLangPop", btn:"#voiceLangBtn" }
 ];
 function closePops(except){
   pops.forEach(function(p){
@@ -3872,7 +3963,7 @@ function togglePop(sel){
 }
 pops.forEach(function(p){ $(p.btn).addEventListener("click", function(e){ e.stopPropagation(); togglePop(p.pop); }); });
 document.addEventListener("click", function(e){
-  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#effortBtn,#sovBtn,#acctBtn,#notifBtn,#ctxBtn")) closePops();
+  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#effortBtn,#sovBtn,#acctBtn,#notifBtn,#ctxBtn,#voiceLangBtn")) closePops();
 });
 function anyPopOpen(){ return pops.some(function(p){ return $(p.pop).classList.contains("open"); }); }
 
@@ -4170,9 +4261,25 @@ $("#tbSearchBtn").addEventListener("click", openPalette);
    ============================================================ */
 var ta = $("#ta"), sendBtn = $("#sendBtn");
 var PH_FULL = "Message MagnaVERSE…  Type / for skills and MCP servers", PH_SHORT = "Message MagnaVERSE…";
-function syncPlaceholder(){ ta.placeholder = isMobile() ? PH_SHORT : PH_FULL; }
+var PH_FULL_AR = "اكتب رسالتك إلى ماجناڤيرس…  اكتب / للمهارات وخوادم MCP", PH_SHORT_AR = "اكتب رسالتك إلى ماجناڤيرس…";
+function syncPlaceholder(){
+  var ar = state.lang === "ar";
+  ta.placeholder = ar ? (isMobile() ? PH_SHORT_AR : PH_FULL_AR) : (isMobile() ? PH_SHORT : PH_FULL);
+}
 syncPlaceholder();
 window.addEventListener("resize", syncPlaceholder);
+function setComposerLang(lang, silent){
+  state.lang = lang; store.set("mv.lang", lang);
+  var ar = lang === "ar";
+  ta.setAttribute("dir", ar ? "rtl" : "auto");
+  syncPlaceholder();
+  var tag = $("#langToggleTag"); if(tag) tag.textContent = ar ? "ع" : "EN";
+  var authBtn = $("#authLangBtn"); if(authBtn) authBtn.setAttribute("aria-pressed", String(ar));
+  if(!silent) toast(ar ? "Composer switched to Arabic — right-aligned, type freely" : "Composer switched back to English");
+}
+$("#authLangBtn").addEventListener("click", function(){ setComposerLang(state.lang === "ar" ? "en" : "ar"); });
+$("#langToggleBtn").addEventListener("click", function(){ setComposerLang(state.lang === "ar" ? "en" : "ar"); closePops(); ta.focus(); });
+setComposerLang(state.lang, true);
 function autoGrow(){ ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 200) + "px"; }
 function syncSend(){ sendBtn.disabled = ta.value.trim().length === 0; }
 ta.addEventListener("input", function(){ autoGrow(); syncSend(); checkSlash(); });
@@ -4194,7 +4301,8 @@ var DRAFTS = {
   act: "Reply to Al-Rashid about the rebar slip and raise a Jira issue for the delay.",
   automate: "Draft a heartbeat that reads P6 every morning at 06:00 AST, finds any RYD-M3 activity slipping more than [5] days, and posts a summary to the [#ryd-m3-delivery] channel. Show me the definition before creating anything.",
   create:   "Create a one-page variation notice to [Al-Rajhi Steel] covering the C2 rebar delay, using the liquidated-damages wording from Subcontract GC-8 clause 8.4. Keep it to plain English and leave the commercial figure blank for me.",
-  simulate: "Simulate the RYD-M3 schedule if we split the remaining C2 rebar across [2] suppliers from [01 Sep 2026]. Show the effect on the critical path, on Package C3, and on total exposure."
+  simulate: "Simulate the RYD-M3 schedule if we split the remaining C2 rebar across [2] suppliers from [01 Sep 2026]. Show the effect on the critical path, on Package C3, and on total exposure.",
+  letter:   "Write an official letter (خطاب رسمي) to [Al-Rajhi Steel] about the C2 rebar delay. Formal register, bilingual Arabic/English, and reference PO 4500219871 and Subcontract GC-8 clause 8.4."
 };
 function showDraftNote(text){
   $("#draftNoteText").textContent = text || "Edit the parts in [brackets], then press Enter to send.";
@@ -4233,7 +4341,7 @@ if(SpeechRec){
   recognizer = new SpeechRec();
   recognizer.continuous = true;
   recognizer.interimResults = false;
-  recognizer.lang = "en-US";
+  recognizer.lang = VOICE_LANGS[state.voiceLang].speech;
   recognizer.onresult = function(e){
     var text = "";
     for(var i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
@@ -4260,6 +4368,22 @@ function startListening(){
   try{ recognizer.start(); }catch(e){}
 }
 micBtn.addEventListener("click", function(){ listening ? stopListening() : startListening(); });
+
+/* reply language & dialect */
+function setVoiceLang(key, silent){
+  state.voiceLang = key; store.set("mv.voiceLang", key);
+  $("#voiceLangLabel").textContent = VOICE_LANGS[key].label;
+  $$("#voiceLangPop .mi").forEach(function(mi){
+    mi.setAttribute("aria-checked", String(mi.getAttribute("data-voicelang") === key));
+  });
+  if(recognizer) recognizer.lang = VOICE_LANGS[key].speech;
+  if(!silent) toast("Reply language: " + VOICE_LANGS[key].name + " — voice dictation set to " + VOICE_LANGS[key].speech);
+}
+$("#voiceLangPop").addEventListener("click", function(e){
+  var mi = e.target.closest("[data-voicelang]"); if(!mi) return;
+  setVoiceLang(mi.getAttribute("data-voicelang")); closePops(); ta.focus();
+});
+setVoiceLang(state.voiceLang, true);
 
 $("#kbBtn").addEventListener("click", function(){
   state.kb = !state.kb;
@@ -4332,7 +4456,9 @@ function send(){
   $("#draftNote").classList.remove("show");
 
   var u = el("div","msg user");
-  u.appendChild(el("div","bubble", esc(text)));
+  var bubble = el("div","bubble", esc(text));
+  bubble.setAttribute("dir", "auto"); /* right-aligns automatically when you type Arabic */
+  u.appendChild(bubble);
   transcript.appendChild(u);
 
   ta.value = ""; autoGrow(); syncSend();
