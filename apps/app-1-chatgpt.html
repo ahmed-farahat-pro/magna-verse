@@ -1353,6 +1353,19 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
   background:var(--private);color:#fff;border:2px solid var(--surface)}
 .rf-node.bad .rf-dot{background:var(--public)}
 .rf-node .rf-dot .ico{width:9px;height:9px;stroke-width:2.4}
+/* live run animation */
+.runflow.live .rf-arrow{color:var(--tx-3);transition:color .2s ease}
+.rf-node[data-live]{transition:opacity .25s ease,border-color .25s ease,box-shadow .25s ease}
+.rf-node[data-live="pending"]{opacity:.32}
+.rf-node[data-live="pending"] .rf-dot{background:var(--surface-3);border-color:var(--line-2)}
+.rf-node[data-live="active"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.rf-node[data-live="active"] .rf-dot{background:var(--accent)}
+@media (prefers-reduced-motion: no-preference){
+  .rf-node[data-live="active"] .rf-dot{animation:rfPulse 1s ease-in-out infinite}
+  .rf-node[data-live="active"]{animation:rfGlow 1s ease-in-out infinite}
+}
+@keyframes rfPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.75}}
+@keyframes rfGlow{0%,100%{box-shadow:0 0 0 3px var(--accent-dim)}50%{box-shadow:0 0 0 6px var(--accent-dim)}}
 .chipline{display:flex;gap:6px;flex-wrap:wrap}
 .mini{font-size:12.4px;color:var(--tx-3)}
 .cron{font-family:var(--mono);font-size:12px;color:var(--tx-2);background:var(--surface-2);border:1px solid var(--line);
@@ -1573,6 +1586,12 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
   body[data-sidebar="collapsed"] .sb{width:min(84vw,300px)}   /* it is a drawer here, not a rail */
   .auth-theme{display:none}                                    /* replaced by one cycling button */
   .auth-theme-cycle{display:grid}
+  /* Magna Code: three columns side by side don't fit a phone — stack them */
+  .mc-editor{flex-direction:column;min-height:0}
+  .mc-files{width:auto;max-height:120px;border-right:0;border-bottom:1px solid var(--line)}
+  .mc-main{border-right:0;border-bottom:1px solid var(--line);min-height:260px}
+  .mc-preview{min-height:360px}
+  .devframe.phone,.devframe.android{width:200px;height:420px}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -1680,29 +1699,67 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
 .mc-thumb{height:92px;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;
   color:var(--tx-3);font-family:var(--mono);font-size:10.5px;overflow:hidden;position:relative}
 .mc-thumb svg{width:26px;height:26px}
-.mc-editor{display:flex;gap:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;min-height:420px}
-.mc-files{width:190px;flex:none;background:var(--surface-2);border-right:1px solid var(--line);padding:8px;overflow-y:auto}
+.mc-editor{display:flex;gap:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;min-height:520px;background:var(--surface)}
+.mc-files{width:190px;flex:none;background:var(--surface-2);border-right:1px solid var(--line);padding:8px;overflow-y:auto;display:flex;flex-direction:column}
+.mc-files-h{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);padding:4px 8px 8px}
 .mc-file{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12.4px;color:var(--tx-2);font-family:var(--mono)}
 .mc-file:hover{background:var(--surface-3);color:var(--tx)}
 .mc-file[aria-current="true"]{background:var(--surface-3);color:var(--tx);font-weight:600}
+.mc-main{flex:1.3;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.mc-tabs{flex:none;display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.mc-tabs button{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:8px;font-size:12.4px;color:var(--tx-2)}
+.mc-tabs button:hover{color:var(--tx)}
+.mc-tabs button[aria-pressed="true"]{background:var(--surface);color:var(--tx);box-shadow:var(--shadow-sm)}
+.mc-pane{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .mc-code{flex:1;min-width:0;background:var(--code-bg);overflow:auto}
 .mc-code pre{margin:0;padding:14px 16px;font-family:var(--mono);font-size:12.4px;line-height:1.7;color:var(--tx)}
+/* chat tab */
+.mc-chat{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--surface)}
+.mc-chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.mc-chat-msg{max-width:88%;font-size:12.8px;line-height:1.55;padding:9px 12px;border-radius:12px}
+.mc-chat-msg.user{align-self:flex-end;background:var(--bubble);color:var(--bubble-tx);border-radius:12px 12px 3px 12px}
+.mc-chat-msg.ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:12px 12px 12px 3px}
+.mc-chat-msg.ai b{color:var(--tx)}
+.mc-chat-form{flex:none;display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--surface-2)}
+.mc-chat-form input{flex:1;height:34px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);
+  color:var(--tx);padding:0 11px;font-size:12.8px;outline:none}
+.mc-chat-form input:focus{border-color:var(--signal-bright)}
+.mc-chat-form button{height:34px;padding:0 13px;border-radius:9px;background:var(--accent);color:var(--accent-tx);font-size:12.6px;font-weight:600}
+/* terminal tab */
+.mc-term{flex:1;min-height:0;overflow-y:auto;background:#0a0a0c;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.65;color:#c9c9ce}
+.mc-term .p{color:#5FD98A}
+.mc-term .d{color:#6a6f7a}
+.mc-term .cur{display:inline-block;width:7px;height:13px;background:#c9c9ce;vertical-align:-2px;margin-left:2px}
+@media (prefers-reduced-motion: no-preference){ .mc-term .cur{animation:mcBlink 1s steps(1) infinite} }
+@keyframes mcBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+/* preview column */
 .mc-preview{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--surface-2)}
 .mc-devsel{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);flex:none}
 .mc-devsel button{height:28px;padding:0 11px;border-radius:8px;font-size:12px;color:var(--tx-2);display:inline-flex;align-items:center;gap:6px}
 .mc-devsel button[aria-pressed="true"]{background:var(--surface);color:var(--tx);box-shadow:var(--shadow-sm)}
 .mc-devstage{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
-.devframe{background:#000;border-radius:8px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.devframe{background:#000;border-radius:8px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;display:flex;flex-direction:column}
 .devframe.desktop{width:100%;height:100%;border-radius:10px;border:1px solid var(--line-2)}
-.devframe.desktop iframe{width:100%;height:100%}
-.devframe.phone{width:220px;height:460px;border-radius:32px;padding:10px 8px;border:6px solid #111}
-.devframe.phone::before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:70px;height:16px;
-  border-radius:10px;background:#111;z-index:2}
-.devframe.phone iframe{width:100%;height:100%;border-radius:20px;border:0;background:#fff}
-.devframe.android{width:220px;height:460px;border-radius:20px;padding:8px;border:6px solid #111}
-.devframe.android::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:8px;height:8px;
-  border-radius:99px;background:#111;z-index:2}
-.devframe.android iframe{width:100%;height:100%;border-radius:12px;border:0;background:#fff}
+.devframe.desktop .dev-bar{flex:none;height:26px;background:#1c1f26;display:flex;align-items:center;gap:6px;padding:0 10px}
+.devframe.desktop .dev-bar i{width:9px;height:9px;border-radius:99px;background:#3a3d45}
+.devframe.desktop iframe{width:100%;flex:1;min-height:0}
+.devframe.phone{width:230px;height:480px;border-radius:34px;padding:0;border:6px solid #111}
+.devframe.phone .dev-statusbar{flex:none;height:30px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;font-size:11px;font-weight:600;color:#fff;background:#fff;position:relative;z-index:2}
+.devframe.phone .dev-statusbar::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:84px;height:22px;
+  border-radius:0 0 14px 14px;background:#111}
+.devframe.phone iframe{width:100%;flex:1;min-height:0;border:0;background:#fff}
+.devframe.phone .dev-home{flex:none;height:18px;background:#fff;display:flex;align-items:center;justify-content:center}
+.devframe.phone .dev-home i{width:100px;height:4px;border-radius:99px;background:#111;opacity:.85}
+.devframe.android{width:230px;height:480px;border-radius:22px;padding:0;border:6px solid #111}
+.devframe.android .dev-statusbar{flex:none;height:24px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;font-size:10px;font-weight:600;color:#000;background:#fff}
+.devframe.android .dev-statusbar .cam{width:7px;height:7px;border-radius:99px;background:#111}
+.devframe.android iframe{width:100%;flex:1;min-height:0;border:0;background:#fff}
+.devframe.android .dev-home{flex:none;height:16px;background:#fff;display:flex;align-items:center;justify-content:center;gap:26px}
+.devframe.android .dev-home i{width:11px;height:11px;border:1.6px solid #111;border-radius:2px}
+.devframe.android .dev-home i:nth-child(2){border-radius:99px}
+.devframe.android .dev-home i:nth-child(3){clip-path:polygon(0 0,100% 50%,0 100%)}
 </style>
 </head>
 <body data-sidebar="expanded" data-empty="0" data-backdrop="magna">
@@ -3515,6 +3572,7 @@ $$("[data-close]").forEach(function(b){
 });
 
 document.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && e.target && e.target.id === "mcChatInput"){ e.preventDefault(); mcChatSend(); return; }
   /* ⌘K / Ctrl+K */
   if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){
     e.preventDefault();
@@ -6040,7 +6098,49 @@ var PROJECTS = [
       "</div></body></html>" },
      { name:"notes.md", code:"# Delivery dashboard\n\nPulled from PO Slippage Watch + HSE Digest. Static demo — wire\nto the live agents once the layout is approved." }] }
 ];
-var mcOpen = null, mcFile = 0, mcDevice = "desktop";
+var mcOpen = null, mcFile = 0, mcDevice = "desktop", mcTab = "code";
+var MC_CHAT = {
+  p1: [
+    { role:"user", text:"Add a red pill for anything more than 5 days late, and keep it readable on a phone." },
+    { role:"ai", text:"Done — the <b>Current status</b> badge already turns red past that threshold; I widened its padding slightly so the text doesn't wrap at 375px." }
+  ],
+  p2: [
+    { role:"user", text:"Make the stat cards stack in a single column under 480px." },
+    { role:"ai", text:"Added a media query so the grid drops from 2 columns to 1 below 480px wide. Nothing else in the layout changed." }
+  ]
+};
+var MC_REPLIES = [
+  "I've noted that and would apply it to " + "{file}" + " — this prototype previews changes, it doesn't write them back yet.",
+  "Good call. In the real build that'd be a small CSS change in {file}; here it's a preview surface, so nothing is saved.",
+  "Makes sense. I'd scope that to {file} — flagging it as a note for now, since edits don't persist in this demo."
+];
+function mcChatSend(){
+  var input = $("#mcChatInput"); if(!input) return;
+  var text = input.value.trim(); if(!text) return;
+  var chat = MC_CHAT[mcOpen] || (MC_CHAT[mcOpen] = []);
+  chat.push({ role:"user", text:text });
+  input.value = "";
+  renderView();
+  var box = $("#mcChatMsgs"); if(box) box.scrollTop = box.scrollHeight;
+  setTimeout(function(){
+    var p = PROJECTS.filter(function(x){ return x.id === mcOpen; })[0];
+    var reply = MC_REPLIES[chat.length % MC_REPLIES.length].replace("{file}", p ? p.files[mcFile].name : "the file");
+    chat.push({ role:"ai", text:esc(reply) });
+    if(mcOpen && mcTab === "chat") renderView();
+    var box2 = $("#mcChatMsgs"); if(box2) box2.scrollTop = box2.scrollHeight;
+  }, 900);
+}
+function mcTerminalHTML(p){
+  return "<div class='mc-term'><pre>" +
+    "<span class='p'>$</span> npm install\n" +
+    "<span class='d'>✔ installed 128 packages in 1.4s</span>\n\n" +
+    "<span class='p'>$</span> npm run dev\n\n" +
+    "  <b style='color:#fff'>VITE</b> <span class='d'>v5.2.0</span>  ready in <b style='color:#fff'>312</b> ms\n\n" +
+    "  ➜  <span class='d'>Local:</span>   http://localhost:5173/\n" +
+    "  ➜  <span class='d'>Project:</span> " + esc(p.name) + "\n" +
+    "  ➜  <span class='d'>press h + enter to show help</span>\n\n" +
+    "<span class='p'>$</span> <span class='cur'></span></pre></div>";
+}
 VIEWS.magnacode = function(){
   var head = pageHead("Magna Code",
     "Import a small web project, read its code, and preview it live — on desktop, iPhone or Android — without leaving MagnaVERSE.",
@@ -6064,20 +6164,41 @@ function mcCard(p){
 }
 function magnaCodeEditor(p){
   var f = p.files[mcFile];
+  var chat = MC_CHAT[p.id] || [];
+  var pane;
+  if(mcTab === "chat"){
+    pane = "<div class='mc-chat'><div class='mc-chat-msgs' id='mcChatMsgs'>" +
+      chat.map(function(m){ return "<div class='mc-chat-msg " + m.role + "'>" + (m.role === "ai" ? m.text : esc(m.text)) + "</div>"; }).join("") +
+      "</div><div class='mc-chat-form'><input id='mcChatInput' type='text' placeholder='Ask Magna Code to change this project…'>" +
+      "<button data-act3='mc-chat-send'><svg class='ico xs'><use href='#i-send'/></svg></button></div></div>";
+  } else if(mcTab === "terminal"){
+    pane = mcTerminalHTML(p);
+  } else {
+    pane = "<div class='mc-code'><pre><code>" + esc(f.code) + "</code></pre></div>";
+  }
+  var deviceChrome = mcDevice === "desktop"
+    ? "<div class='dev-bar'><i></i><i></i><i></i></div><iframe id='mcFrame' title='" + esc(p.name) + " preview'></iframe>"
+    : mcDevice === "phone"
+    ? "<div class='dev-statusbar'><span>9:41</span><span>●●●&nbsp;5G&nbsp;100%</span></div><iframe id='mcFrame' title='" + esc(p.name) + " preview'></iframe><div class='dev-home'><i></i></div>"
+    : "<div class='dev-statusbar'><span>9:41</span><span class='cam'></span><span>5G 100%</span></div><iframe id='mcFrame' title='" + esc(p.name) + " preview'></iframe><div class='dev-home'><i></i><i></i><i></i></div>";
   return "<div style='display:flex;align-items:center;gap:10px;margin-bottom:12px'>" +
     "<button class='btn sm' data-act3='mc-back'><svg class='ico xs'><use href='#i-chev-r'/></svg>Projects</button>" +
     "<span style='font-size:14px;font-weight:620;color:var(--tx)'>" + esc(p.name) + "</span></div>" +
     "<div class='mc-editor'>" +
-    "<div class='mc-files'>" + p.files.map(function(x, i){
+    "<div class='mc-files'><div class='mc-files-h'>Files</div>" + p.files.map(function(x, i){
       return "<button class='mc-file' data-mcfile='" + i + "' aria-current='" + (i === mcFile) + "'><svg class='ico xs'><use href='#i-code'/></svg>" + esc(x.name) + "</button>";
     }).join("") + "</div>" +
-    "<div class='mc-code'><pre><code>" + esc(f.code) + "</code></pre></div>" +
+    "<div class='mc-main'>" +
+    "<div class='mc-tabs'>" + [["code","Code","i-code"],["chat","Chat","i-msg"],["terminal","Terminal","i-braces"]].map(function(t){
+      return "<button data-mctab='" + t[0] + "' aria-pressed='" + (mcTab === t[0]) + "'><svg class='ico xs'><use href='#" + t[2] + "'/></svg>" + t[1] + "</button>";
+    }).join("") + "</div>" +
+    "<div class='mc-pane'>" + pane + "</div></div>" +
     (/\.html?$/.test(f.name)
       ? "<div class='mc-preview'><div class='mc-devsel'>" +
         [["desktop","Desktop"],["phone","iPhone"],["android","Android"]].map(function(d){
           return "<button data-mcdev='" + d[0] + "' aria-pressed='" + (mcDevice === d[0]) + "'>" + d[1] + "</button>";
         }).join("") + "</div>" +
-        "<div class='mc-devstage'><div class='devframe " + mcDevice + "'><iframe id='mcFrame' title='" + esc(p.name) + " preview'></iframe></div></div></div>"
+        "<div class='mc-devstage'><div class='devframe " + mcDevice + "'>" + deviceChrome + "</div></div></div>"
       : "<div class='mc-preview'><div class='cv-empty' style='height:100%'><svg class='ico'><use href='#i-file'/></svg><p>No live preview for this file type — open an .html file to render it.</p></div></div>") +
     "</div>";
 }
@@ -6168,7 +6289,7 @@ VIEWS.automations = function(){
     "Work that runs without you. Every run is recorded with what it did, what it found and how long it took.",
     "<button class='btn primary' data-act3='new-schedule'><svg class='ico sm'><use href='#i-plus'/></svg>New automation</button>");
   var body = "<div class='tablecard'><div class='scrollx'><table class='dtable dtable-min'>" +
-    "<thead><tr><th>Automation</th><th>Runs</th><th>Last run</th><th>Result</th><th>Next</th><th>On</th></tr></thead><tbody>" +
+    "<thead><tr><th>Automation</th><th>Runs</th><th>Last run</th><th>Result</th><th>Next</th><th>Flow</th><th>On</th></tr></thead><tbody>" +
     SCHEDULES.map(function(s){
       var disabled = s.needsMail && !mail.connected;
       return "<tr" + (s.ok === false ? " class='fail'" : "") + ">" +
@@ -6179,11 +6300,33 @@ VIEWS.automations = function(){
           "<div class='sub'>" + esc(disabled ? "Waiting on Magna Mail — connect it to enable" : s.result) + "</div>" +
           (s.ok === false ? " <button class='btn sm' data-act3='sched-error' data-id='" + s.id + "'>View error</button>" : "") + "</td>" +
         "<td class='num'>" + esc(s.next) + "</td>" +
+        "<td><button class='btn sm' data-act3='view-flow' data-id='" + s.id + "'><svg class='ico xs'><use href='#i-flow'/></svg>View</button></td>" +
         "<td>" + sw("sch-" + s.id, s.on && !disabled) + "</td></tr>";
     }).join("") + "</tbody></table></div></div>" +
     "<p class='mini' style='margin-top:12px'>Auto-approve is off on every automation: if a run needs a tool that sends, publishes or deletes, it pauses and notifies you instead of acting.</p>";
   return { head:head, body:body };
 };
+function viewAutomationFlow(id){
+  var s = SCHEDULES.filter(function(x){ return x.id === id; })[0]; if(!s) return;
+  var agent = AGENTS.filter(function(a){ return a.name === s.agent; })[0];
+  var runs = agent ? (RUNS[agent.id] || []) : [];
+  var steps = runs[0] ? runs[0].steps : (agent ? [
+    ["Loaded configuration v" + agent.version, "0.2s"],
+    ["Called " + agent.tools[0], "1.0s"],
+    ["Composed output", "0.8s"]
+  ] : [["No linked agent found", "—"]]);
+  openSheet({
+    title: s.name + " · how it works", icon:"i-flow",
+    body: "<p style='font-size:13.6px;color:var(--tx-2);line-height:1.6'>" + esc(s.en) + ", via <b style='color:var(--tx)'>" + esc(s.agent) + "</b>.</p>" +
+      "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:16px 0 8px'>Flow — " +
+      (runs[0] ? "most recent run" : "typical run — none recorded yet") + "</h4>" +
+      runFlowHTML(steps) +
+      "<p class='mini' style='margin-top:6px'>" + (runs[0] ? "From the run at " + esc(runs[0].at) + " · " + esc(runs[0].ms) + "." :
+        "This automation has not produced a run yet, so this is the shape a typical run takes.") + "</p>" +
+      (agent ? "<p style='margin-top:14px'><button class='btn sm' data-act3='open-agent' data-id='" + agent.id + "'><svg class='ico xs'><use href='#i-user'/></svg>Open " + esc(agent.name) + "</button></p>" : ""),
+    foot:"<button class='btn primary' data-close='sheetScrim'>Close</button>"
+  });
+}
 
 /* ---------------- MAIL ---------------- */
 var openMailId = null;
@@ -6235,6 +6378,7 @@ document.addEventListener("click", function(e){
   if((t = e.target.closest("[data-ctab]"))){ connTab = t.getAttribute("data-ctab"); renderView(); return; }
   if((t = e.target.closest("[data-mcfile]"))){ mcFile = Number(t.getAttribute("data-mcfile")); renderView(); return; }
   if((t = e.target.closest("[data-mcdev]"))){ mcDevice = t.getAttribute("data-mcdev"); renderView(); return; }
+  if((t = e.target.closest("[data-mctab]"))){ mcTab = t.getAttribute("data-mctab"); renderView(); return; }
   if((t = e.target.closest("[data-mail]"))){
     openMailId = t.getAttribute("data-mail");
     var msg = INBOX.filter(function(x){ return x.id === openMailId; })[0];
@@ -6267,6 +6411,8 @@ document.addEventListener("click", function(e){
     toast("Paste code, point at a repo, or drag a folder in — imports land in the project grid, previewed the same way.");
     return;
   }
+  if(a === "view-flow") return viewAutomationFlow(b.getAttribute("data-id"));
+  if(a === "mc-chat-send") return mcChatSend();
   if(a === "test-one"){ b.textContent = "Reaching…"; setTimeout(function(){ b.textContent = "Test"; toast("Reached " + b.getAttribute("data-name") + " · 5 tools discovered · 42 ms, all inside Riyadh DC-1."); }, 900); return; }
   if(a === "test-all"){
     var okN = 0, errN = [], degN = [];
@@ -6524,46 +6670,52 @@ $("#pageRoot").addEventListener("click", function(e){
 function runAgent(id, btn){
   var a = AGENTS.filter(function(x){ return x.id === id; })[0]; if(!a) return;
   if(btn){ btn.disabled = true; btn.innerHTML = "Running…"; }
+  var prevRun = (RUNS[a.id] || [])[0];
+  var steps = prevRun ? prevRun.steps : [
+    ["Loaded configuration v" + a.version, "0.2s"],
+    ["Called " + a.tools[0], "1.1s"],
+    ["Composed output", "0.9s"]
+  ];
+  function liveBody(idx){
+    return "<p class='mini' style='margin-bottom:2px'>Running <b style='color:var(--tx)'>" + esc(a.name) + "</b> on " +
+      esc(MODELS[a.model].name) + ", live in Riyadh DC-1.</p>" +
+      "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:16px 0 8px'>Step trace</h4>" +
+      runFlowHTML(steps, idx);
+  }
   openSheet({
     title: "Running " + a.name, icon:"i-play",
-    body: "<div class='authing'>" + markSVG("mg-thinking","Agent running") +
-          "<p id='runStatus'>Starting " + esc(a.name) + " on " + esc(MODELS[a.model].name) + "…</p>" +
-          "<div class='bar'><i id='runBar'></i></div></div>",
+    body: liveBody(0),
     foot: "<button class='btn' data-close='sheetScrim'>Run in the background</button>"
   });
-  var steps = [
-    [400, "Loading agent configuration and tool grants…", 22],
-    [1100, "Calling " + a.tools[0] + "…", 55],
-    [1900, "Reading results and composing the output…", 82],
-    [2600, "Done.", 100]
-  ];
-  steps.forEach(function(s){
-    setTimeout(function(){
-      var st = $("#runStatus"), bar = $("#runBar");
-      if(st) st.textContent = s[1];
-      if(bar) bar.style.width = s[2] + "%";
-    }, s[0]);
-  });
+  var stepMs = Math.max(600, Math.floor(2400 / steps.length));
+  for(var i = 1; i < steps.length; i++){
+    (function(idx){
+      setTimeout(function(){
+        var host = $("#sheetBody");
+        if(host) host.innerHTML = liveBody(idx);
+      }, idx * stepMs);
+    })(i);
+  }
+  setTimeout(function(){
+    var host = $("#sheetBody");
+    if(host) host.innerHTML = liveBody(steps.length);   /* activeIndex past the end — every step renders done */
+  }, steps.length * stepMs);
   setTimeout(function(){
     a.runs++; a.last = "Today " + nowTime();
     logActivity("Ran agent " + a.name, "Agents", a.lastResult, "You");
     openSheet({
       title: a.name + " · run complete", icon:"i-check",
-      body: "<p style='font-size:13.6px;color:var(--tx-2);line-height:1.6'>Finished in 2.6 seconds on " + esc(MODELS[a.model].name) + ", inside Riyadh DC-1.</p>" +
-            "<div style='margin-top:14px'>" +
-            "<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>Loaded configuration · access preset <b>" + esc(a.access) + "</b></span><span class='tm'>0.2s</span></div>" +
-            a.tools.map(function(t,i){
-              return "<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>Called <b>" + esc(t) + "</b></span><span class='tm'>" + (0.6 + i*0.4).toFixed(1) + "s</span></div>";
-            }).join("") +
-            "<div class='drawer-line'><span class='tk'><svg class='ico xs'><use href='#i-check'/></svg></span><span>Composed output</span><span class='tm'>1.1s</span></div></div>" +
-            "<div class='callout' style='margin-top:16px'><b>Result</b><br>" + esc(a.lastResult) + "</div>" +
+      body: "<p style='font-size:13.6px;color:var(--tx-2);line-height:1.6'>Finished on " + esc(MODELS[a.model].name) + ", inside Riyadh DC-1.</p>" +
+            "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:14px 0 8px'>Step trace</h4>" +
+            runFlowHTML(steps) +
+            "<div class='callout' style='margin-top:4px'><b>Result</b><br>" + esc(a.lastResult) + "</div>" +
             "<p class='mini' style='margin-top:12px'>No action that sends, publishes or deletes was attempted, so nothing needed your approval.</p>",
       foot: "<span class='spacer'>Recorded in the activity log at " + nowTime() + "</span>" +
             "<button class='btn' data-close='sheetScrim'>Close</button>" +
             "<button class='btn primary' data-act4='run-to-chat' data-id='" + a.id + "'>Send to chat</button>"
     });
     if(view === "agents") renderView();
-  }, 3000);
+  }, steps.length * stepMs + 500);
 }
 /* openAgent and newAgentSheet were replaced by the richer v5 versions in section 17f/17g below. */
 function schedError(id){
@@ -8655,25 +8807,33 @@ function stepKind(label){
   if(/^Composed|^Reported/.test(label)) return "end";
   return "tool";
 }
-function runFlowHTML(steps){
+/* activeIndex, when given, renders the flow mid-run: steps before it are
+   done, the step at it is animating live, steps after are still pending. */
+function runFlowHTML(steps, activeIndex){
+  var live = typeof activeIndex === "number";
   var arrow = "<span class='rf-arrow'><svg class='ico sm'><use href='#i-arrow-r'/></svg></span>";
-  var nodes = steps.map(function(s){
+  var nodes = steps.map(function(s, idx){
     var label = s[0], dur = s[1], bad = s[2] === false;
     var kind = bad ? "bad" : stepKind(label);
-    var target = kind === "agent" ? AGENTS.filter(function(x){ return label.indexOf("Delegated to " + x.name) === 0; })[0] : null;
+    var reached = !live || idx <= activeIndex;
+    var liveState = !live ? "" : idx < activeIndex ? "done" : idx === activeIndex ? "active" : "pending";
+    var target = kind === "agent" && reached ? AGENTS.filter(function(x){ return label.indexOf("Delegated to " + x.name) === 0; })[0] : null;
     var icon = kind === "agent" ? "i-user" : kind === "start" ? "i-layers" : kind === "end" ? "i-check" : "i-braces";
     var main = label, sub = "";
     var dashIdx = label.indexOf(" — ");
     if(dashIdx > -1){ main = label.slice(0, dashIdx); sub = label.slice(dashIdx + 3); }
     var tag = target ? "button" : "div";
-    return "<" + tag + " class='rf-node " + kind + "'" + (target ? " data-acti='open' data-id='" + target.id + "'" : "") + ">" +
-      "<span class='rf-dot'><svg class='ico'><use href='#i-" + (bad ? "warn" : "check") + "'/></svg></span>" +
+    var dot = liveState === "active" ? "" : liveState === "pending" ? "" : "<svg class='ico'><use href='#i-" + (bad ? "warn" : "check") + "'/></svg>";
+    return "<" + tag + " class='rf-node " + kind + "'" +
+      (liveState ? " data-live='" + liveState + "'" : "") +
+      (target ? " data-acti='open' data-id='" + target.id + "'" : "") + ">" +
+      "<span class='rf-dot'>" + dot + "</span>" +
       "<span class='rf-top'><span class='rf-ico'><svg class='ico xs'><use href='#" + icon + "'/></svg></span>" +
       "<span class='rf-lab'>" + esc(main) + "</span></span>" +
-      (sub ? "<span class='rf-sub'>" + esc(sub) + "</span>" : "") +
-      "<span class='rf-dur'>" + esc(dur) + "</span></" + tag + ">";
+      (sub && reached ? "<span class='rf-sub'>" + esc(sub) + "</span>" : "") +
+      "<span class='rf-dur'>" + (reached ? esc(dur) : "") + "</span></" + tag + ">";
   });
-  return "<div class='scrollx'><div class='runflow'>" + nodes.join(arrow) + "</div></div>";
+  return "<div class='scrollx'><div class='runflow" + (live ? " live" : "") + "'>" + nodes.join(arrow) + "</div></div>";
 }
 function agentRunTrace(a, i){
   var r = RUNS[a.id][i];
