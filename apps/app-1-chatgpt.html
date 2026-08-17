@@ -3721,7 +3721,19 @@ function openConv(id){
         : conv.meta.indexOf("Nemotron") > -1 ? "nemotron" : "kimi";
   setModel(m, true);
   scroller.scrollTop = 0;
+  syncCanvasToConv(id);
   announce("Opened conversation: " + conv.title);
+}
+/* the Canvas panel always reflects the thread you're looking at, not
+   whatever was last opened from a different thread */
+function syncCanvasToConv(id){
+  var panel = $("#canvasPanel");
+  if(!panel || panel.hidden) return;
+  cvSheetIdx = 0; cvPageIdx = 0; cvSlideIdx = 0;
+  if(panel.getAttribute("data-mode") === "think"){ lastThinkSteps = null; renderThinking(null); return; }
+  var item = CANVAS_ITEMS[id];
+  if(item){ canvasCurrentId = id; renderCanvasFile(item); }
+  else { canvasCurrentId = null; renderCanvasEmpty(); }
 }
 
 function newChat(){
@@ -3734,6 +3746,7 @@ function newChat(){
   var h = new Date().getHours();
   $("#greeting").textContent = (h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening") + ", Ahmad";
   ta.value = ""; autoGrow(); ta.focus();
+  syncCanvasToConv(null);
   announce("New chat. The composer is focused.");
 }
 $("#newChatBtn").addEventListener("click", function(){ newChat(); if(isMobile()) setSidebar("collapsed"); });
