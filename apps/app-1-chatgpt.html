@@ -23,25 +23,31 @@
    of anything but colour.
    ============================================================ */
 :root{
-  /* surfaces */
-  --bg:#FFFFFF; --bg-2:#F7F8FA; --sidebar:#F4F6F8;
-  --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
-  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
-  /* text */
-  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798; --tx-inv:#FFFFFF;
-  /* accent (never used for sovereignty) */
-  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-tx:#FFFFFF;
-  /* sovereignty — semantic, reserved */
+  /* surfaces — Light: Page/Card #FFFFFF · Raised #F7F7F8 */
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --sidebar:#F7F7F8;
+  --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  /* text — Light: Heading/Body #000000 · Muted #57585B */
+  --tx:#000000; --tx-2:#000000; --tx-3:#57585B; --tx-inv:#FFFFFF;
+  /* brand accent — Red, same in both themes (never used for sovereignty) */
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.10); --accent-tx:#FFFFFF;
+  --accent-hover:color-mix(in srgb, #D71920 86%, #000000);
+  /* link/danger — Light: Red */
+  --link:#D71920;
+  --focus-ring:rgba(215,25,32,.35);
+  /* Signal, brightened toward white — mode pill, "done" states, hover borders */
+  --signal:#2E0FE4; --signal-bright:color-mix(in srgb, #2E0FE4 75%, #FFFFFF);
+  /* sovereignty — semantic, reserved, not part of the brand palette */
   --private:#15803D; --private-dim:rgba(21,128,61,.10);
   --public:#B45309;  --public-dim:rgba(180,83,9,.10);
   /* chat */
-  --bubble:#EFF1F4; --bubble-tx:#0F141A;
-  --send-bg:#0F141A; --send-fg:#FFFFFF;
+  --bubble:#F7F7F8; --bubble-tx:#000000;
+  --send-bg:#D71920; --send-fg:#FFFFFF;
   /* code */
-  --code-bg:#F8F9FB; --code-head:#EFF2F6;
+  --code-bg:#F7F7F8; --code-head:#EFEFF1;
   --hl-key:#7C3AED; --hl-str:#0F766E; --hl-num:#B45309; --hl-com:#8A94A6; --hl-fn:#2563EB; --hl-op:#4C5766;
   /* misc */
-  --sel:rgba(37,99,235,.16);
+  --sel:rgba(215,25,32,.14);
   --scrim:rgba(16,22,30,.34);
   --shadow-sm:0 1px 2px rgba(16,22,30,.07);
   --shadow:0 10px 30px rgba(16,22,30,.12), 0 1px 3px rgba(16,22,30,.08);
@@ -56,18 +62,24 @@
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0B0E13; --bg-2:#10141B; --sidebar:#070A0E;
-    --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
-    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15);
-    --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788; --tx-inv:#0B0E13;
-    --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-tx:#08111F;
+    /* surfaces — Dark: Page #000000 · Card #0C0C0E · Raised #151518 · chart tracks #27272B */
+    --bg:#000000; --bg-2:#0C0C0E; --sidebar:#0C0C0E;
+    --surface:#0C0C0E; --surface-2:#151518; --surface-3:#27272B;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.2);
+    /* text — Dark: Heading #FFFFFF · Body #EFEFF1 · Muted #A5A5AC */
+    --tx:#FFFFFF; --tx-2:#EFEFF1; --tx-3:#A5A5AC; --tx-inv:#000000;
+    --accent:#D71920; --accent-dim:rgba(215,25,32,.16); --accent-tx:#FFFFFF;
+    --accent-hover:color-mix(in srgb, #D71920 86%, #000000);
+    --link:#FF9500;
+    --focus-ring:rgba(255,149,0,.55);
+    --signal:#2E0FE4; --signal-bright:color-mix(in srgb, #2E0FE4 75%, #FFFFFF);
     --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
     --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
-    --bubble:#242B37; --bubble-tx:#E9EEF5;
-    --send-bg:#E9EEF5; --send-fg:#0B0E13;
-    --code-bg:#0D1219; --code-head:#151B24;
+    --bubble:#151518; --bubble-tx:#EFEFF1;
+    --send-bg:#D71920; --send-fg:#FFFFFF;
+    --code-bg:#0A0A0C; --code-head:#151518;
     --hl-key:#C6A5FF; --hl-str:#6EE7C8; --hl-num:#F0B36B; --hl-com:#5C6779; --hl-fn:#7FB0FF; --hl-op:#98A3B6;
-    --sel:rgba(91,141,239,.26);
+    --sel:rgba(215,25,32,.24);
     --scrim:rgba(2,4,8,.62);
     --shadow-sm:0 1px 2px rgba(0,0,0,.5);
     --shadow:0 10px 30px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
@@ -76,36 +88,44 @@
 }
 /* An explicit choice beats the media query in BOTH directions. */
 :root[data-theme="dark"]{
-  --bg:#0B0E13; --bg-2:#10141B; --sidebar:#070A0E;
-  --surface:#131820; --surface-2:#1A202A; --surface-3:#222935;
-  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15);
-  --tx:#E9EEF5; --tx-2:#98A3B6; --tx-3:#6B7788; --tx-inv:#0B0E13;
-  --accent:#5B8DEF; --accent-dim:rgba(91,141,239,.16); --accent-tx:#08111F;
+  --bg:#000000; --bg-2:#0C0C0E; --sidebar:#0C0C0E;
+  --surface:#0C0C0E; --surface-2:#151518; --surface-3:#27272B;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.2);
+  --tx:#FFFFFF; --tx-2:#EFEFF1; --tx-3:#A5A5AC; --tx-inv:#000000;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.16); --accent-tx:#FFFFFF;
+  --accent-hover:color-mix(in srgb, #D71920 86%, #000000);
+  --link:#FF9500;
+  --focus-ring:rgba(255,149,0,.55);
+  --signal:#2E0FE4; --signal-bright:color-mix(in srgb, #2E0FE4 75%, #FFFFFF);
   --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
   --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
-  --bubble:#242B37; --bubble-tx:#E9EEF5;
-  --send-bg:#E9EEF5; --send-fg:#0B0E13;
-  --code-bg:#0D1219; --code-head:#151B24;
+  --bubble:#151518; --bubble-tx:#EFEFF1;
+  --send-bg:#D71920; --send-fg:#FFFFFF;
+  --code-bg:#0A0A0C; --code-head:#151518;
   --hl-key:#C6A5FF; --hl-str:#6EE7C8; --hl-num:#F0B36B; --hl-com:#5C6779; --hl-fn:#7FB0FF; --hl-op:#98A3B6;
-  --sel:rgba(91,141,239,.26);
+  --sel:rgba(215,25,32,.24);
   --scrim:rgba(2,4,8,.62);
   --shadow-sm:0 1px 2px rgba(0,0,0,.5);
   --shadow:0 10px 30px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
   --shadow-lg:0 28px 70px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.5);
 }
 :root[data-theme="light"]{
-  --bg:#FFFFFF; --bg-2:#F7F8FA; --sidebar:#F4F6F8;
-  --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E8EBF0;
-  --line:rgba(16,22,30,.10); --line-2:rgba(16,22,30,.18);
-  --tx:#0F141A; --tx-2:#4C5766; --tx-3:#7B8798; --tx-inv:#FFFFFF;
-  --accent:#2563EB; --accent-dim:rgba(37,99,235,.10); --accent-tx:#FFFFFF;
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --sidebar:#F7F7F8;
+  --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#000000; --tx-3:#57585B; --tx-inv:#FFFFFF;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.10); --accent-tx:#FFFFFF;
+  --accent-hover:color-mix(in srgb, #D71920 86%, #000000);
+  --link:#D71920;
+  --focus-ring:rgba(215,25,32,.35);
+  --signal:#2E0FE4; --signal-bright:color-mix(in srgb, #2E0FE4 75%, #FFFFFF);
   --private:#15803D; --private-dim:rgba(21,128,61,.10);
   --public:#B45309;  --public-dim:rgba(180,83,9,.10);
-  --bubble:#EFF1F4; --bubble-tx:#0F141A;
-  --send-bg:#0F141A; --send-fg:#FFFFFF;
-  --code-bg:#F8F9FB; --code-head:#EFF2F6;
+  --bubble:#F7F7F8; --bubble-tx:#000000;
+  --send-bg:#D71920; --send-fg:#FFFFFF;
+  --code-bg:#F7F7F8; --code-head:#EFEFF1;
   --hl-key:#7C3AED; --hl-str:#0F766E; --hl-num:#B45309; --hl-com:#8A94A6; --hl-fn:#2563EB; --hl-op:#4C5766;
-  --sel:rgba(37,99,235,.16);
+  --sel:rgba(215,25,32,.14);
   --scrim:rgba(16,22,30,.34);
   --shadow-sm:0 1px 2px rgba(16,22,30,.07);
   --shadow:0 10px 30px rgba(16,22,30,.12), 0 1px 3px rgba(16,22,30,.08);
@@ -126,9 +146,9 @@ button,input,textarea{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;cursor:pointer;color:inherit}
 h1,h2,h3,h4,h5,p,ul,ol,figure{margin:0}
 ul,ol{padding:0}
-a{color:var(--accent);text-underline-offset:2px}
+a{color:var(--link);text-underline-offset:2px}
 :focus{outline:none}
-:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; box-shadow:0 0 0 4px var(--focus-ring)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .ico.sm{width:15px;height:15px}
@@ -230,10 +250,12 @@ body[data-backdrop="magna"] .sb-wash{opacity:1}
 .conv{
   display:block;width:100%;text-align:left;padding:7px 10px;border-radius:8px;
   font-size:13.4px;line-height:1.35;color:var(--tx-2);position:relative;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .conv:hover{background:var(--surface-3);color:var(--tx)}
 .conv[aria-current="true"]{background:var(--surface-3);color:var(--tx);font-weight:560}
-.conv .meta{display:block;font-size:11.2px;color:var(--tx-3);margin-top:2px;font-weight:400}
+.conv .meta{display:block;font-size:11.2px;color:var(--tx-3);margin-top:2px;font-weight:400;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .conv .pin{position:absolute;right:8px;top:9px;width:6px;height:6px;border-radius:99px;background:var(--private);opacity:0}
 .conv.live .pin{opacity:1}
 
@@ -544,10 +566,10 @@ a.src:hover .t{text-decoration:underline}
   border:1px solid var(--line-2);background:var(--surface);border-radius:26px;
   box-shadow:var(--shadow-sm);padding:6px 6px 6px 6px;transition:border-color .15s ease, box-shadow .15s ease;
 }
-.composer:focus-within{border-color:color-mix(in srgb,var(--tx) 30%,transparent);box-shadow:var(--shadow)}
+.composer:focus-within{border-color:var(--signal-bright);box-shadow:var(--shadow), 0 0 0 3px color-mix(in srgb,var(--signal-bright) 22%,transparent)}
 .cmp-ta{
   width:100%;border:0;background:transparent;resize:none;outline:none;
-  font-size:15.2px;line-height:1.5;padding:9px 10px 4px;max-height:200px;overflow-y:auto;color:var(--tx);
+  font-size:15.2px;line-height:1.5;padding:14px 12px 8px;min-height:54px;max-height:200px;overflow-y:auto;color:var(--tx);
   font-family:var(--sans);
 }
 .cmp-ta::placeholder{color:var(--tx-3)}
@@ -562,7 +584,7 @@ a.src:hover .t{text-decoration:underline}
   border:1px solid var(--line);color:var(--tx-2);font-size:12.5px;font-weight:520;
 }
 .cmp-chip:hover{background:var(--surface-2);color:var(--tx)}
-.cmp-chip[aria-pressed="true"]{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 32%,transparent);color:var(--accent)}
+.cmp-chip[aria-pressed="true"]{background:color-mix(in srgb,var(--signal-bright) 16%,transparent);border-color:color-mix(in srgb,var(--signal-bright) 42%,transparent);color:var(--signal-bright)}
 .send{
   margin-left:auto;width:34px;height:34px;border-radius:99px;display:grid;place-items:center;
   background:var(--send-bg);color:var(--send-fg);flex:none;transition:opacity .15s ease;
@@ -1140,7 +1162,7 @@ body[data-sidebar="collapsed"] .sb-nav{border-bottom:0}
 
 /* ---------------- routed page views ---------------- */
 body[data-view="chat"] .page{display:none}
-body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{display:none}
+body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{display:none}
 .page{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;position:relative}
 .page-menu{display:none}
 .page-head{flex:none;padding:20px 26px 0}
@@ -1204,7 +1226,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
   border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface-2);
 }
 .wiz-step[data-on="1"]{color:var(--tx);border-color:var(--line-2);font-weight:600}
-.wiz-step[data-done="1"]{color:var(--private);border-color:color-mix(in srgb,var(--private) 32%,transparent);background:var(--private-dim)}
+.wiz-step[data-done="1"]{color:var(--signal-bright);border-color:color-mix(in srgb,var(--signal-bright) 38%,transparent);background:color-mix(in srgb,var(--signal-bright) 12%,transparent)}
 .wiz-step .n{font-family:var(--mono);font-size:10.5px}
 .pick{display:flex;flex-direction:column;gap:8px}
 .pick button{
@@ -1307,6 +1329,30 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
 .drawer-line:last-child{border-bottom:0}
 .drawer-line .tk{color:var(--private);flex:none;margin-top:2px}
 .drawer-line .tm{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--tx-3);flex:none}
+
+/* ---------------- n8n-style run trace ---------------- */
+.runflow{display:flex;align-items:center;gap:0;padding:6px 4px 16px;min-height:96px}
+.runflow .rf-arrow{flex:none;width:30px;display:flex;align-items:center;justify-content:center;color:var(--tx-3)}
+.rf-node{
+  flex:none;width:180px;text-align:left;border:1.5px solid var(--line-2);border-radius:12px;background:var(--surface-2);
+  padding:10px 12px;display:flex;flex-direction:column;gap:5px;position:relative;font-family:var(--sans);
+}
+.rf-node.tool{background:var(--surface-2)}
+.rf-node.start,.rf-node.end{background:var(--surface-3)}
+.rf-node.agent{border-color:color-mix(in srgb,var(--signal-bright) 55%,transparent);background:color-mix(in srgb,var(--signal-bright) 12%,var(--surface-2));cursor:pointer}
+.rf-node.agent:hover{border-color:var(--signal-bright)}
+.rf-node.bad{border-color:color-mix(in srgb,var(--public) 55%,transparent);background:var(--public-dim)}
+.rf-top{display:flex;align-items:center;gap:7px}
+.rf-ico{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex:none;background:var(--surface-3);color:var(--tx-2)}
+.rf-node.agent .rf-ico{background:color-mix(in srgb,var(--signal-bright) 24%,transparent);color:var(--signal-bright)}
+.rf-node.bad .rf-ico{background:color-mix(in srgb,var(--public) 24%,transparent);color:var(--public)}
+.rf-lab{font-size:12.2px;font-weight:620;color:var(--tx);line-height:1.3}
+.rf-sub{font-size:10.8px;color:var(--tx-3);line-height:1.4}
+.rf-dur{font-family:var(--mono);font-size:10.2px;color:var(--tx-3);margin-top:2px}
+.rf-dot{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:99px;display:grid;place-items:center;
+  background:var(--private);color:#fff;border:2px solid var(--surface)}
+.rf-node.bad .rf-dot{background:var(--public)}
+.rf-node .rf-dot .ico{width:9px;height:9px;stroke-width:2.4}
 .chipline{display:flex;gap:6px;flex-wrap:wrap}
 .mini{font-size:12.4px;color:var(--tx-3)}
 .cron{font-family:var(--mono);font-size:12px;color:var(--tx-2);background:var(--surface-2);border:1px solid var(--line);
@@ -1453,9 +1499,14 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
   font-size:13.2px;line-height:1.6;color:var(--tx);outline:none;resize:vertical;min-height:110px;font-family:var(--sans)}
 
 /* agent cards */
+.agcard{border-left-width:3px;border-left-color:var(--ac, var(--line));transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.agcard:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.agcard .tile{background:color-mix(in srgb, var(--ac, var(--tx-2)) 16%, var(--surface-2));border-color:color-mix(in srgb, var(--ac, var(--tx-2)) 32%, transparent)}
 .agcard .cf{gap:7px}
 .agcard.paused{opacity:.72}
+.agcard.paused .tile{background:var(--surface-2);border-color:var(--line)}
 .agcard.failed{border-color:color-mix(in srgb,var(--public) 38%,transparent)}
+.agcard.failed .tile{background:var(--public-dim);border-color:color-mix(in srgb,var(--public) 34%,transparent)}
 .delmap{width:100%;height:auto;max-width:520px;display:block}
 .delmap text{font-family:var(--sans);font-size:11px;fill:var(--tx-2)}
 .delmap .nlab{font-size:12px;font-weight:600;fill:var(--tx)}
@@ -1529,6 +1580,129 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
     transition-duration:.001ms !important;scroll-behavior:auto !important}
   .scroll{scroll-behavior:auto}
 }
+
+/* ============================================================
+   Canvas + Model view — right-side panel (opens beside the chat,
+   never a new tab)
+   ============================================================ */
+.chatrow{flex:1;min-height:0;display:flex;overflow:hidden}
+.chatrow .body{flex:1;min-width:0}
+.canvas-panel{
+  width:min(480px,42vw);flex:none;border-left:1px solid var(--line);background:var(--surface);
+  display:flex;flex-direction:column;overflow:hidden;animation:fade .15s ease-out;
+}
+@media (max-width:1023px){ .canvas-panel{width:min(420px,46vw)} }
+@media (max-width:767px){
+  .canvas-panel{position:fixed;inset:0;width:auto;z-index:70;border-left:0}
+}
+.cv-head{flex:none;display:flex;align-items:center;gap:8px;height:52px;padding:0 8px 0 14px;border-bottom:1px solid var(--line)}
+.cv-tabs{display:flex;gap:2px;background:var(--surface-2);border-radius:var(--r-pill);padding:2px}
+.cv-tab{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:var(--r-pill);
+  font-size:12.6px;font-weight:560;color:var(--tx-2)}
+.cv-tab:hover{color:var(--tx)}
+.cv-tab[aria-pressed="true"]{background:var(--surface);color:var(--tx);box-shadow:var(--shadow-sm)}
+.cv-body{flex:1;min-height:0;overflow-y:auto;padding:16px}
+.cv-file-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cv-file-head .tile{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--accent)}
+.cv-file-head .nm{font-size:13.6px;font-weight:620;color:var(--tx)}
+.cv-file-head .sub{font-size:11.6px;color:var(--tx-3);margin-top:1px}
+.cv-file-head .acts{margin-left:auto;display:flex;gap:6px}
+.cv-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;
+  text-align:center;color:var(--tx-3);gap:10px;padding:24px}
+.cv-empty svg{width:34px;height:34px;opacity:.5}
+.cv-empty p{font-size:13px;max-width:260px;line-height:1.55}
+
+/* iframe preview (HTML — genuinely rendered) */
+.cv-iframe-wrap{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:#fff}
+.cv-iframe-wrap iframe{width:100%;height:420px;border:0;display:block}
+
+/* sheet (CSV/XLS) preview */
+.sheet-tabs{display:flex;gap:2px;margin-top:12px}
+.sheet-tab{height:28px;padding:0 12px;border-radius:8px 8px 0 0;font-size:12px;color:var(--tx-3);
+  background:var(--surface-2);border:1px solid var(--line);border-bottom:0}
+.sheet-tab[aria-pressed="true"]{background:var(--surface);color:var(--tx);font-weight:600}
+
+/* PDF page mockup */
+.pdf-page{border:1px solid var(--line);border-radius:var(--r);background:#fff;color:#111;
+  padding:22px 20px;font-size:12px;line-height:1.6;box-shadow:var(--shadow-sm);margin:0 auto 12px;max-width:340px}
+.pdf-page h5{font-size:13px;font-weight:700;margin-bottom:8px;color:#111}
+.pdf-page .foot{margin-top:16px;padding-top:8px;border-top:1px solid rgba(0,0,0,.1);font-size:10px;color:#777;display:flex;justify-content:space-between}
+.pdf-pager{display:flex;align-items:center;justify-content:center;gap:10px;font-size:11.5px;color:var(--tx-3)}
+
+/* PPTX slide mockup */
+.slide-stage{border:1px solid var(--line);border-radius:var(--r-lg);background:#0d1424;aspect-ratio:16/9;
+  display:flex;flex-direction:column;justify-content:center;padding:28px 32px;color:#fff;position:relative;overflow:hidden}
+.slide-stage h5{font-size:16px;font-weight:700;margin-bottom:10px}
+.slide-stage ul{padding-left:18px;font-size:11.5px;line-height:1.7;color:rgba(255,255,255,.82)}
+.slide-stage .tag{position:absolute;top:12px;right:14px;font-size:9.5px;color:rgba(255,255,255,.5);font-family:var(--mono)}
+.slide-dots{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.slide-dots button{width:7px;height:7px;border-radius:99px;background:var(--line-2)}
+.slide-dots button[aria-current="true"]{background:var(--accent);width:16px;border-radius:4px}
+
+/* ---------------- Model view: wire / node "thinking" graph ---------------- */
+.thinkstage{border-radius:var(--r-lg);background:radial-gradient(ellipse at 50% -10%,color-mix(in srgb,var(--signal) 18%,#05060a),#05060a);
+  padding:20px 14px 22px;overflow:hidden}
+.think-title{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:16px;text-align:center}
+.thinkwrap{display:flex;flex-direction:column;gap:0}
+.think-node{
+  position:relative;margin-left:26px;padding:10px 14px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.88);
+  font-size:12.2px;line-height:1.45;backdrop-filter:blur(2px);
+}
+.think-node b{color:#fff;font-weight:620}
+.think-node::before{
+  content:"";position:absolute;left:-26px;top:50%;width:10px;height:10px;border-radius:99px;
+  background:var(--signal-bright);box-shadow:0 0 0 3px color-mix(in srgb,var(--signal-bright) 35%,transparent),0 0 14px var(--signal-bright);
+  transform:translateY(-50%);
+}
+.think-node.done::before{background:#3FCF95;box-shadow:0 0 0 3px rgba(63,207,149,.3),0 0 14px rgba(63,207,149,.6)}
+.think-node + .think-node{margin-top:16px}
+.think-node + .think-node::after{
+  content:"";position:absolute;left:-21px;bottom:100%;width:2px;height:16px;
+  background:linear-gradient(to bottom,transparent,var(--signal-bright));
+}
+@media (prefers-reduced-motion: no-preference){
+  .think-node::before{animation:thinkPulse 1.8s ease-in-out infinite}
+  .think-node.done::before{animation:none}
+}
+@keyframes thinkPulse{0%,100%{opacity:.65}50%{opacity:1}}
+
+/* ============================================================
+   Magna Code — a lightweight IDE surface for importing and
+   previewing small projects (device-frame preview, not a real
+   emulator)
+   ============================================================ */
+.mc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.mc-card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:14px;
+  display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;transition:border-color .15s ease,box-shadow .15s ease}
+.mc-card:hover{border-color:var(--line-2);box-shadow:var(--shadow-sm)}
+.mc-thumb{height:92px;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+  color:var(--tx-3);font-family:var(--mono);font-size:10.5px;overflow:hidden;position:relative}
+.mc-thumb svg{width:26px;height:26px}
+.mc-editor{display:flex;gap:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;min-height:420px}
+.mc-files{width:190px;flex:none;background:var(--surface-2);border-right:1px solid var(--line);padding:8px;overflow-y:auto}
+.mc-file{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12.4px;color:var(--tx-2);font-family:var(--mono)}
+.mc-file:hover{background:var(--surface-3);color:var(--tx)}
+.mc-file[aria-current="true"]{background:var(--surface-3);color:var(--tx);font-weight:600}
+.mc-code{flex:1;min-width:0;background:var(--code-bg);overflow:auto}
+.mc-code pre{margin:0;padding:14px 16px;font-family:var(--mono);font-size:12.4px;line-height:1.7;color:var(--tx)}
+.mc-preview{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--surface-2)}
+.mc-devsel{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);flex:none}
+.mc-devsel button{height:28px;padding:0 11px;border-radius:8px;font-size:12px;color:var(--tx-2);display:inline-flex;align-items:center;gap:6px}
+.mc-devsel button[aria-pressed="true"]{background:var(--surface);color:var(--tx);box-shadow:var(--shadow-sm)}
+.mc-devstage{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
+.devframe{background:#000;border-radius:8px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.devframe.desktop{width:100%;height:100%;border-radius:10px;border:1px solid var(--line-2)}
+.devframe.desktop iframe{width:100%;height:100%}
+.devframe.phone{width:220px;height:460px;border-radius:32px;padding:10px 8px;border:6px solid #111}
+.devframe.phone::before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:70px;height:16px;
+  border-radius:10px;background:#111;z-index:2}
+.devframe.phone iframe{width:100%;height:100%;border-radius:20px;border:0;background:#fff}
+.devframe.android{width:220px;height:460px;border-radius:20px;padding:8px;border:6px solid #111}
+.devframe.android::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:8px;height:8px;
+  border-radius:99px;background:#111;z-index:2}
+.devframe.android iframe{width:100%;height:100%;border-radius:12px;border:0;background:#fff}
 </style>
 </head>
 <body data-sidebar="expanded" data-empty="0" data-backdrop="magna">
@@ -1802,6 +1976,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
       <button class="sb-btn nav" data-view="agents"><svg class="ico sm"><use href="#i-user"/></svg><span class="sb-hide">Agents</span><span class="badge quiet sb-hide">4</span></button>
       <button class="sb-btn nav" data-view="automations"><svg class="ico sm"><use href="#i-clock"/></svg><span class="sb-hide">Automations</span></button>
       <button class="sb-btn nav" data-view="knowledge"><svg class="ico sm"><use href="#i-book"/></svg><span class="sb-hide">Knowledge</span></button>
+      <button class="sb-btn nav" data-view="magnacode"><svg class="ico sm"><use href="#i-code"/></svg><span class="sb-hide">Magna Code</span></button>
       <button class="sb-btn nav" data-view="settingspage"><svg class="ico sm"><use href="#i-gear"/></svg><span class="sb-hide">Settings</span></button>
       <button class="sb-btn nav" id="navSetup" data-view="setup"><svg class="ico sm"><use href="#i-check"/></svg><span class="sb-hide">Finish setting up</span><span class="badge sb-hide" id="setupBadge">2/6</span></button>
     </nav>
@@ -1852,6 +2027,9 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
       </button>
 
       <div class="tb-right">
+        <button class="tb-btn" id="canvasToggleBtn" aria-pressed="false" aria-label="Open Canvas and Model view">
+          <svg class="ico sm"><use href="#i-layers"/></svg><span>Canvas</span>
+        </button>
         <button class="tb-btn" id="tbSearchBtn" aria-label="Search conversations, documents and actions">
           <svg class="ico sm"><use href="#i-search"/></svg><span class="kbd kbd-hint" aria-hidden="true">⌘K</span>
         </button>
@@ -1921,6 +2099,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
       <div class="page-body" id="pageBody" tabindex="-1"><div class="page-inner" id="pageInner"></div></div>
     </section>
 
+    <div class="chatrow">
     <div class="body">
       <div class="scroll" id="scroll" tabindex="-1">
         <div class="col">
@@ -1996,6 +2175,19 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .body{displ
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ---------------- right-side panel: Canvas + Model view ---------------- -->
+    <aside class="canvas-panel" id="canvasPanel" data-mode="canvas" hidden>
+      <div class="cv-head">
+        <div class="cv-tabs" role="tablist">
+          <button class="cv-tab" data-cvmode="canvas" role="tab" aria-pressed="true"><svg class="ico sm"><use href="#i-layers"/></svg>Canvas</button>
+          <button class="cv-tab" data-cvmode="think" role="tab" aria-pressed="false"><svg class="ico sm"><use href="#i-flow"/></svg>Model view</button>
+        </div>
+        <button class="close-x" id="canvasClose" aria-label="Close panel"><svg class="ico sm"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="cv-body" id="canvasBody"></div>
+    </aside>
     </div>
   </main>
 </div>
@@ -2726,6 +2918,115 @@ slip <span class="k">AS</span> (
   </div>
 </template>
 
+<template id="tpl-c12">
+  <div class="msg user"><div class="bubble">Can you make me a one-page status update for Package C2 I can just send as a link — quantity delivered, promised date, current exposure?</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 4s · 1 tool</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-sap.get_purchase_order</b> — PO 4500219871, current delivered quantity · 1.4s</span></div>
+        <div class="reason-note">A single self-contained HTML file — no build step, no external fonts or scripts, so it opens the same way anywhere.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Built it as one plain HTML file — no dependencies, so it opens identically in any browser or mail client preview.</p>
+      <div class="codeblock" data-wrap="0">
+        <div class="cb-head">
+          <span class="cb-lang">html</span>
+          <span class="cb-file">c2-status.html</span>
+          <span class="cb-acts">
+            <button class="cbtn" data-act="copy-code"><svg class="ico xs"><use href="#i-copy"/></svg><span>Copy</span></button>
+            <button class="cbtn" data-act="download-code"><svg class="ico xs"><use href="#i-download"/></svg><span>Download</span></button>
+          </span>
+        </div>
+        <div class="cb-body"><pre><code>&lt;h1&gt;Package C2 — rebar delivery status&lt;/h1&gt;
+&lt;div class="sub"&gt;PO 4500219871 · Al-Rajhi Steel · updated 16 Aug 2026&lt;/div&gt;
+&lt;div class="row"&gt;&lt;span&gt;Contract quantity&lt;/span&gt;&lt;b&gt;1,240 t&lt;/b&gt;&lt;/div&gt;
+&lt;div class="row"&gt;&lt;span&gt;Delivered to date&lt;/span&gt;&lt;b&gt;860 t (69%)&lt;/b&gt;&lt;/div&gt;
+&lt;div class="row"&gt;&lt;span&gt;Schedule exposure&lt;/span&gt;&lt;b&gt;SAR 5.32M at 45 days&lt;/b&gt;&lt;/div&gt;</code></pre></div>
+      </div>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c12"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> — opens beside this chat, rendered exactly as a recipient would see it, never a new tab.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 3.4s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c13">
+  <div class="msg user"><div class="bubble">Export the PO 4500219871 line items as a CSV I can open in Excel.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 3s · mcp: sap-po-lookup</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>sap-po-lookup</b> — PO 4500219871, 4 line items · 1.6s</span></div>
+        <div class="reason-note">Numbers are written as plain digits with a thousands comma, so Excel reads the amount column as numbers, not text.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>4 line items, all grade B500B rebar. Two are still awaiting goods receipt.</p>
+      <div class="tablewrap"><div class="scrollx"><table class="data">
+        <thead><tr><th scope="col">Line</th><th scope="col">Material</th><th scope="col" class="num">Qty (t)</th><th scope="col" class="num">Rate</th><th scope="col" class="num">Amount</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+          <tr><td>10</td><td>Rebar B500B 12mm</td><td class="num">420</td><td class="num">2,340</td><td class="num">982,800</td><td>Received</td></tr>
+          <tr><td>20</td><td>Rebar B500B 16mm</td><td class="num">380</td><td class="num">2,280</td><td class="num">866,400</td><td>Received</td></tr>
+          <tr><td>30</td><td>Rebar B500B 20mm</td><td class="num">260</td><td class="num">2,310</td><td class="num">600,600</td><td>Awaiting goods receipt</td></tr>
+          <tr><td>40</td><td>Rebar B500B 25mm</td><td class="num">180</td><td class="num">2,350</td><td class="num">423,000</td><td>Awaiting goods receipt</td></tr>
+        </tbody>
+      </table></div><div class="tbl-cap">c2-po-lines.csv · 4 rows · SAP S/4HANA, read 16 Aug 09:12</div></div>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c13"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> to download the real .csv, or view it as a sheet first.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 2.6s</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-c14">
+  <div class="msg user"><div class="bubble">Turn the C2 exposure numbers into a workbook — a summary tab and the line items tab.</div></div>
+  <div class="msg ai">
+    <div class="ai-top"><svg class="magna-mark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg><span class="who">MagnaVERSE · Kimi K2 Instruct</span></div>
+    <div class="reason" data-open="0">
+      <button class="reason-line" data-act="reason" aria-expanded="false"><svg class="ico xs chev" aria-hidden="true"><use href="#i-chev-r"/></svg>Thought for 4s · 2 tools</button>
+      <div class="reason-body">
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>magna-p6.compare_baseline</b> — Baseline r7 vs live, Package C2 · 2.0s</span></div>
+        <div class="rstep"><span class="tick"><svg class="ico xs"><use href="#i-check"/></svg></span><span><b>sap-po-lookup</b> — PO 4500219871 line items · 1.3s</span></div>
+        <div class="reason-note">Two tabs, not one file per tab — the summary references the same figures as the board memo, so the two never drift apart.</div>
+      </div>
+    </div>
+    <div class="prose">
+      <p><strong>c2-exposure-workbook.xlsx</strong> — a Summary tab with the headline numbers, and a Line items tab with the same four PO lines from the CSV above.</p>
+      <div class="tablewrap"><div class="scrollx"><table class="data">
+        <thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead>
+        <tbody>
+          <tr><td>Contract quantity</td><td>1,240 t</td></tr>
+          <tr><td>Delivered to date</td><td>860 t (69%)</td></tr>
+          <tr><td>Days late</td><td>11</td></tr>
+          <tr class="total"><td>Exposure at 45 days</td><td>SAR 5,316,100</td></tr>
+        </tbody>
+      </table></div><div class="tbl-cap">Sheet 1 of 2 · Summary</div></div>
+      <p><button class="btn sm" data-act="open-canvas" data-canvas-id="c14"><svg class="ico xs"><use href="#i-layers"/></svg>Open in Canvas</button> to flip between both sheets.</p>
+    </div>
+    <div class="actions">
+      <button class="act" data-act="copy-msg"><svg class="ico sm"><use href="#i-copy"/></svg>Copy</button>
+      <button class="act" data-act="retry"><svg class="ico sm"><use href="#i-retry"/></svg>Retry</button>
+      <button class="act" data-act="export"><svg class="ico sm"><use href="#i-export"/></svg>Export</button>
+      <button class="act" data-act="share"><svg class="ico sm"><use href="#i-share"/></svg>Share</button>
+      <span class="act-meta"><span class="tier">Private</span> · Kimi K2 Instruct · Riyadh DC-1 · 4.1s</span>
+    </div>
+  </div>
+</template>
+
 <!-- first-run tour card (D10) -->
 <template id="tpl-firstrun">
   <div class="firstrun" id="firstrunCard">
@@ -2910,17 +3211,20 @@ var MODELS = {
 };
 
 var CONVS = [
-  { id:"c1", group:"Today",       title:"Package C2 exposure — PO 4500219871",           meta:"Kimi K2 Instruct · 4 messages", live:true,  internal:true },
-  { id:"c2", group:"Today",       title:"Rebar split — second supplier options",          meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true },
-  { id:"c3", group:"Yesterday",   title:"HSE digest — week 33 and the committee threshold",meta:"Qwen 3 · skill: hse-digest",   live:false, internal:true },
-  { id:"c4", group:"Yesterday",   title:"Jira tickets for the P6 warehouse integration",   meta:"DeepSeek V3.1 · 2 messages",   live:false, internal:true },
-  { id:"c5", group:"Last 7 days", title:"SAP vendor master — duplicate clean-up",          meta:"DeepSeek V3.1 · 2 messages",   live:false, internal:true },
-  { id:"c6", group:"Last 7 days", title:"Which model for Arabic–English contract review",  meta:"Kimi K2 Instruct · 2 messages",live:false, internal:false },
-  { id:"c7", group:"Last 7 days", title:"ISO 19650 file naming on RYD-M3",                 meta:"NVIDIA Nemotron · 2 messages", live:false, internal:false },
-  { id:"c8", group:"Last 7 days", title:"Creating the Risk Research agent",                meta:"Kimi K2 Instruct · agent created", live:false, internal:true },
-  { id:"c9", group:"Last 7 days", title:"New skill: PDF export QA",                        meta:"Kimi K2 Instruct · skill created", live:false, internal:true },
-  { id:"c10",group:"Last 7 days", title:"Weekly board pack scheduler",                     meta:"Kimi K2 Instruct · automation created", live:false, internal:true },
-  { id:"c11",group:"Last 7 days", title:"Multi-agent chain: Gather → Analyze",              meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true }
+  { id:"c1", group:"Today",       title:"C2 exposure",           meta:"Kimi K2 Instruct · 4 messages", live:true,  internal:true },
+  { id:"c2", group:"Today",       title:"Rebar split",          meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true },
+  { id:"c3", group:"Yesterday",   title:"HSE digest",meta:"Qwen 3 · skill: hse-digest",   live:false, internal:true },
+  { id:"c4", group:"Yesterday",   title:"P6 warehouse tickets",   meta:"DeepSeek V3.1 · 2 messages",   live:false, internal:true },
+  { id:"c5", group:"Last 7 days", title:"Vendor clean-up",          meta:"DeepSeek V3.1 · 2 messages",   live:false, internal:true },
+  { id:"c6", group:"Last 7 days", title:"Arabic model pick",  meta:"Kimi K2 Instruct · 2 messages",live:false, internal:false },
+  { id:"c7", group:"Last 7 days", title:"ISO file naming",                 meta:"NVIDIA Nemotron · 2 messages", live:false, internal:false },
+  { id:"c8", group:"Last 7 days", title:"Risk Research agent",                meta:"Kimi K2 Instruct · agent created", live:false, internal:true },
+  { id:"c9", group:"Last 7 days", title:"PDF export QA",                        meta:"Kimi K2 Instruct · skill created", live:false, internal:true },
+  { id:"c10",group:"Last 7 days", title:"Board pack scheduler",                     meta:"Kimi K2 Instruct · automation created", live:false, internal:true },
+  { id:"c11",group:"Last 7 days", title:"Gather → Analyze chain",              meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true },
+  { id:"c12",group:"Last 7 days", title:"C2 status page",                     meta:"Kimi K2 Instruct · html created", live:false, internal:true },
+  { id:"c13",group:"Last 7 days", title:"PO lines CSV",                       meta:"Kimi K2 Instruct · csv created", live:false, internal:true },
+  { id:"c14",group:"Last 7 days", title:"Exposure workbook",                  meta:"Kimi K2 Instruct · xlsx created", live:false, internal:true }
 ];
 
 var SKILLS = [
@@ -2981,7 +3285,7 @@ function renderConvList(){
     html += '<div class="sb-group"><h4>' + esc(g) + "</h4>";
     seen[g].forEach(function(c){
       html += '<button class="conv' + (c.live?" live":"") + '" data-conv="' + c.id + '" aria-current="' +
-              (state.conv === c.id ? "true":"false") + '">' + esc(c.title) +
+              (state.conv === c.id ? "true":"false") + '" title="' + esc(c.title) + '">' + esc(c.title) +
               '<span class="meta">' + esc(c.meta) + "</span><span class=\"pin\" title=\"Running now\"></span></button>";
     });
     html += "</div>";
@@ -3797,17 +4101,192 @@ function mdFromProse(prose){
   return out.join("\n\n");
 }
 
+/* ============================================================
+   Canvas + Model view — right-side panel
+   ============================================================ */
+var CANVAS_ITEMS = {
+  c12: { kind:"html", name:"c2-status.html", size:"2.8 KB", label:"Package C2 status page",
+    html:"<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Package C2 — Status</title><style>"+
+      "body{font-family:-apple-system,'Segoe UI',sans-serif;background:#f4f5f7;margin:0;padding:36px 20px;color:#111}"+
+      ".card{max-width:480px;margin:0 auto;background:#fff;border-radius:14px;padding:26px 30px;box-shadow:0 10px 30px rgba(0,0,0,.08)}"+
+      "h1{font-size:19px;margin:0 0 4px}.sub{color:#666;font-size:12.5px;margin-bottom:18px}"+
+      ".row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee;font-size:13.5px}"+
+      ".row:last-child{border-bottom:0}.row b{color:#111}"+
+      ".status{display:inline-block;padding:3px 10px;border-radius:999px;background:#fdecec;color:#b42318;font-size:11.5px;font-weight:600}"+
+      "</style></head><body><div class=\"card\">"+
+      "<h1>Package C2 — rebar delivery status</h1><div class=\"sub\">PO 4500219871 · Al-Rajhi Steel · updated 16 Aug 2026</div>"+
+      "<div class=\"row\"><span>Contract quantity</span><b>1,240 t</b></div>"+
+      "<div class=\"row\"><span>Delivered to date</span><b>860 t (69%)</b></div>"+
+      "<div class=\"row\"><span>Promised date</span><b>03 Aug 2026</b></div>"+
+      "<div class=\"row\"><span>Current status</span><span class=\"status\">11 days late</span></div>"+
+      "<div class=\"row\"><span>Schedule exposure</span><b>SAR 5.32M at 45 days</b></div>"+
+      "</div></body></html>" },
+  c13: { kind:"csv", name:"c2-po-lines.csv", size:"0.9 KB", label:"PO 4500219871 line items",
+    headers:["Line","Material","Qty (t)","Rate (SAR/t)","Amount (SAR)","Status"],
+    rows:[
+      ["10","Rebar B500B 12mm","420","2,340","982,800","Received"],
+      ["20","Rebar B500B 16mm","380","2,280","866,400","Received"],
+      ["30","Rebar B500B 20mm","260","2,310","600,600","Awaiting goods receipt"],
+      ["40","Rebar B500B 25mm","180","2,350","423,000","Awaiting goods receipt"]
+    ] },
+  c14: { kind:"xls", name:"c2-exposure-workbook.xlsx", size:"19 KB", label:"C2 exposure workbook",
+    sheets:[
+      { name:"Summary", headers:["Metric","Value"], rows:[
+        ["Contract quantity","1,240 t"],["Delivered to date","860 t (69%)"],
+        ["Promised date","03 Aug 2026"],["Days late","11"],["Exposure at 45 days","SAR 5,316,100"]
+      ] },
+      { name:"Line items", headers:["Line","Material","Qty (t)","Rate (SAR/t)","Amount (SAR)","Status"], rows:[
+        ["10","Rebar B500B 12mm","420","2,340","982,800","Received"],
+        ["20","Rebar B500B 16mm","380","2,280","866,400","Received"],
+        ["30","Rebar B500B 20mm","260","2,310","600,600","Awaiting goods receipt"],
+        ["40","Rebar B500B 25mm","180","2,350","423,000","Awaiting goods receipt"]
+      ] }
+    ] },
+  "demo-pdf": { kind:"pdf", name:"c2-board-memo.pdf", size:"210 KB", label:"Board memo, 2 pages",
+    pages:[
+      { title:"Package C2 — board memo", body:"Al-Rashid Contracting notified a nine-day slip on the C2 rebar fixing sequence on 16 August. Split of cause per the P6 Baseline r7 comparison and PO 4500219871: 2 days attributable to the mill lot confirmation, 7 days to the fixing crew stand-down." },
+      { title:"Recommendation", body:"Obtain daily manpower returns from Al-Rashid, confirm the planned fixing rate per crew, and reforecast the C2 finish. Raised from MagnaVERSE; reply to Al-Rashid sent at the same time." }
+    ] },
+  "demo-pptx": { kind:"pptx", name:"q3-board-deck.pptx", size:"1.4 MB", label:"Q3 board deck, 3 slides",
+    slides:[
+      { title:"Q3 Delivery Review", bullets:["Riyadh Metro Packages C2 · C3 · E4","Prepared by MagnaVERSE, 16 Aug 2026"] },
+      { title:"Schedule exposure", bullets:["C2: SAR 5.32M at 45 days","C3: 15 days behind, float absorbing","E4: on baseline"] },
+      { title:"Actions this week", bullets:["Chase Al-Rajhi mill certificates","Hold second-supplier slot for C2 balance","Reforecast C2 finish date"] }
+    ] }
+};
+var cvSheetIdx = 0, cvPageIdx = 0, cvSlideIdx = 0, canvasCurrentId = null;
+function toCSVText(headers, rows){
+  var q = function(v){ v = String(v); return /[,"\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; };
+  return [headers.map(q).join(",")].concat(rows.map(function(r){ return r.map(q).join(","); })).join("\n");
+}
+function sheetTableHTML(headers, rows){
+  return "<div class='tablewrap'><div class='scrollx'><table class='data'>" +
+    "<thead><tr>" + headers.map(function(h){ return "<th scope='col'>" + esc(h) + "</th>"; }).join("") + "</tr></thead>" +
+    "<tbody>" + rows.map(function(r){ return "<tr>" + r.map(function(c){ return "<td>" + esc(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody>" +
+    "</table></div></div>";
+}
+function pdfPageHTML(p){
+  return "<div class='pdf-page'><h5>" + esc(p.title) + "</h5><p>" + esc(p.body) + "</p>" +
+    "<div class='foot'><span>MagnaVERSE · confidential</span><span>Riyadh DC-1</span></div></div>";
+}
+function renderCanvasEmpty(){
+  $("#canvasBody").innerHTML = "<div class='cv-empty'><svg class='ico'><use href='#i-layers'/></svg>" +
+    "<p>Nothing open yet. When MagnaVERSE creates a file — an HTML page, a CSV, a workbook, a PDF or a deck — " +
+    "<b style='color:var(--tx-2)'>Open in Canvas</b> renders it here, beside the chat.</p>" +
+    "<div class='chipline' style='justify-content:center'>" +
+    [["demo-pdf","PDF"],["demo-pptx","PPTX"]].map(function(d){
+      return "<button class='chip' data-act='open-canvas' data-canvas-id='" + d[0] + "' style='height:30px;font-size:12px'>Preview " + d[1] + "</button>";
+    }).join("") + "</div></div>";
+}
+function renderCanvasFile(item){
+  var icon = item.kind === "html" ? "i-code" : item.kind === "pdf" ? "i-file" : item.kind === "pptx" ? "i-layers" : "i-table";
+  var head = "<div class='cv-file-head'><span class='tile'><svg class='ico sm'><use href='#" + icon + "'/></svg></span>" +
+    "<div><div class='nm'>" + esc(item.name) + "</div><div class='sub'>" + esc(item.label) + " · " + esc(item.size) + "</div></div>" +
+    "<div class='acts'><button class='btn sm' data-act='cv-download'><svg class='ico xs'><use href='#i-export'/></svg>Download</button></div></div>";
+  var body = "";
+  if(item.kind === "html"){
+    body = "<div class='cv-iframe-wrap'><iframe id='cvFrame' title='" + esc(item.name) + "' sandbox='allow-same-origin'></iframe></div>";
+  } else if(item.kind === "csv"){
+    body = sheetTableHTML(item.headers, item.rows);
+  } else if(item.kind === "xls"){
+    body = "<div class='sheet-tabs'>" + item.sheets.map(function(s,i){
+      return "<button class='sheet-tab' data-cvsheet='" + i + "' aria-pressed='" + (i===cvSheetIdx) + "'>" + esc(s.name) + "</button>";
+    }).join("") + "</div>" + sheetTableHTML(item.sheets[cvSheetIdx].headers, item.sheets[cvSheetIdx].rows);
+  } else if(item.kind === "pdf"){
+    body = pdfPageHTML(item.pages[cvPageIdx]) + "<div class='pdf-pager'>" +
+      "<button class='btn sm' data-cvpg='-1'" + (cvPageIdx===0?" disabled":"") + ">‹ Prev</button>" +
+      "<span>Page " + (cvPageIdx+1) + " of " + item.pages.length + "</span>" +
+      "<button class='btn sm' data-cvpg='1'" + (cvPageIdx===item.pages.length-1?" disabled":"") + ">Next ›</button></div>";
+  } else if(item.kind === "pptx"){
+    var sl = item.slides[cvSlideIdx];
+    body = "<div class='slide-stage'><span class='tag'>Slide " + (cvSlideIdx+1) + " of " + item.slides.length + "</span>" +
+      "<h5>" + esc(sl.title) + "</h5><ul>" + sl.bullets.map(function(b){ return "<li>" + esc(b) + "</li>"; }).join("") + "</ul></div>" +
+      "<div class='slide-dots'>" + item.slides.map(function(_,i){
+        return "<button data-cvslide='" + i + "' aria-current='" + (i===cvSlideIdx) + "' aria-label='Slide " + (i+1) + "'></button>";
+      }).join("") + "</div>";
+  }
+  $("#canvasBody").innerHTML = head + body;
+  if(item.kind === "html"){ var f = document.getElementById("cvFrame"); if(f) f.srcdoc = item.html; }
+}
+function openCanvasItem(id){
+  var item = CANVAS_ITEMS[id]; if(!item) return;
+  canvasCurrentId = id; cvSheetIdx = 0; cvPageIdx = 0; cvSlideIdx = 0;
+  openCanvasPanel("canvas");
+  renderCanvasFile(item);
+}
+function setCanvasMode(mode){
+  $("#canvasPanel").setAttribute("data-mode", mode);
+  $$(".cv-tab").forEach(function(t){ t.setAttribute("aria-pressed", String(t.getAttribute("data-cvmode")===mode)); });
+  if(mode === "think"){ renderThinking(lastThinkSteps); }
+  else if(canvasCurrentId){ renderCanvasFile(CANVAS_ITEMS[canvasCurrentId]); }
+  else renderCanvasEmpty();
+}
+function openCanvasPanel(mode){
+  var panel = $("#canvasPanel");
+  panel.hidden = false;
+  $("#canvasToggleBtn").setAttribute("aria-pressed","true");
+  setCanvasMode(mode || panel.getAttribute("data-mode") || "canvas");
+}
+function closeCanvasPanel(){
+  $("#canvasPanel").hidden = true;
+  $("#canvasToggleBtn").setAttribute("aria-pressed","false");
+}
+var lastThinkSteps = null;
+function renderThinking(steps){
+  var html = "<div class='thinkstage'><div class='think-title'>Model reasoning — live wire view</div><div class='thinkwrap'>";
+  if(steps && steps.length){
+    html += steps.map(function(s, i){ return "<div class='think-node" + (i < steps.length - 1 ? " done" : "") + "'>" + esc(s) + "</div>"; }).join("");
+  } else {
+    html += "<div class='think-node done'>Expand any <b>Thought for …</b> line in the chat</div>" +
+      "<div class='think-node'>to map its reasoning here, wired step by step</div>";
+  }
+  html += "</div></div>";
+  $("#canvasBody").innerHTML = html;
+}
+function syncThinkingPanel(reasonEl){
+  lastThinkSteps = $$(".rstep", reasonEl).map(function(el){ return el.textContent.trim().replace(/\s+/g," "); });
+  var panel = $("#canvasPanel");
+  if(!panel.hidden && panel.getAttribute("data-mode") === "think") renderThinking(lastThinkSteps);
+}
+$("#canvasToggleBtn").addEventListener("click", function(){
+  var panel = $("#canvasPanel");
+  if(panel.hidden) openCanvasPanel(); else closeCanvasPanel();
+});
+$("#canvasClose").addEventListener("click", closeCanvasPanel);
+$$(".cv-tab").forEach(function(t){ t.addEventListener("click", function(){ setCanvasMode(t.getAttribute("data-cvmode")); }); });
+$("#canvasBody").addEventListener("click", function(e){
+  var b;
+  if((b = e.target.closest("[data-cvsheet]"))){ cvSheetIdx = Number(b.getAttribute("data-cvsheet")); renderCanvasFile(CANVAS_ITEMS[canvasCurrentId]); return; }
+  if((b = e.target.closest("[data-cvpg]"))){
+    var item = CANVAS_ITEMS[canvasCurrentId];
+    cvPageIdx = Math.max(0, Math.min(item.pages.length - 1, cvPageIdx + Number(b.getAttribute("data-cvpg"))));
+    renderCanvasFile(item); return;
+  }
+  if((b = e.target.closest("[data-cvslide]"))){ cvSlideIdx = Number(b.getAttribute("data-cvslide")); renderCanvasFile(CANVAS_ITEMS[canvasCurrentId]); return; }
+  if((b = e.target.closest("[data-act='cv-download']"))){
+    var it = CANVAS_ITEMS[canvasCurrentId]; if(!it) return;
+    if(it.kind === "html") downloadFile(it.name, it.html, "text/html");
+    else if(it.kind === "csv") downloadFile(it.name, toCSVText(it.headers, it.rows), "text/csv");
+    else if(it.kind === "xls") downloadFile(it.name.replace(/\.xlsx$/,".csv"), toCSVText(it.sheets[cvSheetIdx].headers, it.sheets[cvSheetIdx].rows), "text/csv");
+    else toast("This format previews in the prototype, but there's nothing real to download for it here.");
+    return;
+  }
+  if((b = e.target.closest("[data-act='open-canvas']"))){ openCanvasItem(b.getAttribute("data-canvas-id")); return; }
+});
+
 transcript.addEventListener("click", function(e){
   var btn = e.target.closest("[data-act]");
   if(!btn) return;
   var act = btn.getAttribute("data-act");
   var msg = btn.closest(".msg");
 
+  if(act === "open-canvas"){ openCanvasItem(btn.getAttribute("data-canvas-id")); return; }
   if(act === "reason"){
     var r = btn.closest(".reason");
     var open = r.getAttribute("data-open") === "1";
     r.setAttribute("data-open", open ? "0" : "1");
     btn.setAttribute("aria-expanded", String(!open));
+    if(!open) syncThinkingPanel(r);
     return;
   }
   if(act === "cite" || act === "src"){
@@ -4247,8 +4726,8 @@ var AGENTS = [
     autonomy:"ask", output:"chat",
     grants:[["magna-sap.get_purchase_order","read",false],["magna-p6.compare_baseline","read",false],["magna-jira.create_issue","write",false]],
     guard:{ runs:24, cost:"SAR 60", recipients:"— it does not send", always:["Create a Jira issue"] },
-    last:"Today 14:00", lastResult:"2 POs slipping · C2 45d, C3 15d", runs:168, on:true, colour:"var(--accent)",
-    lastFailed:true, delegatesTo:[], version:2 },
+    last:"Today 14:00", lastResult:"2 POs slipping · C2 45d, C3 15d", runs:168, on:true, colour:"#2E0FE4",
+    lastFailed:true, delegatesTo:["a6"], version:2 },
   { id:"a3", name:"Jira Intake Triage", purpose:"Read new DEL issues, add acceptance criteria and route them to the right squad.",
     model:"kimi", access:"Connected systems", tools:["magna-jira","jira-ticket-definer"],
     trigger:"When a DEL issue enters Triage", triggerType:"event", event:"Jira · project = DEL · status → Triage",
@@ -4279,8 +4758,8 @@ var AGENTS = [
     autonomy:"ask", output:"chat",
     grants:[["magna-sap.get_purchase_order","read",false],["magna-p6.compare_baseline","read",false]],
     guard:{ runs:12, cost:"SAR 20", recipients:"— it does not send", always:[] },
-    last:"Never run", lastResult:"Created just now — dry run passed, nothing written", runs:0, on:true,
-    colour:"var(--accent)", delegatesTo:[], version:1 }
+    last:"Today 11:06", lastResult:"Ranked 5 open packages · C2 highest exposure", runs:1, on:true,
+    colour:"var(--accent)", delegatesTo:["a2"], version:1 }
 ];
 /* pause/disable is persisted so a demo survives a reload */
 var AGENT_STATE = loadJSON("mv.agentState", {});
@@ -4315,7 +4794,9 @@ var RUNS = {
       fix:"Renew <code>P6_SVC_PASS</code> in Settings › Secrets, then press Run now. The hourly schedule picks up the new credential on its next tick without any other change.",
       steps:[["Loaded configuration v2","0.1s"],["magna-sap.get_purchase_order — 4 POs","3.6s"],["magna-p6.compare_baseline — HTTP 401 invalid_credentials","0.3s",false]] },
     { at:"Today 12:00", trig:"Schedule · 0 * * * *", ms:"11s", tok:"6,050", ok:true, out:"No change since 11:00",
-      steps:[["Loaded configuration v2","0.1s"],["magna-sap.get_purchase_order","3.4s"],["magna-p6.compare_baseline","5.4s"],["Composed summary","2.1s"]] }
+      steps:[["Loaded configuration v2","0.1s"],["magna-sap.get_purchase_order","3.4s"],["magna-p6.compare_baseline","5.4s"],["Composed summary","2.1s"]] },
+    { at:"Today 11:00", trig:"Schedule · 0 * * * *", ms:"16s", tok:"7,600", ok:true, out:"1 PO slipping · C2 45d — escalated for ranking",
+      steps:[["Loaded configuration v2","0.1s"],["magna-sap.get_purchase_order — 4 POs","3.5s"],["magna-p6.compare_baseline — Baseline r7","5.2s"],["Delegated to Risk Research Agent — asked for ranked exposure across all open packages","6.8s"],["Composed summary","1.9s"]] }
   ],
   a3:[
     { at:"Today 11:42", trig:"Event · DEL issue → Triage", ms:"26s", tok:"31,400", ok:true, out:"7 issues triaged · 2 sent back for detail",
@@ -4331,7 +4812,10 @@ var RUNS = {
     { at:"14 Aug 10:02", trig:"Called by Board Pack Drafter", ms:"18s", tok:"12,600", ok:true, out:"Al-Yamamah Steel scored B+ · category B prequal valid to 2027",
       steps:[["Loaded configuration v1","0.2s"],["magna-sap.search_vendors — LFA1 'Al-Yamamah'","4.0s"],["magna-knowledge.search — prequalification register","3.9s"],["Composed score","9.9s"]] }
   ],
-  a6:[]
+  a6:[
+    { at:"Today 11:06", trig:"Schedule · 0 */2 * * *", ms:"14s", tok:"7,900", ok:true, out:"Ranked 5 open packages · C2 highest exposure",
+      steps:[["Loaded configuration v1","0.2s"],["Delegated to PO Slippage Watch — asked for the freshest slip comparison","6.1s"],["magna-p6.compare_baseline — cross-package float check","4.8s"],["Composed ranking","2.9s"]] }
+  ]
 };
 
 /* instruction history you can diff and roll back */
@@ -5187,7 +5671,7 @@ function applyWorkspace(){
 
 /* ---------- router ---------- */
 var VIEW_TITLES = { chat:"Chat", mail:"Mail", connections:"Connections", agents:"Agents",
-                    automations:"Automations", knowledge:"Knowledge", settingspage:"Settings" };
+                    automations:"Automations", knowledge:"Knowledge", magnacode:"Magna Code", settingspage:"Settings" };
 var view = "chat", connTab = "mcp";
 
 function setView(v){
@@ -5211,6 +5695,11 @@ function renderView(){
   var d = v();
   $("#pageHead").innerHTML = d.head;
   $("#pageInner").innerHTML = d.body;
+  var mcf = document.getElementById("mcFrame");
+  if(mcf && mcOpen){
+    var proj = PROJECTS.filter(function(x){ return x.id === mcOpen; })[0];
+    if(proj) mcf.srcdoc = proj.files[mcFile].code;
+  }
 }
 
 /* ---------- small view helpers ---------- */
@@ -5532,6 +6021,67 @@ VIEWS.knowledge = function(){
   return { head:head, body:body };
 };
 
+/* ---------------- MAGNA CODE ---------------- */
+var PROJECTS = [
+  { id:"p1", name:"C2 status page", updated:"Today 11:20",
+    files:[{ name:"index.html", code: CANVAS_ITEMS.c12.html }] },
+  { id:"p2", name:"Delivery dashboard", updated:"Yesterday",
+    files:[{ name:"index.html", code:
+      "<!doctype html><html><head><meta charset=\"utf-8\"><style>"+
+      "body{font-family:-apple-system,sans-serif;background:#0b0e13;margin:0;padding:22px;color:#e9eef5}"+
+      "h1{font-size:15px;margin:0 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}"+
+      ".card{background:#151b24;border:1px solid #232b38;border-radius:10px;padding:14px}"+
+      ".v{font-size:20px;font-weight:700}.l{font-size:11px;color:#8a94a6;margin-top:2px}"+
+      "</style></head><body><h1>RYD-M3 · delivery snapshot</h1><div class=\"grid\">"+
+      "<div class=\"card\"><div class=\"v\">3</div><div class=\"l\">packages behind baseline</div></div>"+
+      "<div class=\"card\"><div class=\"v\">SAR 7.96M</div><div class=\"l\">portfolio exposure</div></div>"+
+      "<div class=\"card\"><div class=\"v\">96%</div><div class=\"l\">HSE observations closed</div></div>"+
+      "<div class=\"card\"><div class=\"v\">4</div><div class=\"l\">automations active</div></div>"+
+      "</div></body></html>" },
+     { name:"notes.md", code:"# Delivery dashboard\n\nPulled from PO Slippage Watch + HSE Digest. Static demo — wire\nto the live agents once the layout is approved." }] }
+];
+var mcOpen = null, mcFile = 0, mcDevice = "desktop";
+VIEWS.magnacode = function(){
+  var head = pageHead("Magna Code",
+    "Import a small web project, read its code, and preview it live — on desktop, iPhone or Android — without leaving MagnaVERSE.",
+    mcOpen ? "" : "<button class='btn primary' data-act3='mc-import'><svg class='ico sm'><use href='#i-plus'/></svg>Import project</button>");
+  var body;
+  if(mcOpen){
+    var p = PROJECTS.filter(function(x){ return x.id === mcOpen; })[0];
+    body = p ? magnaCodeEditor(p) : "";
+  } else {
+    body = "<div class='mc-grid'>" + PROJECTS.map(mcCard).join("") +
+      "<button class='ccard dashed' data-act3='mc-import' style='min-height:150px'><svg class='ico'><use href='#i-plus'/></svg><span class='mini' style='margin-top:6px'>Import a project</span></button></div>" +
+      "<p class='mini' style='margin-top:14px'>Vibe-coded projects land here the same way a chat file does — paste code, point at a GitHub repo, or drag a folder in. The preview runs sandboxed: it cannot reach your network, your other tabs, or anything outside its own frame.</p>";
+  }
+  return { head:head, body:body };
+};
+function mcCard(p){
+  return "<button class='mc-card' data-act3='mc-open' data-id='" + p.id + "'>" +
+    "<div class='mc-thumb'><svg class='ico'><use href='#i-code'/></svg></div>" +
+    "<div style='font-size:13.4px;font-weight:600;color:var(--tx)'>" + esc(p.name) + "</div>" +
+    "<div class='mini'>" + p.files.length + " file" + (p.files.length > 1 ? "s" : "") + " · updated " + esc(p.updated) + "</div></button>";
+}
+function magnaCodeEditor(p){
+  var f = p.files[mcFile];
+  return "<div style='display:flex;align-items:center;gap:10px;margin-bottom:12px'>" +
+    "<button class='btn sm' data-act3='mc-back'><svg class='ico xs'><use href='#i-chev-r'/></svg>Projects</button>" +
+    "<span style='font-size:14px;font-weight:620;color:var(--tx)'>" + esc(p.name) + "</span></div>" +
+    "<div class='mc-editor'>" +
+    "<div class='mc-files'>" + p.files.map(function(x, i){
+      return "<button class='mc-file' data-mcfile='" + i + "' aria-current='" + (i === mcFile) + "'><svg class='ico xs'><use href='#i-code'/></svg>" + esc(x.name) + "</button>";
+    }).join("") + "</div>" +
+    "<div class='mc-code'><pre><code>" + esc(f.code) + "</code></pre></div>" +
+    (/\.html?$/.test(f.name)
+      ? "<div class='mc-preview'><div class='mc-devsel'>" +
+        [["desktop","Desktop"],["phone","iPhone"],["android","Android"]].map(function(d){
+          return "<button data-mcdev='" + d[0] + "' aria-pressed='" + (mcDevice === d[0]) + "'>" + d[1] + "</button>";
+        }).join("") + "</div>" +
+        "<div class='mc-devstage'><div class='devframe " + mcDevice + "'><iframe id='mcFrame' title='" + esc(p.name) + " preview'></iframe></div></div></div>"
+      : "<div class='mc-preview'><div class='cv-empty' style='height:100%'><svg class='ico'><use href='#i-file'/></svg><p>No live preview for this file type — open an .html file to render it.</p></div></div>") +
+    "</div>";
+}
+
 /* ---------------- AGENTS (brief v5 §3) ---------------- */
 VIEWS.agents = function(){
   var head = pageHead("Agents",
@@ -5553,7 +6103,7 @@ VIEWS.agents = function(){
     "<div class='sect' style='margin-top:26px'><h3>Who calls whom</h3>" +
     "<div class='pane-card'><div class='ct'><svg class='ico sm'><use href='#i-flow'/></svg>Agent-to-agent delegation</div>" +
     "<div class='cd' style='margin-bottom:12px'>An agent may call another agent as a tool, but only one it has been granted, and the caller's guardrails apply to the whole chain. " +
-    "<b>Board Pack Drafter</b> is the only agent here with delegation granted.</div>" +
+    "<b>Board Pack Drafter</b> has delegation granted, and <b>PO Slippage Watch</b> and <b>Risk Research Agent</b> now call each other for different reasons — one escalates, the other gathers.</div>" +
     delegationMap() +
     "<p class='mini' style='margin-top:10px'>A delegated call is charged to the caller's cost ceiling and appears in both agents' run histories. Cycles are refused at save time.</p></div></div>" +
     "<p class='mini'>Agents inherit this workspace's sovereignty tier. An agent can never use a tool you have not granted it, and any action on its always-ask list stops for you no matter which autonomy level it runs at.</p>";
@@ -5563,7 +6113,7 @@ function agentCard(a){
   var st = !a.on ? "paused" : a.lastFailed ? "failed" : "ok";
   var wr = a.grants.filter(function(g){ return g[1] === "write"; });
   var wrOn = wr.filter(function(g){ return g[2]; }).length;
-  return "<div class='ccard agcard " + (st==="paused"?"paused":st==="failed"?"failed":"") + "'>" +
+  return "<div class='ccard agcard " + (st==="paused"?"paused":st==="failed"?"failed":"") + "' style='--ac:" + esc(a.colour) + "'>" +
     "<div class='ch'><span class='tile' style='color:" + (st==="ok" ? esc(a.colour) : st==="failed" ? "var(--public)" : "var(--tx-3)") + "'>" +
     "<svg class='ico'><use href='#i-user'/></svg></span>" +
     "<div style='min-width:0'><div class='nm'>" + esc(a.name) + "</div>" +
@@ -5592,18 +6142,23 @@ function delegationMap(){
       "<text class='nlab' x='" + (x+12) + "' y='" + (y+20) + "'>" + esc(label) + "</text>" +
       "<text x='" + (x+12) + "' y='" + (y+36) + "'>" + esc(sub) + "</text>";
   };
-  return "<div class='scrollx'><svg class='delmap' viewBox='0 0 520 210' role='img' " +
-    "aria-label='Delegation map. Board Pack Drafter calls PO Slippage Watch and HSE Digest. Vendor Prequal Screener is paused and is called by Board Pack Drafter.'>" +
+  return "<div class='scrollx'><svg class='delmap' viewBox='0 0 520 300' role='img' " +
+    "aria-label='Delegation map. Board Pack Drafter calls PO Slippage Watch and HSE Digest. Vendor Prequal Screener is paused and is called by Board Pack Drafter. PO Slippage Watch and Risk Research Agent call each other: PO Slippage Watch escalates a significant slip to Risk Research Agent, which asks PO Slippage Watch for the freshest comparison before it ranks exposure.'>" +
     "<defs><marker id='dmArrow' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>" +
     "<path class='arrowhead' d='M0 0 L10 5 L0 10 Z'/></marker></defs>" +
     box(6,82,196,"Board Pack Drafter","on request · asks before acting","#7C3AED") +
-    box(300,10,214,"PO Slippage Watch","hourly · read SAP + P6") +
+    box(300,10,214,"PO Slippage Watch","hourly · read SAP + P6","#2E0FE4") +
     box(300,82,214,"HSE Digest","weekdays 06:00 · read knowledge") +
     box(300,154,214,"Vendor Prequal Screener","paused · called by an agent") +
+    box(6,226,196,"Risk Research Agent","every 2h · ranks exposure","var(--accent)") +
     "<path d='M206 100 C 250 100, 250 34, 296 34' marker-end='url(#dmArrow)'/>" +
     "<path d='M206 105 L 296 105' marker-end='url(#dmArrow)'/>" +
     "<path d='M206 110 C 250 110, 250 178, 296 178' marker-end='url(#dmArrow)' stroke-dasharray='4 3'/>" +
     "<text x='214' y='70'>calls</text>" +
+    "<path d='M100 226 C 100 148, 250 158, 330 60' marker-end='url(#dmArrow)'/>" +
+    "<path d='M380 56 C 380 156, 220 148, 160 224' marker-end='url(#dmArrow)' stroke-dasharray='4 3'/>" +
+    "<text x='96' y='150'>asks for fresh data</text>" +
+    "<text x='352' y='196'>escalates a slip</text>" +
     "</svg></div>";
 }
 
@@ -5678,6 +6233,8 @@ function mailOpenHTML(m){
 document.addEventListener("click", function(e){
   var t;
   if((t = e.target.closest("[data-ctab]"))){ connTab = t.getAttribute("data-ctab"); renderView(); return; }
+  if((t = e.target.closest("[data-mcfile]"))){ mcFile = Number(t.getAttribute("data-mcfile")); renderView(); return; }
+  if((t = e.target.closest("[data-mcdev]"))){ mcDevice = t.getAttribute("data-mcdev"); renderView(); return; }
   if((t = e.target.closest("[data-mail]"))){
     openMailId = t.getAttribute("data-mail");
     var msg = INBOX.filter(function(x){ return x.id === openMailId; })[0];
@@ -5704,6 +6261,12 @@ document.addEventListener("click", function(e){
   if(a === "goto-knowledge")   return setView("knowledge");
   if(a === "goto-automations") return setView("automations");
   if(a === "goto-agents")      return setView("agents");
+  if(a === "mc-open"){ mcOpen = b.getAttribute("data-id"); mcFile = 0; mcDevice = "desktop"; renderView(); return; }
+  if(a === "mc-back"){ mcOpen = null; renderView(); return; }
+  if(a === "mc-import"){
+    toast("Paste code, point at a repo, or drag a folder in — imports land in the project grid, previewed the same way.");
+    return;
+  }
   if(a === "test-one"){ b.textContent = "Reaching…"; setTimeout(function(){ b.textContent = "Test"; toast("Reached " + b.getAttribute("data-name") + " · 5 tools discovered · 42 ms, all inside Riyadh DC-1."); }, 900); return; }
   if(a === "test-all"){
     var okN = 0, errN = [], degN = [];
@@ -8085,6 +8648,33 @@ function renderAgentSheet(a){
 
   openSheet({ title:a.name, icon:"i-user", body:body, foot:foot });
 }
+/* n8n-style node trace: classify each step and render it as a connected node row */
+function stepKind(label){
+  if(/^Delegated to /.test(label)) return "agent";
+  if(/^Loaded configuration/.test(label)) return "start";
+  if(/^Composed|^Reported/.test(label)) return "end";
+  return "tool";
+}
+function runFlowHTML(steps){
+  var arrow = "<span class='rf-arrow'><svg class='ico sm'><use href='#i-arrow-r'/></svg></span>";
+  var nodes = steps.map(function(s){
+    var label = s[0], dur = s[1], bad = s[2] === false;
+    var kind = bad ? "bad" : stepKind(label);
+    var target = kind === "agent" ? AGENTS.filter(function(x){ return label.indexOf("Delegated to " + x.name) === 0; })[0] : null;
+    var icon = kind === "agent" ? "i-user" : kind === "start" ? "i-layers" : kind === "end" ? "i-check" : "i-braces";
+    var main = label, sub = "";
+    var dashIdx = label.indexOf(" — ");
+    if(dashIdx > -1){ main = label.slice(0, dashIdx); sub = label.slice(dashIdx + 3); }
+    var tag = target ? "button" : "div";
+    return "<" + tag + " class='rf-node " + kind + "'" + (target ? " data-acti='open' data-id='" + target.id + "'" : "") + ">" +
+      "<span class='rf-dot'><svg class='ico'><use href='#i-" + (bad ? "warn" : "check") + "'/></svg></span>" +
+      "<span class='rf-top'><span class='rf-ico'><svg class='ico xs'><use href='#" + icon + "'/></svg></span>" +
+      "<span class='rf-lab'>" + esc(main) + "</span></span>" +
+      (sub ? "<span class='rf-sub'>" + esc(sub) + "</span>" : "") +
+      "<span class='rf-dur'>" + esc(dur) + "</span></" + tag + ">";
+  });
+  return "<div class='scrollx'><div class='runflow'>" + nodes.join(arrow) + "</div></div>";
+}
 function agentRunTrace(a, i){
   var r = RUNS[a.id][i];
   openSheet({
@@ -8098,13 +8688,8 @@ function agentRunTrace(a, i){
       "<dt>Tools called</dt><dd>" + r.steps.filter(function(s){ return /—|·/.test(s[0]); }).length + "</dd>" +
       "<dt>Outcome</dt><dd style='font-family:var(--sans);font-size:12.8px'>" + esc(r.out) + "</dd></dl>" +
       "<h4 style='font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx-3);margin:18px 0 8px'>Step trace</h4>" +
-      r.steps.map(function(s){
-        var bad = s[2] === false;
-        return "<div class='drawer-line'><span class='tk'" + (bad ? " style='color:var(--public)'" : "") + ">" +
-          "<svg class='ico xs'><use href='#i-" + (bad ? "warn" : "check") + "'/></svg></span>" +
-          "<span>" + esc(s[0]) + "</span><span class='tm'>" + esc(s[1]) + "</span></div>";
-      }).join("") +
-      "<p class='mini' style='margin-top:12px'>" + (r.ok
+      runFlowHTML(r.steps) +
+      "<p class='mini' style='margin-top:2px'>" + (r.ok
         ? "Every tool call in this trace is also a row in the audit trail, with the approval that allowed it."
         : "The run stopped at the first failing tool. Nothing partial was written and no downstream step ran.") + "</p>",
     foot:"<button class='btn' data-acti='backruns' data-id='" + a.id + "'>Back to run history</button>" +
