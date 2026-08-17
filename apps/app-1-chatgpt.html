@@ -582,6 +582,8 @@ a.src:hover .t{text-decoration:underline}
   border:1px solid var(--line);
 }
 .cbtn-round:hover{background:var(--surface-2);color:var(--tx)}
+#micBtn[aria-pressed="true"]{color:var(--accent);background:var(--accent-dim)}
+@media (prefers-reduced-motion: no-preference){ #micBtn[aria-pressed="true"]{animation:rfGlow 1s ease-in-out infinite} }
 .cmp-chip{
   display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:var(--r-pill);
   border:1px solid var(--line);color:var(--tx-2);font-size:12.5px;font-weight:520;
@@ -855,6 +857,17 @@ select.inp,input.inp{height:32px;border-radius:8px;border:1px solid var(--line-2
   .threadbar{padding:0 8px;gap:4px;height:50px}
   .hint{font-size:11px;gap:0;margin-top:7px}
   .hint .sep,.hint .hint-2{display:none}
+  /* threadbar: model + effort + sovereignty + context + Canvas + notifications + search
+     no longer all fit at 375px even icon-only, so trim text first, then let the bar itself
+     scroll horizontally (not the page) as a safety net — nothing becomes unreachable */
+  .tb-btn .sub{display:none}
+  #modelBtn{max-width:108px;flex:none}
+  #modelName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:74px}
+  #effortBtn span,#effortBtn svg:last-child{display:none}
+  #canvasToggleBtn span{display:none}
+  .threadbar{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .threadbar::-webkit-scrollbar{display:none}
+  .threadbar>*{flex-shrink:0}
   /* composer chips become 44px round icon buttons so the row always fits */
   #slashBtn,#kbBtn{width:44px;padding:0;justify-content:center;border-radius:99px}
   .cmp-label{display:none}
@@ -1825,6 +1838,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
 <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 3.5a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0v-6a3 3 0 0 0-3-3Z"/><path d="M6.5 11v1a5.5 5.5 0 0 0 11 0v-1"/><path d="M12 17.5V21M9 21h6"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2 2 0 0 1 6 3.5h13v14H6a2 2 0 0 0-2 2Z"/><path d="M4 19.5a2 2 0 0 1 2-2h13v3H6a2 2 0 0 1-2-1Z"/></symbol>
 <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></symbol>
@@ -2118,6 +2132,11 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
         <svg class="ico sm"><use href="#i-chev-d"/></svg>
       </button>
 
+      <button class="tb-btn" id="effortBtn" aria-haspopup="menu" aria-expanded="false" title="Reasoning effort for this thread">
+        <svg class="ico sm"><use href="#i-bolt"/></svg><span id="effortLabel">High</span>
+        <svg class="ico sm" style="opacity:.7"><use href="#i-chev-d"/></svg>
+      </button>
+
       <button class="sov" id="sovBtn" data-tier="private" aria-haspopup="menu" aria-expanded="false" title="Sovereignty tier for this thread">
         <svg class="ico xs"><use href="#i-shield"/></svg><span id="sovLabel">Private</span>
         <svg class="ico xs" style="opacity:.7"><use href="#i-chev-d"/></svg>
@@ -2191,6 +2210,27 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
           <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
         </button>
         <div class="pop-note">All four run on Magna's own GPUs — cluster <b style="color:var(--tx-2)">Riyadh DC-1</b>, 8×H200. Nothing leaves your network on the Private tier.</div>
+      </div>
+
+      <!-- reasoning effort picker -->
+      <div class="pop" id="effortPop" role="menu" aria-label="Reasoning effort" style="top:46px;left:12px;min-width:300px">
+        <div class="pop-h">Reasoning effort for this thread</div>
+        <button class="mi" role="menuitemradio" data-effort="low" aria-checked="false">
+          <span><span class="t">Low</span>
+          <span class="d">Fastest answers. Best for quick lookups and short replies.</span></span>
+          <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+        </button>
+        <button class="mi" role="menuitemradio" data-effort="medium" aria-checked="false">
+          <span><span class="t">Medium</span>
+          <span class="d">Balanced speed and depth. A good default for most work.</span></span>
+          <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+        </button>
+        <button class="mi" role="menuitemradio" data-effort="high" aria-checked="true">
+          <span><span class="t">High</span>
+          <span class="d">Most thorough reasoning. Best for multi-step analysis, schedules and numbers.</span></span>
+          <span class="tick"><svg class="ico sm"><use href="#i-check"/></svg></span>
+        </button>
+        <div class="pop-note">Higher effort takes a little longer per answer and uses more of the context window.</div>
       </div>
 
       <!-- sovereignty picker -->
@@ -2284,6 +2324,7 @@ body:not([data-view="chat"]) .threadbar,body:not([data-view="chat"]) .chatrow{di
             <textarea id="ta" class="cmp-ta" rows="1" placeholder="Message MagnaVERSE…  Type / for skills and MCP servers"></textarea>
             <div class="cmp-row">
               <button class="cbtn-round" id="attachBtn" aria-label="Attach a file" title="Attach a file"><svg class="ico sm"><use href="#i-plus"/></svg></button>
+              <button class="cbtn-round" id="micBtn" aria-pressed="false" aria-label="Voice input" title="Voice input — speak your message"><svg class="ico sm"><use href="#i-mic"/></svg></button>
               <button class="cmp-chip" id="slashBtn" aria-label="Open skills and MCP servers" aria-expanded="false"><svg class="ico sm"><use href="#i-braces"/></svg><span class="cmp-label">Skills &amp; MCP</span></button>
               <button class="cmp-chip" id="kbBtn" aria-pressed="true" aria-label="Company Knowledge — search documents before answering"><svg class="ico sm"><use href="#i-book"/></svg><span class="cmp-label">Company Knowledge</span></button>
               <button class="send" id="sendBtn" aria-label="Send message" disabled><svg class="ico sm"><use href="#i-send"/></svg></button>
@@ -3600,6 +3641,12 @@ var MODELS = {
   nemotron:  { name:"NVIDIA Nemotron",   spec:"120B",     ctx:128000 }
 };
 
+var EFFORTS = {
+  low:    { name:"Low",    d:"Fastest answers. Best for quick lookups and short replies." },
+  medium: { name:"Medium", d:"Balanced speed and depth. A good default for most work." },
+  high:   { name:"High",   d:"Most thorough reasoning. Best for multi-step analysis, schedules and numbers." }
+};
+
 var CONVS = [
   { id:"c1", group:"Today",       title:"C2 exposure",           meta:"Kimi K2 Instruct · 4 messages", live:true,  internal:true },
   { id:"c2", group:"Today",       title:"Rebar split",          meta:"Kimi K2 Instruct · 2 messages", live:false, internal:true },
@@ -3665,6 +3712,7 @@ var MERMAID_SRC = [
 /* mutable state */
 var state = {
   model: store.get("mv.model","kimi"),
+  effort: store.get("mv.effort","high"),
   tier:  "private",
   conv:  null,
   kb:    store.get("mv.kb","1") === "1",
@@ -3798,7 +3846,8 @@ $("#newChatBtn").addEventListener("click", function(){ newChat(); if(isMobile())
    5 · thread bar popovers  (model · sovereignty · account)
    ============================================================ */
 var pops = [
-  { pop:"#modelPop", btn:"#modelBtn" },
+  { pop:"#modelPop",  btn:"#modelBtn" },
+  { pop:"#effortPop", btn:"#effortBtn" },
   { pop:"#sovPop",   btn:"#sovBtn" },
   { pop:"#acctPop",  btn:"#acctBtn" },
   { pop:"#notifPop", btn:"#notifBtn" },
@@ -3823,7 +3872,7 @@ function togglePop(sel){
 }
 pops.forEach(function(p){ $(p.btn).addEventListener("click", function(e){ e.stopPropagation(); togglePop(p.pop); }); });
 document.addEventListener("click", function(e){
-  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#sovBtn,#acctBtn,#notifBtn,#ctxBtn")) closePops();
+  if(!e.target.closest(".pop") && !e.target.closest("#modelBtn,#effortBtn,#sovBtn,#acctBtn,#notifBtn,#ctxBtn")) closePops();
 });
 function anyPopOpen(){ return pops.some(function(p){ return $(p.pop).classList.contains("open"); }); }
 
@@ -3902,6 +3951,21 @@ $("#modelPop").addEventListener("click", function(e){
   setModel(mi.getAttribute("data-model")); closePops(); ta.focus();
 });
 setModel(state.model, true);
+
+/* reasoning effort */
+function setEffort(key, silent){
+  state.effort = key; store.set("mv.effort", key);
+  $("#effortLabel").textContent = EFFORTS[key].name;
+  $$("#effortPop .mi").forEach(function(mi){
+    mi.setAttribute("aria-checked", String(mi.getAttribute("data-effort") === key));
+  });
+  if(!silent) toast("Reasoning effort: " + EFFORTS[key].name + " — " + EFFORTS[key].d);
+}
+$("#effortPop").addEventListener("click", function(e){
+  var mi = e.target.closest("[data-effort]"); if(!mi) return;
+  setEffort(mi.getAttribute("data-effort")); closePops(); ta.focus();
+});
+setEffort(state.effort, true);
 
 /* sovereignty */
 function setTier(tier, silent){
@@ -4161,6 +4225,42 @@ $("#attachBtn").addEventListener("click", function(){
 $("#attachRow").addEventListener("click", function(e){
   if(e.target.closest("[data-rm]")){ $("#attachRow").hidden = true; $("#attachRow").innerHTML = ""; ta.focus(); }
 });
+/* voice input — real speech-to-text where the browser supports it */
+var micBtn = $("#micBtn");
+var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+var recognizer = null, listening = false;
+if(SpeechRec){
+  recognizer = new SpeechRec();
+  recognizer.continuous = true;
+  recognizer.interimResults = false;
+  recognizer.lang = "en-US";
+  recognizer.onresult = function(e){
+    var text = "";
+    for(var i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
+    text = text.trim(); if(!text) return;
+    ta.value = (ta.value ? ta.value + " " : "") + text;
+    autoGrow(); syncSend();
+  };
+  recognizer.onerror = function(e){
+    stopListening();
+    if(e.error !== "aborted" && e.error !== "no-speech") toast("Voice input stopped — check mic permission for this site");
+  };
+  recognizer.onend = function(){ if(listening) stopListening(); };
+}
+function stopListening(){
+  listening = false;
+  micBtn.setAttribute("aria-pressed", "false");
+  if(recognizer){ try{ recognizer.stop(); }catch(e){} }
+}
+function startListening(){
+  if(!recognizer){ toast("Voice input isn't supported in this browser — try Chrome, Edge or Safari on macOS/iOS"); return; }
+  listening = true;
+  micBtn.setAttribute("aria-pressed", "true");
+  ta.focus();
+  try{ recognizer.start(); }catch(e){}
+}
+micBtn.addEventListener("click", function(){ listening ? stopListening() : startListening(); });
+
 $("#kbBtn").addEventListener("click", function(){
   state.kb = !state.kb;
   store.set("mv.kb", state.kb ? "1" : "0");
