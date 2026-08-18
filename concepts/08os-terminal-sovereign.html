@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Console — Terminal Sovereign</title>
+<style>
+:root{
+  --bg:#050705; --line:#1c2a1c; --grid:rgba(63,207,149,.05);
+  --tx:#D9F5E3; --tx-2:#7FB596; --tx-3:#3E5A48;
+  --amber:#E0A33C; --accent:#D71920; --green:#3FCF95; --blue:#5AA7FF;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:var(--mono);color:var(--tx)}
+.desktop{position:relative;width:100vw;height:100vh;overflow:hidden;
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:34px 34px}
+.scan{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,0) 50%, rgba(0,0,0,.06) 50%);background-size:100% 4px;opacity:.5}
+.crt-flicker{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.5) 100%)}
+
+.menubar{position:absolute;top:0;left:0;right:0;height:30px;display:flex;align-items:center;gap:16px;
+  padding:0 16px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.03em;z-index:50;background:rgba(5,7,5,.9)}
+.menubar b{color:var(--green)}
+.sp{flex:1}
+.blk{width:8px;height:14px;background:var(--green);display:inline-block;margin-left:4px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.sov{color:var(--amber);display:flex;align-items:center;gap:6px}
+.sov::before{content:"●";color:var(--green);animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
+
+.status-strip{position:absolute;top:30px;left:0;right:0;height:26px;display:flex;gap:24px;align-items:center;
+  padding:0 16px;font-size:10.5px;color:var(--tx-3);border-bottom:1px solid var(--line);z-index:49}
+.status-strip span b{color:var(--tx-2)}
+
+.icons{position:absolute;top:76px;left:20px;display:grid;grid-template-columns:repeat(1,90px);gap:6px;z-index:10}
+.icon{border:1px solid var(--line);padding:10px 8px;cursor:pointer;transition:border-color .15s, background .15s;
+  display:flex;flex-direction:column;gap:8px}
+.icon:hover{border-color:var(--green);background:rgba(63,207,149,.05)}
+.icon .glyph{font-size:18px;color:var(--green)}
+.icon span{font-size:10px;color:var(--tx-2);letter-spacing:.02em}
+.icon .idx{font-size:9px;color:var(--tx-3)}
+
+.win{position:absolute;width:540px;height:360px;background:#060906;border:1px solid var(--green);
+  box-shadow:0 0 0 1px rgba(63,207,149,.15), 0 20px 50px rgba(0,0,0,.6);display:none;flex-direction:column;z-index:20}
+.win.open{display:flex;animation:typeIn .25s steps(6)}
+@keyframes typeIn{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.win-title{height:28px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 10px;
+  justify-content:space-between;cursor:move;font-size:11px;color:var(--green)}
+.win-title .x{cursor:pointer;color:var(--tx-3)}
+.win-title .x:hover{color:var(--accent)}
+.win-body{flex:1;padding:14px 16px;font-size:12.5px;color:var(--tx-2);overflow:auto;line-height:1.7}
+.win-body .prompt{color:var(--green)}
+.win-body b{color:var(--tx)}
+#w-chat{top:78px;left:130px}
+#w-know{top:120px;left:520px;width:420px;height:300px}
+
+.dock{position:absolute;bottom:0;left:0;right:0;height:46px;display:flex;align-items:center;gap:2px;
+  border-top:1px solid var(--line);background:rgba(5,7,5,.92);z-index:60;padding:0 10px}
+.dock .d{flex:1;height:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  border-right:1px solid var(--line);cursor:pointer;color:var(--tx-3);font-size:11px;transition:color .15s,background .15s}
+.dock .d:last-child{border-right:0}
+.dock .d:hover{color:var(--green);background:rgba(63,207,149,.06)}
+.dock .d .run{width:5px;height:5px;background:var(--amber);border-radius:99px}
+.companion{position:absolute;bottom:56px;right:16px;width:40px;height:40px;border:1px solid var(--green);
+  display:grid;place-items:center;color:var(--green);cursor:pointer;z-index:60;animation:pulse2 3s infinite}
+.label{position:fixed;bottom:52px;left:20px;font-size:10px;color:var(--tx-3);z-index:70}
+</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="crt-flicker"></div><div class="scan"></div>
+
+  <div class="menubar">
+    <b>CONSOLE//MAGNAVERSE</b><span class="blk"></span>
+    <div class="sp"></div>
+    <span class="sov">PRIVATE · RIYADH-DC1</span>
+    <span id="clock">18:24:07</span>
+  </div>
+  <div class="status-strip">
+    <span><b>8</b> connected systems</span>
+    <span><b>2</b> agents running</span>
+    <span><b>1</b> automation due 09:00</span>
+    <span>egress: <b>0 bytes</b></span>
+  </div>
+
+  <div class="icons">
+    <div class="icon" onclick="toggleWin('w-chat')"><span class="idx">01</span><span class="glyph">▣</span><span>CHAT</span></div>
+    <div class="icon" onclick="toggleWin('w-know')"><span class="idx">02</span><span class="glyph">▤</span><span>KNOWLEDGE</span></div>
+    <div class="icon"><span class="idx">03</span><span class="glyph">◉</span><span>AGENTS</span></div>
+    <div class="icon"><span class="idx">04</span><span class="glyph">⚡</span><span>AUTOMATIONS</span></div>
+    <div class="icon"><span class="idx">05</span><span class="glyph">▦</span><span>CONNECTIONS</span></div>
+    <div class="icon"><span class="idx">06</span><span class="glyph">&lt;/&gt;</span><span>CODE</span></div>
+    <div class="icon"><span class="idx">07</span><span class="glyph">◎</span><span>BROWSER</span></div>
+    <div class="icon"><span class="idx">08</span><span class="glyph">⚙</span><span>SETTINGS</span></div>
+  </div>
+
+  <div class="win" id="w-chat">
+    <div class="win-title">CHAT — C2_EXPOSURE.LOG<span class="x" onclick="toggleWin('w-chat')">[x]</span></div>
+    <div class="win-body">
+      <div class="prompt">&gt; query: cost exposure if C2 rebar delay = 45d</div><br>
+      Result: <b>SAR 5.32M</b><br>
+      LD cap 10% does not protect — bites past day 67.<br>
+      Standby cost dominates the exposure, not LD.<br><br>
+      <div class="prompt">&gt; _</div>
+    </div>
+  </div>
+  <div class="win" id="w-know">
+    <div class="win-title">KNOWLEDGE — 8400_DOCS<span class="x" onclick="toggleWin('w-know')">[x]</span></div>
+    <div class="win-body">
+      [1] Subcontract_GC-8_LD_clauses.pdf<br>
+      [2] RYD-M3_Baseline_r7.xer<br>
+      [3] PO_4500219871_AlRajhiSteel.pdf<br>
+      [4] HSE_register_wk33.xlsx
+    </div>
+  </div>
+
+  <div class="companion">◈</div>
+  <div class="dock">
+    <div class="d" onclick="toggleWin('w-chat')">CHAT<span class="run"></span></div>
+    <div class="d" onclick="toggleWin('w-know')">KNOWLEDGE</div>
+    <div class="d">AGENTS<span class="run"></span></div>
+    <div class="d">AUTOMATIONS</div>
+    <div class="d">CONNECTIONS</div>
+    <div class="d">CODE</div>
+    <div class="d">BROWSER</div>
+    <div class="d">SETTINGS</div>
+  </div>
+</div>
+<div class="label">02 · Terminal Sovereign — CRT/control-room, monospace, sharp edges</div>
+<script>
+function toggleWin(id){ document.getElementById(id).classList.toggle('open'); }
+toggleWin('w-chat');
+function tick(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Console — Widget Canvas</title>
+<style>
+:root{
+  --bg:#F4F1EC; --card:#FFFFFF; --line:rgba(20,20,20,.08);
+  --tx:#18181A; --tx-2:#55564F; --tx-3:#8A8A82;
+  --accent:#D71920; --green:#1F8F5A; --amber:#B45309; --blue:#1E50C8;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 12px 30px rgba(30,20,10,.08), 0 2px 6px rgba(30,20,10,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:var(--sans);color:var(--tx)}
+.desktop{position:relative;width:100vw;height:100vh;overflow:hidden}
+.wallpaper{position:absolute;inset:0;background:radial-gradient(circle at 85% 8%, rgba(215,25,32,.05), transparent 40%),radial-gradient(circle at 10% 90%, rgba(30,80,200,.05), transparent 45%)}
+
+.menubar{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;gap:14px;
+  padding:0 24px;z-index:50}
+.menubar .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.menubar .brand svg{width:20px}
+.sp{flex:1}
+.sov-pill{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:99px;background:var(--card);
+  box-shadow:var(--shadow);color:var(--green);font-weight:700;font-size:12.5px}
+.sov-pill .dot{width:7px;height:7px;border-radius:99px;background:var(--green)}
+.clock{font-family:var(--mono);color:var(--tx-3);font-size:13px;margin-left:14px}
+
+.canvas{position:absolute;top:66px;left:24px;right:24px;bottom:92px;display:grid;
+  grid-template-columns:repeat(4,1fr);grid-auto-rows:150px;gap:16px;overflow:auto;z-index:10}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:18px 20px;
+  display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:transform .18s ease}
+.card:hover{transform:translateY(-3px)}
+.card .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tx-3);font-weight:700}
+.card .v{font-size:22px;font-weight:800;margin-top:4px}
+.card .d{font-size:12.5px;color:var(--tx-2);line-height:1.5;margin-top:auto}
+.card.wide{grid-column:span 2}
+.card.tall{grid-row:span 2}
+.card.agent .v{color:var(--blue)}
+.card.agent::before{content:"";width:8px;height:8px;border-radius:99px;background:var(--blue);position:absolute;top:18px;right:20px;animation:p 1.6s infinite}
+.card{position:relative}
+@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(30,80,200,.5)}70%{box-shadow:0 0 0 7px rgba(30,80,200,0)}}
+.card.auto .v{color:var(--amber)}
+.card.sov{background:linear-gradient(145deg,#EAF7EF,var(--card))}
+.card-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:4px}
+.card-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8}
+.ic-chat{background:var(--accent)}.ic-know{background:var(--green)}.ic-agents{background:var(--blue)}
+.ic-auto{background:var(--amber)}.ic-conn{background:#8A8A82}.ic-code{background:#5B4FE0}
+.ic-browser{background:#0EA5B7}.ic-set{background:#44454A}
+
+.win{position:absolute;width:480px;height:360px;background:var(--card);border-radius:20px;box-shadow:0 30px 60px rgba(0,0,0,.18);
+  display:none;flex-direction:column;overflow:hidden;z-index:30}
+.win.open{display:flex;animation:pop .3s cubic-bezier(.2,.9,.25,1.1)}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.win-title{height:46px;display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid var(--line);cursor:move}
+.win-title b{font-size:13.5px}
+.win-title .x{margin-left:auto;width:26px;height:26px;border-radius:99px;display:grid;place-items:center;cursor:pointer;color:var(--tx-3)}
+.win-title .x:hover{background:#F2F2F0}
+.win-body{flex:1;padding:20px;font-size:13.5px;color:var(--tx-2);line-height:1.7;overflow:auto}
+.win-body b{color:var(--tx)}
+#w-chat{top:110px;left:220px}
+
+.dock{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;
+  padding:8px;background:var(--card);border-radius:20px;box-shadow:var(--shadow);z-index:60}
+.dock .d{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;cursor:pointer;transition:transform .15s}
+.dock .d:hover{transform:translateY(-8px)}
+.dock .d svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8}
+.companion{position:absolute;bottom:88px;right:26px;width:56px;height:56px;border-radius:99px;
+  background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;z-index:60}
+.companion::before{content:"";width:14px;height:14px;border-radius:99px;background:radial-gradient(circle at 35% 30%,#fff,var(--accent) 70%)}
+.label{position:fixed;bottom:78px;left:24px;font-size:11px;color:var(--tx-3);font-family:var(--mono);z-index:70}
+</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="wallpaper"></div>
+  <div class="menubar">
+    <div class="brand"><svg viewBox="0 0 640 440"><path d="M60 386 L577 33 L577 370" fill="none" stroke="#1E50C8" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 380 L32 35 L285 213" fill="none" stroke="#D71920" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/></svg>Console</div>
+    <div class="sp"></div>
+    <div class="sov-pill"><span class="dot"></span>Private · Riyadh DC-1</div>
+    <span class="clock" id="clock">18:24</span>
+  </div>
+
+  <div class="canvas">
+    <div class="card sov wide" onclick="toggleWin('w-chat')"><div class="k">Sovereignty</div><div class="v">Private</div><div class="d">Egress today: <b>0 bytes</b> · Cluster: Riyadh DC-1 · 8×H200</div></div>
+    <div class="card agent"><div class="k">Agent activity</div><div class="v">Running</div><div class="d">Risk Research Agent — summarizing GC-8 exposure</div></div>
+    <div class="card auto"><div class="k">Next automation</div><div class="v">09:00</div><div class="d">Board pack scheduler — in 41 min</div></div>
+
+    <div class="card" onclick="toggleWin('w-chat')"><div class="card-icon ic-chat"><svg viewBox="0 0 24 24"><path d="M20.5 12a7.7 7.7 0 0 1-8 7.5 9 9 0 0 1-2.6-.35L4.5 20.5l1.4-4.2A7.4 7.4 0 0 1 4.5 12a7.7 7.7 0 0 1 8-7.5 7.7 7.7 0 0 1 8 7.5Z"/></svg></div><div class="d"><b style="color:var(--tx)">Chat</b><br>C2 exposure — 4 msgs</div></div>
+    <div class="card"><div class="card-icon ic-know"><svg viewBox="0 0 24 24"><path d="M4 5.5A2 2 0 0 1 6 3.5h13v14H6a2 2 0 0 0-2 2Z"/></svg></div><div class="d"><b style="color:var(--tx)">Knowledge</b><br>8,400 documents</div></div>
+    <div class="card"><div class="card-icon ic-agents"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0"/></svg></div><div class="d"><b style="color:var(--tx)">Agents</b><br>4 configured</div></div>
+    <div class="card"><div class="card-icon ic-auto"><svg viewBox="0 0 24 24"><path d="M13.2 3 5.5 13.5h5.6L10.3 21 18 10.4h-5.6Z"/></svg></div><div class="d"><b style="color:var(--tx)">Automations</b><br>3 active</div></div>
+    <div class="card"><div class="card-icon ic-conn"><svg viewBox="0 0 24 24"><path d="M9 3.5v5M15 3.5v5"/><path d="M6.5 8.5h11v3.2a5.5 5.5 0 0 1-11 0Z"/></svg></div><div class="d"><b style="color:var(--tx)">Connections</b><br>8 systems</div></div>
+    <div class="card"><div class="card-icon ic-code"><svg viewBox="0 0 24 24"><path d="M9 7.5 4.5 12 9 16.5M15 7.5 19.5 12 15 16.5"/></svg></div><div class="d"><b style="color:var(--tx)">Code</b><br>2 projects</div></div>
+    <div class="card"><div class="card-icon ic-browser"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/></svg></div><div class="d"><b style="color:var(--tx)">Browser</b><br>Agentic actions</div></div>
+    <div class="card"><div class="card-icon ic-set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg></div><div class="d"><b style="color:var(--tx)">Settings</b><br>Models, sovereignty</div></div>
+  </div>
+
+  <div class="win" id="w-chat">
+    <div class="win-title"><b>Chat — C2 exposure</b><div class="x" onclick="toggleWin('w-chat')">✕</div></div>
+    <div class="win-body">At 45 days the exposure on C2 is <b>SAR 5.32 million</b>. The 10% liquidated-damages cap doesn't protect you — it only starts to bite past day 67, and most of the money is standby cost, not LD.</div>
+  </div>
+
+  <div class="companion" title="Companion"></div>
+  <div class="dock">
+    <div class="d ic-chat" onclick="toggleWin('w-chat')"><svg viewBox="0 0 24 24"><path d="M20.5 12a7.7 7.7 0 0 1-8 7.5 9 9 0 0 1-2.6-.35L4.5 20.5l1.4-4.2A7.4 7.4 0 0 1 4.5 12a7.7 7.7 0 0 1 8-7.5 7.7 7.7 0 0 1 8 7.5Z"/></svg></div>
+    <div class="d ic-know"><svg viewBox="0 0 24 24"><path d="M4 5.5A2 2 0 0 1 6 3.5h13v14H6a2 2 0 0 0-2 2Z"/></svg></div>
+    <div class="d ic-agents"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0"/></svg></div>
+    <div class="d ic-auto"><svg viewBox="0 0 24 24"><path d="M13.2 3 5.5 13.5h5.6L10.3 21 18 10.4h-5.6Z"/></svg></div>
+    <div class="d ic-conn"><svg viewBox="0 0 24 24"><path d="M9 3.5v5M15 3.5v5"/><path d="M6.5 8.5h11v3.2a5.5 5.5 0 0 1-11 0Z"/></svg></div>
+    <div class="d ic-code"><svg viewBox="0 0 24 24"><path d="M9 7.5 4.5 12 9 16.5M15 7.5 19.5 12 15 16.5"/></svg></div>
+    <div class="d ic-browser"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/></svg></div>
+    <div class="d ic-set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg></div>
+  </div>
+</div>
+<div class="label">03 · Widget Canvas — dashboard-first, cards not icons, warm/light</div>
+<script>
+function toggleWin(id){ document.getElementById(id).classList.toggle('open'); }
+function tick(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+tick(); setInterval(tick, 15000);
+</script>
+</body>
+</html>
