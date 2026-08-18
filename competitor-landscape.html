@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE — AI-OS competitive landscape</title>
+<meta name="description" content="Nine AI-OS/agent products analyzed — what each gets right, and how Console (app-7) goes further.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:color-mix(in srgb, #2E0FE4 75%, #FFFFFF);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.2);
+    --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2;
+    --accent:#D71920; --accent-dim:rgba(215,25,32,.16);
+    --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+    --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.2);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2;
+  --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+  --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B;
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--tx); font-family:var(--sans); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1040px; margin:0 auto; padding:0 24px}
+
+.top{position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+.top .wrap{display:flex; align-items:center; gap:14px; height:56px}
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; font-size:14px}
+.brand svg{width:22px; height:auto}
+.themeseg{margin-left:auto; display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:99px; padding:2px}
+.themeseg button{width:28px; height:26px; border:0; background:transparent; border-radius:99px; color:var(--tx-3); display:grid; place-items:center; cursor:pointer}
+.themeseg button[aria-pressed="true"]{background:var(--surface); color:var(--tx); box-shadow:var(--shadow-sm)}
+.themeseg svg{width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:1.8}
+
+.hero{padding:56px 0 28px}
+.hero .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--signal-bright); background:color-mix(in srgb, var(--signal) 12%, transparent); padding:6px 12px; border-radius:99px; margin-bottom:18px}
+.hero h1{font-size:clamp(28px,4vw,42px); font-weight:800; letter-spacing:-.02em; margin:0 0 14px; max-width:26ch}
+.hero p{font-size:16.5px; color:var(--tx-2); max-width:66ch; margin:0}
+.disclaimer{margin-top:26px; border:1px solid var(--line-2); border-left:3px solid var(--signal); border-radius:0 var(--r) var(--r) 0; background:color-mix(in srgb, var(--signal) 8%, transparent); padding:14px 18px; font-size:13.6px; color:var(--tx-2); line-height:1.6; max-width:68ch}
+.disclaimer b{color:var(--tx)}
+
+.toc{max-width:1040px; margin:36px auto 0; padding:0 24px}
+.toc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+@media (max-width:720px){ .toc-grid{grid-template-columns:repeat(2,1fr)} }
+.toc a{display:block; border:1px solid var(--line); border-radius:var(--r); padding:12px 14px; color:var(--tx); font-size:12.6px; font-weight:600; text-decoration:none}
+.toc a:hover{border-color:var(--line-2); background:var(--surface-2)}
+.toc .n{display:block; font-family:var(--mono); font-size:11px; color:var(--tx-3); font-weight:500; margin-bottom:4px}
+
+section{max-width:1040px; margin:0 auto; padding:56px 24px; border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+.sect-h{display:flex; align-items:baseline; gap:12px; margin-bottom:6px; flex-wrap:wrap}
+.sect-h .tag{font-family:var(--mono); font-size:12px; color:var(--tx-3)}
+.sect-h .url{font-family:var(--mono); font-size:12px; color:var(--tx-3); margin-left:auto}
+h2{font-size:clamp(20px,2.6vw,26px); font-weight:800; letter-spacing:-.015em; margin:0}
+.sect-sub{color:var(--tx-2); font-size:14.6px; max-width:70ch; margin:8px 0 24px; line-height:1.65}
+
+.cardgrid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:760px){ .cardgrid{grid-template-columns:1fr} }
+.card{border:1px solid var(--line); border-radius:var(--r-lg); padding:18px 20px; background:var(--surface)}
+.card h3{font-size:13px; font-weight:700; margin:0 0 10px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.03em; color:var(--tx-3)}
+.card ul{margin:0; padding:0 0 0 18px; font-size:13.6px; color:var(--tx-2); line-height:1.65}
+.card ul li{margin-bottom:6px}
+.card p{font-size:13.6px; color:var(--tx-2); line-height:1.65; margin:0}
+
+.console-card{margin-top:14px; border:1px solid color-mix(in srgb, var(--green) 34%, var(--line)); background:var(--green-dim); border-radius:var(--r-lg); padding:16px 20px}
+.console-card h3{font-size:12.5px; font-weight:800; margin:0 0 6px; color:var(--tx); text-transform:uppercase; letter-spacing:.03em; display:flex; align-items:center; gap:8px}
+.console-card h3 .dot{width:6px; height:6px; border-radius:99px; background:var(--green); flex:none}
+.console-card p{font-size:13.8px; color:var(--tx-2); line-height:1.65; margin:0}
+
+.synth-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+@media (max-width:760px){ .synth-grid{grid-template-columns:1fr} }
+.synth-card{border:1px solid var(--line-2); border-radius:var(--r-lg); padding:18px 20px; background:var(--surface)}
+.synth-card .from{font-family:var(--mono); font-size:11px; color:var(--signal-bright); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; display:block}
+.synth-card h3{font-size:15px; font-weight:700; margin:0 0 8px}
+.synth-card p{font-size:13.6px; color:var(--tx-2); line-height:1.65; margin:0}
+
+footer{max-width:1040px; margin:0 auto; padding:40px 24px 60px; color:var(--tx-3); font-size:12.6px; border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 640 440"><path d="M60 386 L577 33 L577 370" fill="none" stroke="#1E50C8" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 380 L32 35 L285 213" fill="none" stroke="#A3241A" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      MagnaVERSE
+    </div>
+    <div class="themeseg" role="group" aria-label="Theme">
+      <button data-t="light" aria-pressed="false" title="Light"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <button data-t="dark" aria-pressed="false" title="Dark"><svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg></button>
+      <button data-t="system" aria-pressed="true" title="System"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="hero wrap">
+  <span class="eyebrow">Competitive research · 9 products · Aug 2026</span>
+  <h1>What the AI-OS competition is actually doing</h1>
+  <p>Nine products that are each solving one slice of "an AI that runs your work" — agent teammates, agentic browsers, self-hosted multi-model UIs, ambient life-management. None of them is a desktop-OS metaphor. This is the research behind <b>Console</b> (app-7) — the ideas worth taking from each, and concretely how Console folds them in so it reads as an AI-native operating environment, not a ChatGPT or Claude skin.</p>
+  <div class="disclaimer">
+    <b>This is a research/reference document, not a build.</b> Product descriptions below are synthesized from each company's own site and public docs as of August 2026. The "How Console does this" cards describe what's planned for <code>apps/app-7-console.html</code> — see that file for what's actually implemented.
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-grid">
+    <a href="#cohere"><span class="n">01</span>Cohere OS</a>
+    <a href="#lindy"><span class="n">02</span>Lindy</a>
+    <a href="#multion"><span class="n">03</span>MultiOn</a>
+    <a href="#crewai"><span class="n">04</span>CrewAI</a>
+    <a href="#zapier"><span class="n">05</span>Zapier Central</a>
+    <a href="#comet"><span class="n">06</span>Perplexity Comet</a>
+    <a href="#littlebird"><span class="n">07</span>Littlebird</a>
+    <a href="#browseros"><span class="n">08</span>BrowserOS</a>
+    <a href="#openwebui"><span class="n">09</span>Open WebUI</a>
+    <a href="#synthesis"><span class="n">10</span>The Console thesis</a>
+  </div>
+</div>
+
+<section id="cohere">
+  <div class="sect-h"><span class="tag">01</span><h2>Cohere OS</h2><span class="url">cohere-os.com</span></div>
+  <p class="sect-sub">Despite the name, Cohere OS has no desktop, no windows, no icons at all — it's a background life-management service delivered through voice notes, texts, and scheduled calls. "The experience isn't using a tool. It's having a team that knows you." That philosophy — proactive, ambient, low-friction — is the real takeaway, not any visual pattern.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>Connects email, calendar, Slack, finance apps; triages, drafts, tracks spend</li>
+        <li>Scheduled proactive briefings: 6am morning brief, 9am meeting prep, 6pm wrap</li>
+        <li>Persistent memory with a decision-history/reasoning trail</li>
+        <li>You give "occasional feedback" — voice note, text, call — nothing else</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>It never waits to be asked. Value shows up on a schedule, unprompted, and the user's only job is a light-touch reaction. Most AI products (including MagnaVERSE's chat surface today) are entirely pull-based — you have to remember to open the app and ask.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>Desktop widgets aren't decoration — they're scheduled push. A morning-brief widget assembles overnight PO/schedule/agent activity into one card before the user opens anything; a "next automation" widget counts down instead of waiting to be queried. The dock's contextual zone surfaces the most urgent thing unprompted. Chat stays pull-based for exploration, but the desktop itself becomes the ambient layer Cohere OS is describing.</p>
+  </div>
+</section>
+
+<section id="lindy">
+  <div class="sect-h"><span class="tag">02</span><h2>Lindy</h2><span class="url">lindy.ai</span></div>
+  <p class="sect-sub">An AI teammate that lives in Slack, connects to 1,000+ tools, and does real multi-step work — updating a CRM, posting to a channel, sending an email, all from one instruction. Its two sharpest ideas: mandatory approval before anything changes, and skills taught by demonstration once and shared with the whole team.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>"Lindy asks before it alters anything" — read-only lookups run free, writes need a human yes</li>
+        <li>40+ prebuilt skills; "do something once, save it as a skill" for custom ones</li>
+        <li>Editable plain-text memory file the team can read and correct</li>
+        <li>Joins meetings as a named participant, transcribes, makes them queryable</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>Approval-gating isn't a one-off feature bolted onto a public/private switch — it's a consistent rule applied to <em>every</em> write action, everywhere, so trust compounds instead of being re-earned per feature.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>MagnaVERSE already has one great approval-gate: the sovereignty guardrail before a thread with internal data goes Public. Console generalizes that pattern OS-wide — any agent action that writes (updates a PO field, sends a message, posts an automation) grows an inline confirmation bar at the point of action, the same visual language every time, instead of a single special-cased modal. And "Record a Skill" becomes a Console-level capability: demonstrate a task once in any window, save it, and it shows up as a new Spotlight-searchable action.</p>
+  </div>
+</section>
+
+<section id="multion">
+  <div class="sect-h"><span class="tag">03</span><h2>MultiOn</h2><span class="url">docs.multion.ai</span></div>
+  <p class="sect-sub">Positions itself as the "Motor Cortex" for AI — an API that turns natural-language instructions into real browser actions: clicking, filling forms, scrolling, extracting structured data, at scale, with proxy/bot-detection handling for reliability.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>Agent API: natural language → autonomous web actions in a remote browser session</li>
+        <li>Full-page structured data extraction (LLM-driven scraping)</li>
+        <li>Chrome extension for local human-agent handoff</li>
+        <li>Parallel agent execution across many sessions/pages at once</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>The web itself is a tool surface an agent should act on directly — not just a thing the user copy-pastes context out of into a chat box.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>A dedicated <b>Browser Agent</b> app/window — a genuinely new 8th icon beyond the four originally named — where you describe a task ("check if the rebar supplier's portal shows a new delivery date") and the agent drives a sandboxed session, showing its steps live in the window (same scripted-transcript technique as Magna Code's chat pane), gated by the same approval rule as any other write action.</p>
+  </div>
+</section>
+
+<section id="crewai">
+  <div class="sect-h"><span class="tag">04</span><h2>CrewAI</h2><span class="url">crewai.com</span></div>
+  <p class="sect-sub">An enterprise multi-agent orchestration platform — build "crews" of agents that collaborate on a workflow, with centralized governance so platform teams keep control even as business users build their own agents. Claims 450M+ monthly agentic workflow runs and 65% Fortune 500 adoption.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>Multi-agent "crews" that divide and collaborate on complex work</li>
+        <li>Unified build+runtime platform for both engineers and business teams</li>
+        <li>Centralized governance/oversight over what agents are deployed</li>
+        <li>Cloud platform and an open-source path for technical users</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>Agents aren't solo — real work needs several specialized agents handing off to each other, and an enterprise needs to see and govern the whole crew, not just one agent at a time.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>The existing Agents app already shows individual agents with delegation between them (e.g. the PO Slippage Watch ↔ Risk Research Agent mutual handoff built earlier this session). Console's Agents window makes that a first-class "crew view" — a visual delegation map is the window's default view, not a buried detail — and every governed action a crew takes routes through the same OS-wide approval rule from Lindy's playbook above, so "centrally governed" is true by construction, not a separate admin panel.</p>
+  </div>
+</section>
+
+<section id="zapier">
+  <div class="sect-h"><span class="tag">05</span><h2>Zapier Central</h2><span class="url">zapier.com/blog</span></div>
+  <p class="sect-sub">AI bots that work "more like teammates than programs" — connect a knowledge source, teach behavior in plain language, then chat with the bot to run it, with 6,000+ app connectivity through Zapier's existing ecosystem. No code, three steps.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>3-step setup: add data → teach behavior → chat to run</li>
+        <li>Bots operate with or without the user present (background execution)</li>
+        <li>Multiple specialized bots per user for different jobs</li>
+        <li>Chat is the entire control surface — no separate builder UI to learn</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>Building an automation shouldn't feel like a different product from using one — the same chat window that runs your bot is the one that created it.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>Spotlight (⌘K) doubles as the automation builder: typing "every morning, summarize P6 slippage and post it to Automations" creates the automation right there, no separate wizard, then the same query surface lets you inspect or edit it later. This is also the cheapest of all the researched ideas to fold in, since Console already plans to port app-4's command palette as its launcher.</p>
+  </div>
+</section>
+
+<section id="comet">
+  <div class="sect-h"><span class="tag">06</span><h2>Perplexity Comet</h2><span class="url">perplexity.ai/comet</span></div>
+  <p class="sect-sub">A Chromium browser with an AI assistant living natively in the sidebar — aware of the current tab, retaining context across the session, and answering questions across <em>all</em> open tabs at once ("what do these tabs have in common?"). A separate Agent mode acts autonomously: books flights, fills forms, manages subscriptions.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>Sidebar assistant: summarizes, answers, cites, translates — always present</li>
+        <li>Cross-tab context awareness, not just single-page</li>
+        <li>Comet Agent: autonomous multi-step task execution</li>
+        <li>Free across macOS/Windows/Android/iOS, no account required for core features</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>Context that spans multiple open surfaces at once is something only the browser/OS layer can see — a single-page chatbot structurally can't answer "what do these have in common," because it only ever sees one conversation.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>This is the single strongest argument for building app-7 as a real multi-window OS rather than another chat surface: Spotlight/the floating companion can be asked "compare what's in this Knowledge window and that Chat thread" and answer across window boundaries, because the OS layer — uniquely — can see every open window's content. No other MagnaVERSE prototype can do this by construction.</p>
+  </div>
+</section>
+
+<section id="littlebird">
+  <div class="sect-h"><span class="tag">07</span><h2>Littlebird</h2><span class="url">littlebird.ai</span></div>
+  <p class="sect-sub">A "second brain" that passively watches your active window and listens in meetings, so you never re-explain context. "Hummingbird" is a floating sidebar summonable from any app without switching windows. Memory renders as a magazine-style dashboard of cards, not a linear chat log.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>Passive observation model — no manual paste-in of context required</li>
+        <li>Hummingbird: a floating, always-accessible companion over any app</li>
+        <li>Magazine-style memory dashboard (tasks, emails, focus areas) instead of chat</li>
+        <li>Drafts emails/docs "in your voice" from learned writing patterns</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>The assistant shouldn't live inside one app's window — it should float <em>above</em> every app, summonable anywhere, because the friction that kills AI adoption is switching context to go ask it something.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>A persistent floating companion orb — distinct from the dock and from Spotlight — sits above every window and can be summoned with a click or shortcut regardless of which app has focus. It's the same underlying assistant as Chat, just always-reachable without opening a Chat window first, directly answering Littlebird's friction argument.</p>
+  </div>
+</section>
+
+<section id="browseros">
+  <div class="sect-h"><span class="tag">08</span><h2>BrowserOS</h2><span class="url">browseros.com</span></div>
+  <p class="sect-sub">An open-source, Chromium-based browser billed as "a privacy-first alternative to ChatGPT Atlas and Perplexity" — AI agents run locally, your browsing history and API keys never leave your machine, and it supports 11+ model providers including fully local models via Ollama/LM Studio.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>Local-first agent execution — "not in some corporate cloud"</li>
+        <li>User owns their API keys and automations</li>
+        <li>Chromium fork — existing Chrome extensions keep working</li>
+        <li>Free, open-source, macOS/Windows/Linux</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>"Your data, your compute, your control" is a genuine trust differentiator right now, not just a compliance checkbox — several products in this list are explicitly positioning against cloud-only competitors on exactly this axis.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>MagnaVERSE's sovereignty system already <em>is</em> this story, more concretely than BrowserOS's marketing copy — Private tier means real on-prem GPUs in Riyadh DC-1, not just "an API key you hold." Console makes that the OS's headline, not a per-thread detail: the menu-bar sovereignty pill is permanent chrome, and an "About Console" panel states the local-compute story in the same plain terms BrowserOS uses, because MagnaVERSE can back the claim with an actual data-residency architecture.</p>
+  </div>
+</section>
+
+<section id="openwebui">
+  <div class="sect-h"><span class="tag">09</span><h2>Open WebUI</h2><span class="url">openwebui.com</span></div>
+  <p class="sect-sub">A self-hosted, ChatGPT-style interface for any LLM backend (Ollama, OpenAI-compatible APIs). Native RAG with source citations, a Pipelines plugin framework for custom Python logic, multi-model switching mid-conversation, and full RBAC so a team can share one deployment safely.</p>
+  <div class="cardgrid">
+    <div class="card">
+      <h3>What it does</h3>
+      <ul>
+        <li>RAG built-in, no add-ons: upload docs, get cited answers</li>
+        <li>Pipelines framework: custom functions, rate limits, content filtering, translation</li>
+        <li>Switch models mid-chat; voice/video chat; image generation hooks</li>
+        <li>Multi-user roles/permissions for shared team deployments</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The idea worth taking</h3>
+      <p>Model choice and access control are core product surfaces, not settings buried three menus deep — a team deployment lives or dies on RBAC being visible and trustworthy.</p>
+    </div>
+  </div>
+  <div class="console-card">
+    <h3><span class="dot"></span>How Console does this</h3>
+    <p>MagnaVERSE already has a real model picker (Kimi/DeepSeek/Qwen/Nemotron) and a Skills/MCP framework — Console's Settings window elevates permissions/roles (already one of the 12 Settings panes) to sit alongside the model picker in the same visual tier, so "who can do what, on which model" reads as a first-class OS control, matching Open WebUI's instinct that this isn't a niche admin page.</p>
+  </div>
+</section>
+
+<section id="synthesis">
+  <div class="sect-h"><span class="tag">10</span><h2>The Console thesis</h2></div>
+  <p class="sect-sub">Nine products, nine different slices of "AI OS." None combines them. Console's bet is that the desktop-OS metaphor is the one shape that can hold all nine ideas at once — because it's the only one of MagnaVERSE's seven prototypes with more than one surface open at a time.</p>
+  <div class="synth-grid">
+    <div class="synth-card"><span class="from">from Cohere OS</span><h3>Proactive desktop widgets</h3><p>Scheduled briefings surface unprompted on the desktop itself, not just on request in Chat.</p></div>
+    <div class="synth-card"><span class="from">from Lindy</span><h3>OS-wide approval gate + Record a Skill</h3><p>Every write action gets the same inline confirmation; demonstrate once, it's a Spotlight action forever.</p></div>
+    <div class="synth-card"><span class="from">from MultiOn / BrowserOS / Comet</span><h3>Browser Agent app</h3><p>An 8th window: describe a web task, watch a sandboxed agent execute it, same approval gate.</p></div>
+    <div class="synth-card"><span class="from">from Comet</span><h3>Cross-window context</h3><p>Spotlight/the companion can answer questions spanning multiple currently-open windows — only possible because it's an OS, not a single chat page.</p></div>
+    <div class="synth-card"><span class="from">from Littlebird</span><h3>Floating companion, above every app</h3><p>Summonable from any window without opening Chat first — the same assistant, zero switching cost.</p></div>
+    <div class="synth-card"><span class="from">from CrewAI</span><h3>Crew view as the Agents default</h3><p>Delegation between agents is the headline of the Agents window, not a buried detail.</p></div>
+    <div class="synth-card"><span class="from">from Zapier Central</span><h3>Spotlight doubles as the automation builder</h3><p>Describe the automation in the same launcher that runs everything else — no separate wizard.</p></div>
+    <div class="synth-card"><span class="from">from BrowserOS + Open WebUI</span><h3>Sovereignty and access control as permanent chrome</h3><p>The menu-bar tier pill and Settings' model/RBAC panes are always-visible OS surfaces, not settings buried three menus deep.</p></div>
+  </div>
+</section>
+
+<footer>
+  MagnaVERSE — competitive research reference for Console (app-7). Product descriptions synthesized from each company's own site/docs, August 2026; verify against current product pages before quoting externally.
+</footer>
+
+<script>
+(function(){
+  var btns = document.querySelectorAll(".themeseg button");
+  function apply(t){
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+    else{ document.documentElement.removeAttribute("data-theme"); }
+    try{ localStorage.setItem("mv.theme", t); }catch(e){}
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-t") === t)); });
+  }
+  btns.forEach(function(b){ b.addEventListener("click", function(){ apply(b.getAttribute("data-t")); }); });
+  apply(localStorage.getItem("mv.theme") || "system");
+})();
+</script>
+
+</body>
+</html>
