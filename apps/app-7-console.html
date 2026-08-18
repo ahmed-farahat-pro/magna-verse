@@ -217,6 +217,11 @@ body:not([data-stage="os"]) #os{display:none}
 .dicon-file:hover .tile{box-shadow:0 0 14px rgba(255,255,255,.1), 0 14px 30px rgba(0,0,0,.4)}
 .dicon-file.sel,.dicon.sel{background:rgba(14,165,183,.12);border-radius:14px}
 .dicon-file.sel .tile,.dicon.sel .tile{box-shadow:0 0 0 2px var(--cyan),0 0 10px rgba(14,165,183,.3)}
+/* macOS-style inline rename — the label becomes an edit field in place */
+.inline-rename{width:84px;font-size:11.5px;font-weight:600;text-align:center;color:var(--tx);
+  background:var(--glass-3);border:2px solid var(--cyan);border-radius:6px;padding:2px 4px;
+  outline:none;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.inline-rename.fm{width:110px;text-align:left}
 .sel-rect{position:absolute;border:1.5px dashed rgba(14,165,183,.6);background:rgba(14,165,183,.06);
   border-radius:4px;pointer-events:none;z-index:50}
 
@@ -3503,6 +3508,55 @@ function showCtx(x, y, type, targetId){
   });
 }
 function hideCtx(){ $("#ctxMenu").style.display = "none"; }
+/* ---- macOS-style creation: make “untitled folder” NOW, name it inline ---- */
+function vfsUniqueName(parentId, base){
+  var names = VFS.list(parentId).map(function(f){ return f.name.toLowerCase(); });
+  if(names.indexOf(base.toLowerCase()) < 0) return base;
+  var n = 2;
+  while(names.indexOf((base + " " + n).toLowerCase()) >= 0) n++;
+  return base + " " + n;
+}
+function beginInlineRename(fileId){
+  var node = $('.dicon-file[data-file="'+fileId+'"]');
+  var f = VFS.get(fileId); if(!f) return;
+  if(!node){ /* lives in a folder, not on the desktop — fall back gracefully */
+    var nn = prompt("Rename:", f.name);
+    if(nn && nn.trim()) VFS.rename(fileId, nn.trim());
+    renderDesktopFiles(); return;
+  }
+  var lbl = node.querySelector(".lbl"); if(!lbl) return;
+  var stem = f.type === "folder" ? f.name : f.name.replace(/\.[^.]+$/, "");
+  var inp = document.createElement("input");
+  inp.className = "inline-rename";
+  inp.value = f.name;
+  inp.setAttribute("aria-label", "Rename");
+  lbl.style.display = "none";
+  lbl.parentNode.insertBefore(inp, lbl);
+  node.classList.add("sel");
+  inp.focus();
+  try{ inp.setSelectionRange(0, stem.length); }catch(e){ inp.select(); }
+  var closed = false;
+  function done(save){
+    if(closed) return; closed = true;
+    var v = inp.value.trim();
+    inp.remove();
+    lbl.style.display = "";
+    node.classList.remove("sel");
+    if(save && v && v !== f.name){ VFS.rename(fileId, v); toast("Renamed to “"+v+"”.", 1600); }
+    renderDesktopFiles();
+  }
+  inp.addEventListener("keydown", function(e){
+    e.stopPropagation();
+    if(e.key === "Enter"){ e.preventDefault(); done(true); }
+    else if(e.key === "Escape"){ e.preventDefault(); done(false); }
+  });
+  inp.addEventListener("blur", function(){ done(true); });
+  inp.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+  node.addEventListener("pointerdown", function guard(e){
+    if(e.target !== inp){ e.preventDefault(); e.stopPropagation(); done(true); }
+    node.removeEventListener("pointerdown", guard);
+  });
+}
 document.addEventListener("click", hideCtx);
 document.addEventListener("contextmenu", function(e){
   /* native menus stay inside app windows, the dock, the menu bar, modals
@@ -3530,21 +3584,19 @@ document.addEventListener("click", function(e){
   var s = ctxState;
   hideCtx();
   if(act === "new-file"){
-    var name = prompt("File name:", "Untitled.docx");
-    if(name && name.trim()){
-      var ext = fileExt(name);
-      var folderId = (s.type === "folder" && s.target) ? s.target : "desktop";
-      VFS.create(folderId, name.trim(), "file", "", ext);
-      renderDesktopFiles(); toast("Created " + name.trim());
-    }
+    /* Apple flow: create “Untitled” immediately, name it inline on the icon */
+    var folderId = (s.type === "folder" && s.target) ? s.target : "desktop";
+    var name = vfsUniqueName(folderId, "Untitled.docx");
+    var fid = VFS.create(folderId, name, "file", "", fileExt(name)).id;
+    if(folderId === "desktop"){ renderDesktopFiles(); beginInlineRename(fid); }
+    else { renderDesktopFiles(); toast("Created “"+name+"” in the folder.", 2000); }
   }
   else if(act === "new-folder"){
-    var name = prompt("Folder name:", "New Folder");
-    if(name && name.trim()){
-      var folderId = (s.type === "folder" && s.target) ? s.target : "desktop";
-      VFS.create(folderId, name.trim(), "folder", "", "");
-      renderDesktopFiles(); toast("Created " + name.trim());
-    }
+    var folderId = (s.type === "folder" && s.target) ? s.target : "desktop";
+    var name = vfsUniqueName(folderId, "untitled folder");
+    var fid = VFS.create(folderId, name, "folder", "", "").id;
+    if(folderId === "desktop"){ renderDesktopFiles(); beginInlineRename(fid); }
+    else { renderDesktopFiles(); toast("Created “"+name+"” in the folder.", 2000); }
   }
   else if(act === "open" && s.target){
     if(s.type === "app"){ openApp(s.target); return; }
@@ -3588,11 +3640,7 @@ document.addEventListener("click", function(e){
     }
   }
   else if(act === "rename" && s.target){
-    var f = VFS.get(s.target);
-    if(f){
-      var nn = prompt("Rename:", f.name);
-      if(nn && nn.trim()){ VFS.rename(s.target, nn.trim()); renderDesktopFiles(); }
-    }
+    beginInlineRename(s.target);
   }
   else if(act === "delete" && s.target){
     VFS.del(s.target); renderDesktopFiles(); toast("Moved to Trash.");
@@ -4213,35 +4261,45 @@ document.addEventListener("click", function(e){
 });
 
 /* ---- 1c · CLAP DETECTION -----------------------------------------------
-   Double-clap anywhere → Quick AI opens and greets. Web Audio spike
-   detection on the mic stream; strictly opt-in (mic permission), and
-   nothing is recorded or sent anywhere — amplitude only, in-tab. */
-var clap = { ctx:null, analyser:null, data:null, stream:null, on:false, last:0, spikes:[] };
+   Double-clap anywhere → Quick AI opens and greets. Web Audio level
+   detection on the mic stream; strictly opt-in, nothing recorded or
+   sent anywhere — amplitude only, in-tab.
+   Robustness: the AudioContext is resumed on the enabling gesture,
+   the detector uses an adaptive baseline (works in noisy rooms) and
+   runs on a timer so it keeps listening even in a background tab. */
+var clap = { ctx:null, analyser:null, data:null, stream:null, on:false,
+             base:8, last:0, spikes:[], timer:null };
 function clapStart(){
   if(clap.on) return;
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     toast("This browser can’t listen for claps.", 2400); return;
   }
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false}}).then(function(stream){
     var AC = window.AudioContext || window.webkitAudioContext;
     clap.ctx = new AC();
+    /* browsers start contexts suspended until a gesture — this IS one */
+    if(clap.ctx.state === "suspended" && clap.ctx.resume) clap.ctx.resume();
     var src = clap.ctx.createMediaStreamSource(stream);
     clap.analyser = clap.ctx.createAnalyser();
-    clap.analyser.fftSize = 512;
-    clap.data = new Uint8Array(clap.analyser.frequencyBinCount);
+    clap.analyser.fftSize = 1024;
+    clap.analyser.smoothingTimeConstant = 0;
+    clap.data = new Uint8Array(clap.analyser.fftSize);
     src.connect(clap.analyser);
-    clap.stream = stream; clap.on = true; clap.spikes = [];
+    clap.stream = stream; clap.on = true; clap.spikes = []; clap.base = 8;
     store.set("mv7.clap","on");
     syncClapUI();
     toast("Clap detection on — double-clap anywhere and I’ll appear.", 3200);
-    clapLoop();
+    clap.timer = setInterval(clapTick, 35);
   }).catch(function(){
     toast("Microphone blocked — allow it to use clap detection.", 2600);
+    store.set("mv7.clap","off");
+    syncClapUI();
   });
 }
 function clapStop(){
   if(!clap.on) return;
   clap.on = false;
+  if(clap.timer){ clearInterval(clap.timer); clap.timer = null; }
   try{ clap.stream && clap.stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
   try{ clap.ctx && clap.ctx.close(); }catch(e){}
   clap.ctx = null; clap.analyser = null; clap.stream = null;
@@ -4252,34 +4310,40 @@ function clapStop(){
 function clapToggle(){ clap.on ? clapStop() : clapStart(); }
 function syncClapUI(){
   var b = $(".qa-mic"); if(b) b.classList.toggle("on", clap.on);
+  syncCtxLabels && syncCtxLabels();
 }
-function clapLoop(){
+function clapTick(){
   if(!clap.on || !clap.analyser) return;
-  requestAnimationFrame(clapLoop);
-  clap.analyser.getByteFrequencyData(clap.data);
-  var sum = 0;
-  for(var i = 0; i < clap.data.length; i++) sum += clap.data[i];
-  var avg = sum / clap.data.length;
+  /* time-domain RMS — a clap is a sharp, loud transient */
+  clap.analyser.getByteTimeDomainData(clap.data);
+  var peak = 0, sum = 0;
+  for(var i = 0; i < clap.data.length; i++){
+    var v = (clap.data[i] - 128) / 128;
+    if(v > peak) peak = v;
+    sum += v * v;
+  }
+  var rms = Math.sqrt(sum / clap.data.length);
+  /* slow-adapting noise floor */
+  clap.base = clap.base * 0.97 + rms * 0.03;
   var now = performance.now();
-  /* a clap is a sharp broadband spike; two inside ~600ms is a double-clap */
-  if(avg > 58 && now - clap.last > 110){
+  /* a clap: both peaky and well above the room’s noise floor */
+  if(peak > 0.55 && rms > clap.base * 2.2 + 0.045 && now - clap.last > 180){
     clap.spikes.push(now);
     clap.last = now;
   }
-  while(clap.spikes.length && now - clap.spikes[0] > 600) clap.spikes.shift();
+  while(clap.spikes.length && now - clap.spikes[0] > 750) clap.spikes.shift();
   if(clap.spikes.length >= 2){
     clap.spikes = [];
     quickAIOpen(true);
     toast("I’m here — what do you need?", 2400);
   }
 }
-/* resume after reload once the user interacts (AudioContext needs a gesture) */
+/* resume after reload once the user interacts (mic + AudioContext need a gesture) */
 document.addEventListener("click", function bootClap(){
-  if(store.get("mv7.clap","") === "on" && !clap.on){
+  if(store.get("mv7.clap","") === "on" && !clap.on && document.body.matches('[data-stage="os"]')){
     syncClapUI();
     clapStart();
   }
-  document.removeEventListener("click", bootClap);
 });
 $("#quickPanel [data-qain]").addEventListener("keydown", function(e){
   if(e.key === "Enter"){
@@ -7039,13 +7103,66 @@ MOUNT.files = function(body, w){
       if(f && f.type==="folder"){ w.state.folderId = f.id; draw(); }
       else if(f){ openFile(f); } return; }
     if(t = e.target.closest("[data-fmnew]")){ var kind = t.getAttribute("data-fmnew");
-      var names = {folder:"New Folder",docx:"Untitled.docx",pptx:"Untitled.pptx",xlsx:"Untitled.xlsx"};
+      var names = {folder:"untitled folder",docx:"Untitled.docx",pptx:"Untitled.pptx",xlsx:"Untitled.xlsx"};
       var exts  = {folder:"",docx:"docx",pptx:"pptx",xlsx:"xlsx"};
-      var nf = VFS.create(w.state.folderId, names[kind], kind==="folder"?"folder":"file", kind==="folder"?"":'{"data":[]}', exts[kind]);
-      draw(); toast(names[kind]+" created."); return; }
+      var uname = vfsUniqueName(w.state.folderId, names[kind]);
+      var nf = VFS.create(w.state.folderId, uname, kind==="folder"?"folder":"file", kind==="folder"?"":'{"data":[]}', exts[kind]);
+      var nfId = nf.id;
+      draw();
+      /* name it inline, right on the row/tile */
+      var row = w.body.querySelector('[data-fmren="'+nfId+'"] .fm-name') ||
+                w.body.querySelector('[data-fmopen="'+nfId+'"] .fm-name');
+      if(row){
+        var stem = kind==="folder" ? uname : uname.replace(/\.[^.]+$/,"");
+        var inp = document.createElement("input");
+        inp.className = "inline-rename fm"; inp.value = uname;
+        row.style.display = "none";
+        row.parentNode.insertBefore(inp, row);
+        inp.focus();
+        try{ inp.setSelectionRange(0, stem.length); }catch(e2){ inp.select(); }
+        var done2 = false;
+        function finish(save){
+          if(done2) return; done2 = true;
+          var v = inp.value.trim();
+          inp.remove(); row.style.display = "";
+          if(save && v && v !== uname) VFS.rename(nfId, v);
+          draw();
+        }
+        inp.addEventListener("keydown", function(ev){
+          ev.stopPropagation();
+          if(ev.key === "Enter"){ ev.preventDefault(); finish(true); }
+          else if(ev.key === "Escape"){ ev.preventDefault(); finish(false); }
+        });
+        inp.addEventListener("blur", function(){ finish(true); });
+      }
+      return; }
     if(t = e.target.closest("[data-fmren]")){ var rid = t.getAttribute("data-fmren");
       var rf = VFS.get(rid); if(!rf) return;
-      var nn = prompt("Rename:", rf.name); if(nn && nn.trim()){ VFS.rename(rid, nn.trim()); draw(); } return; }
+      /* inline rename on the name span — same Apple flow as the desktop */
+      var span = w.body.querySelector('[data-fmren="'+rid+'"] .fm-name');
+      if(!span){ var np = prompt("Rename:", rf.name); if(np && np.trim()){ VFS.rename(rid, np.trim()); draw(); } return; }
+      var stemF = rf.type==="folder" ? rf.name : rf.name.replace(/\.[^.]+$/,"");
+      var ip = document.createElement("input");
+      ip.className = "inline-rename fm"; ip.value = rf.name;
+      span.style.display = "none";
+      span.parentNode.insertBefore(ip, span);
+      ip.focus();
+      try{ ip.setSelectionRange(0, stemF.length); }catch(e3){ ip.select(); }
+      var done3 = false;
+      function finish3(save){
+        if(done3) return; done3 = true;
+        var v = ip.value.trim();
+        ip.remove(); span.style.display = "";
+        if(save && v && v !== rf.name) VFS.rename(rid, v);
+        draw();
+      }
+      ip.addEventListener("keydown", function(ev){
+        ev.stopPropagation();
+        if(ev.key === "Enter"){ ev.preventDefault(); finish3(true); }
+        else if(ev.key === "Escape"){ ev.preventDefault(); finish3(false); }
+      });
+      ip.addEventListener("blur", function(){ finish3(true); });
+      return; }
     if(t = e.target.closest("[data-fmdel]")){ VFS.del(t.getAttribute("data-fmdel")); draw(); toast("Moved to Trash."); return; }
     if(t = e.target.closest("[data-fmcut]")){ w.state.clipboard = {ids:[t.getAttribute("data-fmcut")],mode:"cut"}; draw(); return; }
     if(t = e.target.closest("[data-fmpaste]")){ if(!w.state.clipboard) return;
