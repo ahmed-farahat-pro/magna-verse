@@ -3112,10 +3112,9 @@ function openThemePicker(){
   }).join("");
   $("#themePicker").style.display = "flex";
 }
-function applyTheme(id){
+function applyThemeById(id){
   var theme = THEMES.filter(function(t){ return t.id === id; })[0];
   if(!theme) return;
-  /* remove old theme style if any */
   var old = document.getElementById("themeStyle");
   if(old) old.remove();
   if(id !== "default"){
@@ -3124,19 +3123,15 @@ function applyTheme(id){
     style.textContent = theme.css;
     document.head.appendChild(style);
   }
-  /* set light/dark for appropriate themes */
-  if(id === "light" || id === "mint" || id === "brutalist"){
-    document.documentElement.setAttribute("data-theme","light");
-  } else {
-    document.documentElement.setAttribute("data-theme","dark");
-  }
+  document.documentElement.setAttribute("data-theme", theme.dark ? "dark" : "light");
+  $("#themeBtn").innerHTML = ico(theme.dark ? "i-moon" : "i-sun","sm");
 }
 document.addEventListener("click", function(e){
   var t;
   if(t = e.target.closest("[data-theme-id]")){
     var id = t.getAttribute("data-theme-id");
     store.set("mv7.theme", id);
-    applyTheme(id);
+    applyThemeById(id);
     $$(".tp-opt").forEach(function(o){ o.classList.toggle("active", o.getAttribute("data-theme-id")===id); });
     toast("Theme: " + THEMES.filter(function(t){return t.id===id})[0].name);
   }
@@ -3243,7 +3238,7 @@ document.addEventListener("pointerup", function(e){
   var wp = store.get("mv7.wallpaper","default");
   if(wp !== "default") applyWallpaper(wp);
   var th = store.get("mv7.theme","default");
-  if(th !== "default") applyTheme(th);
+  if(th !== "default") applyThemeById(th);
 })();
 
 var MOUNT = {};
