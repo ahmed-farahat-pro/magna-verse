@@ -417,16 +417,24 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1p
 .side-i[aria-current="true"]{background:var(--glass-3);color:var(--tx);font-weight:600}
 .side-i .ico{color:var(--tx-3)}
 .side-i[aria-current="true"] .ico{color:var(--accent)}
-.side-i .cnt{margin-left:auto;font-size:11px;color:var(--tx-4);font-family:var(--mono)}
+.side-i .cnt{margin-left:auto;font-size:11px;color:var(--cyan);font-family:var(--mono);
+  background:rgba(14,165,183,.12);padding:2px 7px;border-radius:99px;font-weight:640;
+  animation:glowPulse 2.6s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 rgba(14,165,183,0)}50%{box-shadow:0 0 8px rgba(14,165,183,.25)}}
+@media (prefers-reduced-motion: reduce){ .side-i .cnt{animation:none} }
 .tabs{display:flex;gap:3px;padding:8px 10px;border-bottom:1px solid var(--glass-line);flex:none;overflow-x:auto;
   scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{padding:6px 12px;border-radius:8px;font-size:12.5px;color:var(--tx-3);white-space:nowrap;flex:none}
+.tab{padding:6px 12px;border-radius:8px;font-size:12.5px;color:var(--tx-3);white-space:nowrap;flex:none;
+  transition:background .15s,color .15s}
 .tab:hover{background:var(--glass-3);color:var(--tx-2)}
-.tab[aria-selected="true"]{background:var(--glass-3);color:var(--tx);font-weight:640}
+.tab[aria-selected="true"]{background:var(--glass-3);color:var(--tx);font-weight:640;
+  box-shadow:inset 0 -2px 0 var(--cyan)}
 h4.sec{margin:0 0 4px;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
 p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-width:64ch}
-.card{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);padding:14px 16px}
+.card{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);padding:14px 16px;
+  transition:border-color .2s,box-shadow .2s}
+.card:hover{border-color:rgba(255,255,255,.12);box-shadow:0 4px 20px rgba(0,0,0,.15)}
 .card+.card{margin-top:10px}
 .card h5{margin:0 0 6px;font-size:13px;font-weight:680;display:flex;align-items:center;gap:8px}
 .card p{margin:0;font-size:12.5px;color:var(--tx-2);line-height:1.6}
@@ -438,7 +446,8 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .tag.ac{color:var(--accent-2);background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
 .tag.sg{color:#A99BFF;background:var(--signal-dim);border-color:color-mix(in srgb,var(--signal) 34%,transparent)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 13px;
-  border-radius:9px;border:1px solid var(--glass-line-2);background:var(--glass-3);font-size:12.5px;font-weight:600}
+  border-radius:9px;border:1px solid var(--glass-line-2);background:var(--glass-3);font-size:12.5px;font-weight:600;
+  transition:all .15s}
 .btn:hover{background:var(--glass-2);border-color:var(--tx-4)}
 .btn.primary{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .btn.primary:hover{opacity:.88;background:var(--tx)}
@@ -451,6 +460,52 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .kv .k{color:var(--tx-3);min-width:130px;flex:none}
 .kv .v{color:var(--tx);font-family:var(--mono);font-size:12px}
 .empty-msg{padding:40px 20px;text-align:center;color:var(--tx-3);font-size:12.5px}
+/* futuristic stat cards — used in Settings, Agents, Tasks */
+.stat-card{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);
+  padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.stat-card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px)}
+.stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.5}
+.stat-card .stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-4);font-weight:700}
+.stat-card .stat-value{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:4px 0 2px;
+  font-family:var(--mono);background:linear-gradient(135deg,var(--tx),var(--cyan));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.stat-card .stat-sub{font-size:11px;color:var(--tx-3);line-height:1.4}
+.stat-card .stat-glow{position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:99px;
+  background:var(--cyan);opacity:.06;filter:blur(20px)}
+/* futuristic timeline — used in Brain behaviour, Settings memory */
+.ft-tl{position:relative;padding-left:24px}
+.ft-tl::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:1px;
+  background:linear-gradient(180deg,var(--cyan),var(--glass-line),transparent)}
+.ft-tl-i{position:relative;padding:0 0 18px}
+.ft-tl-i::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:99px;
+  background:var(--glass-3);border:2px solid var(--cyan);z-index:1}
+.ft-tl-i .ft-tt{font-size:12.5px;font-weight:640;color:var(--tx)}
+.ft-tl-i .ft-td{font-size:11.5px;color:var(--tx-3);margin-top:2px;line-height:1.5}
+.ft-tl-i .ft-tm{font-family:var(--mono);font-size:10.5px;color:var(--tx-4);margin-top:3px}
+/* futuristic settings panels */
+.sp-card{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);
+  padding:18px 20px;position:relative;overflow:hidden}
+.sp-card+.sp-card{margin-top:12px}
+.sp-card::after{content:"";position:absolute;top:0;right:0;width:60px;height:60px;
+  background:radial-gradient(circle,var(--cyan),transparent);opacity:.04;pointer-events:none}
+.sp-card h5{margin:0 0 8px;font-size:13px;font-weight:680;display:flex;align-items:center;gap:8px}
+.sp-card p{margin:0;font-size:12.5px;color:var(--tx-2);line-height:1.6}
+.sp-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--glass-line)}
+.sp-row:last-child{border-bottom:0}
+.sp-row .sp-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;
+  background:rgba(14,165,183,.1);border:1px solid rgba(14,165,183,.2)}
+.sp-row .sp-icon .ico{width:18px;height:18px;stroke:var(--cyan)}
+.sp-row .sp-info{flex:1;min-width:0}
+.sp-row .sp-name{font-size:12.5px;font-weight:640;color:var(--tx)}
+.sp-row .sp-desc{font-size:11px;color:var(--tx-3);margin-top:1px}
+.sp-row .sp-status{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:6px;
+  border:1px solid var(--glass-line);color:var(--tx-3);background:var(--glass-3)}
+.sp-row .sp-status.on{color:var(--private);border-color:color-mix(in srgb,var(--private) 30%,transparent);
+  background:var(--private-dim)}
+/* animated glow pulse for active items */
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(14,165,183,.2)}50%{box-shadow:0 0 0 6px rgba(14,165,183,0)}}
+.glow-active{animation:glowPulse 2s ease-in-out infinite}
 
 /* ============================ TOAST ============================ */
 #toasts{position:fixed;bottom:calc(var(--dock-h) + 20px);left:50%;transform:translateX(-50%);z-index:320;
@@ -575,21 +630,23 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 /* ============================ BRAIN APP ============================ */
 .br-wrap{flex:1;display:flex;min-width:0}
 .br-main{flex:1;min-width:0;display:flex;flex-direction:column}
-.br-graph{flex:1;min-height:0;position:relative;overflow:hidden;cursor:grab;touch-action:none}
+.br-graph{flex:1;min-height:0;position:relative;overflow:hidden;cursor:grab;touch-action:none;
+  background:radial-gradient(ellipse at 50% 40%,rgba(14,165,183,.04),transparent 70%)}
 .br-graph.panning{cursor:grabbing}
 .br-graph svg{width:100%;height:100%;display:block}
 .br-canvas{position:absolute;inset:0}
-.br-edge{stroke:var(--tx-2);fill:none;stroke-linecap:round}
-.br-edge.hot{stroke:var(--private)}
-.br-flow{filter:none}
+.br-edge{stroke:var(--tx-2);fill:none;stroke-linecap:round;transition:stroke .2s,opacity .2s}
+.br-edge.hot{stroke:var(--cyan);filter:drop-shadow(0 0 4px rgba(14,165,183,.35))}
+.br-edge.near{stroke:rgba(14,165,183,.5);filter:drop-shadow(0 0 2px rgba(14,165,183,.15))}
+.br-flow{filter:drop-shadow(0 0 3px rgba(14,165,183,.6))}
 @media (prefers-reduced-motion: reduce){ .br-flow{display:none} }
-/* opacity + scale only — `r` is an SVG geometry property and animating it in
-   CSS is not reliable across engines */
+@keyframes wirePulse{0%{stroke-dashoffset:24}100%{stroke-dashoffset:0}}
+.br-edge.hot{stroke-dasharray:8 4;animation:wirePulse 1.2s linear infinite}
+@media (prefers-reduced-motion: reduce){ .br-edge.hot{stroke-dasharray:none;animation:none} }
 @media (prefers-reduced-motion: no-preference){
   .br-halo{animation:haloPulse 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 }
 @keyframes haloPulse{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:.12;transform:scale(1.18)}}
-/* zoom controls, bottom-right of the canvas */
 .br-zoom{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;
   background:var(--glass-3);border:1px solid var(--glass-line);border-radius:var(--r-pill);
   padding:4px 6px;box-shadow:var(--shadow-sm);z-index:3}
@@ -597,9 +654,9 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .br-zoom button:hover{background:var(--glass-2);color:var(--tx)}
 .br-zoom span{font-family:var(--mono);font-size:10.5px;color:var(--tx-3);padding:0 6px;min-width:40px;text-align:center}
 .br-node{cursor:pointer}
-.br-node circle{stroke:rgba(255,255,255,.25);stroke-width:1.5;transition:r .18s ease}
+.br-node circle{stroke:rgba(255,255,255,.25);stroke-width:1.5;transition:r .18s ease,stroke .2s}
 .br-node:hover circle{stroke:#fff;stroke-width:2.5}
-.br-node.sel circle{stroke:#fff;stroke-width:3}
+.br-node.sel circle{stroke:#fff;stroke-width:3;filter:drop-shadow(0 0 6px rgba(14,165,183,.5))}
 .br-node text{font-size:9.5px;fill:var(--tx-2);text-anchor:middle;pointer-events:none;font-family:var(--sans)}
 @media (prefers-reduced-motion: no-preference){
   .br-node.pulse circle{animation:nodePulse 2.6s ease-in-out infinite}
@@ -623,9 +680,12 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .simrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-2)}
 .simrow .sc{font-family:var(--mono);font-size:10.5px;color:var(--private);flex:none}
 .simrow .mini{width:7px;height:7px;border-radius:99px;flex:none}
-.why{font-size:12px;color:var(--tx-2);line-height:1.65;border-left:2px solid var(--signal);padding-left:10px}
+.why{font-size:12px;color:var(--tx-2);line-height:1.65;border-left:2px solid var(--cyan);padding-left:10px;
+  background:rgba(14,165,183,.04);border-radius:0 8px 8px 0;padding:10px 12px;margin-top:6px}
 /* email + behaviour + reasoning lists */
-.erow{display:flex;gap:11px;padding:11px 12px;border-bottom:1px solid var(--glass-line);font-size:12.5px}
+.erow{display:flex;gap:11px;padding:11px 12px;border-bottom:1px solid var(--glass-line);font-size:12.5px;
+  transition:background .15s}
+.erow:hover{background:var(--glass-3)}
 .erow:last-child{border-bottom:0}
 .erow .av{width:30px;height:30px;border-radius:99px;flex:none;display:grid;place-items:center;
   font-size:11px;font-weight:700;color:#fff;background:var(--signal)}
@@ -2153,7 +2213,12 @@ var BRAIN_EDGES = [
   /* delivery + comms */
   ["n35","n11",.89],["n35","n12",.84],["n36","n37",.86],["n37","n38",.83],
   ["n38","n5",.80],["n40","n12",.78],["n40","n1",.70],["n35","n40",.66],
-  ["n7","n6",.94],["n36","n6",.58],["n30","n27",.57]
+  ["n7","n6",.94],["n36","n6",.58],["n30","n27",.57],
+  /* cross-cluster bridges — make the graph feel interconnected */
+  ["n8","n13",.52],["n14","n24",.67],["n15","n25",.61],["n18","n22",.73],
+  ["n23","n8",.49],["n31","n34",.72],["n37","n39",.55],["n40","n35",.68],
+  ["n11","n35",.89],["n13","n8",.55],["n20","n18",.84],["n24","n28",.71],
+  ["n25","n26",.86],["n29","n19",.64],["n32","n30",.78],["n34","n31",.65]
 ];
 function nodeById(id){ return BRAIN_NODES.filter(function(n){ return n.id===id; })[0]; }
 function neighbours(id){
@@ -2200,7 +2265,19 @@ var REASONING = [
    cite:["n2","n1"]},
   {q:"Why does Console keep surfacing Khalid's email?",
    a:"It sits on the shortest path between the PO you keep reopening and the variation notice you have left unsent. Two of your open threads depend on a date only he can confirm.",
-   cite:["n7","n6","n16"]}
+   cite:["n7","n6","n16"]},
+  {q:"Why was the C3 float protected instead of reallocated?",
+   a:"On 11 Aug you chose to keep C3 float untouched because the downstream concrete pour has a 14-day curing window that would push handover past the milestone. Reallocating float would cascade delays into C4.",
+   cite:["n17","n26","n25"]},
+  {q:"Why does Console recommend dual-source over single-source?",
+   a:"Al-Rajhi's delivery variance (σ = 4.2 days across 6 PO lines) has a 78% probability of causing a 10+ day delay on the critical path. The 1.8% unit-rate premium costs SAR 22K vs. the SAR 5.32M exposure from LD and standby.",
+   cite:["n5","n3","n17","n1"]},
+  {q:"Why is the HSE register relevant to the exposure calculation?",
+   a:"Two LTIs on the C2 deck triggered a mandatory 72-hour standdown that consumed 3 days of float. Without factoring the standdown, the exposure model underestimates completion by SAR 94K per day of crew standby.",
+   cite:["n9","n10","n1"]},
+  {q:"Why does Console surface the variation notice now?",
+   a:"The VN-C2-0114 assessment window closes on 22 Aug. You have the supporting calculation (n2) but have not signed off. The board pack due Thursday requires the final exposure figure, which depends on this VN being accepted.",
+   cite:["n16","n6","n12"]}
 ];
 
 var KNOWLEDGE_SOURCES = [
@@ -2712,23 +2789,29 @@ function graphSVG(sel){
     var a = nodeById(e[0]), b = nodeById(e[1]);
     if(!a || !b) return "";
     var hot = (e[0] === sel || e[1] === sel);
+    var near = !!nb[e[0]] || !!nb[e[1]];
     var x1 = a.x*WORLD_W, y1 = a.y*WORLD_H, x2 = b.x*WORLD_W, y2 = b.y*WORLD_H;
-    /* a gentle curve, bowed perpendicular to the run — reads as a wiring
-       diagram rather than a spider web */
     var mx = (x1+x2)/2, my = (y1+y2)/2;
     var dx = x2-x1, dy = y2-y1, len = Math.sqrt(dx*dx+dy*dy) || 1;
     var bow = Math.min(48, len*0.13);
     var cx = mx - (dy/len)*bow, cy = my + (dx/len)*bow;
     var d = "M"+x1.toFixed(1)+" "+y1.toFixed(1)+" Q"+cx.toFixed(1)+" "+cy.toFixed(1)+
             " "+x2.toFixed(1)+" "+y2.toFixed(1);
-    return '<path class="br-edge'+(hot?" hot":"")+'" d="'+d+'" '+
-           'stroke-width="'+(hot ? 2.2 : (0.7 + e[2]*1.3).toFixed(2))+'" '+
-           'opacity="'+(hot ? .95 : (0.10 + e[2]*0.26).toFixed(2))+'"/>' +
-           /* only the selected node's edges carry a travelling pulse, so the
-              animation says something instead of just moving */
-           (hot ? '<circle class="br-flow" r="2.6" fill="'+KIND_COLOR[a.kind]+'">'+
-                  '<animateMotion dur="'+(1.6 + (1-e[2])*1.4).toFixed(2)+'s" repeatCount="indefinite" '+
-                  'path="'+d+'"/></circle>' : "");
+    var sw = hot ? 2.2 : (near ? 1.4 : (0.6 + e[2]*1.1)).toFixed(2);
+    var op = hot ? .95 : (near ? 0.45 : (0.08 + e[2]*0.22)).toFixed(2);
+    var clr = hot ? "var(--cyan)" : (near ? "rgba(14,165,183,.5)" : "var(--tx-2)");
+    var result = '<path class="br-edge'+(hot?" hot":(near?" near":""))+'" d="'+d+'" '+
+           'stroke="'+clr+'" stroke-width="'+sw+'" opacity="'+op+'"/>';
+    /* animated flow particles — hot edges get a bright pulse, nearby edges get a dim one */
+    if(hot || (near && e[2] > 0.7)){
+      var dur = (1.8 + (1-e[2])*1.6).toFixed(2);
+      var r = hot ? 2.8 : 1.8;
+      var fill = hot ? KIND_COLOR[a.kind] : "rgba(14,165,183,.5)";
+      result += '<circle class="br-flow" r="'+r+'" fill="'+fill+'" opacity="'+(hot?".9":".4")+'">'+
+                   '<animateMotion dur="'+dur+'s" repeatCount="indefinite" '+
+                   'path="'+d+'"/></circle>';
+    }
+    return result;
   }).join("");
 
   var nodes = BRAIN_NODES.map(function(n){
@@ -2736,11 +2819,12 @@ function graphSVG(sel){
     var r = isSel ? 17 : (n.hot ? 13 : (near ? 11 : 8.5));
     var x = (n.x*WORLD_W).toFixed(1), y = (n.y*WORLD_H).toFixed(1);
     var op = isSel || near || n.hot ? 1 : .48;
+    var strokeW = isSel ? 3 : (near ? 2 : 1.5);
     return '<g class="br-node'+(isSel?" sel":"")+(n.hot?" pulse":"")+'" data-brnode="'+n.id+'">'+
       (isSel ? '<circle class="br-halo" cx="'+x+'" cy="'+y+'" r="'+(r+9)+'" fill="none" '+
-               'stroke="'+KIND_COLOR[n.kind]+'" stroke-width="1.5" opacity=".45"/>' : "")+
-      '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+KIND_COLOR[n.kind]+'" opacity="'+op+'"/>'+
-      /* a small inner tick so nodes read as instrumented, not just dots */
+               'stroke="'+KIND_COLOR[n.kind]+'" stroke-width="1.5" opacity=".45" filter="url(#brGlow)"/>' : "")+
+      '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+KIND_COLOR[n.kind]+'" opacity="'+op+'" '+
+        (isSel ? 'filter="url(#brGlow)"' : '')+'/>'+
       '<circle cx="'+x+'" cy="'+y+'" r="'+(r*0.38).toFixed(1)+'" fill="#05070C" opacity="'+(op*0.55)+'"/>'+
       '<text x="'+x+'" y="'+y+'" dy="'+(r+14)+'" opacity="'+(isSel||near||n.hot?1:.6)+'">'+
         esc(n.label.length > 26 ? n.label.slice(0,25)+"…" : n.label)+'</text></g>';
@@ -2749,7 +2833,10 @@ function graphSVG(sel){
   return '<svg class="br-canvas" data-brcanvas viewBox="0 0 '+WORLD_W+' '+WORLD_H+'">'+
            '<defs><pattern id="brGrid" width="34" height="34" patternUnits="userSpaceOnUse">'+
              '<path d="M34 0H0V34" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/>'+
-           '</pattern></defs>'+
+           '</pattern>'+
+           '<filter id="brGlow"><feGaussianBlur stdDeviation="3" result="blur"/>'+
+             '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+           '</defs>'+
            '<g data-brview>'+
              '<rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#brGrid)"/>'+
              '<g class="br-edges">'+edges+'</g><g class="br-nodes">'+nodes+'</g>'+
@@ -2760,7 +2847,16 @@ function graphSVG(sel){
            '<button data-brzoom="out" aria-label="Zoom out"><svg class="ico xs"><use href="#i-x"/></svg></button>'+
            '<button data-brzoom="fit" aria-label="Fit to view">'+ico("i-grid","xs")+'</button>'+
            '<span data-brzoomtx>100%</span>'+
-         '</div>';
+         '</div>'+
+         '<div class="br-legend">'+
+           '<span><i style="background:#F0353C"></i>Email</span>'+
+           '<span><i style="background:#4FC3F7"></i>Document</span>'+
+           '<span><i style="background:#43E0A6"></i>Decision</span>'+
+           '<span><i style="background:#C77DFF"></i>Person</span>'+
+           '<span><i style="background:#F0B44E"></i>System</span>'+
+           '<span><i style="background:#5B94FF"></i>Project</span>'+
+         '</div>'+
+         '<div class="br-hint">Scroll to zoom · Drag to pan · Click a node</div>';
 }
 
 /* pan/zoom controller — one transform on the view group, nothing per node */
@@ -3598,62 +3694,80 @@ MOUNT.mail = function(body, w){
 /* ---------------------------------------------------------- SETTINGS */
 var SET_PANES = {
   general: function(){ return '<h4 class="sec">General</h4><p class="sub">Workspace and session basics.</p>'+
-    '<div class="card">'+
-    '<div class="kv"><span class="k">Workspace</span><span class="v">Magna KSA · Production</span></div>'+
-    '<div class="kv"><span class="k">Cluster</span><span class="v">magna-riyadh-dc1 · 8×H200</span></div>'+
-    '<div class="kv"><span class="k">Seat</span><span class="v">Delivery · Riyadh</span></div>'+
-    '<div class="kv"><span class="k">Signed in as</span><span class="v">ahmad.farahat@magna.ai</span></div>'+
+    '<div class="grid2">'+
+    '<div class="stat-card"><div class="stat-label">Workspace</div><div class="stat-value" style="font-size:16px;-webkit-text-fill-color:var(--tx)">Magna KSA</div><div class="stat-sub">Production · Riyadh DC-1</div><div class="stat-glow"></div></div>'+
+    '<div class="stat-card"><div class="stat-label">Cluster</div><div class="stat-value" style="font-size:16px;-webkit-text-fill-color:var(--tx)">8×H200</div><div class="stat-sub">magna-riyadh-dc1 · InfiniBand</div><div class="stat-glow"></div></div>'+
+    '<div class="stat-card"><div class="stat-label">Seat</div><div class="stat-value" style="font-size:16px;-webkit-text-fill-color:var(--tx)">Delivery</div><div class="stat-sub">Riyadh office</div><div class="stat-glow"></div></div>'+
+    '<div class="stat-card"><div class="stat-label">Signed in as</div><div class="stat-value" style="font-size:14px;-webkit-text-fill-color:var(--cyan)">ahmad.farahat@magna.ai</div><div class="stat-sub">Owner · since Aug 2025</div><div class="stat-glow"></div></div>'+
     '</div>'; },
   appearance: function(){ return '<h4 class="sec">Appearance</h4>'+
     '<p class="sub">Console is dark by default because the desktop metaphor reads better against a dark ground. '+
     'Light is a genuine frosted variant, not an inversion.</p>'+
-    '<div class="card"><h5>Theme</h5><div style="display:flex;gap:7px;margin-top:8px">'+
-    '<button class="btn sm" data-settheme="dark">Dark</button>'+
-    '<button class="btn sm" data-settheme="light">Light</button></div></div>'+
-    '<div class="card"><h5>Wallpaper</h5><p>The wallpaper is the Magna mark, drawn live in SVG and breathing '+
-    'slowly. It carries no image file and respects reduced-motion.</p></div>'; },
+    '<div class="sp-card"><h5>'+ico("i-moon","sm")+'Theme</h5>'+
+    '<div style="display:flex;gap:10px;margin-top:10px">'+
+    '<button class="btn" data-settheme="dark" style="flex:1;padding:14px;flex-direction:column;gap:4px">'+
+    '<svg class="ico sm" style="stroke:var(--tx-2)"><use href="#i-moon"/></svg><span>Dark</span></button>'+
+    '<button class="btn" data-settheme="light" style="flex:1;padding:14px;flex-direction:column;gap:4px">'+
+    '<svg class="ico sm" style="stroke:var(--tx-2)"><use href="#i-sun"/></svg><span>Light</span></button></div></div>'+
+    '<div class="sp-card" style="margin-top:12px"><h5>'+ico("i-monitor","sm")+'Wallpaper</h5>'+
+    '<p>The wallpaper is the Magna mark, drawn live in SVG and breathing slowly. It carries no image file and respects reduced-motion.</p>'+
+    '<div style="margin-top:10px;height:80px;border-radius:10px;background:radial-gradient(ellipse at 50% 30%,var(--wall-1),var(--wall-2) 70%);border:1px solid var(--glass-line);display:grid;place-items:center">'+
+    '<svg viewBox="0 0 640 440" style="width:60px;opacity:.6"><path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>'; },
   spaces: function(){ return '<h4 class="sec">Spaces</h4>'+
     '<p class="sub">Four desktops, each with its own windows and icon layout. Switch with the pips in the menu bar, '+
-    'Ctrl + ←/→, a two-finger swipe, or Mission Control.</p>'+
+    'Ctrl + arrow keys, a two-finger swipe, or Mission Control.</p>'+
+    '<div class="grid2">'+
     SPACES.map(function(s){
       var n = wins.filter(function(w){ return w.spaceId===s.id; }).length;
-      return '<div class="card"><h5>'+ico("i-grid","sm")+'Space '+(s.id+1)+' · '+esc(s.name)+'</h5>'+
-      '<p>'+esc(s.hint)+' — '+n+' window'+(n===1?"":"s")+' open.</p></div>'; }).join(""); },
+      return '<div class="stat-card"><div class="stat-label">Space '+(s.id+1)+'</div>'+
+      '<div class="stat-value" style="font-size:16px;-webkit-text-fill-color:var(--tx)">'+esc(s.name)+'</div>'+
+      '<div class="stat-sub">'+esc(s.hint)+' — '+n+' window'+(n===1?"":"s")+' open</div><div class="stat-glow"></div></div>'; }).join("")+'</div>'; },
   models: function(){ return '<h4 class="sec">Models</h4>'+
     '<p class="sub">All four run on Magna GPUs. Nothing here calls a public endpoint on the Private tier.</p>'+
-    '<div class="card"><div class="kv"><span class="k">Kimi K2 Instruct</span><span class="v">1T MoE · 256k ctx</span></div>'+
-    '<div class="kv"><span class="k">DeepSeek V3.1</span><span class="v">671B MoE · 128k ctx</span></div>'+
-    '<div class="kv"><span class="k">Qwen 3</span><span class="v">235B · 128k ctx · best Arabic</span></div>'+
-    '<div class="kv"><span class="k">NVIDIA Nemotron</span><span class="v">120B · fastest first token</span></div></div>'; },
+    '<div class="grid2">'+
+    [["Kimi K2 Instruct","1T MoE · 256k ctx","Private","i-model"],
+     ["DeepSeek V3.1","671B MoE · 128k ctx","Private","i-model"],
+     ["Qwen 3","235B · 128k ctx · best Arabic","Private","i-model"],
+     ["NVIDIA Nemotron","120B · fastest first token","Private","i-model"]]
+    .map(function(m){
+      return '<div class="stat-card"><div class="stat-label">'+ico(m[3],"xs")+' '+esc(m[0])+'</div>'+
+      '<div class="stat-value" style="font-size:14px;-webkit-text-fill-color:var(--tx)">'+esc(m[1])+'</div>'+
+      '<div class="stat-sub"><span class="tag pv">'+esc(m[2])+'</span></div><div class="stat-glow"></div></div>';
+    }).join("")+'</div>'; },
   sovereignty: function(){ return '<h4 class="sec">Sovereignty &amp; data</h4>'+
     '<p class="sub">Where inference runs, and what leaves the boundary.</p>'+
-    '<div class="card"><h5>'+ico("i-shield","sm")+'Private (active)</h5>'+
+    '<div class="sp-card"><h5>'+ico("i-shield","sm")+'Private (active)</h5>'+
     '<p>Magna cluster, Riyadh DC-1. Prompts, files, embeddings and outputs stay inside your network. '+
-    'Egress today: 0 bytes.</p></div>'+
-    '<div class="card"><h5>'+ico("i-globe","sm")+'Public</h5>'+
+    'Egress today: <b style="color:var(--private)">0 bytes</b>.</p>'+
+    '<div style="margin-top:10px"><div class="bar"><i style="width:100%;background:var(--private)"></i></div></div></div>'+
+    '<div class="sp-card"><h5>'+ico("i-globe","sm")+'Public</h5>'+
     '<p>Routed to an endpoint outside the Magna boundary. Switching a thread that already contains internal data '+
     'always asks first.</p></div>'+
-    '<div class="card"><h5>Compliance</h5><p>PDPL aligned · NCA ECC-1 controls · SDAIA AI ethics · '+
-    'Vision 2030 sovereign-AI programme.</p></div>'; },
+    '<div class="sp-card"><h5>'+ico("i-check","sm")+'Compliance</h5>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+
+    ["PDPL","NCA ECC-1","SDAIA","Vision 2030"].map(function(c){
+      return '<span class="tag pv">'+c+'</span>'; }).join("")+'</div></div>'; },
   memory: function(){ return '<h4 class="sec">Memory</h4>'+
     '<p class="sub">Everything the Brain has inferred about how you work. Editable and deletable — the behaviour '+
     'tab in Brain shows what each line changed.</p>'+
+    '<div class="ft-tl">'+
     BEHAVIOUR.map(function(b){
-      return '<div class="runrow"><span class="dot" style="background:var(--signal)"></span>'+
-      '<div class="mid"><div class="nm">'+esc(b.t)+'</div>'+
-      '<div class="sub" style="margin:0;font-size:11px">'+esc(b.m)+'</div></div>'+
-      '<button class="btn sm" data-forget="'+esc(b.t)+'">Forget</button></div>'; }).join(""); },
+      return '<div class="ft-tl-i"><div class="ft-tt">'+esc(b.t)+'</div>'+
+      '<div class="ft-td">'+esc(b.d)+'</div>'+
+      '<div class="ft-tm">'+esc(b.m)+' <button class="btn sm" data-forget="'+esc(b.t)+'" style="margin-left:8px;height:22px;padding:0 7px;font-size:10px">Forget</button></div></div>'; }).join("")+'</div>'; },
   roles: function(){ return '<h4 class="sec">Roles &amp; access</h4>'+
     '<p class="sub">One deployment, many seats. Every capability is grantable per role, and an agent can '+
     'never exceed the role of whoever set it running.</p>'+
-    '<div class="card"><h5>'+ico("i-user","sm")+'Seats in this workspace</h5>'+
+    '<div class="sp-card"><h5>'+ico("i-user","sm")+'Seats in this workspace</h5>'+
     [["Ahmad Farahat","Delivery","owner"],["Nouf Al-Otaibi","Commercial","approver"],
      ["Omar Siddiqui","Planning","member"],["Sara Bin Zayed","HSE","member"],
      ["Faisal Al-Harbi","Quantity surveying","viewer"]]
-    .map(function(r){ return '<div class="kv"><span class="k">'+esc(r[0])+'</span>'+
-      '<span class="v">'+esc(r[1])+' · '+esc(r[2])+'</span></div>'; }).join("")+'</div>'+
-    '<div class="card"><h5>'+ico("i-shield","sm")+'What each role may do</h5>'+
-    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11.5px;min-width:420px">'+
+    .map(function(r){
+      return '<div class="sp-row"><div class="sp-icon">'+ico("i-user")+'</div>'+
+      '<div class="sp-info"><div class="sp-name">'+esc(r[0])+'</div><div class="sp-desc">'+esc(r[1])+'</div></div>'+
+      '<span class="sp-status'+(r[2]==="owner"?" on":"")+'">'+esc(r[2])+'</span></div>'; }).join("")+'</div>'+
+    '<div class="sp-card" style="margin-top:12px"><h5>'+ico("i-shield","sm")+'What each role may do</h5>'+
+    '<div style="overflow-x:auto;margin-top:8px"><table style="width:100%;border-collapse:collapse;font-size:11.5px;min-width:420px">'+
     '<thead><tr><th style="text-align:left;padding:7px 9px;color:var(--tx-3)">Capability</th>'+
     ['Owner','Approver','Member','Viewer'].map(function(h){
       return '<th style="padding:7px 9px;color:var(--tx-3)">'+h+'</th>'; }).join("")+'</tr></thead><tbody>'+
@@ -3678,24 +3792,24 @@ var SET_PANES = {
      ["Citation binder","outbound","Attaches the Brain node ids behind every claim so answers stay traceable.","on"],
      ["Langfuse trace","outbound","Ships a span per call to the internal observability stack. No prompt bodies.","off"]]
     .map(function(p){
-      return '<div class="runrow"><span class="dot" style="background:'+
-        (p[3]==="on"?"var(--private)":"var(--tx-4)")+'"></span>'+
-        '<div class="mid"><div class="nm">'+esc(p[0])+
-        '<span class="tag" style="margin-left:7px">'+esc(p[1])+'</span></div>'+
-        '<div class="sub" style="margin:2px 0 0;font-size:11.5px">'+esc(p[2])+'</div></div>'+
-        '<span class="tag '+(p[3]==="on"?"pv":"")+'">'+esc(p[3])+'</span></div>';
+      return '<div class="sp-row"><div class="sp-icon" style="'+(p[3]==="on"?"background:rgba(63,207,149,.1);border-color:rgba(63,207,149,.2)":"")+'">'+
+        '<svg class="ico" style="'+(p[3]==="on"?"stroke:var(--private)":"stroke:var(--tx-4)")+'"><use href="#i-code"/></svg></div>'+
+        '<div class="sp-info"><div class="sp-name">'+esc(p[0])+
+        ' <span class="tag" style="margin-left:6px">'+esc(p[1])+'</span></div>'+
+        '<div class="sp-desc">'+esc(p[2])+'</div></div>'+
+        '<span class="sp-status'+(p[3]==="on"?" on":"")+'">'+esc(p[3])+'</span></div>';
     }).join("")+
-    '<div class="card" style="margin-top:12px"><h5>'+ico("i-code","sm")+'Write your own</h5>'+
+    '<div class="sp-card" style="margin-top:12px"><h5>'+ico("i-code","sm")+'Write your own</h5>'+
     '<p>A pipeline is a function with one entry point. It receives the prompt or the response, may '+
     'rewrite it, and may refuse the call outright — which is how Tier guard enforces the sovereignty '+
     'boundary in code rather than by policy.</p></div>'; },
   about: function(){ return '<h4 class="sec">About Console</h4>'+
     '<p class="sub">App 7 of the MagnaVERSE redesign set — the desktop-OS concept.</p>'+
-    '<div class="card"><h5>What is real in this prototype</h5>'+
+    '<div class="sp-card"><h5>'+ico("i-check","sm")+'What is real in this prototype</h5>'+
     '<p>Windowing (drag, resize, snap, minimise, maximise, z-order), four Spaces with gestures, the Brain graph, '+
     'reading real files and folders you drag in, live iframe previews of your own HTML, and a real browser '+
     'iframe with honest block detection.</p></div>'+
-    '<div class="card"><h5>What is simulated</h5>'+
+    '<div class="sp-card"><h5>'+ico("i-warn","sm")+'What is simulated</h5>'+
     '<p>The AI replies are scripted, not a model. Dev servers show a port and a log but bind nothing. iOS and '+
     'Android are device frames, not simulators. GitHub/GitLab linking has no OAuth or token because there is no '+
     'backend. Everything else you see is dummy data, internally consistent.</p></div>'; }
@@ -4238,10 +4352,15 @@ var TASK_ROWS = {
 MOUNT.tasks = function(body, w){
   w.state.tab = "agents";
   body.innerHTML = '<div class="pane">'+
-    '<div style="flex:none;display:flex;gap:10px;padding:12px 16px 0;flex-wrap:wrap">'+
-      ['CPU 21%','Memory 1.24 GB','GPU 2 of 8 H200','AI spend today SAR 12.40','Egress 0 bytes']
-        .map(function(s){ return '<span class="tag">'+esc(s)+'</span>'; }).join("")+
-    '</div>'+
+    '<div class="grid2" style="padding:12px 16px 0">'+
+    [["CPU 21%","Load average 1.2","i-cpu"],["Memory 1.24 GB","Of 8 GB allocated","i-server"],
+     ["GPU 2 of 8","H200 in use","i-chip"],["AI spend SAR 12.40","Today · 4 models","i-chart"],
+     ["Egress 0 bytes","Sovereignty OK","i-globe"]]
+    .map(function(s){
+      return '<div class="stat-card"><div class="stat-label">'+ico(s[2],"xs")+' '+esc(s[0])+'</div>'+
+      '<div class="stat-value" style="font-size:14px;-webkit-text-fill-color:var(--tx)">'+esc(s[1])+'</div>'+
+      '<div class="stat-glow"></div></div>';
+    }).join("")+'</div>'+
     '<div class="tabs">'+ [["apps","Apps"],["agents","Agents"],["servers","Servers"],
       ["ai","AI Jobs"],["autos","Automations"]].map(function(t){
       return '<button class="tab" data-ktab="'+t[0]+'" aria-selected="'+(t[0]==="agents")+'">'+t[1]+'</button>';
@@ -4313,26 +4432,27 @@ MOUNT.approvals = function(body, w){
       '<p class="sub">Every write anywhere in Console lands here if you are not watching the window that '+
       'raised it. Nothing on this list has happened yet.</p>'+
       (APPROVALS.length ? APPROVALS.map(function(a, i){
-        return '<div class="card" style="border-left:3px solid '+riskCol[a.risk]+'">'+
-          '<h5>'+ico("i-approve","sm")+esc(a.act)+
+        return '<div class="sp-card" style="border-left:3px solid '+riskCol[a.risk]+'">'+
+          '<h5>'+ico("i-approve","sm")+' '+esc(a.act)+
             '<span class="tag" style="margin-left:auto;color:'+riskCol[a.risk]+';border-color:'+riskCol[a.risk]+'55">'+
             a.risk+' risk</span></h5>'+
-          '<div class="kv"><span class="k">Requested by</span><span class="v">'+esc(a.who)+'</span></div>'+
-          '<div class="kv"><span class="k">Target</span><span class="v">'+esc(a.tgt)+'</span></div>'+
-          '<div class="kv"><span class="k">When</span><span class="v">'+esc(a.when)+'</span></div>'+
-          '<p style="margin-top:9px;font-size:12.5px;color:var(--tx-2);line-height:1.6">'+esc(a.why)+'</p>'+
+          '<div class="sp-row"><div class="sp-info">'+
+            '<div class="sp-name">'+esc(a.who)+'</div>'+
+            '<div class="sp-desc">'+ico("i-monitor","xs")+' '+esc(a.tgt)+' · '+esc(a.when)+'</div></div></div>'+
+          '<div class="why">'+esc(a.why)+'</div>'+
           '<div style="display:flex;gap:7px;margin-top:11px">'+
-            '<button class="btn primary sm" data-vok="'+i+'">Approve</button>'+
-            '<button class="btn sm" data-vno="'+i+'">Reject</button>'+
+            '<button class="btn primary sm" data-vok="'+i+'">'+ico("i-check","xs")+' Approve</button>'+
+            '<button class="btn sm" data-vno="'+i+'">'+ico("i-x","xs")+' Reject</button>'+
           '</div></div>';
       }).join("") : '<div class="empty-msg">Nothing is waiting. Every agent is inside its granted scopes.</div>')+
       '<h4 class="sec" style="margin-top:22px">Recently decided</h4>'+
+      '<div class="ft-tl">'+
       APPROVED.map(function(a){
-        return '<div class="runrow"><span class="dot" style="background:var(--private)"></span>'+
-          '<div class="mid"><div class="nm">'+esc(a.act)+'</div>'+
-          '<div class="sub" style="margin:0;font-size:11px">'+esc(a.who)+' · '+esc(a.when)+' · '+esc(a.by)+'</div>'+
-          '</div>'+ico("i-check","sm")+'</div>';
-      }).join("");
+        return '<div class="ft-tl-i"><div class="ft-tt">'+esc(a.act)+
+          '<span class="tag pv" style="margin-left:8px">'+ico("i-check","xs")+' approved</span></div>'+
+          '<div class="ft-td">'+esc(a.who)+'</div>'+
+          '<div class="ft-tm">'+esc(a.when)+' · '+esc(a.by)+'</div></div>';
+      }).join("")+'</div>';
   }
   body.addEventListener("click", function(e){
     var ok = e.target.closest("[data-vok]"), no = e.target.closest("[data-vno]");
