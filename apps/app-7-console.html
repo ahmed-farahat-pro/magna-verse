@@ -439,6 +439,77 @@ body:not([data-stage="os"]) #os{display:none}
 .ppt-add-bullet{margin-top:8px;align-self:flex-start}
 
 /* =============== TRASH =============== */
+/* =============== SHEETS =============== */
+.sh-scroll{flex:1;min-height:0;overflow:auto;padding:14px;background:rgba(0,0,0,.18)}
+:root[data-theme="light"] .sh-scroll{background:rgba(255,255,255,.5)}
+.sh-table{border-collapse:separate;border-spacing:0;font-size:12.5px;background:var(--glass-2);
+  border:1px solid var(--glass-line);border-radius:10px;overflow:hidden}
+.sh-h{background:var(--glass-3);color:var(--tx-3);font-family:var(--mono);font-size:10px;font-weight:700;
+  padding:5px 8px;border-right:1px solid var(--glass-line);border-bottom:1px solid var(--glass-line);
+  position:relative;min-width:28px;text-align:center;user-select:none}
+.sh-corner{background:var(--glass-3);border-right:1px solid var(--glass-line);border-bottom:1px solid var(--glass-line)}
+.sh-h .sh-x{position:absolute;top:0;right:2px;font-size:9px;color:var(--tx-4);cursor:pointer;opacity:0;transition:opacity .12s}
+.sh-h:hover .sh-x{opacity:1}
+.sh-h .sh-x:hover{color:var(--accent-2)}
+.sh-c{min-width:104px;height:30px;padding:4px 9px;border-right:1px solid var(--glass-line);
+  border-bottom:1px solid var(--glass-line);color:var(--tx);outline:none;vertical-align:middle;
+  font-family:var(--mono);font-size:12px;cursor:cell;transition:background .1s}
+.sh-c:hover{background:rgba(14,165,183,.06)}
+.sh-c.sel{background:rgba(14,165,183,.14);box-shadow:inset 0 0 0 2px var(--cyan)}
+.sh-c:focus{background:rgba(14,165,183,.1);box-shadow:inset 0 0 0 2px var(--cyan)}
+
+/* =============== LIVING DOCK =============== */
+/* dock icons breathe with app state — a seismograph, not a shelf */
+@keyframes dkThink{0%,100%{box-shadow:0 6px 16px rgba(0,0,0,.34),0 0 0 0 rgba(91,148,255,.55)}50%{box-shadow:0 6px 16px rgba(0,0,0,.34),0 0 18px 6px rgba(91,148,255,0)}}
+@keyframes dkRipple{0%{box-shadow:0 6px 16px rgba(0,0,0,.34),0 0 0 0 rgba(240,119,182,.6)}100%{box-shadow:0 6px 16px rgba(0,0,0,.34),0 0 0 14px rgba(240,119,182,0)}}
+@keyframes dkShimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.55)}}
+@keyframes dkAgentRun{0%,100%{transform:none}25%{transform:rotate(-4deg) scale(1.04)}75%{transform:rotate(4deg) scale(1.04)}}
+.dk.thinking{animation:dkThink 1.15s ease-in-out infinite}
+.dk.alert{animation:dkRipple 1.4s ease-out infinite}
+.dk.shimmer{animation:dkShimmer .9s ease-in-out infinite}
+.dk.working{animation:dkAgentRun 1.1s ease-in-out infinite}
+.dk.thinking::before,.dk.alert::before{content:"";position:absolute;inset:-4px;border-radius:inherit;z-index:-1}
+.dk.thinking::before{background:radial-gradient(circle,rgba(91,148,255,.35),transparent 70%)}
+.dk.alert::before{background:radial-gradient(circle,rgba(240,119,182,.35),transparent 70%)}
+
+/* =============== THOUGHT STREAM =============== */
+#thoughtStream{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);z-index:205;
+  max-width:min(860px,calc(100vw - 200px));display:flex;align-items:center;gap:8px;padding:4px 14px;
+  border-radius:var(--r-pill);background:var(--chrome);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line);font-size:11.5px;color:var(--tx-2);cursor:pointer;
+  opacity:0;pointer-events:none;transition:opacity .6s ease;white-space:nowrap;overflow:hidden}
+#thoughtStream.on{opacity:1;pointer-events:auto}
+#thoughtStream .ts-dot{width:6px;height:6px;border-radius:99px;background:var(--cyan);flex:none}
+@media (prefers-reduced-motion: no-preference){ #thoughtStream.on .ts-dot{animation:sovPulse 1.8s infinite} }
+#thoughtStream .ts-tx{overflow:hidden;text-overflow:ellipsis}
+#thoughtStream .ts-tx b{color:var(--tx)}
+#thoughtStream .ts-n{font-family:var(--mono);font-size:9.5px;color:var(--tx-4);flex:none}
+/* deep-dive popover */
+#tsDeep{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);z-index:206;width:min(560px,calc(100vw - 32px));
+  border-radius:var(--r-lg);background:var(--glass-2);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line-2);box-shadow:var(--shadow-pop);display:none;max-height:46vh;overflow-y:auto;padding:12px 14px}
+#tsDeep.on{display:block;animation:winIn .18s ease-out}
+.ts-row{display:flex;gap:10px;padding:6px 2px;font-size:12px;color:var(--tx-2);border-bottom:1px solid var(--glass-line)}
+.ts-row:last-child{border-bottom:0}
+.ts-row .t{font-family:var(--mono);font-size:10px;color:var(--tx-4);flex:none;width:38px;padding-top:2px}
+.ts-row .b{line-height:1.5}
+.ts-row .b b{color:var(--tx)}
+.ts-hd{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx-4);font-weight:700;padding:2px 2px 8px}
+
+/* =============== DREAM MODE =============== */
+#dreamVeil{position:fixed;inset:0;z-index:700;background:radial-gradient(ellipse at 50% 45%,rgba(5,7,12,.55),rgba(3,4,8,.88));
+  backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity 2.2s ease;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px}
+#dreamVeil.on{opacity:1}
+.dream-title{font-family:var(--mono);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:rgba(140,215,240,.75)}
+.dream-line{font-size:13.5px;color:var(--tx-2);text-align:center;line-height:1.7;max-width:520px;padding:0 20px;
+  animation:dreamFade 4s ease-in-out infinite}
+.dream-line b{color:var(--cyan)}
+@keyframes dreamFade{0%,100%{opacity:.35}50%{opacity:1}}
+.dream-hint{position:fixed;bottom:26px;font-family:var(--mono);font-size:10px;color:var(--tx-4);letter-spacing:.12em}
+body.dreaming #dock,body.dreaming #menubar,body.dreaming #quickAI,body.dreaming #companion,
+body.dreaming .wg,body.dreaming #thoughtStream{filter:saturate(.4) brightness(.5);transition:filter 1.8s ease}
+body.dreaming #neural{opacity:.95 !important;transition:opacity 2s ease}
 /* per-app tile colours — transparent glass, colour only as accent */
 .g-chat{--tile:#F0353C;background:rgba(240,53,60,.12);border:1px solid rgba(240,53,60,.25)}
 .g-brain{--tile:#43E0A6;background:rgba(67,224,166,.12);border:1px solid rgba(67,224,166,.25)}
@@ -1864,6 +1935,19 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     </div>
   </div>
 
+  <!-- Thought Stream — the OS's inner monologue -->
+  <div id="thoughtStream" aria-live="off" title="What the OS is thinking — click for the full stream">
+    <span class="ts-dot"></span><span class="ts-tx" data-tstx></span><span class="ts-n" data-tsn></span>
+  </div>
+  <div id="tsDeep" role="dialog" aria-label="Thought stream"></div>
+
+  <!-- Dream Mode veil -->
+  <div id="dreamVeil" aria-hidden="true">
+    <div class="dream-title">dream mode · consolidating</div>
+    <div class="dream-line" data-dreamline></div>
+    <div class="dream-hint">move to wake</div>
+  </div>
+
   <!-- ===== CONTEXT MENU ===== -->
   <div id="ctxMenu" class="ctx-menu" style="display:none">
     <div class="ctx-title" data-ctx-title></div>
@@ -1974,6 +2058,138 @@ function toast(msg,ms){
   $("#toasts").appendChild(t);
   setTimeout(function(){ t.classList.add("out"); setTimeout(function(){ t.remove(); }, 220); }, ms||3400);
 }
+/* ============================================================
+   0c · LIVING DOCK + THOUGHT STREAM + DREAM MODE
+   ============================================================ */
+
+/* ---- Living Dock: dock icons breathe with app state ---- */
+var DK_TIMERS = {};
+function dockActivity(appId, kind, ms){
+  $$('#dock .dk[data-open="'+appId+'"]').forEach(function(n){
+    n.classList.remove("thinking","alert","shimmer","working");
+    void n.offsetWidth;                    /* restart the animation */
+    n.classList.add(kind);
+    if(DK_TIMERS[appId+kind]) clearTimeout(DK_TIMERS[appId+kind]);
+    DK_TIMERS[appId+kind] = setTimeout(function(){ n.classList.remove(kind); }, ms||1800);
+  });
+}
+
+/* ---- Thought Stream: the OS's inner monologue ---- */
+var TS = { log:[], hideT:0, seen:0 };
+var TS_SCRIPT = [
+  ["PO Watch","noticed 4471 slipped again — cross-checking the rate card"],
+  ["PO Watch","rate card confirmed — exposure model updated to 5.61M"],
+  ["Risk agent","re-reading GC-8 8.4 — interpretation held"],
+  ["Brain","indexed 12 new chunks from the mail triage"],
+  ["Board Drafter","skeleton parked — waiting on your final number"],
+  ["Mail agent","3 vendor mails classified · 1 escalated to you"],
+  ["Schedule","P6 sync finished — 11 days behind r7, unchanged"],
+  ["Brain","consolidating today’s reads into the C2 cluster"],
+  ["Fabricator","quote landed — +1.8% matches the Chat recommendation"],
+  ["Approvals","watching for your 09:1x sweep — nothing overdue yet"],
+  ["Memory","Monday’s desktop arrangement archived"],
+  ["VS core","voice patterns stable — clap threshold re-calibrated"]
+];
+function tsTime(){ var d = new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function tsPush(who, what, silent){
+  var e = { t:tsTime(), who:who, what:what };
+  TS.log.unshift(e);
+  if(TS.log.length > 80) TS.log.pop();
+  TS.seen = 0;
+  var el = $("#thoughtStream");
+  el.querySelector("[data-tstx]").innerHTML = "<b>"+esc(who)+"</b> · "+esc(what);
+  el.querySelector("[data-tsn]").textContent = e.t;
+  el.classList.add("on");
+  if(TS.hideT) clearTimeout(TS.hideT);
+  TS.hideT = setTimeout(function(){ el.classList.remove("on"); }, 9000);
+  neuralFlash(1);                     /* one idle agent blip per thought */
+}
+$("#thoughtStream").addEventListener("click", function(){
+  var d = $("#tsDeep");
+  if(d.classList.contains("on")){ d.classList.remove("on"); return; }
+  TS.seen = TS.log.length;
+  d.innerHTML = '<div class="ts-hd">Thought stream — last '+Math.min(TS.log.length,24)+' thoughts</div>'+
+    TS.log.slice(0,24).map(function(e){
+      return '<div class="ts-row"><span class="t">'+esc(e.t)+'</span><span class="b"><b>'+esc(e.who)+'</b> · '+esc(e.what)+'</span></div>';
+    }).join("");
+  d.classList.add("on");
+});
+document.addEventListener("click", function(e){
+  if(!e.target.closest("#thoughtStream") && !e.target.closest("#tsDeep"))
+    $("#tsDeep").classList.remove("on");
+});
+/* rotating inner monologue */
+setInterval(function(){
+  if(document.hidden || !document.body.matches('[data-stage="os"]')) return;
+  if(Math.random() < .65){
+    var e = TS_SCRIPT[Math.floor(Math.random()*TS_SCRIPT.length)];
+    tsPush(e[0], e[1]);
+    /* the acting agent lights its dock icon */
+    dockActivity(e[0].indexOf("Brain") > -1 ? "brain" : "agents", "working", 2400);
+  }
+}, 11000);
+setTimeout(function(){ if(document.body.matches('[data-stage="os"]')) tsPush("VS core","all agents reporting — nothing needs you yet"); }, 4000);
+
+/* ---- Dream Mode: the OS dreams when idle ---- */
+var DREAM = { t:0, on:false, last:Date.now(), learned:[] };
+var DREAM_LINES = [
+  "replaying today — you opened <b>Chat</b> first, 19 days running",
+  "the <b>C2 cluster</b> grew 14 edges since breakfast",
+  "consolidating: standby cost outranks the LD cap in your edits",
+  "archiving Monday’s arrangement — <b>Desktop memory</b> updated",
+  "the fabricator quote and the Chat answer agree — linking them",
+  "two agents finished overnight work — summaries drafted",
+  "nothing urgent survived triage — tomorrow is board prep"
+];
+function dreamWake(){
+  if(!DREAM.on) return;
+  DREAM.on = false;
+  DREAM.last = Date.now();
+  document.body.classList.remove("dreaming");
+  $("#dreamVeil").classList.remove("on");
+  if(DREAM.learned.length){
+    toast("While you were away: " + DREAM.learned.join(" · "), 5200);
+    DREAM.learned.forEach(function(l){ tsPush("Dream", l.replace(/<[^>]+>/g,"")); });
+  }
+}
+function dreamStart(){
+  if(DREAM.on || document.hidden) return;
+  if(!document.body.matches('[data-stage="os"]')) return;
+  DREAM.on = true;
+  DREAM.learned = [];
+  document.body.classList.add("dreaming");
+  $("#dreamVeil").classList.add("on");
+  /* dream thoughts cycle; each registers as “learned” */
+  var i = 0;
+  var line = $("[data-dreamline]");
+  function next(){
+    if(!DREAM.on) return;
+    var l = DREAM_LINES[(i + Math.floor(Math.random()*DREAM_LINES.length)) % DREAM_LINES.length];
+    if(DREAM.learned.indexOf(l.replace(/<[^>]+>/g,"")) < 0 && DREAM.learned.length < 4)
+      DREAM.learned.push(l.replace(/<[^>]+>/g,""));
+    line.innerHTML = l;
+    neuralCite();                        /* the dreaming Brain replays chains */
+    i++;
+    DREAM.cycle = setTimeout(next, 4600);
+  }
+  next();
+}
+["pointermove","pointerdown","keydown","wheel","touchstart"].forEach(function(ev){
+  window.addEventListener(ev, function(){
+    DREAM.last = Date.now();
+    if(DREAM.on){ clearTimeout(DREAM.cycle); dreamWake(); }
+  }, {passive:true});
+});
+setInterval(function(){
+  /* dream after 90 s idle — never while typing, listening or modaling */
+  var typing = document.activeElement && (document.activeElement.tagName === "INPUT" ||
+    document.activeElement.tagName === "TEXTAREA" || document.activeElement.isContentEditable);
+  if(!DREAM.on && !typing && !voice.on && !document.hidden &&
+     Date.now() - DREAM.last > 90000 && document.body.matches('[data-stage="os"]')){
+    dreamStart();
+  }
+}, 4000);
+
 /* ============================================================
    0b · NOTIFICATION CENTRE + CONTROL CENTRE + SHORTCUTS
    ============================================================ */
@@ -5608,6 +5824,8 @@ function vpListen(){
 /* the AI speaks — and stops its own ears while doing it */
 function say(text, after){
   vpLogAdd("a", text);
+  tsPush("Voice AI", text.substring(0,80) + (text.length > 80 ? "…" : ""));
+  dockActivity("chat", "working", 2600);
   try{
     if(!window.speechSynthesis){ vpState(""); if(after) after(); else vpListen(); return; }
     speechSynthesis.cancel();
@@ -5697,6 +5915,7 @@ function findAppByName(s){
 function voiceHandle(text){
   text = (text||"").trim(); if(!text) return;
   vpLogAdd("u", text);
+  tsPush("Voice", "You said: \u201c"+text+"\u201d");
   var lq = text.toLowerCase().replace(/[!.?,]/g, "");
 
   if(/^(stop|stop listening|goodbye|bye|that'?s all|enough)\b/.test(lq)){
@@ -5913,6 +6132,9 @@ function proactivePost(){
   neuralFlash(2 + Math.floor(Math.random()*3));   /* the wallpaper sees the agent */
   $$(".feed").forEach(function(f){ f.closest("[data-widgets]") && renderWidgets(); });
   agentNotify(ev.t, ev.h.replace(/<[^>]+>/g,""));
+  tsPush(ev.t, ev.h.replace(/<[^>]+>/g,"").replace(/<[^>]+>/g,""));
+  dockActivity(ev.t.indexOf("Mail") > -1 ? "mail" : (ev.t.indexOf("Board") > -1 ? "slides" : "agents"),
+    ev.t.indexOf("Mail") > -1 ? "alert" : "working", 2600);
 }
 setInterval(function(){
   if(document.body.matches('[data-stage="os"]') && !proactiveMuted()) proactivePost();
@@ -5958,6 +6180,8 @@ function smartRoute(fileId){
       if(!folder) folder = VFS.create("desktop", c.folder, "folder", "", "");
       f.brain = 1; VFS.move(fileId, folder.id);
       renderDesktopFiles();
+      dockActivity("files", "shimmer", 1800);
+      tsPush("File Router", "Filed \u201c"+f.name+"\u201d into "+c.folder+"/ · linked in Brain · 3 citations");
       toast("Filed into "+c.folder+"/ and linked in Brain — 3 citations.", 3000);
     }
   });
@@ -6105,6 +6329,8 @@ MOUNT.chat = function(body, w){
     a.innerHTML = '<div class="who">'+ico("i-magna")+'MagnaVERSE · Kimi K2 Instruct</div>'+
                   '<div class="think">'+ico("i-magna")+'Thinking · '+w.state.effort.toLowerCase()+' effort · searching 2 documents…</div>';
     scroll.appendChild(a);
+    dockActivity("chat", "thinking", 1400 + Math.random()*1400);   /* dock breathes while model thinks */
+    tsPush("Chat","thinking · "+w.state.effort.toLowerCase()+" effort · searching indexed sources");
     scroll.scrollTop = scroll.scrollHeight;
     setTimeout(function(){
       var rule = CHAT_REPLIES.filter(function(r){ return r.match.test(text); })[0];
@@ -8432,8 +8658,158 @@ MOUNT.models = function(body, w){
 
 /* ---------------------------------------------------------- SHEETS (Luckysheet) */
 MOUNT.sheets = function(body, w){
-  body.innerHTML = '<iframe src="app-sheets.html" style="width:100%;height:100%;border:none;background:var(--bg)" allowfullscreen></iframe>';
-  setWinTitle(w, "Sheets");
+  var fileId = w.params && w.params.fileId;
+  var file = fileId ? VFS.get(fileId) : null;
+  var data = null;
+  if(file && file.content){
+    try{ data = JSON.parse(file.content); }catch(e){}
+  }
+  if(!data || !data.cells) data = { rows:8, cols:6, cells:{} };
+  if(!file){
+    file = VFS.create("desktop", "Untitled.xlsx", "file", JSON.stringify(data), "xlsx");
+    w.params.fileId = file.id;
+    renderDesktopFiles();
+  }
+  w.state.fileId = file.id;
+  w.state.data = data;
+  w.state.sel = null;
+  setWinTitle(w, "Sheets — " + file.name);
+  var COLS = "ABCDEF";
+
+  function colName(i){ return COLS[i] || String.fromCharCode(65+i); }
+  function get(r,c){ return w.state.data.cells[r+","+c] || ""; }
+  function set(r,c,v){
+    if(v) w.state.data.cells[r+","+c] = v;
+    else delete w.state.data.cells[r+","+c];
+  }
+  function save(){
+    VFS.write(w.state.fileId, JSON.stringify(w.state.data));
+    var f = VFS.get(w.state.fileId);
+    if(f) setWinTitle(w, "Sheets — " + f.name);
+    renderDesktopFiles();
+    dockActivity("files", "shimmer", 1600);
+  }
+  function downloadCSV(){
+    var d = w.state.data, rows = [];
+    for(var r = 0; r < d.rows; r++){
+      var line = [];
+      for(var c = 0; c < d.cols; c++){
+        var v = get(r,c);
+        line.push(/[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v);
+      }
+      rows.push(line.join(","));
+    }
+    var blob = new Blob([rows.join("\n")], {type:"text/csv"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (VFS.get(w.state.fileId) || {name:"sheet.csv"}).name.replace(/\.xlsx?$/,"") + ".csv";
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  }
+
+  function draw(){
+    var d = w.state.data;
+    var grid = '<tr><th class="sh-corner"></th>';
+    for(var c = 0; c < d.cols; c++)
+      grid += '<th class="sh-h" data-shcol="'+c+'">'+colName(c)+'<span class="sh-x" data-shdelcol="'+c+'" title="Delete column">×</span></th>';
+    grid += "</tr>";
+    for(var r = 0; r < d.rows; r++){
+      grid += '<tr><th class="sh-h sh-rh" data-shrow="'+r+'">'+(r+1)+'<span class="sh-x" data-shdelrow="'+r+'" title="Delete row">×</span></th>';
+      for(var c2 = 0; c2 < d.cols; c2++){
+        var sel = (w.state.sel === r+","+c2) ? " sel" : "";
+        grid += '<td class="sh-c'+sel+'" data-shcell="'+r+','+c2+'" contenteditable="true" spellcheck="false">'+
+                esc(get(r,c2))+"</td>";
+      }
+      grid += "</tr>";
+    }
+    body.innerHTML = '<div class="pane" style="display:flex;flex-direction:column">'+
+      '<div class="ppt-toolbar">'+
+        '<button class="btn sm" data-shaddrow>'+ico("i-plus","xs")+'Row</button>'+
+        '<button class="btn sm" data-shaddcol>'+ico("i-plus","xs")+'Column</button>'+
+        '<span class="ppt-counter" data-shstats></span>'+
+        '<span style="flex:1"></span>'+
+        '<button class="btn sm" data-shdl>'+ico("i-download","xs")+'CSV</button>'+
+        '<button class="btn sm primary" data-shsave>'+ico("i-check","xs")+'Save to Desktop</button>'+
+      '</div>'+
+      '<div class="sh-scroll" data-shscroll><table class="sh-table" data-shtable>'+grid+"</table></div>"+
+      '<div class="word-statusbar" data-shbar>Editing locally · autosaves every 20s · last save just now</div>';
+
+    var stats = body.querySelector("[data-shstats]");
+    var filled = Object.keys(d.cells).length;
+    if(stats) stats.textContent = d.rows+" × "+d.cols+" · "+filled+" filled";
+  }
+  draw();
+
+  body.addEventListener("input", function(e){
+    var td = e.target.closest("[data-shcell]");
+    if(!td) return;
+    var rc = td.getAttribute("data-shcell").split(",");
+    set(+rc[0], +rc[1], td.textContent.trim());
+    var stats = body.querySelector("[data-shstats]");
+    if(stats) stats.textContent = w.state.data.rows+" × "+w.state.data.cols+" · "+Object.keys(w.state.data.cells).length+" filled";
+    w.state.dirty = true;
+  });
+  body.addEventListener("focusin", function(e){
+    var td = e.target.closest("[data-shcell]");
+    if(!td) return;
+    w.state.sel = td.getAttribute("data-shcell");
+    $$(".sh-c.sel", body).forEach(function(x){ x.classList.remove("sel"); });
+    td.classList.add("sel");
+    var bar = body.querySelector("[data-shbar]");
+    if(bar) bar.textContent = "Cell "+td.getAttribute("data-shcell").replace(",","·")+" — type numbers or text, Tab moves right";
+  });
+  body.addEventListener("keydown", function(e){
+    var td = e.target.closest("[data-shcell]");
+    if(!td) return;
+    var rc = td.getAttribute("data-shcell").split(",");
+    var r = +rc[0], c = +rc[1];
+    function move(rr,cc){
+      var n = body.querySelector('[data-shcell="'+rr+','+cc+'"]');
+      if(n){ n.focus();
+        try{ var rng = document.createRange(); rng.selectNodeContents(n); rng.collapse(false);
+          var s = getSelection(); s.removeAllRanges(); s.addRange(rng); }catch(ex){}
+      }
+    }
+    if(e.key === "Tab"){ e.preventDefault(); move(r, c + (e.shiftKey ? -1 : 1)); return; }
+    if(e.key === "Enter"){ e.preventDefault(); move(r + 1, c); return; }
+    if(e.key === "ArrowDown"){ e.preventDefault(); move(r+1,c); return; }
+    if(e.key === "ArrowUp"){ e.preventDefault(); move(r-1,c); return; }
+  });
+  body.addEventListener("click", function(e){
+    if(e.target.closest("[data-shaddrow]")){ w.state.data.rows = Math.min(60, w.state.data.rows+1); draw(); return; }
+    if(e.target.closest("[data-shaddcol]")){ w.state.data.cols = Math.min(16, w.state.data.cols+1); draw(); return; }
+    var dc = e.target.closest("[data-shdelcol]");
+    if(dc){ var c = +dc.getAttribute("data-shdelcol");
+      var d = w.state.data;
+      if(d.cols > 1){
+        Object.keys(d.cells).forEach(function(k){
+          var rc = k.split(",");
+          if(+rc[1] === c) delete d.cells[k];
+          else if(+rc[1] > c) { d.cells[(+rc[0])+","+(+rc[1]-1)] = d.cells[k]; delete d.cells[k]; }
+        });
+        d.cols--; draw(); w.state.dirty = true;
+      }
+      return; }
+    var dr = e.target.closest("[data-shdelrow]");
+    if(dr){ var r = +dr.getAttribute("data-shdelrow");
+      var d2 = w.state.data;
+      if(d2.rows > 1){
+        Object.keys(d2.cells).forEach(function(k){
+          var rc2 = k.split(",");
+          if(+rc2[0] === r) delete d2.cells[k];
+          else if(+rc2[0] > r){ d2.cells[(+rc2[0]-1)+","+rc2[1]] = d2.cells[k]; delete d2.cells[k]; }
+        });
+        d2.rows--; draw(); w.state.dirty = true;
+      }
+      return; }
+    if(e.target.closest("[data-shdl]")){ downloadCSV(); return; }
+    if(e.target.closest("[data-shsave]")){ save(); toast("Saved to desktop — the .xlsx icon is right there.", 2400); return; }
+  });
+  /* autosave */
+  var auto = setInterval(function(){
+    if(w.state.dirty && document.body.contains(body)){ w.state.dirty = false; save(); }
+    else if(!document.body.contains(body)) clearInterval(auto);
+  }, 20000);
 };
 
 /* ---------------------------------------------------------- DOCS (Editor.js) */
