@@ -327,6 +327,11 @@ body:not([data-stage="os"]) #os{display:none}
   [data-layout="orbital"] .icon-layer:has(.dicon:hover),
   [data-layout="orbital"] .icon-layer:focus-within{animation-play-state:paused}
 }
+/* A press freezes the whole layer for the duration of the gesture — the
+   aimed icon (and, in orbital, the rotating layer) stops drifting so the
+   tap can land. Toggled via .gesture from pointerdown → pointerup. */
+.icon-layer.gesture,
+.icon-layer.gesture .dicon{animation-play-state:paused !important}
 
 /* =============== FILE MANAGER =============== */
 .fm-wrap{display:flex;flex-direction:column;height:100%}
@@ -1711,8 +1716,13 @@ function renderIcons(){
       var a = APPS[id], key = s.id + ":" + id;
       var xy = pos[key] || getLayoutPos(i, n, W, H);
       var badge = BADGES[id] ? '<span class="badge">'+BADGES[id]+'</span>' : "";
+      /* negative delays desync the drift/wave/spiral animations so icons
+         don't move in lockstep — easier targets, nicer motion */
       return '<button class="dicon" data-open="'+id+'" data-app="'+id+'" '+
-             'style="left:'+xy[0]+'px;top:'+xy[1]+'px" aria-label="Open '+esc(a.name)+'">'+
+             'style="left:'+xy[0]+'px;top:'+xy[1]+'px;'+
+               '--float-dur:'+(5+(i%4))+'s;--float-delay:-'+(i%7)+'s;'+
+               '--wave-delay:-'+((i%5)*0.3)+'s;--spiral-delay:-'+((i%4)*0.5)+'s" '+
+             'aria-label="Open '+esc(a.name)+'">'+
              '<span class="tile '+a.tile+'">'+ico(a.icon)+badge+'</span>'+
              '<span class="lbl">'+esc(a.name)+'</span></button>';
     }).join("");
@@ -1749,6 +1759,10 @@ function desktopHidden(){
 function saveDesktopHidden(map){ store.set("mv7.deskHide", JSON.stringify(map)); }
 
 var iconDrag = null;
+/* freeze the drifting layer while a press is in flight so the icon stops
+   moving under the pointer — otherwise the target escapes mid-gesture */
+function freezeLayer(node){ var l = node.closest(".icon-layer"); if(l) l.classList.add("gesture"); }
+function thawLayer(node){ var l = node.closest(".icon-layer"); if(l) l.classList.remove("gesture"); }
 document.addEventListener("pointerdown", function(e){
   if(isMobile()) return;
   var ic = e.target.closest(".dicon"), dk = e.target.closest(".dk");
@@ -1764,18 +1778,21 @@ document.addEventListener("pointerdown", function(e){
   iconDrag = {
     node:node, from:from, id:id, moved:false,
     space: from === "desktop" ? +node.parentElement.getAttribute("data-icons") : curSpace,
-    sx:e.clientX, sy:e.clientY,
+    sx:e.clientX, sy:e.clientY, t0:Date.now(),
     ox: from === "desktop" ? node.offsetLeft : 0,
     oy: from === "desktop" ? node.offsetTop  : 0,
     gx: e.clientX - r.left, gy: e.clientY - r.top,
     proxy:null
   };
+  freezeLayer(node);
   grab(node, e.pointerId);
 });
 document.addEventListener("pointermove", function(e){
   if(!iconDrag) return;
   var d = iconDrag, dx = e.clientX - d.sx, dy = e.clientY - d.sy;
-  if(!d.moved && Math.abs(dx) + Math.abs(dy) < 6) return;
+  /* 10px slop — a deliberate drag, not the micro-wiggle of tapping a
+     drifting (floating/wave/orbital) icon */
+  if(!d.moved && Math.abs(dx) + Math.abs(dy) < 10) return;
   if(!d.moved){
     d.moved = true;
     d.node.classList.add("dragging");
@@ -1798,14 +1815,16 @@ function pointerOverDock(x, y){
 document.addEventListener("pointerup", function(e){
   if(!iconDrag) return;
   var d = iconDrag; iconDrag = null;
+  thawLayer(d.node);
   var dock = document.getElementById("dock");
   dock.classList.remove("drop-target");
   d.node.classList.remove("dragging");
   if(d.proxy) d.proxy.remove();
-  if(!d.moved){
-    /* plain tap — open directly from pointerup. Native click events are
-       unreliable on animated icons (orbital/wave/floating keep moving the
-       element between down and up, so the browser never dispatches click). */
+  /* tap slop: on drifting layouts the icon moves under a still pointer,
+     so presses routinely wander past the drag threshold — a short, small
+     gesture is a click, not a drag */
+  var tapMove = Math.abs(e.clientX - d.sx) + Math.abs(e.clientY - d.sy);
+  if(!d.moved || (Date.now() - d.t0 < 350 && tapMove < 14)){
     if(APPS[d.id]){ lastPtrOpen = Date.now(); openApp(d.id); }
     return;
   }
@@ -3406,11 +3425,12 @@ document.addEventListener("pointerdown", function(e){
   };
   /* no pointer capture — document-level listeners track the gesture, and
      capture was interfering with dblclick-to-open on file icons */
+  freezeLayer(ic);
 });
 document.addEventListener("pointermove", function(e){
   if(!freeDrag) return;
   var d = freeDrag, dx = e.clientX - d.sx, dy = e.clientY - d.sy;
-  if(!d.moved && Math.abs(dx)+Math.abs(dy)<6) return;
+  if(!d.moved && Math.abs(dx)+Math.abs(dy)<10) return;
   if(!d.moved){
     d.moved = true;
     d.node.style.zIndex = 55;
@@ -3426,6 +3446,7 @@ document.addEventListener("pointermove", function(e){
 document.addEventListener("pointerup", function(e){
   if(!freeDrag) return;
   var d = freeDrag; freeDrag = null;
+  thawLayer(d.node);
   d.node.style.zIndex = "";
   d.node.style.transition = "";
   if(d.moved){
@@ -3434,6 +3455,24 @@ document.addEventListener("pointerup", function(e){
     pos[d.fileId] = [d.node.offsetLeft, d.node.offsetTop];
     store.set("mv7.filePos", JSON.stringify(pos));
   }
+});
+/* an interrupted gesture (scroll/OS steals the pointer) must never leave
+   a stuck drag state, ghost proxy or frozen layer behind */
+document.addEventListener("pointercancel", function(){
+  if(iconDrag){
+    thawLayer(iconDrag.node);
+    iconDrag.node.classList.remove("dragging");
+    if(iconDrag.proxy) iconDrag.proxy.remove();
+    iconDrag = null;
+  }
+  if(freeDrag){
+    thawLayer(freeDrag.node);
+    freeDrag.node.style.zIndex = "";
+    freeDrag.node.style.transition = "";
+    freeDrag = null;
+  }
+  var dock = document.getElementById("dock");
+  if(dock) dock.classList.remove("drop-target");
 });
 
 /* ---- APPLY SAVED WALLPAPER + THEME ON LOAD ---- */
