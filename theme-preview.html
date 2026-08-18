@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MagnaVERSE — Theme Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;overflow-x:hidden}
+.hero{padding:60px 40px 40px;text-align:center;
+  background:linear-gradient(180deg,rgba(14,165,183,.08) 0%,transparent 100%)}
+.hero h1{font-size:42px;font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(135deg,#0EA5B7,#43E0A6,#7C6BFF);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;margin-bottom:8px}
+.hero p{font-size:16px;color:#9a9aa2;max-width:600px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:28px;
+  padding:20px 40px 60px;max-width:1800px;margin:0 auto}
+.card{border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.02);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.card-head{padding:20px 24px 12px;display:flex;align-items:center;gap:14px}
+.card-head .num{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+  font-size:14px;font-weight:700;flex-shrink:0}
+.card-head h2{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.card-head p{font-size:12.5px;color:#9a9aa2;margin-top:2px}
+.card-tags{display:flex;gap:6px;padding:0 24px 14px;flex-wrap:wrap}
+.tag{font-size:10.5px;padding:3px 8px;border-radius:99px;font-weight:500;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);color:#aaa}
+.mock{height:320px;position:relative;overflow:hidden}
+
+/* ========== 1. LIQUID GLASS ========== */
+.liquid{background:#0a0a0f}
+.liquid .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;gap:16px;
+  background:rgba(255,255,255,.06);backdrop-filter:blur(40px) saturate(1.8);border-bottom:1px solid rgba(255,255,255,.08)}
+.liquid .mock-bar .dot{width:10px;height:10px;border-radius:50%}
+.liquid .mock-bar .dot.r{background:#FF5F57}.liquid .mock-bar .dot.y{background:#FEBC2E}.liquid .mock-bar .dot.g{background:#28C840}
+.liquid .mock-bar span{font-size:11px;color:rgba(255,255,255,.5);font-weight:500;margin-left:auto}
+.liquid .mock-content{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.liquid .glass-card{background:rgba(255,255,255,.04);backdrop-filter:blur(30px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;
+  box-shadow:0 4px 24px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.06)}
+.liquid .glass-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:8px}
+.liquid .glass-card .big{font-size:28px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#0EA5B7,#43E0A6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.liquid .glass-card .sm{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+.liquid .dock{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;
+  background:rgba(255,255,255,.08);backdrop-filter:blur(40px);border-radius:18px;padding:6px 10px;
+  border:1px solid rgba(255,255,255,.08)}
+.liquid .dock i{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);display:block}
+.liquid .prismatic{position:absolute;top:0;right:0;width:200px;height:200px;
+  background:conic-gradient(from 180deg,rgba(14,165,183,.15),rgba(124,107,255,.15),rgba(240,53,60,.1),
+  rgba(245,158,11,.1),rgba(14,165,183,.15));filter:blur(60px);border-radius:50%;pointer-events:none}
+
+/* ========== 2. AURORA BOREALIS ========== */
+.aurora{background:#050510}
+.aurora .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;
+  background:linear-gradient(90deg,rgba(16,185,129,.15),rgba(59,130,246,.15),rgba(168,85,247,.15));
+  border-bottom:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden}
+.aurora .mock-bar::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,#10B981,#3B82F6,#A855F7,#EC4899,#10B981);
+  background-size:200% 100%;animation:auroraShift 4s linear infinite;opacity:.3}
+@keyframes auroraShift{0%{background-position:0% 0}100%{background-position:200% 0}}
+.aurora .mock-bar .dot{width:10px;height:10px;border-radius:50%;position:relative;z-index:1}
+.aurora .mock-bar .dot.r{background:#FF5F57}.aurora .mock-bar .dot.y{background:#FEBC2E}.aurora .mock-bar .dot.g{background:#28C840}
+.aurora .mock-content{padding:20px;position:relative}
+.aurora .aurora-band{position:absolute;top:0;left:0;right:0;height:120px;
+  background:linear-gradient(180deg,rgba(16,185,129,.12),rgba(59,130,246,.08),rgba(168,85,247,.06),transparent);
+  filter:blur(30px);animation:auroraPulse 3s ease-in-out infinite alternate}
+@keyframes auroraPulse{0%{opacity:.6;transform:scaleY(1)}100%{opacity:1;transform:scaleY(1.2)}}
+.aurora .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
+.aurora .aurora-card{position:relative;z-index:1;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;backdrop-filter:blur(20px)}
+.aurora .aurora-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:rgba(16,185,129,.7);margin-bottom:6px}
+.aurora .aurora-card .big{font-size:24px;font-weight:800;
+  background:linear-gradient(135deg,#10B981,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.aurora .aurora-card .sm{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
+
+/* ========== 3. CARBON HYPERCAR ========== */
+.carbon{background:#111113;position:relative}
+.carbon::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.01) 2px,rgba(255,255,255,.01) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(255,255,255,.01) 2px,rgba(255,255,255,.01) 4px);
+  pointer-events:none}
+.carbon .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;gap:12px;
+  background:#1a1a1e;border-bottom:2px solid #FF3D00;position:relative;z-index:1}
+.carbon .mock-bar .stripe{width:3px;height:16px;background:#FF3D00;border-radius:2px}
+.carbon .mock-bar span{font-size:10px;font-family:'Roboto Mono',monospace;color:#FF3D00;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.carbon .mock-content{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1}
+.carbon .gauge{background:#1a1a1e;border:1px solid rgba(255,61,0,.2);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.carbon .gauge::after{content:"";position:absolute;top:0;left:0;width:var(--pct,60%);height:3px;background:linear-gradient(90deg,#FF3D00,#FF6D00);border-radius:0 2px 2px 0}
+.carbon .gauge h3{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,61,0,.6);font-family:'Roboto Mono',monospace;margin-bottom:6px}
+.carbon .gauge .big{font-size:22px;font-weight:800;color:#FF3D00;font-family:'Roboto Mono',monospace}
+.carbon .gauge .sm{font-size:10px;color:#666;margin-top:2px;font-family:'Roboto Mono',monospace}
+.carbon .telemetry{display:flex;gap:16px;margin-top:12px}
+.carbon .telem-item{flex:1;background:#1a1a1e;border:1px solid rgba(255,61,0,.15);border-radius:8px;padding:10px;text-align:center}
+.carbon .telem-item .val{font-size:16px;font-weight:700;color:#FF3D00;font-family:'Roboto Mono',monospace}
+.carbon .telem-item .lbl{font-size:8px;color:#555;text-transform:uppercase;letter-spacing:.1em;margin-top:2px;font-family:'Roboto Mono',monospace}
+
+/* ========== 4. NEBULA COSMIC ========== */
+.nebula{background:#0a0a1a;position:relative;overflow:hidden}
+.nebula .nebula-mesh{position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 30%,rgba(124,107,255,.15),transparent 50%),
+    radial-gradient(ellipse at 80% 60%,rgba(14,165,183,.12),transparent 50%),
+    radial-gradient(ellipse at 50% 90%,rgba(245,158,11,.08),transparent 40%);
+  filter:blur(40px);animation:nebulaDrift 6s ease-in-out infinite alternate}
+@keyframes nebulaDrift{0%{transform:translate(0,0)}100%{transform:translate(10px,-8px)}}
+.nebula .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;
+  background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border-bottom:1px solid rgba(124,107,255,.15);position:relative;z-index:1}
+.nebula .mock-bar .dot{width:10px;height:10px;border-radius:50%}
+.nebula .mock-bar .dot.r{background:#FF5F57}.nebula .mock-bar .dot.y{background:#FEBC2E}.nebula .mock-bar .dot.g{background:#28C840}
+.nebula .mock-content{padding:20px;position:relative;z-index:1}
+.nebula .neb-card{background:rgba(255,255,255,.03);border:1px solid rgba(124,107,255,.12);
+  border-radius:14px;padding:16px;backdrop-filter:blur(16px)}
+.nebula .neb-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:rgba(124,107,255,.7);margin-bottom:6px}
+.nebula .neb-card .big{font-size:22px;font-weight:800;
+  background:linear-gradient(135deg,#7C6BFF,#0EA5B7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nebula .neb-card .sm{font-size:11px;color:rgba(255,255,255,.35);margin-top:3px}
+.nebula .constellation{position:absolute;top:20px;right:20px;width:100px;height:100px;z-index:0}
+.nebula .constellation .dot{position:absolute;width:3px;height:3px;background:rgba(255,255,255,.4);border-radius:50%}
+.nebula .constellation .line{position:absolute;height:1px;background:rgba(124,107,255,.2);transform-origin:left center}
+
+/* ========== 5. NEO-BRUTALIST ========== */
+.brutalist{background:#E8E4DE}
+.brutalist .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;gap:10px;
+  background:#fff;border-bottom:3px solid #111}
+.brutalist .mock-bar .dot{width:10px;height:10px;border-radius:50%;border:2px solid #111}
+.brutalist .mock-bar .dot.r{background:#FF3366}.brutalist .mock-bar .dot.y{background:#FFD600}.brutalist .mock-bar .dot.g{background:#00FF88}
+.brutalist .mock-bar span{font-size:10px;font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.08em;margin-left:auto}
+.brutalist .mock-content{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.brutalist .brut-card{background:#fff;border:3px solid #111;border-radius:0;padding:14px;
+  box-shadow:5px 5px 0 #111;position:relative}
+.brutalist .brut-card h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:#111;margin-bottom:6px}
+.brutalist .brut-card .big{font-size:26px;font-weight:800;color:#FF3366}
+.brutalist .brut-card .sm{font-size:10px;color:#666;margin-top:2px;font-weight:600}
+.brutalist .brut-tag{display:inline-block;background:#FFD600;color:#111;font-size:9px;font-weight:800;
+  padding:2px 8px;text-transform:uppercase;letter-spacing:.05em;border:2px solid #111;margin-top:8px}
+.brutalist .brut-tag.green{background:#00FF88}
+.brutalist .brut-tag.pink{background:#FF3366;color:#fff}
+
+/* ========== 6. MONOCHROME LUXE ========== */
+.luxe{background:#000}
+.luxe .mock-bar{height:32px;display:flex;align-items:center;padding:0 16px;
+  border-bottom:1px solid rgba(201,168,76,.2)}
+.luxe .mock-bar .dot{width:10px;height:10px;border-radius:50%}
+.luxe .mock-bar .dot.r{background:#333}.luxe .mock-bar .dot.y{background:#333}.luxe .mock-bar .dot.g{background:#C9A84C}
+.luxe .mock-bar span{font-size:10px;font-weight:600;color:rgba(201,168,76,.5);letter-spacing:.12em;
+  text-transform:uppercase;font-family:'Playfair Display',serif;margin-left:auto}
+.luxe .mock-content{padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.luxe .luxe-card{border:1px solid rgba(201,168,76,.12);border-radius:0;padding:18px;background:rgba(201,168,76,.02)}
+.luxe .luxe-card h3{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:rgba(201,168,76,.4);
+  font-family:'Playfair Display',serif;font-weight:600;margin-bottom:8px}
+.luxe .luxe-card .big{font-size:28px;font-weight:700;color:#C9A84C;font-family:'Playfair Display',serif}
+.luxe .luxe-card .sm{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;font-weight:400}
+.luxe .luxe-line{width:40px;height:1px;background:#C9A84C;margin:12px 0;opacity:.3}
+
+/* ========== 7. SYNTHWAVE ========== */
+.synth{background:#1a0a2e;position:relative;overflow:hidden}
+.synth .grid-floor{position:absolute;bottom:0;left:0;right:0;height:120px;
+  background:linear-gradient(transparent 0%,rgba(255,45,149,.06) 100%);
+  background-size:100% 100%;perspective:200px;
+  background-image:repeating-linear-gradient(90deg,rgba(255,45,149,.15) 0px,transparent 1px,transparent 40px),
+    repeating-linear-gradient(0deg,rgba(255,45,149,.15) 0px,transparent 1px,transparent 40px);
+  transform:rotateX(60deg);transform-origin:bottom;opacity:.4}
+.synth .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;
+  background:linear-gradient(90deg,rgba(255,45,149,.12),rgba(0,240,255,.12));
+  border-bottom:2px solid rgba(255,45,149,.4);position:relative;z-index:1}
+.synth .mock-bar .dot{width:10px;height:10px;border-radius:50%;
+  box-shadow:0 0 6px currentColor}
+.synth .mock-bar .dot.r{background:#FF2D95;color:#FF2D95}.synth .mock-bar .dot.y{background:#FFD600;color:#FFD600}
+.synth .mock-bar .dot.g{background:#00F0FF;color:#00F0FF}
+.synth .mock-bar span{font-size:10px;font-weight:700;color:#FF2D95;letter-spacing:.06em;
+  text-shadow:0 0 8px rgba(255,45,149,.5);margin-left:auto}
+.synth .mock-content{padding:20px;position:relative;z-index:1}
+.synth .synth-card{background:rgba(255,45,149,.06);border:1px solid rgba(255,45,149,.2);
+  border-radius:12px;padding:16px;backdrop-filter:blur(8px);
+  box-shadow:0 0 20px rgba(255,45,149,.08),inset 0 0 20px rgba(0,240,255,.03)}
+.synth .synth-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:#00F0FF;text-shadow:0 0 6px rgba(0,240,255,.4);margin-bottom:6px}
+.synth .synth-card .big{font-size:24px;font-weight:800;
+  background:linear-gradient(135deg,#FF2D95,#00F0FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-shadow:none;filter:drop-shadow(0 0 6px rgba(255,45,149,.3))}
+.synth .synth-card .sm{font-size:11px;color:rgba(255,255,255,.35);margin-top:3px}
+.synth .chrome-btn{display:inline-block;padding:6px 14px;border-radius:8px;font-size:10px;font-weight:700;
+  background:linear-gradient(180deg,#FF2D95 0%,#9B1B5A 100%);color:#fff;border:none;
+  box-shadow:0 2px 8px rgba(255,45,149,.3),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px}
+
+/* ========== 8. MATERIAL YOU 3 ========== */
+.material{background:#1C1B1F}
+.material .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;
+  background:#2B2930;border-bottom:1px solid rgba(255,255,255,.06)}
+.material .mock-bar .dot{width:10px;height:10px;border-radius:50%}
+.material .mock-bar .dot.r{background:#F2B8B5}.material .mock-bar .dot.y{background:#F7D88A}.material .mock-bar .dot.g{background:#A8DAB5}
+.material .mock-bar span{font-size:11px;color:rgba(255,255,255,.5);font-weight:500;margin-left:auto}
+.material .mock-content{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.material .mat-card{background:#2B2930;border-radius:28px;padding:18px;
+  border:1px solid rgba(255,255,255,.04);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.material .mat-card h3{font-size:11px;font-weight:500;color:rgba(255,255,255,.5);margin-bottom:8px}
+.material .mat-card .big{font-size:24px;font-weight:700;
+  color:#D0BCFF}
+.material .mat-card .sm{font-size:11px;color:rgba(255,255,255,.35);margin-top:3px}
+.material .mat-chip{display:inline-block;padding:5px 12px;border-radius:8px;font-size:10px;font-weight:500;
+  background:rgba(208,188,255,.12);color:#D0BCFF;border:1px solid rgba(208,188,255,.2);margin-top:8px}
+.material .fab{position:absolute;bottom:16px;right:16px;width:44px;height:44px;border-radius:14px;
+  background:#D0BCFF;display:grid;place-items:center;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.material .fab svg{width:20px;height:20px;stroke:#1C1B1F;stroke-width:2;fill:none}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Choose a Theme</h1>
+  <p>Eight complete visual overhauls for the MagnaVERSE web OS. Each mockup shows the same interface — a different soul.</p>
+</div>
+
+<div class="grid">
+
+  <!-- 1. LIQUID GLASS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(14,165,183,.15);color:#0EA5B7">01</div>
+      <div><h2>Liquid Glass</h2><p>iOS 26-inspired heavy blur, prismatic edges</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">backdrop-filter: blur(40px)</span>
+      <span class="tag">saturate(1.8)</span>
+      <span class="tag">translucent layers</span>
+    </div>
+    <div class="mock liquid">
+      <div class="prismatic"></div>
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span>MagnaVERSE</span>
+      </div>
+      <div class="mock-content">
+        <div class="glass-card">
+          <h3>Sovereignty</h3>
+          <div class="big">Private</div>
+          <div class="sm">Riyadh DC-1 · 8×H200 · 0 bytes egress</div>
+        </div>
+        <div class="glass-card">
+          <h3>Exposure</h3>
+          <div class="big">SAR 5.32M</div>
+          <div class="sm">Day 45 · LD cap binds past day 67</div>
+        </div>
+        <div class="glass-card" style="grid-column:span 2">
+          <h3>Brain Activity</h3>
+          <div class="sm">12 nodes active · 3 threads unresolved · Last ingest 08:14</div>
+        </div>
+      </div>
+      <div class="dock"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <!-- 2. AURORA BOREALIS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(16,185,129,.15);color:#10B981">02</div>
+      <div><h2>Aurora Borealis</h2><p>Animated aurora gradients, starfield particles</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">animated gradients</span>
+      <span class="tag">starfield particles</span>
+      <span class="tag">ethereal glow</span>
+    </div>
+    <div class="mock aurora">
+      <div class="star" style="top:15%;left:20%;animation-delay:0s"></div>
+      <div class="star" style="top:35%;left:70%;animation-delay:.4s"></div>
+      <div class="star" style="top:60%;left:40%;animation-delay:.8s"></div>
+      <div class="star" style="top:25%;left:85%;animation-delay:1.2s"></div>
+      <div class="star" style="top:70%;left:15%;animation-delay:.6s"></div>
+      <div class="star" style="top:45%;left:55%;animation-delay:1s"></div>
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      </div>
+      <div class="mock-content">
+        <div class="aurora-band"></div>
+        <div class="aurora-card">
+          <h3>Sovereignty</h3>
+          <div class="big">Private</div>
+          <div class="sm">Riyadh DC-1 · 8×H200</div>
+        </div>
+        <div class="aurora-card" style="margin-top:14px">
+          <h3>Exposure</h3>
+          <div class="big">SAR 5.32M</div>
+          <div class="sm">Day 45 · Critical path</div>
+        </div>
+        <div class="aurora-card" style="margin-top:14px;grid-column:span 2">
+          <h3>Brain</h3>
+          <div class="sm">12 nodes · 3 threads unresolved · Last ingest 08:14 AST</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CARBON HYPERCAR -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(255,61,0,.15);color:#FF3D00">03</div>
+      <div><h2>Carbon Hypercar</h2><p>Carbon-fiber texture, telemetry accents, gauges</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">carbon weave texture</span>
+      <span class="tag">Roboto Mono</span>
+      <span class="tag">red/orange telemetry</span>
+    </div>
+    <div class="mock carbon">
+      <div class="mock-bar">
+        <div class="stripe"></div><div class="stripe"></div>
+        <span>System Telemetry</span>
+      </div>
+      <div class="mock-content">
+        <div class="gauge" style="--pct:100%">
+          <h3>Sovereignty</h3>
+          <div class="big">PRIVATE</div>
+          <div class="sm">0 bytes egress · 0 violations</div>
+        </div>
+        <div class="gauge" style="--pct:67%">
+          <h3>Exposure</h3>
+          <div class="big">SAR 5.32M</div>
+          <div class="sm">Day 45 · LD cap: day 67</div>
+        </div>
+        <div class="telemetry">
+          <div class="telem-item"><div class="val">21%</div><div class="lbl">CPU</div></div>
+          <div class="telem-item"><div class="val">1.2G</div><div class="lbl">RAM</div></div>
+          <div class="telem-item"><div class="val">2/8</div><div class="lbl">GPU</div></div>
+          <div class="telem-item"><div class="val">12.4</div><div class="lbl">SAR</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. NEBULA COSMIC -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(124,107,255,.15);color:#7C6BFF">04</div>
+      <div><h2>Nebula Cosmic</h2><p>Gradient meshes, constellation grid, tinted glass</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">radial gradient meshes</span>
+      <span class="tag">drift animation</span>
+      <span class="tag">colored tints</span>
+    </div>
+    <div class="mock nebula">
+      <div class="nebula-mesh"></div>
+      <div class="constellation">
+        <div class="dot" style="top:10%;left:20%"></div>
+        <div class="dot" style="top:30%;left:60%"></div>
+        <div class="dot" style="top:70%;left:40%"></div>
+        <div class="dot" style="top:50%;left:80%"></div>
+        <div class="dot" style="top:85%;left:25%"></div>
+      </div>
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      </div>
+      <div class="mock-content">
+        <div class="neb-card">
+          <h3>Sovereignty</h3>
+          <div class="big">Private</div>
+          <div class="sm">Riyadh DC-1 · 0 egress</div>
+        </div>
+        <div class="neb-card" style="margin-top:14px">
+          <h3>Exposure</h3>
+          <div class="big">SAR 5.32M</div>
+          <div class="sm">Day 45 · Critical path</div>
+        </div>
+        <div class="neb-card" style="margin-top:14px;grid-column:span 2">
+          <h3>Brain Graph</h3>
+          <div class="sm">12 nodes active · 3 threads unresolved</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. NEO-BRUTALIST -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(255,51,102,.15);color:#FF3366">05</div>
+      <div><h2>Neo-Brutalist</h2><p>Thick borders, flat neon, bold type, no blur</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">3px solid borders</span>
+      <span class="tag">offset box-shadows</span>
+      <span class="tag">flat neon accents</span>
+    </div>
+    <div class="mock brutalist">
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span>MagnaVERSE OS</span>
+      </div>
+      <div class="mock-content">
+        <div class="brut-card">
+          <h3>Sovereignty</h3>
+          <div class="big">PRIVATE</div>
+          <div class="sm">0 bytes egress</div>
+          <div class="brut-tag green">✓ SECURE</div>
+        </div>
+        <div class="brut-card">
+          <h3>Exposure</h3>
+          <div class="big">SAR 5.32M</div>
+          <div class="sm">Day 45 of timeline</div>
+          <div class="brut-tag pink">⚠ AT RISK</div>
+        </div>
+        <div class="brut-card" style="grid-column:span 2">
+          <h3>Brain Activity</h3>
+          <div class="sm" style="font-weight:700;color:#111">12 nodes · 3 unresolved threads · 8,412 docs indexed</div>
+          <div class="brut-tag">LIVE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MONOCHROME LUXE -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(201,168,76,.15);color:#C9A84C">06</div>
+      <div><h2>Monochrome Luxe</h2><p>Pure black/white + gold, serif headings</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">Playfair Display</span>
+      <span class="tag">gold accent only</span>
+      <span class="tag">ultra-thin borders</span>
+    </div>
+    <div class="mock luxe">
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span>MagnaVERSE</span>
+      </div>
+      <div class="mock-content">
+        <div class="luxe-card">
+          <h3>Sovereignty</h3>
+          <div class="big">Private</div>
+          <div class="luxe-line"></div>
+          <div class="sm">Riyadh DC-1 · 8×H200 · Zero egress</div>
+        </div>
+        <div class="luxe-card">
+          <h3>Exposure</h3>
+          <div class="big">5.32M</div>
+          <div class="luxe-line"></div>
+          <div class="sm">Saudi Riyals · Day 45</div>
+        </div>
+        <div class="luxe-card" style="grid-column:span 2">
+          <h3>Brain Activity</h3>
+          <div class="sm">12 indexed nodes · 3 unresolved threads · 8,412 documents</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. SYNTHWAVE -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(255,45,149,.15);color:#FF2D95">07</div>
+      <div><h2>Synthwave</h2><p>Neon magenta/cyan, chrome gradients, grid floor</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">neon glow text-shadow</span>
+      <span class="tag">chrome gradients</span>
+      <span class="tag">perspective grid</span>
+    </div>
+    <div class="mock synth">
+      <div class="grid-floor"></div>
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span>MagnaVERSE OS</span>
+      </div>
+      <div class="mock-content">
+        <div class="synth-card">
+          <h3>Sovereignty</h3>
+          <div class="big">PRIVATE</div>
+          <div class="sm">Riyadh DC-1 · 0 egress</div>
+        </div>
+        <div class="synth-card" style="margin-top:14px">
+          <h3>Exposure</h3>
+          <div class="big">SAR 5.32M</div>
+          <div class="sm">Day 45 · Critical path</div>
+          <div class="chrome-btn">VIEW DETAILS</div>
+        </div>
+        <div class="synth-card" style="margin-top:14px;grid-column:span 2">
+          <h3>Brain</h3>
+          <div class="sm">12 nodes · 3 unresolved · Live</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. MATERIAL YOU 3 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="num" style="background:rgba(208,188,255,.15);color:#D0BCFF">08</div>
+      <div><h2>Material You 3</h2><p>Dynamic color palette, 28px radius, tonal surfaces</p></div>
+    </div>
+    <div class="card-tags">
+      <span class="tag">HSL palette from seed</span>
+      <span class="tag">border-radius: 28px</span>
+      <span class="tag">tonal surfaces</span>
+    </div>
+    <div class="mock material">
+      <div class="mock-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span>MagnaVERSE</span>
+      </div>
+      <div class="mock-content">
+        <div class="mat-card">
+          <h3>Sovereignty</h3>
+          <div class="big">Private</div>
+          <div class="sm">Riyadh DC-1 · 0 egress</div>
+          <div class="mat-chip">✓ Secure</div>
+        </div>
+        <div class="mat-card">
+          <h3>Exposure</h3>
+          <div class="big">5.32M</div>
+          <div class="sm">SAR · Day 45</div>
+          <div class="mat-chip">⚠ At Risk</div>
+        </div>
+        <div class="mat-card" style="grid-column:span 2">
+          <h3>Brain Activity</h3>
+          <div class="sm">12 nodes · 3 unresolved threads</div>
+        </div>
+      </div>
+      <div class="fab"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:20px 40px 60px;color:#666;font-size:13px">
+  Pick a number — I'll apply it to the full Console OS as a complete theme overhaul.
+</div>
+
+</body>
+</html>
