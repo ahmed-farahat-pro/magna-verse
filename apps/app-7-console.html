@@ -194,6 +194,12 @@ body:not([data-stage="os"]) #os{display:none}
 .dicon{position:absolute;width:88px;padding:8px 4px 6px;border-radius:14px;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
   background:transparent;transition:background .18s ease;touch-action:none}
+/* THE WHOLE SQUARE IS THE HIT TARGET — every inner decoration (tile,
+   svg strokes, label, badge) is pointer-transparent, so hover and click
+   register anywhere on the button, never just on the icon graphic.
+   The inline-rename input is NOT listed, so it stays interactive. */
+.dicon .tile,.dicon .tile .ico,.dicon .lbl,.dicon .badge{pointer-events:none}
+.dk .ico,.dk .badge,.dk .run{pointer-events:none}
 /* hover feedback is tint + label only — never a transform on the button
    itself, which would fight the drift animations and the drag maths */
 .dicon:hover{background:rgba(255,255,255,.07)}
