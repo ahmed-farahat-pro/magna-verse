@@ -3406,6 +3406,52 @@ var SET_PANES = {
       '<div class="mid"><div class="nm">'+esc(b.t)+'</div>'+
       '<div class="sub" style="margin:0;font-size:11px">'+esc(b.m)+'</div></div>'+
       '<button class="btn sm" data-forget="'+esc(b.t)+'">Forget</button></div>'; }).join(""); },
+  roles: function(){ return '<h4 class="sec">Roles &amp; access</h4>'+
+    '<p class="sub">One deployment, many seats. Every capability is grantable per role, and an agent can '+
+    'never exceed the role of whoever set it running.</p>'+
+    '<div class="card"><h5>'+ico("i-user","sm")+'Seats in this workspace</h5>'+
+    [["Ahmad Farahat","Delivery","owner"],["Nouf Al-Otaibi","Commercial","approver"],
+     ["Omar Siddiqui","Planning","member"],["Sara Bin Zayed","HSE","member"],
+     ["Faisal Al-Harbi","Quantity surveying","viewer"]]
+    .map(function(r){ return '<div class="kv"><span class="k">'+esc(r[0])+'</span>'+
+      '<span class="v">'+esc(r[1])+' · '+esc(r[2])+'</span></div>'; }).join("")+'</div>'+
+    '<div class="card"><h5>'+ico("i-shield","sm")+'What each role may do</h5>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11.5px;min-width:420px">'+
+    '<thead><tr><th style="text-align:left;padding:7px 9px;color:var(--tx-3)">Capability</th>'+
+    ['Owner','Approver','Member','Viewer'].map(function(h){
+      return '<th style="padding:7px 9px;color:var(--tx-3)">'+h+'</th>'; }).join("")+'</tr></thead><tbody>'+
+    [["Read Company Knowledge",1,1,1,1],["Run an agent",1,1,1,0],["Approve a write",1,1,0,0],
+     ["Switch a thread to Public",1,1,0,0],["Install from Marketplace",1,0,0,0],
+     ["Deploy to production",1,0,0,0],["Read the secret vault",0,0,0,0]]
+    .map(function(r){
+      return '<tr><td style="padding:7px 9px;border-top:1px solid var(--glass-line);color:var(--tx-2)">'+
+        esc(r[0])+'</td>'+ r.slice(1).map(function(v){
+        return '<td style="padding:7px 9px;border-top:1px solid var(--glass-line);text-align:center;color:'+
+          (v?"var(--private)":"var(--tx-4)")+'">'+(v?"✓":"—")+'</td>'; }).join("")+'</tr>';
+    }).join("")+'</tbody></table></div>'+
+    '<p style="margin-top:10px">Nobody reads the vault, including the owner. Secrets are injected into a '+
+    'scoped short-lived grant at run time and never rendered.</p></div>'; },
+  pipelines: function(){ return '<h4 class="sec">Pipelines</h4>'+
+    '<p class="sub">Middleware that runs around every model call — for filtering, rate limiting, '+
+    'translation, redaction or logging. Each one is a small function you can read, in the order it runs.</p>'+
+    [["PII redaction","inbound","Masks Saudi national IDs, IBANs and phone numbers before the prompt reaches a model.","on"],
+     ["Tier guard","inbound","Refuses to send any prompt containing PO or contract text to a Public-tier model.","on"],
+     ["Arabic normaliser","inbound","Normalises alef/hamza variants and strips tatweel so retrieval matches.","on"],
+     ["Cost meter","outbound","Attributes tokens to the seat, the project and the agent for the usage centre.","on"],
+     ["Citation binder","outbound","Attaches the Brain node ids behind every claim so answers stay traceable.","on"],
+     ["Langfuse trace","outbound","Ships a span per call to the internal observability stack. No prompt bodies.","off"]]
+    .map(function(p){
+      return '<div class="runrow"><span class="dot" style="background:'+
+        (p[3]==="on"?"var(--private)":"var(--tx-4)")+'"></span>'+
+        '<div class="mid"><div class="nm">'+esc(p[0])+
+        '<span class="tag" style="margin-left:7px">'+esc(p[1])+'</span></div>'+
+        '<div class="sub" style="margin:2px 0 0;font-size:11.5px">'+esc(p[2])+'</div></div>'+
+        '<span class="tag '+(p[3]==="on"?"pv":"")+'">'+esc(p[3])+'</span></div>';
+    }).join("")+
+    '<div class="card" style="margin-top:12px"><h5>'+ico("i-code","sm")+'Write your own</h5>'+
+    '<p>A pipeline is a function with one entry point. It receives the prompt or the response, may '+
+    'rewrite it, and may refuse the call outright — which is how Tier guard enforces the sovereignty '+
+    'boundary in code rather than by policy.</p></div>'; },
   about: function(){ return '<h4 class="sec">About Console</h4>'+
     '<p class="sub">App 7 of the MagnaVERSE redesign set — the desktop-OS concept.</p>'+
     '<div class="card"><h5>What is real in this prototype</h5>'+
@@ -3421,6 +3467,7 @@ MOUNT.settings = function(body, w){
   w.state.pane = "general";
   var keys = [["general","General","i-gear"],["appearance","Appearance","i-sun"],["spaces","Spaces","i-grid"],
               ["models","Models","i-layers"],["sovereignty","Sovereignty & data","i-shield"],
+              ["roles","Roles & access","i-user"],["pipelines","Pipelines","i-code"],
               ["memory","Memory","i-brain"],["about","About Console","i-spark"]];
   body.innerHTML = '<div class="cd"><div class="side">'+
     '<div class="side-h">Settings</div>'+
@@ -4123,7 +4170,7 @@ MOUNT.ledger = function(body, w){
             r.nodes.map(function(id){ var n = nodeById(id);
               return n ? '<button class="tag sg" data-lnode="'+id+'">'+ico("i-brain","xs")+esc(n.label)+'</button>' : "";
             }).join("")+'</div>' : "")+
-          '<style></style></div>';
+          '</div>';
       }).join("") +'</div>'+
       '<div class="card" style="margin-top:14px"><h5>'+ico("i-download","sm")+'Export</h5>'+
       '<p>The ledger is append-only and exportable as a flat file for an auditor. Nothing in it can be '+
