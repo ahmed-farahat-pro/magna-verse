@@ -296,7 +296,8 @@ body.dragging{cursor:grabbing}
 
 /* ============================ SPOTLIGHT ============================ */
 #spot{position:fixed;inset:0;z-index:300;display:none;padding-top:14vh;justify-content:center;
-  background:rgba(0,0,0,.42);backdrop-filter:blur(6px)}
+  background:rgba(0,0,0,.66);backdrop-filter:blur(6px)}
+:root[data-theme="light"] #spot{background:rgba(40,46,60,.42)}
 #spot.on{display:flex}
 .spot-box{width:min(620px,calc(100vw - 32px));max-height:66vh;display:flex;flex-direction:column;
   border-radius:var(--r-lg);background:var(--glass-2);backdrop-filter:var(--blur);
@@ -323,9 +324,11 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1p
   border-radius:4px;padding:1px 5px}
 
 /* ============================ MISSION CONTROL ============================ */
+/* the scrim carries this mode on its own — backdrop-filter is a bonus where
+   supported, never the thing that makes Mission Control legible */
 #mission{position:fixed;inset:0;z-index:250;display:none;flex-direction:column;gap:18px;
-  padding:calc(var(--menubar-h) + 22px) 26px 26px;background:rgba(4,6,12,.72);backdrop-filter:blur(18px)}
-:root[data-theme="light"] #mission{background:rgba(230,234,242,.8)}
+  padding:calc(var(--menubar-h) + 22px) 26px 26px;background:rgba(4,6,12,.95);backdrop-filter:blur(18px)}
+:root[data-theme="light"] #mission{background:rgba(226,231,240,.96)}
 #mission.on{display:flex;animation:fadeIn .18s ease-out}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 #mission h3{margin:0;font-size:13px;font-weight:700;color:var(--tx-2);letter-spacing:.02em}
@@ -590,7 +593,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .cd-pstage{flex:1;min-height:0;display:grid;place-items:center;padding:12px;overflow:auto}
 .devframe{background:#0b0b0d;border-radius:12px;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.5);
   display:flex;flex-direction:column;max-height:100%}
-.devframe.phone{border-radius:26px;padding:9px 5px;width:220px}
+.devframe.phone{border-radius:26px;padding:9px 5px;width:196px}
 .devframe.phone::before{content:"";height:16px;flex:none;display:block;position:relative}
 .devframe.phone .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:62px;height:15px;
   background:#0b0b0d;border-radius:99px;z-index:2}
@@ -598,8 +601,10 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .devframe .bar{height:16px;flex:none;display:flex;align-items:center;gap:4px;padding:0 6px}
 .devframe .bar i{width:6px;height:6px;border-radius:99px;background:#3a3a40;display:block}
 .devframe iframe{border:0;background:#fff;border-radius:6px;width:100%;flex:1;min-height:150px}
-.devframe.phone iframe{border-radius:16px;height:390px}
-.devframe.desktop iframe{height:300px}
+.devframe.phone iframe{border-radius:16px;height:300px}
+.devframe.desktop iframe{height:280px}
+.cd-preview{min-height:0}
+.cd-pstage{align-items:start}
 .cd-term{flex:none;height:120px;border-top:1px solid var(--glass-line);background:#06080a;overflow-y:auto;
   padding:9px 12px;font-family:var(--mono);font-size:11px;line-height:1.65;color:#8FBF9F}
 .cd-term .p{color:#3FCF95}
@@ -662,6 +667,14 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .intra th{background:#F6F7F9;font-weight:700}
 .intra .pill{display:inline-block;font-size:11px;background:#EAF7EF;color:#12794F;padding:3px 9px;
   border-radius:99px;font-weight:650}
+.bw-notice{display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--public-dim);
+  border-bottom:1px solid color-mix(in srgb,var(--public) 36%,transparent);font-size:11.5px;
+  color:var(--tx-2);line-height:1.5}
+.bw-notice .ico{color:var(--public);flex:none}
+.bw-notice b{color:var(--tx)}
+.bw-notice code{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);padding:1px 5px;border-radius:4px}
+.bw-notice .sp{flex:1}
+.bw-notice .btn,.bw-notice .bw-nav{flex:none}
 .agentbar{flex:none;display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--signal-dim);
   border-bottom:1px solid color-mix(in srgb,var(--signal) 34%,transparent);font-size:12px}
 .agentbar .sp{flex:1}
@@ -671,8 +684,14 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .agentsteps .run{color:var(--public)}
 
 /* ============================ APPROVAL BAR (OS-wide) ============================ */
-.approve{flex:none;display:flex;align-items:flex-start;gap:11px;padding:12px 14px;
-  background:var(--public-dim);border-bottom:1px solid color-mix(in srgb,var(--public) 40%,transparent)}
+/* an overlay, not a flex child — .win-body is a flex row, so inserting a
+   block into it would squash the app beside it into a column */
+.approve{position:absolute;top:0;left:0;right:0;z-index:30;
+  display:flex;align-items:flex-start;gap:11px;padding:12px 14px;
+  background:color-mix(in srgb,var(--public) 22%,var(--glass-3));
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid color-mix(in srgb,var(--public) 46%,transparent);
+  box-shadow:0 8px 20px rgba(0,0,0,.3)}
 .approve .ico{color:var(--public);margin-top:1px}
 .approve .mid{flex:1;min-width:0;font-size:12.5px;line-height:1.6}
 .approve .mid b{display:block;margin-bottom:2px}
@@ -710,6 +729,64 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .runrow .mid{flex:1;min-width:0}
 .runrow .nm{font-weight:620}
 .runrow .sub{font-size:11px;color:var(--tx-3);margin-top:2px;font-family:var(--mono)}
+
+/* ============================ MOBILE — app internals ============================
+   This block must sit AFTER every app rule above: media queries add no
+   specificity, so an identical selector declared later would otherwise win. */
+@media (max-width:767px){
+  /* side-by-side panes stack — a fixed 288px detail panel beside a flex:1
+     graph leaves the graph ~80px wide, which is worse than not showing it */
+  .br-wrap{flex-direction:column}
+  .br-main{flex:0 0 auto}          /* must not claim flex space, or the graph collapses */
+  .br-graph{flex:0 0 auto;height:min(40vh,280px)}
+  .br-detail{width:auto;flex:1 1 auto;min-height:0;border-left:0;border-top:1px solid var(--glass-line)}
+  /* node labels collide at this width, and the detail panel names the
+     selection anyway — keep the dots and their tap targets, drop the text */
+  .br-node text{display:none}
+  .br-legend{font-size:9.5px;gap:7px}
+  .br-hint{display:none}
+
+  .cd-split{flex-direction:column}
+  .cd-files{width:auto;flex:0 0 auto;max-height:30vh;border-right:0;border-bottom:1px solid var(--glass-line)}
+  .cd-right{flex:1 1 auto;min-height:0}
+  .cd-preview{height:auto;flex:1 1 auto;min-height:210px}
+  .cd-term{height:92px}
+  .devframe.phone,.devframe.desktop{width:min(100%,230px)}
+  .devframe.phone iframe,.devframe.desktop iframe{height:200px}
+
+  .approve{flex-wrap:wrap}
+  .approve .acts{width:100%;justify-content:flex-end}
+  .bw-notice{flex-wrap:wrap}
+  .bw-notice .sp{display:none}
+
+  /* touch targets — the desktop chrome is deliberately compact, which puts
+     several controls under 44px once there is no mouse */
+  :root{--menubar-h:48px}
+  /* flex:none on the buttons, or they get squeezed under 44px at 320px;
+     the bar scrolls as a safety net rather than shrinking its controls */
+  #menubar{height:48px;gap:6px;padding:0 8px;overflow-x:auto;scrollbar-width:none}
+  #menubar::-webkit-scrollbar{display:none}
+  #menubar>*{flex:none}
+  #menubar .sp{flex:1 1 auto}
+  .mb-btn{width:44px;height:44px;justify-content:center;padding:0}
+  /* the theme toggle also lives in Settings → Appearance, so it is the one
+     menu-bar control worth dropping when width is scarce */
+  #themeBtn{display:none}
+  #sovPill{height:36px;padding:0 12px}
+  #clock{font-size:11.5px}
+  .tab{min-height:44px;display:inline-flex;align-items:center;padding:0 13px}
+  .chip{min-height:40px;padding:0 12px}
+  .ch-send{width:40px;height:40px}
+  .side-i{min-height:44px}
+  .fi{min-height:44px}
+  .simrow{min-height:40px}
+  .bw-tab{min-height:40px}
+  .bw-nav{width:40px;height:40px}
+  .bw-url{height:40px}
+  .bw-mark{min-height:36px;display:inline-flex;align-items:center}
+  .win-lights button{width:16px;height:16px}
+  .dots i{width:12px;height:12px}
+}
 </style>
 </head>
 <body data-stage="boot">
@@ -857,6 +934,12 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
 function el(tag,cls,html){ var n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; }
 function ico(id,cls){ return '<svg class="ico '+(cls||"")+'"><use href="#'+id+'"/></svg>'; }
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+/* menu-bar height comes from CSS (it grows on mobile for 44px targets), so the
+   window maths must read it rather than assume the desktop value */
+function barH(){
+  var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--menubar-h"),10);
+  return isNaN(v) ? 34 : v;
+}
 function isMobile(){ return window.matchMedia("(max-width:767px)").matches; }
 var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -1023,7 +1106,7 @@ function renderIcons(){
   /* default layout flows top-to-bottom then wraps into a new column, so a
      short viewport never strands an icon under the dock */
   var STEP_Y = 96, STEP_X = 100, TOP = 14, LEFT = 14;
-  var avail = Math.max(200, window.innerHeight - 34 - 96);
+  var avail = Math.max(200, window.innerHeight - barH() - 96);
   var perCol = Math.max(1, Math.floor(avail / STEP_Y));
   SPACES.forEach(function(s){
     var layer = $('[data-icons="'+s.id+'"]'); if(!layer) return;
@@ -1090,7 +1173,7 @@ function openApp(appId, params){
       ex.min = false; ex.node.style.display=""; focusWin(ex.id); renderDock(); renderMobileBar(); return ex;
     }
   }
-  var deskW = window.innerWidth, deskH = window.innerHeight - 34;
+  var deskW = window.innerWidth, deskH = window.innerHeight - barH();
   var open = wins.filter(function(w){ return w.spaceId===curSpace; }).length;
   var w = {
     id: nextId++, appId: appId, spaceId: curSpace, title: a.name,
@@ -1218,7 +1301,7 @@ document.addEventListener("pointerdown", function(e){
 });
 document.addEventListener("pointermove", function(e){
   if(!drag) return;
-  var w = drag.w, deskH = window.innerHeight - 34;
+  var w = drag.w, deskH = window.innerHeight - barH();
   w.x = drag.ox + (e.clientX - drag.sx);
   w.y = clamp(drag.oy + (e.clientY - drag.sy), 0, deskH - 40);
   /* transform during the drag: compositor only, no reflow */
@@ -1237,14 +1320,14 @@ document.addEventListener("pointerup", function(){
   drag = null;
 });
 function detectSnap(cx, cy){
-  var W = window.innerWidth, T = 34, E = 26;
+  var W = window.innerWidth, T = barH(), E = 26;
   var s = null;
   if(cx <= E) s = "left"; else if(cx >= W - E) s = "right"; else if(cy <= T + 6) s = "max";
   drag.snap = s;
   if(s) showGhost(s); else hideGhost();
 }
 function ghostRect(kind){
-  var W = window.innerWidth, T = 34, H = window.innerHeight - T, pad = 8, dock = isMobile()?8:74;
+  var W = window.innerWidth, T = barH(), H = window.innerHeight - T, pad = 8, dock = isMobile()?8:74;
   if(kind === "left")  return {left:pad, top:T+pad, width:W/2 - pad*1.5, height:H - pad - dock};
   if(kind === "right") return {left:W/2 + pad/2, top:T+pad, width:W/2 - pad*1.5, height:H - pad - dock};
   return {left:0, top:T, width:W, height:H};
@@ -1259,7 +1342,7 @@ function applySnap(w, kind){
   if(kind === "max"){ if(!w.max) maxWin(w.id); return; }
   var r = ghostRect(kind);
   w.prevRect = {x:w.x,y:w.y,w:w.w,h:w.h};
-  w.x=r.left; w.y=r.top - 34; w.w=r.width; w.h=r.height;
+  w.x=r.left; w.y=r.top - barH(); w.w=r.width; w.h=r.height;
   applyRect(w);
   toast("Snapped " + kind, 1400);
 }
@@ -1435,11 +1518,12 @@ function openSpot(on){
   if(on){ buildSpotActions(); s.classList.add("on"); $("#spotIn").value=""; spotFilter(""); $("#spotIn").focus(); }
   else s.classList.remove("on");
 }
-function spotFilter(q){
-  q = q.trim().toLowerCase();
-  spotHits = !q ? SPOT_ACTIONS.slice(0,9)
-    : SPOT_ACTIONS.filter(function(a){ return (a.t+" "+a.d).toLowerCase().indexOf(q) > -1; }).slice(0,24);
-  /* a sentence long enough to be an intent, not a lookup, offers to become an automation */
+function spotFilter(raw){
+  var q = String(raw||"").trim(), lc = q.toLowerCase();
+  spotHits = !lc ? SPOT_ACTIONS.slice(0,9)
+    : SPOT_ACTIONS.filter(function(a){ return (a.t+" "+a.d).toLowerCase().indexOf(lc) > -1; }).slice(0,24);
+  /* a sentence long enough to be an intent, not a lookup, offers to become an
+     automation — shown with the wording the user actually typed */
   if(q.split(/\s+/).length >= 4){
     spotHits.unshift({ sec:"Create", t:'Create automation: "'+q+'"', d:"Console will draft it for your approval",
       icon:"i-bolt", tile:"g-auto", run:function(){
@@ -1496,7 +1580,7 @@ $("#companion").addEventListener("click", function(){
 
 /* re-clamp windows when the viewport changes so nothing is lost off-screen */
 window.addEventListener("resize", function(){
-  var W = window.innerWidth, H = window.innerHeight - 34;
+  var W = window.innerWidth, H = window.innerHeight - barH();
   wins.forEach(function(w){
     if(w.max || !w.node) return;
     w.w = Math.min(w.w, Math.max(280, W - 16));
@@ -1671,6 +1755,7 @@ var CONNECTORS = [
    ============================================================ */
 function requestApproval(w, opts){
   var host = w.body;
+  var old = host.querySelector(".approve"); if(old) old.remove();
   var bar = el("div","approve");
   bar.innerHTML =
     ico("i-warn") +
@@ -2300,12 +2385,24 @@ MOUNT.browser = function(body, w){
         '<button class="bw-mark" data-go="https://wikipedia.org">wikipedia.org</button>'+
       '</div>'+
       '<div data-agenthost></div>'+
+      '<div data-noticehost></div>'+
       '<div class="bw-stage" data-stage>'+
         '<div class="bw-block" data-block><div class="in"></div></div>'+
       '</div>'+
     '</div>';
   var stage = body.querySelector("[data-stage]"), block = body.querySelector("[data-block]"),
-      urlIn = body.querySelector("[data-url]");
+      urlIn = body.querySelector("[data-url]"), noticeHost = body.querySelector("[data-noticehost]");
+  function showNotice(host){
+    noticeHost.innerHTML =
+      '<div class="bw-notice">'+ico("i-warn","sm")+
+      '<span>Loading <b>'+esc(host)+'</b> in a real iframe. If it stays blank, that site sends '+
+      '<code>X-Frame-Options</code> or a <code>frame-ancestors</code> policy that forbids embedding — '+
+      'a limitation of any in-page browser, not of this one.</span>'+
+      '<span class="sp"></span>'+
+      '<button class="btn sm" data-newtab>Open in a real tab</button>'+
+      '<button class="bw-nav" data-noticex aria-label="Dismiss">'+ico("i-x","xs")+'</button></div>';
+  }
+  function clearNotice(){ noticeHost.innerHTML = ""; }
   function renderTabs(){
     body.querySelector("[data-bwtabs]").innerHTML = w.state.tabs.map(function(t,i){
       return '<button class="bw-tab" data-bwtab="'+i+'" aria-selected="'+(i===w.state.cur)+'">'+
@@ -2324,6 +2421,7 @@ MOUNT.browser = function(body, w){
     t.url = url;
     urlIn.value = url;
     block.classList.remove("on");
+    clearNotice();
     var old = stage.querySelector("iframe"); if(old) old.remove();
     var internal = INTRANET[url];
     if(internal){
@@ -2355,20 +2453,13 @@ MOUNT.browser = function(body, w){
       var fr = document.createElement("iframe");
       fr.setAttribute("referrerpolicy","no-referrer");
       fr.setAttribute("sandbox","allow-scripts allow-same-origin allow-popups");
-      var settled = false;
-      fr.addEventListener("load", function(){ settled = true; });
       fr.src = url;
       stage.insertBefore(fr, block);
-      /* most real sites refuse to be framed; say so plainly instead of
-         leaving a blank rectangle */
-      setTimeout(function(){
-        if(settled) return;
-        showBlock('<h5>'+esc(t.title)+' refused to load in a frame</h5>'+
-          '<p>Most sites send <code>X-Frame-Options: DENY</code> or a <code>frame-ancestors</code> policy, which '+
-          'stops any other page — including this one — from embedding them. A real browser is not subject to that; '+
-          'a page pretending to be one is.</p>'+
-          '<p>Internal Magna pages in the bookmarks bar always render, because Console serves those itself.</p>');
-      }, 2600);
+      /* A page cannot reliably tell whether a cross-origin frame was refused:
+         X-Frame-Options / frame-ancestors still fire `load`, and the document
+         is unreadable either way. So rather than guess wrong, say plainly
+         what may happen and offer the one thing that always works. */
+      showNotice(t.title);
     }
     renderTabs(); setWinTitle(w, "Browser", t.title);
   }
@@ -2386,6 +2477,11 @@ MOUNT.browser = function(body, w){
       w.state.cur = w.state.tabs.length-1; go("magna://home"); return;
     }
     if(e.target.closest("[data-brainq]")){ openApp("brain"); return; }
+    if(e.target.closest("[data-noticex]")){ clearNotice(); return; }
+    if(e.target.closest("[data-newtab]")){
+      window.open(w.state.tabs[w.state.cur].url, "_blank", "noopener");
+      toast("Opened in a new browser tab — outside Console, so outside the Private tier."); return;
+    }
     var b = e.target.closest("[data-bw]");
     if(b){
       var act = b.getAttribute("data-bw");

@@ -1,4 +1,4 @@
-# The five apps — what changed in each
+# The seven apps — what changed in each
 
 One line per app on what it *is*, then the concrete updates made. Every app carries the shared
 fix-list from [BRIEF.md](BRIEF.md) §2 and the round-two asks from
@@ -8,7 +8,7 @@ Open [index.html](index.html) to browse them all.
 
 ---
 
-## Shared across all five
+## Shared across all seven
 
 These were applied to every file, so they are listed once.
 
@@ -20,7 +20,7 @@ These were applied to every file, so they are listed once.
 | Share button on its own line; scroll issues | One anchored action row per message — Copy full message · Retry · Export · Share. Scrolling is contained to the transcript region; `body` does not scroll. |
 | Static background, not a photo | Token-driven solid surfaces. No raster anywhere. The optional decoration is the animated Magna mark, clipped to the sidebar or empty state, never behind body copy. |
 | Theme switch is slow (reloads an image) | Pure CSS custom properties, applied pre-paint by a head script. Zero image loads, so the switch is instant. Persisted in `localStorage`. |
-| Remove the 3D robot | Gone from all five. |
+| Remove the 3D robot | Gone from all seven. |
 | Step tracker / `FINAL RETURN` is noise | Collapsed to one quiet line — "Thought for 6s · searched 2 documents · ran 1 tool" — expandable. No Langfuse IDs, no `FINAL RETURN`, no `$0.0000`. |
 | "Latest Kimi" is not a model name | `Kimi K2 Instruct · 1T MoE`, `DeepSeek V3.1 · 671B MoE`, `Qwen 3 · 235B`, `NVIDIA Nemotron · 120B` — with spec and a one-line "use this when" in the picker. |
 | Settings should look like Claude's | Modal, category list left, plain label/description/control rows right. No HSL sliders, no film grain, no vignette, no wallpaper zoom. |
@@ -141,6 +141,27 @@ Provenance first. The digital twin is in the room instead of behind a 12 px unla
 | Every answer opens with a **"Grounded in"** chip strip naming which systems fed it — with any relevant-but-missing source shown in amber. |
 | Honest confidence note: "Confidence capped at medium — I could not see the site IoT feed, so progress is inferred from P6 data that is 6 days old." Every gap becomes a concrete Connect CTA. |
 | "This answer used 4 of 16 sources" stated on the answer itself. |
+
+---
+
+## `app-7-console.html` — **Console**
+
+A desktop operating environment rather than a chat page. Written fresh rather than cloned, because
+the premise — several surfaces open at once — fights a single-transcript shell.
+
+| Update |
+|---|
+| **The wallpaper is the brand mark.** The Magna bowtie drawn live in SVG, stroke-dashoffset draw-in then a slow breathe. No raster, and a fully-drawn static fallback under `prefers-reduced-motion`. |
+| **Real windowing.** Pointer-capture drag using `transform` mid-move and committing to `left`/`top` on release, so dragging never triggers a reflow per pixel; 8-handle resize with per-app minimums; focus/z-order on click-through; minimise to dock; maximise; double-click-title-to-maximise; snap-to-half with a live ghost preview. Iframes get `pointer-events:none` mid-drag so they cannot swallow the gesture. |
+| **Four Spaces.** Each keeps its own windows and icon layout. Menu-bar pips, Mission Control, `Ctrl`+`←`/`→`, and a two-finger trackpad swipe. Switching translates the space layers, so returning restores a space exactly. |
+| **Icons are draggable** and their positions persist per space in `localStorage`. Per-app gradient tiles with live badges, laid out in columns so a short viewport never strands one under the dock. |
+| **Contextual dock.** A pinned zone plus a zone computed from live agent/automation/mail state, with running indicators — the dock reflects what is happening rather than being a static shelf. |
+| **Brain** — the knowledge base as something you can see: 17 typed nodes (documents, email, people, systems, decisions, project) with cosine-weighted edges, a detail panel carrying an embedding preview and ranked nearest neighbours, plus tabs for the email graph, learned behaviour, and "why you did what you did" reasoning trails with citations back into the graph. |
+| **Code** reads **real** files and folders dragged off your machine (`webkitGetAsEntry` + File API, nothing uploaded), shows them Finder-style, and renders your own HTML in a genuinely live iframe inside Desktop / iPhone / Android frames. |
+| **Browser** with tabs, URL bar and bookmarks over a real iframe. It does not pretend to detect framing refusals — that is undetectable from script, since `X-Frame-Options` still fires `load` — so it states the possibility plainly and offers "Open in a real tab". Internal Magna pages always render. |
+| **Chat** produces artifacts: a navigable 4-slide deck, a printable variation letter, and a CSV that really downloads via a Blob. |
+| **One approval gate, OS-wide.** Every write action anywhere — running an agent, cloning a repo, linking a connector, letting the browser agent send a reply — grows the same inline confirmation bar. It is an overlay, not a flex child, so it never disturbs the app underneath. |
+| **Mobile is a springboard**, not a shrunken desktop: fixed icon grid, apps take the full viewport with a back bar instead of traffic lights, a bottom app-switcher, swipe-down-on-the-bar to close, and side panes that stack instead of being crushed beside a fixed-width panel. |
 
 ---
 

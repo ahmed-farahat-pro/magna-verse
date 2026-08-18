@@ -1,6 +1,6 @@
 # MagnaVERSE — UX redesign
 
-Six interactive prototypes, a functional map, and a before/after review for
+Seven interactive prototypes, a functional map, and a before/after review for
 `app.stag.magna.ai` (build 1.0.491).
 
 **Pure static frontend.** No backend, no build step, no dependencies. Every file is a
@@ -36,10 +36,10 @@ build command **none**, output directory **`.`**.
 
 ## What's here
 
-### The six prototypes — `apps/`
+### The seven prototypes — `apps/`
 
 Each is one file. Each runs the full flow: **login → workspace picker → app**, with demo
-credentials pre-filled. All six are light/dark, responsive to 320 px, and keyboard-navigable.
+credentials pre-filled. All seven are light/dark, responsive to 320 px, and keyboard-navigable.
 
 | File | Name | The idea |
 |---|---|---|
@@ -49,6 +49,7 @@ credentials pre-filled. All six are light/dark, responsive to 320 px, and keyboa
 | `app-4-launchpad.html` | **Ready** | The home screen is the product. `/` and ⌘K as centrepieces. |
 | `app-5-twin.html` | **Grounded** | Provenance first — the digital twin's context rail. |
 | `app-6-horizon.html` | **Horizon** | A spatial canvas of connected cards. Futuristic, with a list-view escape hatch. |
+| `app-7-console.html` | **Console** | A desktop operating environment — windows, Spaces, a dock, and a Brain you can see. |
 
 Sign in with the pre-filled demo credentials. Everything is dummy data; nothing leaves the browser.
 
@@ -61,7 +62,10 @@ Sign in with the pre-filled demo credentials. Everything is dummy data; nothing 
 | `before-after.html` | The client's screenshots of the live app paired with the same moments in the redesign |
 | `MagnaVERSEUXAudit.md` | The hands-on audit, severity-ranked |
 | `MagnaVERSEFullFunctionalUXSpec.md` | The full functional spec — every route, every control |
-| `CHANGELOG.md` | What changed in each of the six apps |
+| `CHANGELOG.md` | What changed in each of the apps |
+| `competitor-landscape.html` | Nine AI-OS/agent products analysed, and what Console takes from each |
+| `nice-to-have-features.html` | The Arabic-first / enterprise roadmap — proposals, nothing built |
+| `implemented-features.html` | What is actually live in the prototypes today |
 
 ### The concept boards — `concepts/`
 
