@@ -127,6 +127,9 @@ body[data-stage="os"] #boot{display:none}
 /* the animated brand mark — the wallpaper IS the logo */
 #wallMark{position:absolute;left:50%;top:50%;width:min(58vmin,620px);transform:translate(-50%,-50%);opacity:.16}
 :root[data-theme="light"] #wallMark{opacity:.2}
+/* the neural field — live Brain activity behind everything */
+#neural{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
+:root[data-theme="light"] #neural{opacity:.38}
 #wallMark path{stroke-dasharray:1250;stroke-dashoffset:1250}
 @media (prefers-reduced-motion: no-preference){
   #wallMark path{animation:draw 2.4s cubic-bezier(.16,1,.3,1) .3s forwards}
@@ -587,14 +590,30 @@ body.dock-left #quickPanel{left:100px}
 @media (hover:hover){ .dk:hover .dk-tip{opacity:1} }
 
 /* ============================ COMPANION ============================ */
+/* The Magna mark orb — a dark glass sphere carrying the animated logo.
+   Shared by the companion, the Ask AI pill and the Voice core. */
+.m-mark{width:58%;height:58%;display:block}
+.m-mark path{stroke:#fff;stroke-width:46;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1300;stroke-dashoffset:1300;
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.35))}
+.m-mark path:nth-child(2){stroke-dashoffset:1500;stroke-dasharray:1500}
+@media (prefers-reduced-motion: no-preference){
+  .m-mark path{animation:mDraw 2s cubic-bezier(.16,1,.3,1) forwards}
+  .m-mark path:nth-child(2){animation:mDraw2 2s cubic-bezier(.16,1,.3,1) .25s forwards}
+}
+@keyframes mDraw{to{stroke-dashoffset:0}}
+@keyframes mDraw2{to{stroke-dashoffset:0}}
 #companion{position:fixed;right:20px;bottom:calc(var(--dock-h) + 22px);z-index:210;width:54px;height:54px;
   border-radius:50%;display:grid;place-items:center;cursor:pointer;
-  background:radial-gradient(circle at 34% 28%, #fff, var(--accent) 62%);
-  box-shadow:0 0 34px rgba(215,25,32,.45), 0 8px 22px rgba(0,0,0,.4)}
+  background:radial-gradient(circle at 32% 26%, rgba(255,255,255,.16), rgba(8,12,20,.94) 62%);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 8px 26px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25), 0 0 26px rgba(14,165,183,.2);
+  transition:box-shadow .25s ease,transform .2s ease}
 @media (prefers-reduced-motion: no-preference){ #companion{animation:orbFloat 5.5s ease-in-out infinite} }
 @keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-#companion .ico{width:22px;height:22px;stroke:#fff;stroke-width:2}
-#companion:hover{filter:brightness(1.08)}
+#companion:hover{box-shadow:0 8px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.3),
+  0 0 36px rgba(14,165,183,.45);transform:scale(1.06)}
+#companion.drop-target{box-shadow:0 0 0 3px var(--cyan),0 0 34px rgba(14,165,183,.5)}
 #compPanel{position:fixed;right:20px;bottom:calc(var(--dock-h) + 88px);z-index:210;width:min(340px,calc(100vw - 40px));
   border-radius:var(--r-lg);background:var(--glass-2);backdrop-filter:var(--blur);border:1px solid var(--glass-line);
   box-shadow:var(--shadow-pop);padding:14px;display:none}
@@ -616,9 +635,12 @@ body.dock-left #quickPanel{left:100px}
   box-shadow:0 14px 32px rgba(0,0,0,.42),0 0 20px rgba(14,165,183,.18)}
 #quickAI:active{cursor:grabbing;transform:scale(.97)}
 #quickAI.dragging{cursor:grabbing;transition:none;transform:none;opacity:.9;z-index:400}
-/* the orb: spinning aurora ring around a live core */
+/* the orb: spinning aurora ring around the glass Magna sphere */
 .qa-orb{width:34px;height:34px;border-radius:99px;display:grid;place-items:center;flex:none;
-  position:relative;background:radial-gradient(circle at 34% 28%,#fff,var(--accent) 62%)}
+  position:relative;
+  background:radial-gradient(circle at 32% 26%, rgba(255,255,255,.16), rgba(8,12,20,.94) 62%);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.25)}
 .qa-orb::before{content:"";position:absolute;inset:-3.5px;border-radius:99px;z-index:-1;
   background:conic-gradient(from 0deg,var(--cyan),var(--signal),var(--violet),var(--cyan));
   filter:blur(3.5px);opacity:.65}
@@ -627,8 +649,7 @@ body.dock-left #quickPanel{left:100px}
   .qa-orb{animation:qaBreathe 3.6s ease-in-out infinite}
 }
 @keyframes qaSpin{to{transform:rotate(360deg)}}
-@keyframes qaBreathe{0%,100%{box-shadow:0 0 10px rgba(215,25,32,.35)}50%{box-shadow:0 0 20px rgba(215,25,32,.55)}}
-.qa-orb .ico{width:16px;height:16px;stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))}
+@keyframes qaBreathe{0%,100%{box-shadow:0 4px 14px rgba(0,0,0,.45),0 0 10px rgba(14,165,183,.25)}50%{box-shadow:0 4px 14px rgba(0,0,0,.45),0 0 20px rgba(14,165,183,.5)}}
 #quickAI kbd{margin-left:4px;font-family:var(--mono);font-size:10px;color:var(--tx-4);
   border:1px solid var(--glass-line);border-radius:4px;padding:1px 5px;background:var(--glass-2)}
 .qa-grip{display:flex;flex-direction:column;gap:2px;margin-left:2px;opacity:.5;flex:none}
@@ -687,10 +708,12 @@ body.dock-left #quickPanel{left:100px}
 .vp-osc{flex:1;height:56px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid var(--glass-line);min-width:0}
 :root[data-theme="light"] .vp-osc{background:rgba(12,16,26,.05)}
 .vp-core{width:52px;height:52px;border-radius:99px;flex:none;display:grid;place-items:center;
-  background:radial-gradient(circle at 34% 28%,#fff,var(--accent) 62%)}
-.vp-core .ico{stroke:#fff;stroke-width:2}
-.vp-core.listen{box-shadow:0 0 22px rgba(63,207,149,.45)}
-.vp-core.speak{box-shadow:0 0 30px rgba(215,25,32,.6)}
+  background:radial-gradient(circle at 32% 26%, rgba(255,255,255,.16), rgba(8,12,20,.94) 62%);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 6px 20px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:box-shadow .25s ease}
+.vp-core.listen{box-shadow:0 6px 20px rgba(0,0,0,.5), 0 0 24px rgba(63,207,149,.45)}
+.vp-core.speak{box-shadow:0 6px 20px rgba(0,0,0,.5), 0 0 32px rgba(14,165,183,.65)}
 @media (prefers-reduced-motion: no-preference){ .vp-core.speak{animation:glowPulse 1.1s ease-in-out infinite} }
 .vp-state{text-align:center;font-family:var(--mono);font-size:11px;color:var(--tx-3);padding:4px 14px;min-height:20px}
 .vp-log{max-height:140px;overflow-y:auto;padding:0 14px 8px;display:flex;flex-direction:column;gap:6px}
@@ -1566,6 +1589,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <div id="os">
   <div id="wallpaper" aria-hidden="true">
     <div class="glow"></div><div class="glow b"></div><div class="grid"></div>
+    <canvas id="neural"></canvas>
     <svg id="wallMark" viewBox="0 0 640 440">
       <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1590,12 +1614,12 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 
   <div id="dock" role="toolbar" aria-label="Dock"></div>
 
-  <button id="companion" aria-label="Ask the Console companion"><svg class="ico"><use href="#i-spark"/></svg></button>
+  <button id="companion" aria-label="Ask the Console companion"><svg class="m-mark" viewBox="0 0 640 440" aria-hidden="true"><path d="M60 386 L577 33 L577 370"/><path d="M32 380 L32 35 L285 213"/></svg></button>
   <div id="compPanel" role="dialog" aria-label="Companion"></div>
 
   <!-- Quick AI — one ask away on every desktop -->
   <button id="quickAI" aria-label="Quick AI — ask or request anything" title="Drag to reposition · click to ask">
-    <span class="qa-orb"><svg class="ico"><use href="#i-spark"/></svg></span>
+    <span class="qa-orb"><svg class="m-mark" viewBox="0 0 640 440" aria-hidden="true"><path d="M60 386 L577 33 L577 370"/><path d="M32 380 L32 35 L285 213"/></svg></span>
     <span class="qa-tx">Ask&nbsp;AI<kbd>/</kbd></span>
     <span class="qa-grip" aria-hidden="true"><i></i><i></i><i></i></span>
   </button>
@@ -1634,7 +1658,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     </div>
     <div class="vp-stage">
       <canvas class="vp-osc" id="vpUser" width="320" height="56" aria-hidden="true"></canvas>
-      <div class="vp-core listen" id="vpCore"><svg class="ico"><use href="#i-spark"/></svg></div>
+      <div class="vp-core listen" id="vpCore"><svg class="m-mark" viewBox="0 0 640 440" aria-hidden="true"><path d="M60 386 L577 33 L577 370"/><path d="M32 380 L32 35 L285 213"/></svg></div>
       <canvas class="vp-osc" id="vpAI" width="320" height="56" aria-hidden="true"></canvas>
     </div>
     <div class="vp-state" id="vpState">Listening…</div>
@@ -3745,18 +3769,21 @@ function applyWallpaper(id){
   var wp = WALLPAPERS.filter(function(w){ return w.id === id; })[0];
   if(!wp) return;
   var el = $("#wallpaper");
+  var neu = $("#neural");
   if(wp.id === "default"){
     el.style.cssText = "";
     el.querySelector(".glow").style.cssText = "";
     el.querySelector(".glow.b").style.cssText = "";
     el.querySelector(".grid").style.cssText = "";
     el.querySelector("#wallMark").style.display = "";
+    if(neu){ neu.style.display = ""; NEU.on = true; }
   } else {
     el.style.cssText = wp.css + ";background-size:cover;background-position:center";
     el.querySelector(".glow").style.display = "none";
     el.querySelector(".glow.b").style.display = "none";
     el.querySelector(".grid").style.display = "none";
     el.querySelector("#wallMark").style.display = wp.css.indexOf("linear-gradient") > -1 && wp.dark !== false ? "" : "none";
+    if(neu){ neu.style.display = "none"; NEU.on = false; }
   }
   document.documentElement.setAttribute("data-theme", wp.dark === false ? "light" : "dark");
 }
@@ -4096,6 +4123,127 @@ document.addEventListener("pointercancel", function(){
   var dock = document.getElementById("dock");
   if(dock) dock.classList.remove("drop-target");
 });
+
+/* ---- NEURAL WALLPAPER -----------------------------------------------
+   The wallpaper IS the Brain: a live graph where nodes light up when
+   agents read/write and edges pulse when knowledge is cited. Pure
+   canvas, self-contained, hooks: neuralFlash() neuralCite(). */
+var NEU = { nodes:[], edges:[], raf:0, w:0, h:0, dpr:1, on:true };
+function neuralInit(){
+  var cv = $("#neural"); if(!cv) return;
+  NEU.w = cv.clientWidth || window.innerWidth;
+  NEU.h = cv.clientHeight || window.innerHeight;
+  NEU.dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = NEU.w * NEU.dpr; cv.height = NEU.h * NEU.dpr;
+  /* clustered constellation — knowledge lives in neighbourhoods */
+  var count = clamp(Math.round((NEU.w * NEU.h) / 34000), 26, 64);
+  var hubs = [[.22,.28],[.5,.2],[.78,.3],[.3,.66],[.62,.7],[.88,.58],[.12,.52]];
+  NEU.nodes = []; NEU.edges = [];
+  for(var i = 0; i < count; i++){
+    var hub = hubs[i % hubs.length];
+    var a = Math.random() * Math.PI * 2, r = Math.pow(Math.random(),.7);
+    NEU.nodes.push({
+      x:(hub[0] + Math.cos(a) * r * .17) * NEU.w,
+      y:(hub[1] + Math.sin(a) * r * .19) * NEU.h,
+      vx:(Math.random()-.5)*.06, vy:(Math.random()-.5)*.06,
+      r:1.2 + Math.random()*2.2, e:0, ph:Math.random()*Math.PI*2
+    });
+  }
+  /* connect each node to its 2 nearest neighbours */
+  for(var n = 0; n < NEU.nodes.length; n++){
+    var near = NEU.nodes.map(function(m,j){ return [j, Math.hypot(m.x-NEU.nodes[n].x, m.y-NEU.nodes[n].y)]; })
+      .sort(function(a2,b2){ return a2[1]-b2[1]; }).slice(1,3);
+    near.forEach(function(pair){
+      var k = pair[0];
+      if(!NEU.edges.some(function(e2){ return (e2.a===n&&e2.b===k)||(e2.a===k&&e2.b===n); }))
+        NEU.edges.push({ a:n, b:k, p:0 });   /* p = travelling pulse 0..1 */
+    });
+  }
+  if(!NEU.raf) neuralLoop();
+}
+/* agents reading/writing — ignite a neighbourhood */
+function neuralFlash(howMany){
+  if(!NEU.nodes.length) return;
+  for(var i = 0; i < (howMany||3); i++){
+    var seed = NEU.nodes[Math.floor(Math.random()*NEU.nodes.length)];
+    seed.e = 1;
+    NEU.edges.forEach(function(e){
+      if(e.a === NEU.nodes.indexOf(seed) || e.b === NEU.nodes.indexOf(seed)) e.p = Math.max(e.p, .001);
+    });
+  }
+}
+/* a citation — a pulse that travels one edge chain */
+function neuralCite(){
+  if(!NEU.edges.length) return;
+  var chain = 3;
+  var e = NEU.edges[Math.floor(Math.random()*NEU.edges.length)];
+  var from = e.a;
+  while(chain-- > 0){
+    e.p = Math.max(e.p, .001);
+    NEU.nodes[e.b].e = Math.max(NEU.nodes[e.b].e, .8);
+    var next = NEU.edges.filter(function(e2){ return e2.a===e.b || e2.b===e.b; });
+    if(!next.length) break;
+    e = next[Math.floor(Math.random()*next.length)];
+  }
+  NEU.nodes[from].e = 1;
+}
+function neuralLoop(){
+  NEU.raf = requestAnimationFrame(neuralLoop);
+  var cv = $("#neural"); if(!cv) return;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var live = NEU.on && !document.hidden && document.body.matches('[data-stage="os"]');
+  var c = cv.getContext("2d");
+  c.setTransform(NEU.dpr,0,0,NEU.dpr,0,0);
+  c.clearRect(0,0,NEU.w,NEU.h);
+  var t = performance.now()/1000;
+  /* drift */
+  if(live && !reduced){
+    NEU.nodes.forEach(function(n){
+      n.x += n.vx; n.y += n.vy;
+      if(n.x < 0 || n.x > NEU.w) n.vx *= -1;
+      if(n.y < 0 || n.y > NEU.h) n.vy *= -1;
+      n.e = Math.max(0, n.e - .008);
+    });
+  }
+  /* edges */
+  NEU.edges.forEach(function(e){
+    var A = NEU.nodes[e.a], B = NEU.nodes[e.b];
+    var heat = Math.max(A.e, B.e);
+    c.strokeStyle = "rgba(120,150,190," + (.05 + heat*.22) + ")";
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(A.x,A.y); c.lineTo(B.x,B.y); c.stroke();
+    /* travelling pulse when cited */
+    if(e.p > 0){
+      e.p = reduced ? 1 : e.p + .012;
+      if(e.p >= 1){ e.p = 0; }
+      else {
+        var px = A.x + (B.x-A.x)*e.p, py = A.y + (B.y-A.y)*e.p;
+        var g = c.createRadialGradient(px,py,0,px,py,7);
+        g.addColorStop(0,"rgba(14,165,183,.9)"); g.addColorStop(1,"rgba(14,165,183,0)");
+        c.fillStyle = g; c.beginPath(); c.arc(px,py,7,0,Math.PI*2); c.fill();
+      }
+    }
+  });
+  /* nodes */
+  NEU.nodes.forEach(function(n){
+    var breathe = reduced ? .5 : (.5 + Math.sin(t*1.4 + n.ph)*.5);
+    var a = .14 + breathe*.12 + n.e*.75;
+    var rad = n.r + n.e*3.5;
+    if(n.e > .1){
+      var g = c.createRadialGradient(n.x,n.y,0,n.x,n.y,rad*4);
+      g.addColorStop(0,"rgba(14,165,183,"+(n.e*.5)+")"); g.addColorStop(1,"rgba(14,165,183,0)");
+      c.fillStyle = g; c.beginPath(); c.arc(n.x,n.y,rad*4,0,Math.PI*2); c.fill();
+    }
+    c.fillStyle = "rgba(190,215,240," + a + ")";
+    c.beginPath(); c.arc(n.x,n.y,rad,0,Math.PI*2); c.fill();
+  });
+}
+neuralInit();
+window.addEventListener("resize", function(){ clearTimeout(NEU._rz); NEU._rz = setTimeout(neuralInit, 300); });
+/* ambient life: occasional background thought */
+setInterval(function(){
+  if(NEU.on && !document.hidden && Math.random() < .5) neuralFlash(1);
+}, 4000);
 
 /* ---- APPLY SAVED WALLPAPER + THEME + DOCK ON LOAD ---- */
 (function(){
@@ -4864,6 +5012,7 @@ function proactivePost(){
   ev.at = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
   FEED_LOG.unshift(ev);
   if(FEED_LOG.length > 12) FEED_LOG.pop();
+  neuralFlash(2 + Math.floor(Math.random()*3));   /* the wallpaper sees the agent */
   $$(".feed").forEach(function(f){ f.closest("[data-widgets]") && renderWidgets(); });
   if(Math.random() < .45) toast(ev.t+": "+ev.h.replace(/<[^>]+>/g,""), 4200);
 }
@@ -4998,6 +5147,7 @@ function citeHTML(ids){
            '<span class="src">'+esc(n.src)+'</span></button>';
   }).join("");
   if(!chips) return "";
+  neuralCite();   /* knowledge was cited — pulse the graph */
   return '<div class="cites"><span class="cl">'+ico("i-brain","xs")+'Answered from '+ids.length+
          ' indexed sources</span>'+chips+'</div>';
 }
