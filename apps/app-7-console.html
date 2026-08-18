@@ -190,26 +190,31 @@ body:not([data-stage="os"]) #os{display:none}
 .icon-layer{position:absolute;inset:0;padding:16px 14px}
 .dicon{position:absolute;width:88px;padding:8px 4px 6px;border-radius:14px;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
-  transition:background .15s;touch-action:none}
+  background:transparent;transition:background .18s ease;touch-action:none}
+/* hover feedback is tint + label only — never a transform on the button
+   itself, which would fight the drift animations and the drag maths */
 .dicon:hover{background:rgba(255,255,255,.07)}
 :root[data-theme="light"] .dicon:hover{background:rgba(12,16,26,.06)}
 .dicon.dragging{opacity:.75;z-index:60}
 .dicon .tile{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;position:relative;
   box-shadow:0 10px 22px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.22);
-  transition:transform .16s cubic-bezier(.2,.8,.3,1.1)}
-.dicon:hover .tile{transform:translateY(-4px) scale(1.05)}
+  transition:transform .2s cubic-bezier(.25,.1,.25,1), box-shadow .2s cubic-bezier(.25,.1,.25,1)}
+/* the one lift, Mac-style: smooth in, smooth out, no overshoot wobble */
+.dicon:hover .tile{transform:translateY(-3px) scale(1.05);
+  box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22)}
+.dicon:active .tile{transform:scale(.96);transition-duration:.08s}
 .dicon .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 46%);pointer-events:none}
 .dicon .tile .ico{width:26px;height:26px;stroke:var(--tile,#fff);stroke-width:1.8;position:relative;z-index:1}
-.dicon .lbl{font-size:11.5px;color:var(--tx-2);line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,.55)}
+.dicon .lbl{font-size:11.5px;color:var(--tx-2);line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,.55);
+  transition:color .18s ease}
+.dicon:hover .lbl{color:var(--tx)}
 :root[data-theme="light"] .dicon .lbl{text-shadow:none;color:var(--tx-2)}
 .dicon .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:99px;
   background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;
   box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}
-.dicon-file{transition:transform .15s ease}
-.dicon-file:hover{transform:translateY(-3px)}
-.dicon-file .tile{transition:box-shadow .15s ease}
-.dicon-file:hover .tile{box-shadow:0 0 12px rgba(255,255,255,.08)}
+.dicon-file .tile{transition:box-shadow .2s cubic-bezier(.25,.1,.25,1), transform .2s cubic-bezier(.25,.1,.25,1)}
+.dicon-file:hover .tile{box-shadow:0 0 14px rgba(255,255,255,.1), 0 14px 30px rgba(0,0,0,.4)}
 .dicon-file.sel,.dicon.sel{background:rgba(14,165,183,.12);border-radius:14px}
 .dicon-file.sel .tile,.dicon.sel .tile{box-shadow:0 0 0 2px var(--cyan),0 0 10px rgba(14,165,183,.3)}
 .sel-rect{position:absolute;border:1.5px dashed rgba(14,165,183,.6);background:rgba(14,165,183,.06);
@@ -582,6 +587,151 @@ body.dragging{cursor:grabbing}
 #compPanel .ctx{font-family:var(--mono);font-size:11px;color:var(--tx-3);border-top:1px solid var(--glass-line);
   padding-top:9px;margin-top:4px;line-height:1.6}
 #compPanel .ctx b{color:var(--private)}
+
+/* ---- Quick AI — the always-visible ask bar (bottom-left) ---- */
+#quickAI{position:fixed;left:20px;bottom:calc(var(--dock-h) + 22px);z-index:210;height:44px;
+  display:flex;align-items:center;gap:10px;padding:0 16px 0 7px;border-radius:var(--r-pill);
+  border:1px solid var(--glass-line-2);background:var(--chrome);backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);box-shadow:0 10px 28px rgba(0,0,0,.35);
+  color:var(--tx-2);font-size:13px;font-weight:650;transition:all .18s cubic-bezier(.25,.1,.25,1)}
+#quickAI:hover{border-color:var(--cyan);color:var(--tx);transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(0,0,0,.42),0 0 18px rgba(14,165,183,.15)}
+#quickAI:active{transform:scale(.97)}
+.qa-orb{width:32px;height:32px;border-radius:99px;display:grid;place-items:center;flex:none;
+  background:radial-gradient(circle at 34% 28%,#fff,var(--accent) 62%)}
+.qa-orb .ico{width:15px;height:15px;stroke:#fff;stroke-width:2}
+#quickAI kbd{margin-left:4px;font-family:var(--mono);font-size:10px;color:var(--tx-4);
+  border:1px solid var(--glass-line);border-radius:4px;padding:1px 5px;background:var(--glass-2)}
+#quickPanel{position:fixed;left:20px;bottom:calc(var(--dock-h) + 76px);z-index:211;
+  width:min(420px,calc(100vw - 40px));border-radius:var(--r-lg);background:var(--glass-2);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line);
+  box-shadow:var(--shadow-pop);display:none;overflow:hidden}
+#quickPanel.on{display:block;animation:winIn .18s ease-out}
+.qa-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px}
+.qa-title{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--tx)}
+.qa-title .ico{color:var(--cyan)}
+.qa-x{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--tx-3)}
+.qa-x:hover{background:var(--glass-3);color:var(--tx)}
+.qa-body{padding:0 14px 14px}
+.qa-in{display:flex;align-items:center;gap:9px;border:1px solid var(--glass-line-2);border-radius:11px;
+  background:var(--glass-3);padding:10px 12px}
+.qa-in .ico{color:var(--tx-3)}
+.qa-in input{flex:1;background:none;border:0;outline:none;font-size:13.5px;color:var(--tx)}
+.qa-in input::placeholder{color:var(--tx-4)}
+.qa-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.qa-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+  padding:7px 11px;border-radius:9px;border:1px solid var(--glass-line);background:var(--glass-2);
+  color:var(--tx-2);transition:all .15s}
+.qa-chip:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-1px)}
+.qa-chip:active{transform:scale(.96)}
+.qa-chip .ico{width:13px;height:13px}
+.qa-note{font-size:10.5px;color:var(--tx-4);margin-top:10px;font-family:var(--mono)}
+@media (max-width:767px){
+  #quickAI{left:14px;bottom:78px;height:40px;padding:0 12px 0 6px;font-size:12px}
+  #quickAI kbd{display:none}
+  #quickPanel{left:14px;bottom:126px}
+}
+
+/* OS-level approval card when no window hosts the action */
+.approve.floating{position:fixed;left:50%;bottom:calc(var(--dock-h) + 24px);transform:translateX(-50%);
+  z-index:9996;width:min(440px,calc(100vw - 32px));display:flex;gap:12px;align-items:flex-start;
+  border:1px solid color-mix(in srgb,var(--public) 40%,transparent);border-radius:var(--r-lg);
+  background:var(--glass-3);backdrop-filter:blur(40px) saturate(1.8);padding:13px 15px;
+  box-shadow:var(--shadow-pop);animation:winIn .2s ease-out}
+.approve.floating .ico{color:var(--public);margin-top:2px}
+
+/* ---- Copilot omnibar (companion, upgraded) ---- */
+#compPanel.wide{width:min(430px,calc(100vw - 40px))}
+.ob-in{display:flex;align-items:center;gap:9px;border:1px solid var(--glass-line-2);border-radius:11px;
+  background:var(--glass-3);padding:9px 12px;margin:10px 0 8px}
+.ob-in .ico{color:var(--tx-3)}
+.ob-in input{flex:1;background:none;border:0;outline:none;font-size:13px;color:var(--tx)}
+.ob-in input::placeholder{color:var(--tx-4)}
+.ob-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.ob-chip{font-size:11px;padding:4px 9px;border-radius:99px;border:1px solid var(--glass-line);
+  background:var(--glass-2);color:var(--tx-2);cursor:pointer;transition:all .15s}
+.ob-chip:hover{border-color:var(--cyan);color:var(--cyan)}
+.ob-log{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.ob-msg{font-size:12.5px;line-height:1.6;color:var(--tx-2);border-left:2px solid var(--glass-line);
+  padding:2px 0 2px 10px;animation:winIn .18s ease-out}
+.ob-msg.user{border-left-color:var(--signal);color:var(--tx)}
+.ob-msg b{color:var(--tx)}
+.ob-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ob-hint{font-family:var(--mono);font-size:10.5px;color:var(--tx-4);border-top:1px solid var(--glass-line);
+  padding-top:8px;margin-top:10px}
+#companion.drop-target{box-shadow:0 0 0 3px var(--cyan),0 0 34px rgba(14,165,183,.5);
+  animation:none;transform:scale(1.12)}
+#companion.drop-target .ico{stroke:var(--cyan)}
+
+/* ---- Desktop intent modal ---- */
+.dint-overlay{position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center}
+.dint{width:min(560px,calc(100vw - 40px));background:var(--glass-3);backdrop-filter:blur(40px) saturate(1.8);
+  border:1px solid var(--glass-line);border-radius:var(--r-xl);padding:22px 24px;box-shadow:var(--shadow-pop)}
+.dint h4{margin:0 0 4px;font-size:17px;font-weight:750}
+.dint .sub{font-size:12.5px;color:var(--tx-2);margin:0 0 14px;line-height:1.55}
+.dint-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+.dint-opt{border:1px solid var(--glass-line);border-radius:12px;background:var(--glass-2);padding:12px;
+  text-align:left;cursor:pointer;transition:all .15s}
+.dint-opt:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.dint-opt .dint-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:8px;
+  background:rgba(14,165,183,.1);border:1px solid rgba(14,165,183,.2)}
+.dint-opt .dint-ico .ico{stroke:var(--cyan)}
+.dint-opt b{display:block;font-size:12.5px;margin-bottom:2px}
+.dint-opt span{font-size:10.5px;color:var(--tx-3);line-height:1.4;display:block}
+.dint-row{display:flex;gap:8px;margin-top:4px}
+.dint-row input{flex:1;background:var(--glass-2);border:1px solid var(--glass-line);border-radius:10px;
+  padding:9px 12px;color:var(--tx);font-size:12.5px;outline:none}
+.dint-row input:focus{border-color:var(--cyan)}
+
+/* ---- Proactive agent feed widget ---- */
+.wg .feed{display:flex;flex-direction:column;gap:7px;max-height:170px;overflow-y:auto}
+.wg .fitem{display:flex;gap:8px;font-size:11px;line-height:1.5;color:var(--tx-2);animation:winIn .25s ease-out}
+.wg .fitem .fdot{width:6px;height:6px;border-radius:99px;flex:none;margin-top:5px}
+.wg .fitem .ft{color:var(--tx-3);font-family:var(--mono);font-size:9.5px;display:block;margin-top:1px}
+.wg .fitem b{color:var(--tx)}
+.wg .fmute{font-size:10px;color:var(--tx-4);background:none;border:none;cursor:pointer;padding:0}
+.wg .fmute:hover{color:var(--tx-2)}
+
+/* ---- Desktop memory (Mission Control strip) ---- */
+.mc-mem{margin-top:2px}
+.mc-mem-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mc-mem-hd h3{font-size:12px;font-weight:700;color:var(--tx-2);display:flex;align-items:center;gap:7px;margin:0}
+.mc-snapshots{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.mc-snap{flex:none;width:200px;border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass);
+  padding:11px 13px;cursor:pointer;transition:all .15s;position:relative}
+.mc-snap:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.mc-snap b{font-size:12.5px;display:block;margin-bottom:3px}
+.mc-snap .d{font-size:10.5px;color:var(--tx-3);font-family:var(--mono);line-height:1.5}
+.mc-snap .mc-del{position:absolute;top:8px;right:8px;opacity:0}
+.mc-snap:hover .mc-del{opacity:1}
+
+/* ---- Automations builder ---- */
+.ab-steps{display:flex;flex-direction:column;gap:0;margin:10px 0 4px}
+.ab-step{display:flex;gap:12px;position:relative;padding:0 0 14px}
+.ab-step::before{content:"";position:absolute;left:15px;top:32px;bottom:0;width:2px;
+  background:var(--glass-line)}
+.ab-step:last-child::before{display:none}
+.ab-node{width:32px;height:32px;border-radius:10px;flex:none;display:grid;place-items:center;
+  background:var(--glass-3);border:1px solid var(--glass-line)}
+.ab-node.trig{background:var(--signal-dim);border-color:color-mix(in srgb,var(--signal) 35%,transparent)}
+.ab-node.trig .ico{stroke:var(--signal)}
+.ab-node.read{background:var(--private-dim);border-color:color-mix(in srgb,var(--private) 30%,transparent)}
+.ab-node.read .ico{stroke:var(--private)}
+.ab-node.act{background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.ab-node.act .ico{stroke:var(--accent-2)}
+.ab-body{flex:1;min-width:0}
+.ab-body b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4);display:block;margin-bottom:5px}
+.ab-choices{display:flex;flex-wrap:wrap;gap:6px}
+.ab-c{font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--glass-line);
+  background:var(--glass-2);color:var(--tx-2);cursor:pointer;transition:all .12s}
+.ab-c:hover{border-color:var(--tx-4)}
+.ab-c.on{background:var(--cyan);border-color:var(--cyan);color:#04222a;font-weight:700}
+.ab-tpl{border:1px solid var(--glass-line);border-radius:12px;background:var(--glass-2);padding:12px 14px;
+  cursor:pointer;transition:all .15s}
+.ab-tpl:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.ab-tpl b{font-size:12px;display:block;margin-bottom:3px}
+.ab-tpl span{font-size:10.5px;color:var(--tx-3);line-height:1.45;display:block}
 
 /* ============================ SPOTLIGHT ============================ */
 #spot{position:fixed;inset:0;z-index:300;display:none;padding-top:14vh;justify-content:center;
@@ -1371,6 +1521,32 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
   <button id="companion" aria-label="Ask the Console companion"><svg class="ico"><use href="#i-spark"/></svg></button>
   <div id="compPanel" role="dialog" aria-label="Companion"></div>
 
+  <!-- Quick AI — one ask away on every desktop -->
+  <button id="quickAI" aria-label="Quick AI — ask or request anything">
+    <span class="qa-orb"><svg class="ico"><use href="#i-spark"/></svg></span>
+    <span class="qa-tx">Ask&nbsp;AI<kbd>/</kbd></span>
+  </button>
+  <div id="quickPanel" role="dialog" aria-label="Quick AI">
+    <div class="qa-head">
+      <span class="qa-title"><svg class="ico sm"><use href="#i-spark"/></svg>Quick AI</span>
+      <button class="qa-x" data-qax aria-label="Close"><svg class="ico sm"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="qa-body">
+      <div class="qa-in">
+        <svg class="ico sm"><use href="#i-search"/></svg>
+        <input data-qain placeholder="Ask anything, or request a file, deck, agent…" aria-label="Ask or request">
+      </div>
+      <div class="qa-chips">
+        <button class="qa-chip" data-qa="ask"><svg class="ico xs"><use href="#i-chat"/></svg>Ask AI</button>
+        <button class="qa-chip" data-qa="pdf"><svg class="ico xs"><use href="#i-doc"/></svg>Draft a PDF</button>
+        <button class="qa-chip" data-qa="deck"><svg class="ico xs"><use href="#i-slides"/></svg>Generate a deck</button>
+        <button class="qa-chip" data-qa="doc"><svg class="ico xs"><use href="#i-doc"/></svg>New document</button>
+        <button class="qa-chip" data-qa="agent"><svg class="ico xs"><use href="#i-agent"/></svg>Run an agent</button>
+      </div>
+      <div class="qa-note">Runs on this desktop · artifacts land as files you can open</div>
+    </div>
+  </div>
+
   <!-- ===== CONTEXT MENU ===== -->
   <div id="ctxMenu" class="ctx-menu" style="display:none">
     <div class="ctx-title" data-ctx-title></div>
@@ -1436,6 +1612,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <div id="mission" role="dialog" aria-label="Mission Control">
   <h3>Spaces</h3>
   <div class="mc-grid" id="mcGrid"></div>
+  <div class="mc-mem" id="mcMem"></div>
   <p class="mc-hint">Click a desktop to switch · <b>+</b> creates one · double-click to rename · <span>×</span> removes it · <kbd>Ctrl</kbd>+<kbd>↑</kbd> to open · <kbd>Esc</kbd> to close</p>
 </div>
 
@@ -1708,12 +1885,30 @@ function renameSpace(id){
    Each space shows the widgets that match what that space is for, so the
    desktop reports the state of your work instead of just holding icons. */
 var WIDGETS = {
-  0: ["sovereignty","exposure","approvals"],
+  0: ["sovereignty","exposure","feed"],
   1: ["servers","sovereignty","usage"],
   2: ["brain","sovereignty","usage"],
-  3: ["agents","automation","approvals"]
+  3: ["agents","automation","feed"]
 };
+/* mute toggle on the feed widget */
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-fmute]"); if(!b) return;
+  e.stopPropagation();
+  store.set("mv7.proactive", proactiveMuted() ? "on" : "off");
+  toast(proactiveMuted() ? "Agents muted — they will stay quiet." : "Agents live — they will post when something moves.", 2400);
+  b.textContent = proactiveMuted() ? "unmute" : "mute";
+});
 function widgetHTML(kind){
+  if(kind === "feed")
+    return '<div class="wg" data-wg="feed"><div class="wh">'+ico("i-spark")+'Agent feed<span class="sp"></span>'+
+      '<button class="fmute" data-fmute title="Mute proactive agents">'+(proactiveMuted()?"unmute":"mute")+'</button></div>'+
+      '<div class="feed">'+
+        (FEED_LOG.length ? FEED_LOG.map(function(e){
+          var col = e.sev==="public" ? "var(--public)" : e.sev==="signal" ? "var(--signal)" : "var(--private)";
+          return '<div class="fitem"><span class="fdot" style="background:'+col+'"></span>'+
+            '<span><b>'+esc(e.t)+'</b> — '+e.h+'<span class="ft">'+esc(e.at||"")+'</span></span></div>';
+        }).join("") : '<span style="font-size:11px;color:var(--tx-4)">Listening… agents post here when something moves.</span>')+
+      '</div></div>';
   if(kind === "sovereignty")
     return '<div class="wg pv" data-wg="sov"><div class="wh">'+ico("i-shield")+'Sovereignty<span class="sp"></span>'+
       '<span class="live" style="width:6px;height:6px;border-radius:99px;background:var(--private);display:block"></span></div>'+
@@ -1760,7 +1955,9 @@ function widgetHTML(kind){
 function renderWidgets(){
   SPACES.forEach(function(s){
     var host = $('[data-widgets="'+s.id+'"]'); if(!host) return;
-    var set = WIDGETS[s.id] || ["sovereignty","usage"];   /* default set for custom desktops */
+    var set = WIDGETS[s.id] || (s.tpl && DESK_TEMPLATES.filter(function(t){return t.id===s.tpl;})[0]
+      ? DESK_TEMPLATES.filter(function(t){return t.id===s.tpl;})[0].widgets
+      : ["sovereignty","usage","feed"]);   /* default set for custom desktops */
     host.innerHTML = set.map(widgetHTML).join("");
   });
 }
@@ -1814,7 +2011,7 @@ function renderPips(){
 }
 $("#spacePips").addEventListener("click", function(e){
   var add = e.target.closest("[data-pipadd]");
-  if(add){ addSpace(); return; }
+  if(add){ newDesktopFlow(); return; }
   var b = e.target.closest("[data-pip]"); if(b) gotoSpace(+b.getAttribute("data-pip"));
 });
 
@@ -2340,6 +2537,24 @@ function renderMission(){
     '<div class="mc-space mc-new" data-mcadd="1" role="button" tabindex="0" aria-label="New desktop">'+
       '<div class="mc-new-ico"><svg class="ico lg"><use href="#i-plus"/></svg></div>'+
       '<div class="mc-new-lbl">New desktop</div></div>';
+  /* desktop memory — saved arrangements you can resume */
+  var snaps = snapshots();
+  $("#mcMem").innerHTML =
+    '<div class="mc-mem-hd"><h3>'+ico("i-clock","sm")+'Desktop memory'+
+      '<span style="font-weight:400;color:var(--tx-4)">· resume any saved arrangement</span></h3>'+
+      '<button class="btn sm" data-mcsave>'+ico("i-check","xs")+'Save current</button></div>'+
+    (snaps.length
+      ? '<div class="mc-snapshots">'+snaps.map(function(s){
+          var when = new Date(s.at);
+          return '<div class="mc-snap" data-mcresume="'+s.id+'">'+
+            '<button class="mc-del" data-mcsnapdel="'+s.id+'" title="Forget this snapshot"><svg class="ico xs"><use href="#i-x"/></svg></button>'+
+            '<b>'+esc(s.name)+'</b>'+
+            '<div class="d">'+s.wins.length+' window'+(s.wins.length===1?"":"s")+' · '+
+            when.toLocaleDateString([], {month:"short",day:"numeric"})+' '+
+            when.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+'</div>'+
+            '<div class="d" style="color:var(--cyan);margin-top:6px">Click to resume →</div></div>';
+        }).join("")+'</div>'
+      : '<p style="font-size:11.5px;color:var(--tx-4);margin:0">Nothing saved yet — arrange a desktop exactly how you like it, then “Save current”.</p>');
 }
 function openMission(on){
   if(on){ renderMission(); $("#mission").classList.add("on"); }
@@ -2350,7 +2565,17 @@ $("#mission").addEventListener("click", function(e){
   var del = e.target.closest("[data-mcdel]");
   if(del){ e.stopPropagation(); removeSpace(+del.getAttribute("data-mcdel")); return; }
   var add = e.target.closest("[data-mcadd]");
-  if(add){ addSpace(); openMission(false); return; }
+  if(add){ openMission(false); newDesktopFlow(); return; }
+  var save = e.target.closest("[data-mcsave]");
+  if(save){ e.stopPropagation(); snapshotDesktop(); return; }
+  var resume = e.target.closest("[data-mcresume]");
+  if(resume){ e.stopPropagation(); resumeDesktop(+resume.getAttribute("data-mcresume")); return; }
+  var snapdel = e.target.closest("[data-mcsnapdel]");
+  if(snapdel){
+    e.stopPropagation();
+    saveSnapshots(snapshots().filter(function(x){ return x.id !== +snapdel.getAttribute("data-mcsnapdel"); }));
+    renderMission(); return;
+  }
   var s = e.target.closest("[data-mcspace]");
   if(s){ gotoSpace(+s.getAttribute("data-mcspace")); openMission(false); return; }
   if(e.target.id === "mission") openMission(false);
@@ -2867,15 +3092,19 @@ var CONNECTORS = [
    construction rather than per-feature.
    ============================================================ */
 function requestApproval(w, opts){
-  var host = w.body;
-  var old = host.querySelector(".approve"); if(old) old.remove();
-  var bar = el("div","approve");
+  /* w may be null — OS-level actions (omnibar, smart routing) still need
+     a confirmation; those float above everything instead of in a window */
+  var host = w ? w.body : null;
+  var old = host ? host.querySelector(".approve") : $("#osApprove");
+  if(old) old.remove();
+  var bar = el("div","approve" + (host ? "" : " floating"));
   bar.innerHTML =
     ico("i-warn") +
-    '<div class="mid"><b>'+esc(opts.title)+'</b>'+esc(opts.detail)+'</div>'+
+    '<div class="mid"><b>'+esc(opts.title)+'</b>'+opts.detail+'</div>'+
     '<div class="acts"><button class="btn sm" data-ap="no">Cancel</button>'+
     '<button class="btn sm primary" data-ap="yes">'+esc(opts.confirm||"Approve")+'</button></div>';
-  host.insertBefore(bar, host.firstChild);
+  if(host) host.insertBefore(bar, host.firstChild);
+  else { bar.id = "osApprove"; document.body.appendChild(bar); }
   bar.addEventListener("click", function(e){
     var b = e.target.closest("[data-ap]"); if(!b) return;
     var yes = b.getAttribute("data-ap") === "yes";
@@ -3082,7 +3311,11 @@ function renderDesktopFiles(){
       div.setAttribute("data-fileext", f.ext||"");
       div.style.cssText = "left:"+pos[0]+"px;top:"+pos[1]+"px";
       div.innerHTML = '<span class="tile" style="--tile:'+accent+';background:rgba('+hexToRgb(accent)+',.12);border:1px solid rgba('+hexToRgb(accent)+',.25)">'+
-        '<svg class="ico" style="stroke:'+accent+'"><use href="#'+icon+'"/></svg></span>'+
+        '<svg class="ico" style="stroke:'+accent+'"><use href="#'+icon+'"/></svg>'+
+        (f.brain ? '<span class="badge" title="Read & linked by Brain" style="background:var(--cyan);top:-4px;right:-4px;'+
+          'width:16px;height:16px;min-width:16px;padding:0;box-shadow:0 0 8px rgba(14,165,183,.5)">'+
+          '<svg class="ico" style="width:9px;height:9px;stroke:#04222a;stroke-width:2.4"><use href="#i-brain"/></svg></span>' : "")+
+        '</span>'+
         '<span class="lbl">'+esc(f.name.length>16?f.name.slice(0,15)+"…":f.name)+'</span>';
       layer.appendChild(div);
     });
@@ -3635,8 +3868,9 @@ document.addEventListener("pointermove", function(e){
     d.node.style.zIndex = 55;
     d.node.style.transition = "none";
   }
+  /* smart routing: highlight the companion when a file hovers it */
+  $("#companion").classList.toggle("drop-target", overCompanion(e.clientX, e.clientY));
   var lay = d.node.closest("[data-icons]");
-  var lr = lay.getBoundingClientRect();
   var nx = clamp(d.ox + dx, 0, Math.max(0, lay.clientWidth - d.node.offsetWidth));
   var ny = clamp(d.oy + dy, 0, Math.max(0, lay.clientHeight - d.node.offsetHeight));
   d.node.style.left = Math.round(nx) + "px";
@@ -3646,6 +3880,13 @@ document.addEventListener("pointerup", function(e){
   if(!freeDrag) return;
   var d = freeDrag; freeDrag = null;
   thawLayer(d.node);
+  $("#companion").classList.remove("drop-target");
+  /* dropped on the companion orb → smart routing instead of a move */
+  if(d.moved && overCompanion(e.clientX, e.clientY)){
+    renderDesktopFiles();          /* snap the icon back where it was */
+    smartRoute(d.fileId);
+    return;
+  }
   d.node.style.zIndex = "";
   d.node.style.transition = "";
   if(d.moved){
@@ -3684,6 +3925,437 @@ document.addEventListener("pointercancel", function(){
   var layout = getCurrentLayout();
   $$(".icon-layer").forEach(function(el){ el.setAttribute("data-layout", layout); });
 })();
+
+/* ============================================================
+   AI OS LAYER — omnibar, smart desktops, proactive agents,
+   smart file routing, desktop memory, automations gallery
+   ============================================================ */
+
+/* ---- 1 · COPILOT OMNIBAR ----------------------------------------------
+   The companion reads the OS state (windows, desktops, files) and can
+   actually act on it: summarise, close, move, arrange, create. */
+var OB_LOG = [];
+function obState(){
+  var open = wins.filter(function(w){ return w.spaceId===curSpace && !w.min; });
+  return {
+    open: open,
+    desktop: SPACES[spaceIndex(curSpace)],
+    files: VFS.list("desktop"),
+    windowsAll: wins.length
+  };
+}
+function obRender(log){
+  var p = $("#compPanel");
+  p.classList.add("wide","on");
+  var st = obState();
+  var chips = [
+    "Summarize this desktop","Clean up the icons","Close everything except Chat",
+    "Move all windows to Operations","What should I do next?","New desktop for bidding"
+  ];
+  p.innerHTML =
+    '<h4>'+ico("i-spark","sm")+' Console copilot</h4>'+
+    '<p style="margin:2px 0 0">I can see and act on this whole desktop — '+
+      st.open.length+' window'+(st.open.length===1?"":"s")+', '+st.files.length+' file'+(st.files.length===1?"":"s")+
+      ', '+SPACES.length+' desktop'+(SPACES.length===1?"":"s")+'.</p>'+
+    '<div class="ob-in">'+ico("i-search","sm")+'<input data-obin placeholder="Tell the OS what to do…" '+
+      'aria-label="Command the OS"></div>'+
+    '<div class="ob-chips">'+chips.map(function(c){ return '<button class="ob-chip" data-obchip="'+esc(c)+'">'+esc(c)+'</button>'; }).join("")+'</div>'+
+    '<div class="ob-log" data-oblog>'+ (log||OB_LOG).map(function(m){
+      return '<div class="ob-msg'+(m.user?" user":"")+'">'+m.html+'</div>'; }).join("")+'</div>'+
+    '<div class="ob-hint">acts on real state · every write asks first</div>';
+  var inp = p.querySelector("[data-obin]");
+  if(inp){ inp.focus(); inp.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && inp.value.trim()){ obHandle(inp.value.trim()); inp.value = ""; }
+  });}
+}
+function obPush(user, html){
+  OB_LOG.push({user:!!user, html:html});
+  if(OB_LOG.length > 24) OB_LOG.shift();
+  obRender();
+  var logBox = $("#compPanel [data-oblog]");
+  if(logBox) logBox.scrollTop = logBox.scrollHeight;
+}
+function obHandle(q){
+  obPush(true, esc(q));
+  var lq = q.toLowerCase();
+  var st = obState();
+  /* summarize the desktop */
+  if(/summar|what.*open|overview|status/.test(lq)){
+    var names = st.open.map(function(w){ return APPS[w.appId].name; });
+    var apps = {}; st.open.forEach(function(w){ apps[w.appId]=1; });
+    var focus = apps.brain ? "Brain is holding a node about <b>Package C2</b> — 0.93 similarity to Baseline r7."
+      : apps.chat ? "The Chat thread is the exposure question — <b>SAR 5.32M at 45 days</b>."
+      : apps.sheets ? "A budget sheet is open — the C2 numbers feed the board pack due Thursday."
+      : "Nothing thematic is open — this desktop is general purpose.";
+    obPush(false,
+      '<b>'+esc(st.desktop.name)+'</b> — '+st.open.length+' window'+(st.open.length===1?"":"s")+
+      (names.length?' ('+esc(names.join(", "))+')':'')+ ', '+st.files.length+' file'+(st.files.length===1?"":"s")+' on the desktop.<br>'+
+      focus+'<br><span style="color:var(--tx-4)">Next: the board pack is due Thu 09:00 — I can draft it from Chat + Brain.</span>');
+    return;
+  }
+  /* close windows */
+  if(/close|shut|quit/.test(lq)){
+    var keep = null;
+    var m = lq.match(/except\s+([a-z]+)/);
+    if(m){ Object.keys(APPS).forEach(function(id){ if(APPS[id].name.toLowerCase().indexOf(m[1])===0) keep = id; }); }
+    var victims = st.open.filter(function(w){ return w.appId !== keep; });
+    if(!victims.length){ obPush(false,"Nothing to close — " + (keep ? APPS[keep].name + " is the only thing open." : "no windows open.")); return; }
+    requestApproval(null, {
+      title:"Close "+victims.length+" window"+(victims.length===1?"":"s")+"?",
+      detail:victims.map(function(w){ return "· "+APPS[w.appId].name; }).join("<br>"),
+      confirm:"Close them", okToast:"Desktop cleared.",
+      onApprove:function(){
+        victims.forEach(function(w){ closeWin(w.id); });
+        obPush(false,"Closed "+victims.length+" window"+(victims.length===1?"":"s")+". "+(keep?APPS[keep].name+" stayed open.":""));
+      }});
+    return;
+  }
+  /* move windows to another desktop */
+  if(/move|send|take.*to/.test(lq)){
+    var target = null, ti = -1;
+    SPACES.forEach(function(s,i){ if(lq.indexOf(s.name.toLowerCase()) > -1){ target = s; ti = i; } });
+    if(!target){ obPush(false,"Which desktop? I can see: "+SPACES.map(function(s){ return "<b>"+esc(s.name)+"</b>"; }).join(", ")); return; }
+    if(!st.open.length){ obPush(false,"No windows on this desktop to move."); return; }
+    requestApproval(null, {
+      title:"Move "+st.open.length+" window"+(st.open.length===1?"":"s")+" to “"+target.name+"”?",
+      detail:"They keep their size and position — only the desktop changes.",
+      confirm:"Move them", okToast:"Moved to "+target.name+".",
+      onApprove:function(){
+        st.open.forEach(function(w){ w.spaceId = target.id;
+          var dest = $('[data-winlayer="'+target.id+'"]'); if(dest && w.node) dest.appendChild(w.node); });
+        renderDock(); renderMobileBar(); renderMission();
+        obPush(false,"Moved "+st.open.length+" window"+(st.open.length===1?"":"s")+" to <b>"+esc(target.name)+"</b>. Switch with Ctrl+←/→.");
+      }});
+    return;
+  }
+  /* clean up icons */
+  if(/clean|tidy|arrange|organi[sz]e.*icon/.test(lq)){
+    store.set("mv7.icons","{}"); store.set("mv7.filePos","{}");
+    renderIcons();
+    obPush(false,"Re-flowed every icon on <b>"+esc(st.desktop.name)+"</b> into the "+getCurrentLayout()+" layout. Drag any icon to break rank again.");
+    return;
+  }
+  /* what next */
+  if(/next|should i|todo|to-do/.test(lq)){
+    obPush(false,"Three things the OS can see:<br>1 · <b>Board pack due Thu 09:00</b> — say “draft the board pack” in Chat.<br>"+
+      "2 · <b>5 approvals waiting</b> — one is a database delete, worth a look.<br>"+
+      "3 · <b>C2 exposure at 45 days</b> — SAR 5.32M and the LD cap only binds past day 67.");
+    return;
+  }
+  /* new desktop */
+  if(/new desktop|create.*desktop|desktop for/.test(lq)){
+    var nm = q.replace(/.*desktop (for )?/i,"").trim() || null;
+    newDesktopFlow(nm);
+    obPush(false,"Opened the desktop setup — pick a template and I’ll arrange it.");
+    return;
+  }
+  /* fallback: compare across windows if 2+ open */
+  if(st.open.length >= 2){
+    obPush(false,'<span style="color:var(--tx-4)">I can’t parse that yet — but I can read across your open windows:</span><br>'+crossWindowAnswer(st.open));
+    return;
+  }
+  obPush(false,'I can: <b>summarize</b> this desktop, <b>close</b> windows, <b>move</b> them to another desktop, <b>clean up</b> icons, or set up a <b>new desktop</b>.');
+}
+$("#companion").addEventListener("click", function(){
+  var p = $("#compPanel");
+  if(p.classList.contains("on")){ p.classList.remove("on","wide"); return; }
+  OB_LOG = [];
+  obRender();
+});
+document.addEventListener("click", function(e){
+  var chip = e.target.closest("[data-obchip]"); if(!chip) return;
+  obHandle(chip.getAttribute("data-obchip"));
+});
+
+/* ---- 1b · QUICK AI ------------------------------------------------------
+   One visible shortcut on every desktop: type a question or request an
+   artifact (PDF/deck/doc) or an agent run. Routes to the real app and
+   lands artifacts on the desktop as files. */
+function quickAIOpen(on){
+  var p = $("#quickPanel");
+  p.classList.toggle("on", on !== false);
+  if(on !== false){
+    var i = p.querySelector("[data-qain]");
+    i.value = ""; i.focus();
+  }
+}
+$("#quickAI").addEventListener("click", function(){
+  quickAIOpen(!$("#quickPanel").classList.contains("on"));
+});
+document.addEventListener("click", function(e){
+  if(e.target.closest("[data-qax]")){ quickAIOpen(false); return; }
+  if(e.target === $("#quickPanel")) quickAIOpen(false);
+  var c = e.target.closest("[data-qa]"); if(!c) return;
+  quickAIRun(c.getAttribute("data-qa"), $("#quickPanel [data-qain]").value.trim());
+});
+$("#quickPanel [data-qain]").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    var v = this.value.trim();
+    quickAIRun(v && /^(draft|make|create|generate|run)/i.test(v) ? "smart" : "ask", v);
+  }
+});
+function qaArtifact(name, ext, content){
+  var id = VFS.create("desktop", name, "file", content, ext);
+  renderDesktopFiles();
+  return id;
+}
+function quickAIRun(mode, q){
+  quickAIOpen(false);
+  if(mode === "ask" || (mode === "smart" && !q)){
+    var w = openApp("chat");
+    if(w && q){
+      var ta = w.body.querySelector("[data-ta]");
+      if(ta){
+        ta.value = q;
+        ta.dispatchEvent(new Event("input", {bubbles:true}));
+        var send = w.body.querySelector("[data-send]");
+        if(send) setTimeout(function(){ send.click(); }, 60);
+      }
+    }
+    toast(q ? "Asked in Chat — answer incoming." : "Chat is open — type your question.", 2200);
+    return;
+  }
+  if(mode === "pdf" || ((mode === "smart") && /pdf|letter|notice/i.test(q))){
+    var nm = (q ? q.replace(/.*letter |.*draft |.*pdf /i,"").trim() : "") || "Variation Notice";
+    var fid = qaArtifact(nm + ".docx", "docx",
+      "<h1>"+nm+"</h1><p>Dear Al-Yamama Steel,</p><p>Re: Package C2 — goods receipt outstanding on 4 of 6 PO lines.</p>"+
+      "<p><b>Exposure at 45 days: SAR 5.32M.</b> Per GC-8 8.4 we reserve our position on liquidated damages.</p>");
+    openApp("word", {fileId: fid});
+    toast("Drafted “"+nm+".docx” from Chat + Brain — open on the desktop.", 3000);
+    return;
+  }
+  if(mode === "deck" || ((mode === "smart") && /deck|slides|present|board/i.test(q))){
+    var dn = (q ? q.replace(/.*deck |.*generate |.*create /i,"").trim() : "") || "Board Pack";
+    var did = qaArtifact(dn + ".pptx", "pptx", "");
+    openApp("ppt", {fileId: did});
+    toast("Generated “"+dn+".pptx” — 4 slides from the current Chat thread.", 3000);
+    return;
+  }
+  if(mode === "doc"){
+    openApp("word", {fileId: qaArtifact("Untitled.docx", "docx", "<h1>Untitled</h1><p></p>")});
+    toast("New document created on the desktop.", 2200);
+    return;
+  }
+  if(mode === "agent" || mode === "smart"){
+    openApp("agents");
+    toast(q ? "Routed to Agents — “"+q+"” queued for the closest match." : "Agents open — pick one to run.", 2600);
+    return;
+  }
+}
+/* “/” opens Quick AI from anywhere (not while typing somewhere else) */
+document.addEventListener("keydown", function(e){
+  if(e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+  var t = e.target;
+  if(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  if(!document.body.matches('[data-stage="os"]')) return;
+  e.preventDefault();
+  quickAIOpen(true);
+});
+
+/* ---- 2 · SMART DESKTOPS ------------------------------------------------
+   Creating a desktop asks intent, then the OS arranges apps, widgets and
+   a seeded VFS folder for that purpose. */
+var DESK_TEMPLATES = [
+  { id:"delivery", icon:"i-gantt", name:"Delivery", desc:"Package tracking, exposure, schedule",
+    apps:["chat","files","gantt","sheets"], widgets:["sovereignty","exposure","feed"],
+    folder:{ name:"C2 Delivery", files:[
+      {n:"Exposure Summary.docx", c:"<h1>Package C2 — Exposure</h1><p>At 45 days: SAR 5.32M. LD cap binds past day 67.</p>"},
+      {n:"Budget.xlsx", c:""}, {n:"Baseline r7.pptx", c:""} ] } },
+  { id:"bid", icon:"i-slides", name:"Bidding", desc:"Proposals, pricing, board packs",
+    apps:["docs","sheets","slides","mail"], widgets:["exposure","feed"],
+    folder:{ name:"Bid — Package D", files:[
+      {n:"Bid Summary.docx", c:"<h1>Package D Bid</h1><p>Dual-source strategy, +1.8% unit rate.</p>"},
+      {n:"Pricing Model.xlsx", c:""}, {n:"Board Pack.pptx", c:""} ] } },
+  { id:"research", icon:"i-brain", name:"Research", desc:"Brain graph, sources, notes",
+    apps:["brain","browser","docs"], widgets:["sovereignty","feed"],
+    folder:{ name:"Research Notes", files:[
+      {n:"Findings.docx", c:"<h1>Findings</h1><p>Baseline r7 similarity, GC-8 clauses.</p>"} ] } },
+  { id:"ops", icon:"i-agent", name:"Operations", desc:"Agents, automations, approvals",
+    apps:["agents","autos","approvals","mail"], widgets:["agents","automation","feed"],
+    folder:{ name:"Ops Reports", files:[
+      {n:"Weekly Report.docx", c:"<h1>Weekly Ops</h1><p>Agents: 2 running. Approvals: 5 pending.</p>"} ] } },
+  { id:"blank", icon:"i-grid", name:"Blank", desc:"Just an empty desktop",
+    apps:[], widgets:["sovereignty"], folder:null }
+];
+function newDesktopFlow(prefill){
+  if($(".dint-overlay")) return;
+  var ov = el("div","dint-overlay");
+  ov.innerHTML = '<div class="dint" role="dialog" aria-label="New desktop">'+
+    '<h4>'+ico("i-spark","sm")+' New desktop</h4>'+
+    '<p class="sub">What is it for? The OS will arrange apps, live widgets and a starter folder for it.</p>'+
+    '<div class="dint-grid">'+
+      DESK_TEMPLATES.map(function(t){
+        return '<button class="dint-opt" data-tpl="'+t.id+'">'+
+          '<span class="dint-ico">'+ico(t.icon)+'</span><b>'+t.name+'</b><span>'+t.desc+'</span></button>';
+      }).join("")+
+    '</div>'+
+    '<div class="dint-row"><input data-dint-name placeholder="…or name your own — e.g. “Q4 audit”" '+
+      (prefill?'value="'+esc(prefill)+'"':'')+' aria-label="Custom desktop name">'+
+      '<button class="btn" data-dint-cancel>Cancel</button>'+
+      '<button class="btn primary" data-dint-go>Create</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener("click", function(e){
+    if(e.target === ov || e.target.closest("[data-dint-cancel]")){ ov.remove(); return; }
+    var tpl = e.target.closest("[data-tpl]");
+    if(tpl){ createSpaceFromTemplate(DESK_TEMPLATES.filter(function(t){ return t.id===tpl.getAttribute("data-tpl"); })[0], null); ov.remove(); return; }
+    if(e.target.closest("[data-dint-go]")){
+      var v = ov.querySelector("[data-dint-name]").value.trim();
+      createSpaceFromTemplate(null, v || "Desktop "+(SPACES.length+1)); ov.remove(); return;
+    }
+  });
+  var inp = ov.querySelector("[data-dint-name]");
+  inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ var v=inp.value.trim(); createSpaceFromTemplate(null, v || "Desktop "+(SPACES.length+1)); ov.remove(); } });
+  inp.focus();
+}
+function createSpaceFromTemplate(tpl, customName){
+  var id = nextSpaceId();
+  var name = customName || (tpl ? tpl.name : "Desktop "+(SPACES.length+1));
+  SPACES.push({ id:id, name:name, hint:tpl ? tpl.desc : "Custom workspace", tpl:tpl ? tpl.id : null });
+  saveSpaces();
+  syncSpaces();
+  gotoSpace(id, true);
+  /* seeded folder */
+  if(tpl && tpl.folder){
+    var fid = VFS.create("desktop", tpl.folder.name, "folder", "", "");
+    tpl.folder.files.forEach(function(f){
+      VFS.create(fid, f.n, "file", f.c || "", (f.n.split(".").pop()||"").toLowerCase());
+    });
+    renderDesktopFiles();
+  }
+  /* pre-arranged apps — staggered like a real session */
+  if(tpl && tpl.apps && tpl.apps.length){
+    tpl.apps.slice(0,4).forEach(function(appId, i){
+      var w = openApp(appId);
+      if(w){ w.x = clamp(60 + i*230, 8, Math.max(8, window.innerWidth - w.w - 16));
+             w.y = clamp(30 + (i%2)*40, 6, Math.max(6, window.innerHeight - barH() - w.h - 80));
+             applyRect(w); }
+    });
+  }
+  toast("“"+name+"” is ready — "+(tpl&&tpl.apps.length ? tpl.apps.length+" apps arranged" : "empty canvas")+
+    (tpl&&tpl.folder ? ", starter folder on the desktop" : "")+".", 3400);
+}
+
+/* ---- 3 · PROACTIVE AGENTS ---------------------------------------------
+   A simulated agent runtime: exposure watchers and drafters post into a
+   live feed widget on the desktop and raise toasts. Muteable. */
+var FEED_LOG = [];
+var PROACTIVE_EVENTS = [
+  { sev:"public",  t:"PO Slippage Watch",   h:"<b>PO 4471</b> slipped 3 more days — exposure now <b>SAR 5.61M</b>. Filed a note on the C2 node." },
+  { sev:"private", t:"Risk Research Agent", h:"Re-checked GC-8 8.4: the LD cap interpretation held. Draft updated in Research Notes." },
+  { sev:"public",  t:"Board Pack Drafter",  h:"Board pack skeleton saved to <b>Bid — Package D/Board Pack.pptx</b>. 4 slides, needs your numbers." },
+  { sev:"signal",  t:"Fabricator Monitor",  h:"Dual-source quote landed — unit rate <b>+1.8%</b>, matches the Chat recommendation." },
+  { sev:"private", t:"Mail Triage Agent",   h:"3 vendor mails classified: 2 routine, 1 asks for a variation notice — escalated to you." },
+  { sev:"public",  t:"Schedule Sync",       h:"P6 sync finished: 11 days behind Baseline r7, unchanged since yesterday." }
+];
+function proactiveMuted(){ return store.get("mv7.proactive","on") === "off"; }
+function proactivePost(){
+  if(proactiveMuted()) return;
+  var ev = PROACTIVE_EVENTS[Math.floor(Math.random()*PROACTIVE_EVENTS.length)];
+  ev.at = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  FEED_LOG.unshift(ev);
+  if(FEED_LOG.length > 12) FEED_LOG.pop();
+  $$(".feed").forEach(function(f){ f.closest("[data-widgets]") && renderWidgets(); });
+  if(Math.random() < .45) toast(ev.t+": "+ev.h.replace(/<[^>]+>/g,""), 4200);
+}
+setInterval(function(){
+  if(document.body.matches('[data-stage="os"]') && !proactiveMuted()) proactivePost();
+}, 50000);
+setTimeout(function(){
+  if(document.body.matches('[data-stage="os"]')) proactivePost();
+}, 9000);
+
+/* ---- 4 · SMART FILE ROUTING -------------------------------------------
+   Drop a desktop file on the companion orb: it classifies, extracts
+   fields, files it into the right folder and marks it Brain-reviewed. */
+function classifyFile(f){
+  var e = (f.ext||"").toLowerCase();
+  if(e==="docx"||e==="doc") return { kind:"Contract / letter", folder:"Contracts",
+    fields:[["Parties","Magna Construction Co. ↔ Al-Yamama Steel"],["Value","SAR 4,230,000"],["Clause flagged","GC-8 8.4 — liquidated damages"]] };
+  if(e==="xlsx"||e==="xls"||e==="csv") return { kind:"Commercial / budget", folder:"Finance",
+    fields:[["Period","Aug 2026"],["Lines","218"],["Anomaly","Standby rate > rate card by 4%"]] };
+  if(e==="pptx"||e==="ppt") return { kind:"Board material", folder:"Board Packs",
+    fields:[["Slides","4"],["Audience","Board, Thursday 09:00"],["Missing","Final exposure number"]] };
+  return { kind:"Document", folder:"Documents", fields:[["Type","General"],["Brain match","No strong match"]] };
+}
+function smartRoute(fileId){
+  var f = VFS.get(fileId); if(!f) return;
+  var c = classifyFile(f);
+  var ov = el("div","dint-overlay");
+  ov.innerHTML = '<div class="dint" role="dialog" aria-label="Smart file routing">'+
+    '<h4>'+ico("i-spark","sm")+' Smart routing</h4>'+
+    '<p class="sub"><b>'+esc(f.name)+'</b> — classified and read by the Brain.</p>'+
+    '<div class="kv"><span class="k">Type</span><span class="v">'+esc(c.kind)+'</span></div>'+
+    c.fields.map(function(x){ return '<div class="kv"><span class="k">'+esc(x[0])+'</span><span class="v">'+esc(x[1])+'</span></div>'; }).join("")+
+    '<div class="kv"><span class="k">Destination</span><span class="v">'+esc(c.folder)+'/</span></div>'+
+    '<div class="dint-row" style="margin-top:14px"><button class="btn" data-sr-cancel>Not now</button>'+
+    '<button class="btn primary" data-sr-go style="flex:1">'+ico("i-brain","xs")+'File it &amp; link in Brain</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener("click", function(e){
+    if(e.target === ov || e.target.closest("[data-sr-cancel]")){ ov.remove(); return; }
+    if(e.target.closest("[data-sr-go]")){
+      ov.remove();
+      var folder = null;
+      VFS.list("desktop").concat(Object.keys(_vfsLoad().files).map(function(k){return _vfsLoad().files[k];})).forEach(function(x){
+        if(x.type==="folder" && x.name===c.folder) folder = x;
+      });
+      if(!folder) folder = VFS.get(VFS.create("desktop", c.folder, "folder", "", ""));
+      f.brain = 1; VFS.move(fileId, folder.id);
+      renderDesktopFiles();
+      toast("Filed into "+c.folder+"/ and linked in Brain — 3 citations.", 3000);
+    }
+  });
+}
+function overCompanion(x,y){
+  var r = $("#companion").getBoundingClientRect();
+  return x >= r.left-14 && x <= r.right+14 && y >= r.top-14 && y <= r.bottom+14;
+}
+
+/* ---- 5 · DESKTOP MEMORY -----------------------------------------------*/
+function snapshots(){ try{ return JSON.parse(store.get("mv7.snapshots","")) || []; }catch(e){ return []; } }
+function saveSnapshots(v){ store.set("mv7.snapshots", JSON.stringify(v)); }
+function snapshotDesktop(){
+  var desk = SPACES[spaceIndex(curSpace)];
+  var list = snapshots();
+  list.unshift({
+    id: Date.now(), name: desk.name, at: Date.now(),
+    spaces: SPACES.length,
+    wins: wins.filter(function(w){ return w.spaceId===curSpace; }).map(function(w){
+      return { appId:w.appId, spaceId:w.spaceId, x:Math.round(w.x), y:Math.round(w.y),
+               w:Math.round(w.w), h:Math.round(w.h), max:!!w.max }; })
+  });
+  if(list.length > 6) list.pop();
+  saveSnapshots(list);
+  renderMission();
+  toast("Desktop “"+desk.name+"” saved — "+list[0].wins.length+" windows. Resume it from Mission Control.", 3000);
+}
+function resumeDesktop(id){
+  var s = snapshots().filter(function(x){ return x.id===id; })[0]; if(!s) return;
+  requestApproval(null, {
+    title:"Resume “"+s.name+"”?",
+    detail:"Closes the current desktop’s windows and reopens "+s.wins.length+" as they were.",
+    confirm:"Resume", okToast:"Desktop restored.",
+    onApprove:function(){
+      wins.filter(function(w){ return w.spaceId===curSpace; }).forEach(function(w){ closeWin(w.id); });
+      s.wins.forEach(function(sw, i){
+        var w = openApp(sw.appId);
+        if(w){ if(sw.max){ /* restore normal rect, user can re-max */ }
+               w.x = sw.x; w.y = sw.y; w.w = sw.w; w.h = sw.h; applyRect(w); }
+      });
+    }});
+}
+
+/* ---- 6 · AUTOMATION BUILDER data (mounted in MOUNT.autos) -------------*/
+var AB_TEMPLATES = [
+  { name:"Slippage escalation", icon:"i-warn",
+    d:"When a PO slips >7 days → draft variation letter → attach exposure sheet → notify me at 08:00",
+    steps:{ trig:"PO slips", reads:["p6-schedule"], acts:["Draft letter","Attach sheet","Notify"] } },
+  { name:"Board pack night-before", icon:"i-slides",
+    d:"Wed 20:00 → rebuild board pack from Chat+Brain → park in drafts for morning review",
+    steps:{ trig:"Wed 20:00", reads:["chat-thread","brain-graph"], acts:["Rebuild deck","Park in drafts"] } },
+  { name:"Vendor mail triage", icon:"i-mail",
+    d:"Every mail from a vendor → classify → route contracts to Brain → escalate variation asks",
+    steps:{ trig:"New vendor mail", reads:["magna-mail"], acts:["Classify","Route to Brain","Escalate"] } }
+];
 
 var MOUNT = {};
 MOUNT._missing = function(body){ body.innerHTML = '<div class="empty-msg">This app has no content yet.</div>'; };
@@ -4827,36 +5499,75 @@ MOUNT.agents = function(body, w){
 
 /* ---------------------------------------------------------- AUTOMATIONS */
 MOUNT.autos = function(body, w){
+  var B = { trig:null, reads:[], acts:[] };
+  var TRIGS  = ["PO slips > 7 days","New vendor mail","Wed 20:00","Every morning 06:00","Exposure > SAR 4M","File added to desktop"];
+  var READS  = ["p6-schedule","sap-po-lookup","magna-mail","chat-thread","brain-graph","budget-sheet"];
+  var ACTS   = ["Draft letter","Attach sheet","Notify me","Rebuild deck","Park in drafts","Route to Brain","Escalate"];
   body.innerHTML = '<div class="pane"><div class="pane-scroll" data-autohost></div></div>';
   w.state.draw = function(){
+    var ready = B.trig && B.reads.length && B.acts.length;
     body.querySelector("[data-autohost]").innerHTML =
-      '<h4 class="sec">Automations</h4>'+
-      '<p class="sub">Scheduled work that runs whether or not you are here. Describe a new one in plain language — '+
-      'Spotlight (⌘K) drafts it, and nothing is created until you approve the definition.</p>'+
-      '<div style="display:flex;gap:8px;margin-bottom:14px">'+
-        '<input class="bw-url" data-autoin placeholder="e.g. every morning, summarise P6 slippage and post it" '+
-        'style="flex:1;border-radius:10px">'+
-        '<button class="btn primary" data-autodraft>'+ico("i-plus","xs")+'Draft it</button>'+
+      '<h4 class="sec">'+ico("i-bolt","sm")+'Automation builder</h4>'+
+      '<p class="sub">Chain a trigger, the data it may read, and what it may do. Every run asks before it writes.</p>'+
+      '<div class="ab-steps">'+
+        '<div class="ab-step"><span class="ab-node trig">'+ico("i-warn")+'</span>'+
+          '<div class="ab-body"><b>When…</b><div class="ab-choices">'+
+          TRIGS.map(function(t){ return '<button class="ab-c'+(B.trig===t?" on":"")+'" data-abt="'+esc(t)+'">'+esc(t)+'</button>'; }).join("")+
+          '</div></div></div>'+
+        '<div class="ab-step"><span class="ab-node read">'+ico("i-db")+'</span>'+
+          '<div class="ab-body"><b>It may read…</b><div class="ab-choices">'+
+          READS.map(function(t){ var on=B.reads.indexOf(t)>-1; return '<button class="ab-c'+(on?" on":"")+'" data-abr="'+esc(t)+'">'+esc(t)+'</button>'; }).join("")+
+          '</div></div></div>'+
+        '<div class="ab-step"><span class="ab-node act">'+ico("i-bolt")+'</span>'+
+          '<div class="ab-body"><b>It does…</b><div class="ab-choices">'+
+          ACTS.map(function(t){ var on=B.acts.indexOf(t)>-1; return '<button class="ab-c'+(on?" on":"")+'" data-aba="'+esc(t)+'">'+esc(t)+'</button>'; }).join("")+
+          '</div></div></div>'+
       '</div>'+
+      '<div style="display:flex;gap:8px;align-items:center">'+
+        '<button class="btn primary" data-abgo '+ (ready?"":"disabled style='opacity:.45'") +'>'+
+          ico("i-check","xs")+'Create automation</button>'+
+        '<button class="btn" data-abclear>Reset</button>'+
+        (ready?'<span style="font-size:11px;color:var(--tx-4)">reads: '+B.reads.length+' · acts: '+B.acts.length+'</span>':'')+
+      '</div>'+
+      '<h4 class="sec" style="margin-top:22px">Templates</h4>'+
+      '<div class="grid2">'+AB_TEMPLATES.map(function(t,i){
+        return '<div class="ab-tpl" data-abtpl="'+i+'"><b>'+ico(t.icon,"xs")+' '+esc(t.name)+'</b><span>'+esc(t.d)+'</span></div>';
+      }).join("")+'</div>'+
+      '<h4 class="sec" style="margin-top:22px">Active automations</h4>'+
       AUTOS.map(function(a){
         var col = a.state === "due" ? "var(--public)" : "var(--private)";
         return '<div class="runrow"><span class="dot" style="background:'+col+'"></span>'+
         '<div class="mid"><div class="nm">'+esc(a.name)+'</div>'+
-        '<div class="sub" style="margin:0;font-size:11px">'+esc(a.when)+' · last run '+esc(a.last)+'</div>'+
-        '<p style="font-size:11.5px;color:var(--tx-3);margin:4px 0 0;line-height:1.5">'+esc(a.desc)+'</p></div>'+
+        '<div class="sub" style="margin:0;font-size:11px">'+esc(a.when)+' · last run '+esc(a.last)+'</div></div>'+
         '<button class="btn sm" data-autorun="'+esc(a.name)+'">Run</button></div>';
       }).join("");
   };
   w.state.draw();
   body.addEventListener("click", function(e){
-    if(e.target.closest("[data-autodraft]")){
-      var v = body.querySelector("[data-autoin]").value.trim();
-      if(!v){ toast("Describe what it should do first."); return; }
-      autosDraft(w, v); return;
+    var t = e.target.closest("[data-abt]");
+    if(t){ B.trig = (B.trig===t.getAttribute("data-abt")) ? null : t.getAttribute("data-abt"); w.state.draw(); return; }
+    var r = e.target.closest("[data-abr]");
+    if(r){ var rv=r.getAttribute("data-abr"), ri=B.reads.indexOf(rv);
+      ri>-1 ? B.reads.splice(ri,1) : B.reads.push(rv); w.state.draw(); return; }
+    var a = e.target.closest("[data-aba]");
+    if(a){ var av=a.getAttribute("data-aba"), ai=B.acts.indexOf(av);
+      ai>-1 ? B.acts.splice(ai,1) : B.acts.push(av); w.state.draw(); return; }
+    if(e.target.closest("[data-abclear]")){ B={trig:null,reads:[],acts:[]}; w.state.draw(); return; }
+    var tpl = e.target.closest("[data-abtpl]");
+    if(tpl){ var T=AB_TEMPLATES[+tpl.getAttribute("data-abtpl")];
+      B={trig:T.steps.trig,reads:T.steps.reads.slice(),acts:T.steps.acts.slice()}; w.state.draw();
+      toast("Template loaded — “"+T.name+"”. Review and create.",2400); return; }
+    if(e.target.closest("[data-abgo]")){
+      requestApproval(w, {
+        title:"Create this automation?",
+        detail:"<b>"+esc(B.trig)+"</b> → reads "+esc(B.reads.join(", "))+" → "+esc(B.acts.join(", ")),
+        confirm:"Create it", okToast:"Automation created. It will ask before its first write.",
+        onApprove:function(){ B={trig:null,reads:[],acts:[]}; w.state.draw(); } });
+      return;
     }
-    var r = e.target.closest("[data-autorun]");
-    if(r){ requestApproval(w, {
-      title:"Run “"+r.getAttribute("data-autorun")+"” outside its schedule?",
+    var run = e.target.closest("[data-autorun]");
+    if(run){ requestApproval(w, {
+      title:"Run “"+run.getAttribute("data-autorun")+"” outside its schedule?",
       detail:"It may post to a channel. That is a write, so it needs your approval.",
       confirm:"Run once", okToast:"Ran once. The schedule is unchanged." }); }
   });
