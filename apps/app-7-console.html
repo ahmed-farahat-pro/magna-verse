@@ -9,8 +9,13 @@
 /* theme before first paint — no flash */
 (function(){
   try{
-    var t = localStorage.getItem("mv7.theme") || "dark";
-    if(t === "light") document.documentElement.setAttribute("data-theme","light");
+    var mode = localStorage.getItem("mv7.themeMode");
+    if(mode === null){
+      /* legacy key held "light"/"dark" before theme IDs existed */
+      var legacy = localStorage.getItem("mv7.theme");
+      mode = (legacy === "light") ? "light" : "dark";
+    }
+    if(mode === "light") document.documentElement.setAttribute("data-theme","light");
   }catch(e){}
 })();
 </script>
@@ -1456,18 +1461,22 @@ function tickClock(){
   setTimeout(tickClock, 20000);
 }
 
-/* theme — light/dark toggle (preserves layout) */
+/* theme — light/dark toggle (preserves layout).
+   THEMES is declared later in the file, so guard: this runs before the
+   assignment executes and must never throw (a throw here kills the whole
+   script — no apps render, no buttons respond). */
 function applyTheme(t){
   if(t === "light") document.documentElement.setAttribute("data-theme","light");
   else document.documentElement.removeAttribute("data-theme");
   store.set("mv7.themeMode", t);
-  /* update current theme's dark flag */
-  var curId = store.get("mv7.theme","grid");
-  var cur = THEMES.filter(function(x){return x.id===curId})[0];
-  if(cur) cur.dark = (t !== "light");
+  if(THEMES && THEMES.filter){
+    var curId = store.get("mv7.theme","grid");
+    var cur = THEMES.filter(function(x){return x.id===curId})[0];
+    if(cur) cur.dark = (t !== "light");
+  }
   $("#themeBtn").innerHTML = ico(t === "light" ? "i-sun" : "i-moon","sm");
 }
-applyTheme(store.get("mv7.theme","dark"));
+applyTheme(store.get("mv7.themeMode","dark"));
 $("#themeBtn").addEventListener("click", function(){
   applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light");
 });
@@ -3195,11 +3204,16 @@ var LAYOUTS = {
     return [cx+Math.cos(a)*R, cy+Math.sin(a)*R];
   },
   masonry: function(i,n,W,H){
+    /* simulate prior placements so the shortest-column state is correct
+       across calls (varying block heights give it the Pinterest look) */
     var COLS=Math.max(3,Math.floor(W/140)),cw=W/COLS;
     var h=[];for(var c=0;c<COLS;c++)h[c]=0;
-    var best=0;for(var c=0;c<COLS;c++)if(h[c]<h[best])best=c;
-    var x=best*cw+(cw-88)/2,y=h[best]+14;h[best]+=96;
-    return [x,y];
+    for(var j=0;j<=i;j++){
+      var best=0;
+      for(var c2=0;c2<COLS;c2++){ if(h[c2]<h[best]) best=c2; }
+      if(j===i) return [best*cw+(cw-88)/2, h[best]+14];
+      h[best]+=96+((j*37)%3)*26;
+    }
   },
   spiral: function(i,n,W,H){
     var cx=W/2-44,cy=H/2-38,a=i*2.4,r=Math.sqrt(i)*22;
