@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MagnaVERSE — Icon Design Directions</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080B14;--surface:#0E1219;--surface-2:#151A24;--surface-3:#1C2230;
+  --line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.14);
+  --tx:#F2F3F6;--tx-2:#B4B9C6;--tx-3:#787E8D;--tx-4:#4C5262;
+  --accent:#D71920;--cyan:#00E5FF;--violet:#7C3AED;--emerald:#3FCF95;--amber:#F59E0B;
+  --glow-cyan:rgba(0,229,255,.15);--glow-violet:rgba(124,58,237,.15);--glow-red:rgba(215,25,32,.12);
+  --r:12px;--r-lg:18px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,monospace;
+}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+.hero{padding:60px 40px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:-40%;left:50%;width:800px;height:800px;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(0,229,255,.06),transparent 60%);pointer-events:none}
+.hero h1{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1.15;
+  background:linear-gradient(135deg,#fff 30%,var(--cyan) 70%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--tx-3);font-size:15px;margin-top:12px;max-width:600px;margin-inline:auto;line-height:1.6}
+.hero .tag{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:99px;
+  background:var(--surface-2);border:1px solid var(--line);font-size:11px;color:var(--tx-3);
+  font-family:var(--mono);margin-top:18px;letter-spacing:.04em;text-transform:uppercase}
+.hero .tag .dot{width:6px;height:6px;border-radius:99px;background:var(--cyan)}
+
+.container{max-width:1400px;margin:0 auto;padding:0 40px 80px}
+
+/* Direction Card */
+.dir{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  margin-bottom:36px;overflow:hidden;transition:border-color .2s}
+.dir:hover{border-color:var(--line-2)}
+.dir-head{padding:28px 32px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  border-bottom:1px solid var(--line)}
+.dir-head h2{font-size:20px;font-weight:750;letter-spacing:-.02em}
+.dir-head .meta{display:flex;gap:10px;align-items:center;flex-shrink:0}
+.dir-head .badge{padding:4px 12px;border-radius:99px;font-size:10.5px;font-weight:650;
+  font-family:var(--mono);letter-spacing:.03em;text-transform:uppercase}
+.badge-rec{background:var(--glow-cyan);color:var(--cyan);border:1px solid rgba(0,229,255,.25)}
+.badge-alt{background:var(--surface-3);color:var(--tx-3);border:1px solid var(--line)}
+.dir-desc{padding:20px 32px;font-size:13.5px;color:var(--tx-2);line-height:1.65;
+  border-bottom:1px solid var(--line);display:flex;gap:32px;flex-wrap:wrap}
+.dir-desc .col{flex:1;min-width:240px}
+.dir-desc h4{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-4);
+  font-weight:700;margin-bottom:8px}
+.dir-desc ul{list-style:none;padding:0}
+.dir-desc li{font-size:12.5px;color:var(--tx-3);padding:3px 0;display:flex;align-items:center;gap:7px}
+.dir-desc li::before{content:"";width:4px;height:4px;border-radius:99px;background:var(--cyan);flex:none}
+
+/* Icon Grid */
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;
+  padding:28px 32px}
+.icon-cell{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 8px;
+  border-radius:var(--r);background:var(--surface-2);border:1px solid transparent;
+  transition:all .2s ease;cursor:default;position:relative}
+.icon-cell:hover{border-color:var(--line-2);background:var(--surface-3);transform:translateY(-2px)}
+.icon-cell svg{width:32px;height:32px;stroke:var(--tx);fill:none;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
+.icon-cell:hover svg{filter:drop-shadow(0 0 8px var(--cyan));stroke:var(--cyan)}
+.icon-cell span{font-size:10px;color:var(--tx-4);font-family:var(--mono);text-align:center;
+  letter-spacing:.02em;line-height:1.3}
+.icon-cell.large{grid-column:span 2;grid-row:span 2;padding:28px 12px}
+.icon-cell.large svg{width:48px;height:48px}
+.icon-cell.large span{font-size:11px}
+
+/* Sizes Demo */
+.sizes-row{display:flex;align-items:flex-end;gap:24px;padding:20px 32px;flex-wrap:wrap}
+.size-demo{display:flex;flex-direction:column;align-items:center;gap:6px}
+.size-demo span{font-size:9px;color:var(--tx-4);font-family:var(--mono)}
+
+/* Color Variants */
+.color-row{display:flex;gap:12px;padding:16px 32px;flex-wrap:wrap}
+.color-chip{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;
+  background:var(--surface-3);border:1px solid var(--line);font-size:11px;color:var(--tx-2)}
+.color-chip .swatch{width:14px;height:14px;border-radius:4px}
+
+/* Comparison */
+.compare{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:28px 32px;
+  background:var(--surface-2);margin:0}
+.compare-cell{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 12px;
+  background:var(--surface);border-radius:8px}
+.compare-cell svg{width:28px;height:28px;stroke:var(--tx);fill:none;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round}
+.compare-cell span{font-size:9px;color:var(--tx-4);font-family:var(--mono)}
+
+/* Approve Section */
+.approve{position:fixed;bottom:0;left:0;right:0;padding:20px 40px;z-index:100;
+  background:linear-gradient(transparent,var(--bg) 30%);display:flex;justify-content:center;gap:12px}
+.approve button{padding:12px 32px;border-radius:var(--r);font-size:14px;font-weight:650;
+  cursor:pointer;border:none;transition:all .18s;font-family:var(--sans)}
+.approve .btn-primary{background:var(--cyan);color:#000}
+.approve .btn-primary:hover{background:#33EBFF;box-shadow:0 0 24px rgba(0,229,255,.3)}
+.approve .btn-secondary{background:var(--surface-2);color:var(--tx-2);border:1px solid var(--line)}
+.approve .btn-secondary:hover{border-color:var(--line-2);color:var(--tx)}
+
+@media(max-width:768px){
+  .hero{padding:40px 20px 30px}
+  .hero h1{font-size:26px}
+  .container{padding:0 16px 120px}
+  .dir-desc{flex-direction:column;gap:16px}
+  .icon-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;padding:20px 16px}
+  .compare{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>MagnaVERSE Icon System</h1>
+  <p>Five futuristic icon directions for the AI OS. Each is designed for the Console desktop environment — 
+  scalable, consistent, and premium at every size.</p>
+  <div class="tag"><span class="dot"></span>Review & approve one direction</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 1: NEURAL CIRCUIT -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="dir" id="d1">
+  <div class="dir-head">
+    <div>
+      <h2>Direction 1 — Neural Circuit</h2>
+      <p style="color:var(--tx-3);font-size:12.5px;margin-top:4px">Thin strokes with circuit-node endpoints. Each icon feels like a fragment of a neural network.</p>
+    </div>
+    <div class="meta">
+      <span class="badge badge-rec">Recommended</span>
+    </div>
+  </div>
+  <div class="dir-desc">
+    <div class="col">
+      <h4>Design Principles</h4>
+      <ul>
+        <li>1.5px uniform stroke weight</li>
+        <li>Small circles at line endpoints (circuit nodes)</li>
+        <li>Open paths — never fully closed shapes</li>
+        <li>Consistent 2px padding from viewBox edge</li>
+        <li>Rounded linecaps and linejoins</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Why This Works</h4>
+      <ul>
+        <li>Feels technical and precise — matches the AI OS identity</li>
+        <li>Circuit nodes suggest connectivity and intelligence</li>
+        <li>Thin strokes stay clean at 13px (dock) and 48px (desktop)</li>
+        <li>Glow effect on hover is natural — nodes "light up"</li>
+        <li>Differentiates from macOS/Windows iconography</li>
+      </ul>
+    </div>
+  </div>
+  <div class="icon-grid">
+    <!-- Brain -->
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/>
+      <circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="20" r="1.5"/>
+      <path d="M12 7v3M7 11l3 2M17 11l-3 2M9 18l2-1M15 18l-2-1M12 17v2"/>
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Brain</span>
+    </div>
+    <!-- Chat -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 6v10l4-3h12"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="12" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Chat</span>
+    </div>
+    <!-- Code -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="7" cy="8" r="2"/><circle cx="17" cy="8" r="2"/><circle cx="12" cy="18" r="2"/>
+      <path d="M9 9l2 4M15 9l-2 4"/></svg>
+      <span>Code</span>
+    </div>
+    <!-- Files -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><path d="M5 4h6l2 2h6v14H5z"/><circle cx="12" cy="13" r="2.5"/>
+      <path d="M12 10.5v5M9.5 13h5"/></svg>
+      <span>Files</span>
+    </div>
+    <!-- Browser -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>
+      <path d="M4 12h16M12 4c-2 2.5-3 5-3 8s1 5.5 3 8M12 4c2 2.5 3 5 3 8s-1 5.5-3 8"/></svg>
+      <span>Browser</span>
+    </div>
+    <!-- Terminal -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="7" cy="12" r="1" fill="currentColor" stroke="none"/>
+      <path d="M11 10l2.5 2L11 14"/><circle cx="17" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Terminal</span>
+    </div>
+    <!-- Agents -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="3"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/>
+      <path d="M12 9v3M7.5 16l3-3M16.5 16l-3-3"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Agents</span>
+    </div>
+    <!-- Marketplace -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 10a2 2 0 01-2 1.5H7.5A2 2 0 015.5 18z"/>
+      <path d="M9 8V6a3 3 0 016 0v2"/><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="15" cy="13" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Market</span>
+    </div>
+    <!-- Settings -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="21" r="1.5"/>
+      <circle cx="3" cy="12" r="1.5"/><circle cx="21" cy="12" r="1.5"/>
+      <circle cx="5.5" cy="5.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/>
+      <circle cx="18.5" cy="5.5" r="1.5"/><circle cx="5.5" cy="18.5" r="1.5"/></svg>
+      <span>Settings</span>
+    </div>
+    <!-- Database -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/>
+      <path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/><circle cx="12" cy="9" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Database</span>
+    </div>
+    <!-- Mail -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/>
+      <path d="M3 7l9 6 9-6"/><circle cx="7" cy="15" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Mail</span>
+    </div>
+    <!-- Documents (NEW) -->
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>
+      <circle cx="9" cy="11" r="1.5" fill="currentColor" stroke="none"/>
+      <circle cx="9" cy="15" r="1.5" fill="currentColor" stroke="none"/>
+      <path d="M13 10.5h4M13 14.5h4"/><circle cx="16" cy="17" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Documents & Knowledge</span>
+    </div>
+  </div>
+  <div class="sizes-row">
+    <div class="size-demo"><svg viewBox="0 0 24 24" width="13" height="13" style="stroke:var(--tx);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M12 7v3M7 11l3 2M17 11l-3 2"/></svg><span>13px</span></div>
+    <div class="size-demo"><svg viewBox="0 0 24 24" width="16" height="16" style="stroke:var(--tx);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M12 7v3M7 11l3 2M17 11l-3 2"/></svg><span>16px</span></div>
+    <div class="size-demo"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:var(--tx);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M12 7v3M7 11l3 2M17 11l-3 2"/></svg><span>20px</span></div>
+    <div class="size-demo"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--tx);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M12 7v3M7 11l3 2M17 11l-3 2"/></svg><span>26px</span></div>
+    <div class="size-demo"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--tx);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M12 7v3M7 11l3 2M17 11l-3 2"/></svg><span>40px</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 2: GLASS MOLECULES -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="dir" id="d2">
+  <div class="dir-head">
+    <div>
+      <h2>Direction 2 — Glass Molecules</h2>
+      <p style="color:var(--tx-3);font-size:12.5px;margin-top:4px">Rounded geometric shapes with translucent fills. Each icon is a "molecule" of the glass design system.</p>
+    </div>
+    <div class="meta"><span class="badge badge-alt">Alternative</span></div>
+  </div>
+  <div class="dir-desc">
+    <div class="col">
+      <h4>Design Principles</h4>
+      <ul>
+        <li>2px stroke with rounded caps</li>
+        <li>Translucent fill on primary shape (10% opacity)</li>
+        <li>Compound shapes — circle + path combinations</li>
+        <li>Corner radius matches the OS window radius</li>
+        <li>Inner detail uses thinner 1.2px strokes</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Why This Works</h4>
+      <ul>
+        <li>Matches the glass/blur system already in Console</li>
+        <li>Translucent fills create depth without heaviness</li>
+        <li>Familiar enough for enterprise users</li>
+        <li>Each icon reads clearly as a filled shape at small sizes</li>
+        <li>Natural hover state — fill opacity increases</li>
+      </ul>
+    </div>
+  </div>
+  <div class="icon-grid">
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7" fill="rgba(0,229,255,.08)" stroke-width="1.8"/>
+      <path d="M9 8.5c.8-1 2.2-1.5 3.5-1.2s2.3 1.5 2.2 3-1.5 2.5-3.5 2.2" stroke-width="1.2"/>
+      <path d="M10 14c-.5.8-.3 2 .5 2.8s2.2.8 3-.2" stroke-width="1.2"/>
+      <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" opacity=".4"/></svg>
+      <span>Brain</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="13" rx="4" fill="rgba(0,229,255,.08)" stroke-width="1.8"/>
+      <path d="M8 11h8M8 14h5" stroke-width="1.2"/></svg>
+      <span>Chat</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="rgba(124,58,237,.08)" stroke-width="1.8"/>
+      <path d="M9 9l2.5 3L9 15" stroke-width="1.5"/><circle cx="15" cy="15" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Code</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3" fill="rgba(63,207,149,.08)" stroke-width="1.8"/>
+      <path d="M8 8h8M8 12h8M8 16h5" stroke-width="1.2"/></svg>
+      <span>Files</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="rgba(0,229,255,.06)" stroke-width="1.8"/>
+      <circle cx="12" cy="12" r="3" fill="rgba(0,229,255,.12)" stroke-width="1.2"/>
+      <path d="M4 12h16" stroke-width="1" opacity=".4"/></svg>
+      <span>Browser</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="rgba(63,207,149,.08)" stroke-width="1.8"/>
+      <path d="M7 11l3 2.5L7 16" stroke-width="1.5"/><path d="M13 16h4" stroke-width="1.2"/></svg>
+      <span>Terminal</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4" fill="rgba(91,148,255,.08)" stroke-width="1.8"/>
+      <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke-width="1.8" fill="none"/>
+      <circle cx="12" cy="7" r="1.5" fill="currentColor" stroke="none" opacity=".3"/></svg>
+      <span>Agents</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(245,158,11,.08)" stroke-width="1.8"/>
+      <path d="M9 8V6a3 3 0 016 0v2" stroke-width="1.5"/><circle cx="12" cy="14" r="2" fill="currentColor" stroke="none" opacity=".3"/></svg>
+      <span>Market</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="rgba(120,126,141,.08)" stroke-width="1.8"/>
+      <circle cx="12" cy="12" r="3" stroke-width="1.5"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/>
+      <circle cx="12" cy="20" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="20" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
+      <span>Settings</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="7" ry="3" fill="rgba(79,195,247,.08)" stroke-width="1.8"/>
+      <path d="M5 7v10c0 1.7 3.1 3 7 3s7-1.3 7-3V7" stroke-width="1.8"/></svg>
+      <span>Database</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3" fill="rgba(240,119,182,.08)" stroke-width="1.8"/>
+      <path d="M3 8l9 5.5L21 8" stroke-width="1.5"/></svg>
+      <span>Mail</span>
+    </div>
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3" fill="rgba(0,229,255,.06)" stroke-width="1.8"/>
+      <path d="M9 8h6M9 12h6M9 16h3" stroke-width="1.2"/>
+      <circle cx="16" cy="17" r="3" fill="rgba(0,229,255,.12)" stroke-width="1.2"/>
+      <path d="M15 17h2M16 16v2" stroke-width="1"/></svg>
+      <span>Documents & Knowledge</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 3: HOLOGRAPHIC WIREFRAME -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="dir" id="d3">
+  <div class="dir-head">
+    <div>
+      <h2>Direction 3 — Holographic Wireframe</h2>
+      <p style="color:var(--tx-3);font-size:12.5px;margin-top:4px">3D wireframe aesthetic with holographic gradient strokes. Each icon looks like a hologram projection.</p>
+    </div>
+    <div class="meta"><span class="badge badge-alt">Alternative</span></div>
+  </div>
+  <div class="dir-desc">
+    <div class="col">
+      <h4>Design Principles</h4>
+      <ul>
+        <li>1.2px strokes with linear gradient stroke</li>
+        <li>Isometric or 3/4 perspective hints</li>
+        <li>Gradient: cyan → violet → emerald (brand tricolor)</li>
+        <li>Dashed secondary lines for "projection" feel</li>
+        <li>No fills — pure wireframe</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Why This Works</h4>
+      <ul>
+        <li>Most futuristic of all directions</li>
+        <li>Gradient strokes tie directly to Magna brand colors</li>
+        <li>Wireframe feel = technical precision</li>
+        <li>Strong differentiation from all competitors</li>
+        <li>Risk: may be harder to read at 13px</li>
+      </ul>
+    </div>
+  </div>
+  <div class="icon-grid">
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><defs><linearGradient id="hg1" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="var(--cyan)"/><stop offset=".5" stop-color="var(--violet)"/><stop offset="1" stop-color="var(--emerald)"/></linearGradient></defs>
+      <g stroke="url(#hg1)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="11" r="2.5"/><circle cx="19" cy="11" r="2.5"/>
+      <circle cx="12" cy="19" r="2.5"/>
+      <path d="M12 7.5v3M7.5 12.5l2.5 2M16.5 12.5l-2.5 2M12 16.5v-2"/>
+      <path d="M7 6l5 4M17 6l-5 4" stroke-dasharray="2 2" opacity=".4"/></g></svg>
+      <span>Brain</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><defs><linearGradient id="hg2" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="var(--cyan)"/><stop offset="1" stop-color="var(--violet)"/></linearGradient></defs>
+      <g stroke="url(#hg2)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <path d="M4 5h16a2 2 0 012 2v8a2 2 0 01-2 2H8l-4 3V7a2 2 0 012-2z"/></g></svg>
+      <span>Chat</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><defs><linearGradient id="hg3" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="var(--violet)"/><stop offset="1" stop-color="var(--emerald)"/></linearGradient></defs>
+      <g stroke="url(#hg3)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <path d="M8 6l-4 6 4 6M16 6l4 6-4 6M14 4l-4 16"/></g></svg>
+      <span>Code</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg2)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <path d="M5 3h10l4 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+      <path d="M15 3v4h4" opacity=".5"/></g></svg>
+      <span>Files</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg1)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <circle cx="12" cy="12" r="8"/><path d="M4 12h16" stroke-dasharray="2 2" opacity=".3"/>
+      <ellipse cx="12" cy="12" rx="3" ry="8" opacity=".4"/></g></svg>
+      <span>Browser</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg2)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <path d="M7 10l3 2.5L7 15"/><path d="M13 15h4"/></g></svg>
+      <span>Terminal</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg1)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <circle cx="12" cy="6" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+      <circle cx="12" cy="6" r="1" fill="url(#hg1)" stroke="none" opacity=".5"/></g></svg>
+      <span>Agents</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg1)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <path d="M4 8h16l-1 11a2 2 0 01-2 2H7a2 2 0 01-2-2z"/>
+      <path d="M9 8V6a3 3 0 016 0v2" stroke-dasharray="2 1.5"/></g></svg>
+      <span>Market</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg2)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>
+      <path d="M12 4v2M12 18v2M4 12h2M18 12h2" stroke-dasharray="1.5 1.5" opacity=".4"/></g></svg>
+      <span>Settings</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg1)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/>
+      <path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" opacity=".4"/></g></svg>
+      <span>Database</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg2)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 5.5L21 7"/></g></svg>
+      <span>Mail</span>
+    </div>
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><g stroke="url(#hg1)" stroke-width="1.2" fill="none" stroke-linecap="round">
+      <path d="M6 3h8l4 4v15a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+      <path d="M14 3v4h4" opacity=".4"/>
+      <circle cx="9" cy="12" r="1.5" fill="url(#hg1)" stroke="none" opacity=".3"/>
+      <path d="M13 11h4M13 15h3" stroke-dasharray="2 1.5" opacity=".5"/></g></svg>
+      <span>Documents & Knowledge</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 4: MONOLINE GEOMETRIC -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="dir" id="d4">
+  <div class="dir-head">
+    <div>
+      <h2>Direction 4 — Monoline Geometric</h2>
+      <p style="color:var(--tx-3);font-size:12.5px;margin-top:4px">Consistent 1.8px monoline with bold geometric abstraction. Clean, minimal, enterprise-grade.</p>
+    </div>
+    <div class="meta"><span class="badge badge-alt">Alternative</span></div>
+  </div>
+  <div class="dir-desc">
+    <div class="col">
+      <h4>Design Principles</h4>
+      <ul>
+        <li>1.8px uniform stroke — no variation</li>
+        <li>Strict geometric primitives (circles, squares, lines)</li>
+        <li>No fills at all — pure stroke</li>
+        <li>Maximum simplification — 3-4 strokes per icon</li>
+        <li>Grid-aligned endpoints (pixel-perfect)</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Why This Works</h4>
+      <ul>
+        <li>Most readable at tiny sizes (13px dock)</li>
+        <li>Feels professional and enterprise-ready</li>
+        <li>Easiest to maintain and extend</li>
+        <li>Low visual noise — calm and minimal</li>
+        <li>Risk: may feel too simple for "futuristic" brief</li>
+      </ul>
+    </div>
+  </div>
+  <div class="icon-grid">
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="10" r="2.5"/><circle cx="19" cy="10" r="2.5"/>
+      <circle cx="8" cy="17" r="2.5"/><circle cx="16" cy="17" r="2.5"/>
+      <path d="M12 7.5v2.5M7.5 12.5l2.5 1.5M16.5 12.5l-2.5 1.5M10 18l1.5-1M14 18l-1.5-1"/></svg>
+      <span>Brain</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4 5h16a1 1 0 011 1v10a1 1 0 01-1 1H8l-4 3V6a1 1 0 011-1z"/></svg>
+      <span>Chat</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M9 6L5 12l4 6M15 6l4 6-4 6"/><path d="M13 4L9 20"/></svg>
+      <span>Code</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+      <span>Files</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Browser</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 10l3 3-3 3M13 16h4"/></svg>
+      <span>Terminal</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="7" r="4"/><path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+      <span>Agents</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4 9h16l-1.5 11a1.5 1.5 0 01-1.5 1.5H7A1.5 1.5 0 015.5 20z"/><path d="M9 9V7a3 3 0 016 0v2"/></svg>
+      <span>Market</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg>
+      <span>Settings</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v10c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>
+      <span>Database</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 5 9-5"/></svg>
+      <span>Mail</span>
+    </div>
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/>
+      <path d="M9 8h6M9 12h6M9 16h3"/><circle cx="16" cy="17" r="3"/><path d="M15 17h2M16 16v2"/></svg>
+      <span>Documents & Knowledge</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- DIRECTION 5: QUANTUM DOTS -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="dir" id="d5">
+  <div class="dir-head">
+    <div>
+      <h2>Direction 5 — Quantum Dots</h2>
+      <p style="color:var(--tx-3);font-size:12.5px;margin-top:4px">Dot-based icons where small circles form the shapes. Represents data, vectors, and the RAG system.</p>
+    </div>
+    <div class="meta"><span class="badge badge-alt">Alternative</span></div>
+  </div>
+  <div class="dir-desc">
+    <div class="col">
+      <h4>Design Principles</h4>
+      <ul>
+        <li>Icons built from 2-3px dots (circles)</li>
+        <li>Thin 1px lines connecting dots</li>
+        <li>Dots are the primary visual — lines are secondary</li>
+        <li>Each dot can glow independently on hover</li>
+        <li>Represents the vector/embedding concept literally</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Why This Works</h4>
+      <ul>
+        <li>Directly references the RAG/vector concept</li>
+        <li>Unique — no other OS uses dot-based icons</li>
+        <li>Hover animation is natural — dots pulse sequentially</li>
+        <li>Ties the icon system to the Brain identity</li>
+        <li>Risk: may be too abstract for some app names</li>
+      </ul>
+    </div>
+  </div>
+  <div class="icon-grid">
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="5" y2="10" stroke="var(--tx-4)" stroke-width=".8"/>
+      <line x1="12" y1="5" x2="19" y2="10" stroke="var(--tx-4)" stroke-width=".8"/>
+      <line x1="5" y1="10" x2="8" y2="17" stroke="var(--tx-4)" stroke-width=".8"/>
+      <line x1="19" y1="10" x2="16" y2="17" stroke="var(--tx-4)" stroke-width=".8"/>
+      <line x1="12" y1="5" x2="12" y2="12" stroke="var(--tx-4)" stroke-width=".8"/>
+      <line x1="8" y1="17" x2="16" y2="17" stroke="var(--tx-4)" stroke-width=".8"/>
+      <circle cx="12" cy="5" r="2.5" fill="var(--cyan)" stroke="none"/><circle cx="5" cy="10" r="2" fill="var(--violet)" stroke="none"/>
+      <circle cx="19" cy="10" r="2" fill="var(--emerald)" stroke="none"/><circle cx="8" cy="17" r="2" fill="var(--amber)" stroke="none"/>
+      <circle cx="16" cy="17" r="2" fill="var(--accent)" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="var(--tx)" stroke="none"/></svg>
+      <span>Brain</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="10" r="2" fill="var(--cyan)" stroke="none"/><circle cx="16" cy="10" r="2" fill="var(--violet)" stroke="none"/>
+      <circle cx="12" cy="15" r="1.5" fill="var(--tx)" stroke="none"/><line x1="8" y1="10" x2="16" y2="10" stroke="var(--tx-4)" stroke-width=".8"/><line x1="12" y1="10" x2="12" y2="15" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Chat</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="7" cy="8" r="2" fill="var(--violet)" stroke="none"/><circle cx="17" cy="8" r="2" fill="var(--emerald)" stroke="none"/>
+      <circle cx="12" cy="17" r="2" fill="var(--cyan)" stroke="none"/><line x1="9" y1="9" x2="11" y2="15" stroke="var(--tx-4)" stroke-width=".8"/><line x1="15" y1="9" x2="13" y2="15" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Code</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="7" r="2" fill="var(--emerald)" stroke="none"/><circle cx="16" cy="7" r="2" fill="var(--cyan)" stroke="none"/>
+      <circle cx="8" cy="13" r="2" fill="var(--violet)" stroke="none"/><circle cx="16" cy="13" r="2" fill="var(--amber)" stroke="none"/>
+      <circle cx="12" cy="18" r="1.5" fill="var(--tx)" stroke="none"/><line x1="8" y1="9" x2="8" y2="11" stroke="var(--tx-4)" stroke-width=".8"/><line x1="16" y1="9" x2="16" y2="11" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Files</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="var(--tx-4)" stroke-width=".8"/><circle cx="12" cy="12" r="2.5" fill="var(--cyan)" stroke="none"/>
+      <circle cx="5" cy="12" r="1.5" fill="var(--violet)" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="var(--emerald)" stroke="none"/></svg>
+      <span>Browser</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="7" cy="10" r="2" fill="var(--emerald)" stroke="none"/><circle cx="12" cy="10" r="1.5" fill="var(--tx)" stroke="none"/>
+      <circle cx="17" cy="15" r="2" fill="var(--cyan)" stroke="none"/><line x1="7" y1="12" x2="12" y2="12" stroke="var(--tx-4)" stroke-width=".8"/><line x1="14" y1="10" x2="17" y2="15" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Terminal</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.5" fill="var(--cyan)" stroke="none"/><circle cx="6" cy="17" r="2" fill="var(--violet)" stroke="none"/>
+      <circle cx="18" cy="17" r="2" fill="var(--emerald)" stroke="none"/><line x1="12" y1="8.5" x2="6" y2="15" stroke="var(--tx-4)" stroke-width=".8"/><line x1="12" y1="8.5" x2="18" y2="15" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Agents</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="11" r="2" fill="var(--amber)" stroke="none"/><circle cx="16" cy="11" r="2" fill="var(--cyan)" stroke="none"/>
+      <circle cx="12" cy="17" r="2" fill="var(--violet)" stroke="none"/><line x1="8" y1="13" x2="12" y2="15" stroke="var(--tx-4)" stroke-width=".8"/><line x1="16" y1="13" x2="12" y2="15" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Market</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2" fill="var(--tx)" stroke="none"/><circle cx="12" cy="5" r="1.5" fill="var(--cyan)" stroke="none"/>
+      <circle cx="12" cy="19" r="1.5" fill="var(--violet)" stroke="none"/><circle cx="5" cy="12" r="1.5" fill="var(--emerald)" stroke="none"/>
+      <circle cx="19" cy="12" r="1.5" fill="var(--amber)" stroke="none"/><line x1="12" y1="7" x2="12" y2="10" stroke="var(--tx-4)" stroke-width=".8"/><line x1="12" y1="14" x2="12" y2="17" stroke="var(--tx-4)" stroke-width=".8"/><line x1="7" y1="12" x2="10" y2="12" stroke="var(--tx-4)" stroke-width=".8"/><line x1="14" y1="12" x2="17" y2="12" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Settings</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="2" fill="var(--cyan)" stroke="none"/><circle cx="7" cy="12" r="1.5" fill="var(--violet)" stroke="none"/>
+      <circle cx="17" cy="12" r="1.5" fill="var(--emerald)" stroke="none"/><circle cx="12" cy="17" r="2" fill="var(--amber)" stroke="none"/>
+      <line x1="12" y1="9" x2="7" y2="11" stroke="var(--tx-4)" stroke-width=".8"/><line x1="12" y1="9" x2="17" y2="11" stroke="var(--tx-4)" stroke-width=".8"/><line x1="12" y1="15" x2="12" y2="13" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Database</span>
+    </div>
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="2" fill="var(--accent)" stroke="none"/><circle cx="16" cy="9" r="2" fill="var(--violet)" stroke="none"/>
+      <circle cx="12" cy="15" r="2" fill="var(--cyan)" stroke="none"/><line x1="8" y1="11" x2="12" y2="13" stroke="var(--tx-4)" stroke-width=".8"/><line x1="16" y1="11" x2="12" y2="13" stroke="var(--tx-4)" stroke-width=".8"/></svg>
+      <span>Mail</span>
+    </div>
+    <div class="icon-cell large">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2" fill="var(--cyan)" stroke="none"/><circle cx="16" cy="8" r="2" fill="var(--violet)" stroke="none"/>
+      <circle cx="8" cy="14" r="2" fill="var(--emerald)" stroke="none"/><circle cx="16" cy="14" r="2" fill="var(--amber)" stroke="none"/>
+      <circle cx="12" cy="18" r="1.5" fill="var(--accent)" stroke="none"/>
+      <line x1="8" y1="10" x2="8" y2="12" stroke="var(--tx-4)" stroke-width=".8"/><line x1="16" y1="10" x2="16" y2="12" stroke="var(--tx-4)" stroke-width=".8"/>
+      <line x1="10" y1="8" x2="14" y2="8" stroke="var(--tx-4)" stroke-width=".8" stroke-dasharray="2 1.5"/>
+      <line x1="10" y1="14" x2="14" y2="14" stroke="var(--tx-4)" stroke-width=".8" stroke-dasharray="2 1.5"/></svg>
+      <span>Documents & Knowledge</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="approve">
+  <button class="btn-secondary" onclick="alert('Scroll back up to review each direction')">Review Again</button>
+  <button class="btn-primary" onclick="approve(1)">Approve Direction 1 — Neural Circuit</button>
+</div>
+
+<script>
+function approve(n){
+  document.querySelectorAll('.dir').forEach(function(d,i){
+    d.style.opacity = i===(n-1) ? '1' : '.3';
+    d.style.transform = i===(n-1) ? 'scale(1)' : 'scale(.98)';
+    d.style.transition = 'all .3s ease';
+  });
+  document.querySelector('.approve').innerHTML =
+    '<div style="text-align:center;padding:20px;color:var(--cyan);font-size:16px;font-weight:700;letter-spacing:-.01em">'+
+    'Direction '+n+' approved — tell me to implement it in the Console</div>';
+}
+</script>
+</body>
+</html>
