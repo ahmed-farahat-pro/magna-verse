@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Magna Console — Idea backlog (nothing here is built)</title>
+<meta name="description" content="A decision menu of unbuilt ideas harvested from nine competitor products, mapped onto Magna Console's actual architecture. Nothing on this page exists in the product. Awaiting go-ahead.">
+<meta name="color-scheme" content="dark light">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv.theme");
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+/* ============================================================
+   Magna Console house tokens. Dark is the native look; light is
+   a first-class inversion of the same names.
+   ============================================================ */
+:root{
+  --wall-1:#0A0F1C; --wall-2:#04060C; --bg:#05070C;
+  --glass:rgba(19,23,33,.68); --glass-2:rgba(26,31,43,.74); --glass-3:rgba(34,40,54,.8);
+  --glass-line:rgba(255,255,255,.10); --glass-line-2:rgba(255,255,255,.18);
+  --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#787E8D; --tx-4:#4C5262;
+  --accent:#D71920; --accent-2:#FF4A50; --accent-dim:rgba(215,25,32,.16);
+  --signal:#5B4FE0; --signal-dim:rgba(91,79,224,.16);
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+  --cyan:#0EA5B7; --blue:#3B7BFF; --violet:#8B5CF6;
+  --r:10px; --r-lg:16px; --r-xl:22px; --r-pill:99px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --shadow:0 24px 60px rgba(0,0,0,.5);
+  --shadow-sm:0 2px 10px rgba(0,0,0,.35);
+  --wall-glow-1:rgba(91,79,224,.20);
+  --wall-glow-2:rgba(215,25,32,.13);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --wall-1:#EDF0F6; --wall-2:#DFE4EE; --bg:#F4F6FA;
+    --glass:rgba(255,255,255,.80); --glass-2:rgba(255,255,255,.92); --glass-3:rgba(238,241,247,.95);
+    --glass-line:rgba(10,15,28,.11); --glass-line-2:rgba(10,15,28,.20);
+    --tx:#0B1020; --tx-2:#454B5B; --tx-3:#697080; --tx-4:#9AA1AF;
+    --accent:#C2141B; --accent-2:#D71920; --accent-dim:rgba(215,25,32,.10);
+    --signal:#4839C9; --signal-dim:rgba(72,57,201,.10);
+    --private:#15803D; --private-dim:rgba(21,128,61,.10);
+    --public:#B45309;  --public-dim:rgba(180,83,9,.10);
+    --cyan:#0B7B89; --blue:#2563EB; --violet:#7C3AED;
+    --shadow:0 24px 60px rgba(16,22,30,.14);
+    --shadow-sm:0 2px 10px rgba(16,22,30,.09);
+    --wall-glow-1:rgba(91,79,224,.13);
+    --wall-glow-2:rgba(215,25,32,.09);
+  }
+}
+:root[data-theme="light"]{
+  --wall-1:#EDF0F6; --wall-2:#DFE4EE; --bg:#F4F6FA;
+  --glass:rgba(255,255,255,.80); --glass-2:rgba(255,255,255,.92); --glass-3:rgba(238,241,247,.95);
+  --glass-line:rgba(10,15,28,.11); --glass-line-2:rgba(10,15,28,.20);
+  --tx:#0B1020; --tx-2:#454B5B; --tx-3:#697080; --tx-4:#9AA1AF;
+  --accent:#C2141B; --accent-2:#D71920; --accent-dim:rgba(215,25,32,.10);
+  --signal:#4839C9; --signal-dim:rgba(72,57,201,.10);
+  --private:#15803D; --private-dim:rgba(21,128,61,.10);
+  --public:#B45309;  --public-dim:rgba(180,83,9,.10);
+  --cyan:#0B7B89; --blue:#2563EB; --violet:#7C3AED;
+  --shadow:0 24px 60px rgba(16,22,30,.14);
+  --shadow-sm:0 2px 10px rgba(16,22,30,.09);
+  --wall-glow-1:rgba(91,79,224,.13);
+  --wall-glow-2:rgba(215,25,32,.09);
+}
+:root[data-theme="dark"]{
+  --wall-1:#0A0F1C; --wall-2:#04060C; --bg:#05070C;
+  --glass:rgba(19,23,33,.68); --glass-2:rgba(26,31,43,.74); --glass-3:rgba(34,40,54,.8);
+  --glass-line:rgba(255,255,255,.10); --glass-line-2:rgba(255,255,255,.18);
+  --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#787E8D; --tx-4:#4C5262;
+  --accent:#D71920; --accent-2:#FF4A50; --accent-dim:rgba(215,25,32,.16);
+  --signal:#5B4FE0; --signal-dim:rgba(91,79,224,.16);
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+  --cyan:#0EA5B7; --blue:#3B7BFF; --violet:#8B5CF6;
+  --shadow:0 24px 60px rgba(0,0,0,.5);
+  --shadow-sm:0 2px 10px rgba(0,0,0,.35);
+  --wall-glow-1:rgba(91,79,224,.20);
+  --wall-glow-2:rgba(215,25,32,.13);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0; overflow-x:hidden}
+body{
+  background:var(--bg); color:var(--tx); font-family:var(--sans);
+  font-size:15.5px; line-height:1.62; -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(1100px 620px at 12% -6%, var(--wall-glow-1), transparent 62%),
+    radial-gradient(900px 560px at 92% 4%, var(--wall-glow-2), transparent 60%),
+    linear-gradient(168deg, var(--wall-1), var(--wall-2) 78%);
+}
+h1,h2,h3,h4{margin:0; line-height:1.2; letter-spacing:-.02em}
+p{margin:0}
+a{color:var(--accent-2); text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal); outline-offset:2px; border-radius:4px}
+
+.wrap{width:100%; max-width:1280px; margin:0 auto; padding:0 28px}
+.mono{font-family:var(--mono)}
+
+/* ---------------- top bar ---------------- */
+.top{
+  position:sticky; top:0; z-index:60;
+  background:var(--glass); backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  border-bottom:1px solid var(--glass-line);
+}
+.top .wrap{display:flex; align-items:center; gap:16px; height:58px; flex-wrap:nowrap}
+.brand{display:flex; align-items:center; gap:10px; min-width:0}
+.brand svg{width:24px; height:auto; flex:none}
+.brand .wm{font-weight:700; font-size:14.5px; letter-spacing:-.01em; white-space:nowrap}
+.brand .wm span{color:var(--tx-3); font-weight:500}
+.topflag{
+  margin-left:6px; display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.10em; text-transform:uppercase;
+  color:var(--accent-2); background:var(--accent-dim);
+  border:1px dashed var(--accent); border-radius:var(--r-pill); padding:4px 11px; white-space:nowrap;
+}
+.topflag b{font-weight:700}
+.topspacer{margin-left:auto}
+.picked{
+  font-family:var(--mono); font-size:11px; color:var(--tx-2);
+  border:1px solid var(--glass-line); background:var(--glass-2);
+  border-radius:var(--r-pill); padding:5px 12px; white-space:nowrap;
+}
+.picked b{color:var(--tx); font-weight:700}
+.themeseg{display:flex; gap:2px; background:var(--glass-3); border:1px solid var(--glass-line); border-radius:var(--r-pill); padding:3px; flex:none}
+.themeseg button{
+  height:26px; padding:0 9px; border:0; background:transparent; border-radius:var(--r-pill);
+  color:var(--tx-3); display:grid; place-items:center; cursor:pointer; font:inherit;
+}
+.themeseg button:hover{color:var(--tx-2)}
+.themeseg button[aria-pressed="true"]{background:var(--glass); color:var(--tx); box-shadow:var(--shadow-sm)}
+.themeseg svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+@media (max-width:1080px){ .topflag{display:none} }
+@media (max-width:820px){ .picked{display:none} }
+
+/* ---------------- hero ---------------- */
+.hero{padding:64px 0 8px}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--tx-3); margin-bottom:18px;
+}
+.hero h1{font-size:clamp(32px,4.6vw,54px); font-weight:750; max-width:22ch}
+.hero h1 em{font-style:normal; color:var(--accent-2)}
+.hero .lede{margin-top:20px; max-width:74ch; font-size:17.5px; color:var(--tx-2)}
+.hero .lede strong{color:var(--tx); font-weight:650}
+
+/* ---------------- loud not-built banner ---------------- */
+.alarm{
+  margin:34px 0 8px; border-radius:var(--r-xl); overflow:hidden;
+  border:2px dashed var(--accent);
+  background:
+    linear-gradient(180deg, var(--accent-dim), transparent 70%),
+    var(--glass-2);
+  box-shadow:var(--shadow);
+}
+.alarm-strip{
+  display:flex; align-items:center; gap:10px; padding:11px 22px;
+  background:var(--accent); color:#fff;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.20em; text-transform:uppercase; font-weight:700;
+}
+.alarm-strip svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex:none}
+.alarm-body{padding:24px 26px 26px}
+.alarm-body h2{font-size:clamp(22px,2.5vw,30px); font-weight:750}
+.alarm-body p{margin-top:14px; color:var(--tx-2); max-width:80ch; font-size:16px}
+.alarm-body p strong{color:var(--tx)}
+.alarm-list{margin:20px 0 0; padding:0; list-style:none; display:grid; gap:11px}
+.alarm-list li{display:flex; gap:12px; align-items:flex-start; color:var(--tx-2); font-size:15px}
+.alarm-list .bx{
+  flex:none; width:19px; height:19px; margin-top:2px; border-radius:5px;
+  border:1.5px dashed var(--accent); background:var(--accent-dim);
+}
+.alarm-list b{color:var(--tx); font-weight:650}
+
+/* ---------------- meta / legend ---------------- */
+.metagrid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:30px 0 0}
+.metacard{
+  background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-lg);
+  padding:16px 18px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
+.metacard .n{font-family:var(--mono); font-size:26px; font-weight:700; letter-spacing:-.02em}
+.metacard .k{margin-top:4px; font-size:12.5px; color:var(--tx-3); letter-spacing:.02em}
+
+.legend{
+  margin-top:16px; background:var(--glass); border:1px solid var(--glass-line);
+  border-radius:var(--r-lg); padding:18px 20px;
+}
+.legend h3{font-size:12px; font-family:var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3)}
+.legend .rows{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px 26px; margin-top:14px}
+.legend .row{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--tx-2)}
+.legend .row .chips{flex:none; display:flex; gap:5px; flex-wrap:wrap; width:118px}
+
+/* ---------------- section nav ---------------- */
+.nav{
+  position:sticky; top:58px; z-index:50; margin-top:34px; padding:12px 0;
+  background:var(--glass); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border-top:1px solid var(--glass-line); border-bottom:1px solid var(--glass-line);
+}
+.nav .wrap{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.nav a, .fbtn{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.02em;
+  color:var(--tx-2); background:var(--glass-3); border:1px solid var(--glass-line);
+  border-radius:var(--r-pill); padding:6px 12px; cursor:pointer; text-decoration:none; white-space:nowrap;
+}
+.nav a:hover, .fbtn:hover{color:var(--tx); border-color:var(--glass-line-2); text-decoration:none}
+.nav .navlabel{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--tx-4); margin-right:2px}
+.filters{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.fbtn[aria-pressed="true"]{background:var(--signal-dim); border-color:var(--signal); color:var(--tx)}
+
+/* ---------------- groups ---------------- */
+.groups{padding:10px 0 20px}
+.group{padding:52px 0 6px; scroll-margin-top:128px}
+.group-head{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,420px); gap:26px; align-items:start;
+  border-top:1px solid var(--glass-line); padding-top:26px;
+}
+.group-ix{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--tx-4); text-transform:uppercase;
+  display:flex; gap:10px; align-items:center; margin-bottom:10px;
+}
+.group-ix .dot{width:6px;height:6px;border-radius:50%;background:var(--signal)}
+.group-head h2{font-size:clamp(24px,2.8vw,33px); font-weight:750}
+.group-head h2 small{display:block; font-size:13px; font-weight:500; color:var(--tx-3); letter-spacing:0; margin-top:8px; font-family:var(--mono)}
+.group-what{margin-top:14px; color:var(--tx-2); max-width:66ch; font-size:15px}
+.pattern{
+  background:var(--glass); border:1px solid var(--glass-line); border-left:3px solid var(--signal);
+  border-radius:var(--r); padding:14px 16px;
+}
+.pattern .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3)}
+.pattern p{margin-top:7px; font-size:13.5px; color:var(--tx-2)}
+.pattern .cnt{margin-top:12px; font-family:var(--mono); font-size:11.5px; color:var(--tx-3); border-top:1px dashed var(--glass-line-2); padding-top:10px}
+.pattern .cnt b{color:var(--tx)}
+
+/* ---------------- idea cards ---------------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fill, minmax(330px,1fr)); gap:16px; margin-top:26px}
+.card{
+  position:relative; display:flex; flex-direction:column; gap:12px;
+  background:var(--glass-2); border:1px solid var(--glass-line); border-radius:var(--r-lg);
+  padding:20px 20px 18px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  box-shadow:var(--shadow-sm);
+}
+.card::after{
+  content:""; position:absolute; inset:0; border-radius:var(--r-lg); pointer-events:none;
+  border:1px dashed var(--glass-line-2); opacity:.55; margin:5px;
+}
+.card.is-picked{border-color:var(--signal); box-shadow:0 0 0 1px var(--signal), var(--shadow-sm)}
+.card[hidden]{display:none}
+.card-top{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; position:relative; z-index:1}
+.card h3{font-size:17px; font-weight:700; max-width:26ch}
+.card .id{font-family:var(--mono); font-size:10.5px; color:var(--tx-4); margin-bottom:6px; letter-spacing:.08em}
+.from{
+  font-family:var(--mono); font-size:11px; color:var(--tx-3); letter-spacing:.02em;
+  position:relative; z-index:1;
+}
+.from b{color:var(--tx-2); font-weight:600}
+.card .what{font-size:14px; color:var(--tx-2); position:relative; z-index:1}
+.fit{
+  background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r);
+  padding:12px 14px; position:relative; z-index:1;
+}
+.fit .k{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--tx-4)}
+.fit p{margin-top:6px; font-size:13.5px; color:var(--tx-2)}
+.card-foot{
+  margin-top:auto; padding-top:12px; border-top:1px dashed var(--glass-line);
+  display:flex; gap:10px; align-items:flex-start; position:relative; z-index:1;
+}
+.card-foot .chiprow{display:flex; gap:7px; flex-wrap:wrap; align-items:center; min-width:0; flex:1 1 auto}
+.pickbtn{
+  flex:none; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+  background:transparent; border:1px solid var(--glass-line-2); color:var(--tx-3);
+  border-radius:var(--r-pill); padding:5px 11px; cursor:pointer;
+}
+.pickbtn:hover{color:var(--tx); border-color:var(--tx-3)}
+.pickbtn[aria-pressed="true"]{background:var(--signal-dim); border-color:var(--signal); color:var(--tx)}
+
+/* chips */
+.chip{
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+  border-radius:var(--r-pill); padding:4px 10px; border:1px solid var(--glass-line-2); color:var(--tx-2);
+  background:var(--glass-3);
+}
+.chip b{font-weight:700; color:var(--tx)}
+.chip-status{
+  border:1.5px dashed var(--accent); color:var(--accent-2); background:var(--accent-dim); font-weight:700;
+}
+.chip-status .gl{width:8px;height:8px;border:1.5px solid currentColor;transform:rotate(45deg);flex:none}
+.chip-effort{border-color:var(--signal); background:var(--signal-dim)}
+.chip-effort .gl{font-weight:700; color:var(--tx)}
+.chip-be{border-color:var(--glass-line-2)}
+.chip-be[data-be="yes"]{color:var(--tx); border-style:solid; background:color-mix(in srgb, var(--violet) 16%, transparent)}
+.chip-be[data-be="partly"]{background:color-mix(in srgb, var(--blue) 14%, transparent)}
+.chip-be[data-be="no"]{background:color-mix(in srgb, var(--cyan) 14%, transparent)}
+
+/* ---------------- prioritisation ---------------- */
+.prio{padding:70px 0 90px; scroll-margin-top:128px}
+.prio-head{border-top:1px solid var(--glass-line); padding-top:28px; max-width:76ch}
+.prio-head h2{font-size:clamp(26px,3vw,38px); font-weight:750}
+.prio-head p{margin-top:16px; color:var(--tx-2); font-size:16px}
+.prio-cols{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:30px}
+.pcol{
+  background:var(--glass); border:1px solid var(--glass-line); border-radius:var(--r-lg); padding:20px;
+  display:flex; flex-direction:column;
+}
+.pcol.t1{border-top:3px solid var(--cyan)}
+.pcol.t2{border-top:3px solid var(--blue)}
+.pcol.t3{border-top:3px solid var(--violet)}
+.pcol h3{font-size:17.5px; font-weight:700}
+.pcol .sub{margin-top:8px; font-size:13px; color:var(--tx-3)}
+.pcol ol{margin:18px 0 0; padding:0 0 0 0; list-style:none; counter-reset:p; display:grid; gap:14px}
+.pcol li{counter-increment:p; display:grid; grid-template-columns:24px minmax(0,1fr); gap:11px}
+.pcol li::before{
+  content:counter(p); font-family:var(--mono); font-size:11px; color:var(--tx-4);
+  border:1px solid var(--glass-line); border-radius:6px; width:24px; height:22px; display:grid; place-items:center;
+}
+.pcol .pname{font-size:14.5px; font-weight:650; color:var(--tx)}
+.pcol .pname a{color:inherit}
+.pcol .pmeta{margin-top:3px; font-family:var(--mono); font-size:10.5px; color:var(--tx-4); letter-spacing:.04em; text-transform:uppercase}
+.pcol .pwhy{margin-top:6px; font-size:13.5px; color:var(--tx-2)}
+.prio-foot{
+  margin-top:24px; border:2px dashed var(--accent); background:var(--accent-dim);
+  border-radius:var(--r-lg); padding:20px 22px;
+}
+.prio-foot h3{font-size:16px; font-weight:700; color:var(--tx)}
+.prio-foot p{margin-top:10px; color:var(--tx-2); font-size:14.5px; max-width:86ch}
+
+/* ---------------- footer ---------------- */
+.foot{border-top:1px solid var(--glass-line); padding:26px 0 60px; color:var(--tx-4); font-size:12.5px; font-family:var(--mono)}
+.foot .wrap{display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between}
+
+/* ---------------- responsive ---------------- */
+@media (max-width:1100px){
+  .metagrid{grid-template-columns:repeat(2,1fr)}
+  .legend .rows{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .prio-cols{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  .wrap{padding:0 18px}
+  .group-head{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+  .metagrid{grid-template-columns:1fr 1fr}
+  .legend .rows{grid-template-columns:1fr}
+  .nav{position:static}
+  .hero{padding-top:40px}
+}
+@media print{
+  body::before{display:none}
+  .nav,.themeseg,.pickbtn,.picked{display:none}
+  .card{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ top bar ============================ -->
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 640 440" aria-hidden="true">
+        <defs>
+          <linearGradient id="mkA" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".5" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mkB" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mkA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mkB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="wm">Magna Console <span>/ idea backlog</span></div>
+    </div>
+    <div class="topflag"><b>Not built</b> — proposals only</div>
+    <div class="topspacer"></div>
+    <div class="picked" id="pickCount" aria-live="polite">Shortlist: <b>0</b></div>
+    <div class="themeseg" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="system" aria-pressed="false" title="Follow system">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>
+        <span class="sr" hidden>System</span>
+      </button>
+      <button type="button" data-theme-set="light" aria-pressed="false" title="Light">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>
+      </button>
+      <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A8.4 8.4 0 1 1 9.6 4a6.6 6.6 0 0 0 10.4 10.4z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ============================ hero ============================ -->
+  <section class="wrap hero">
+    <div class="eyebrow">Competitor harvest · nine products · August 2026</div>
+    <h1>Forty-one ideas we <em>have not built</em>.</h1>
+    <p class="lede">
+      This is a menu, not a changelog. Every item below was pulled out of a competitor product we
+      researched, then re-cut to fit the architecture Magna Console <strong>already</strong> has —
+      Spaces, real windows, the single OS-wide approval gate, the Brain graph, and the sovereignty
+      pill. Nothing here has been designed in detail, prototyped, or coded. Read it, strike what you
+      dislike, and tell us which ones to start.
+    </p>
+
+    <!-- ============================ LOUD NOT-BUILT BANNER ============================ -->
+    <div class="alarm" role="note" aria-label="Nothing on this page is built">
+      <div class="alarm-strip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3z" stroke-linejoin="round"/><path d="M12 9.5v5M12 17.4v.1" stroke-linecap="round"/></svg>
+        Nothing on this page exists in the product yet
+      </div>
+      <div class="alarm-body">
+        <h2>Every idea here is unbuilt and awaiting your go-ahead.</h2>
+        <p>
+          You asked for the ideas harvested from the competitor research and explicitly asked us
+          <strong>not to implement them until you say so</strong>. We have not. This page is a decision
+          document: forty-one proposals, each one marked <strong>Not built</strong>, each with an honest
+          effort and backend estimate so you can pick from the menu rather than approve a wishlist.
+        </p>
+        <ul class="alarm-list">
+          <li><span class="bx" aria-hidden="true"></span><span><b>No code was written.</b> Nothing in <span class="mono">apps/app-7-console.html</span> was touched for anything described below. The Console prototype is exactly as it was.</span></li>
+          <li><span class="bx" aria-hidden="true"></span><span><b>Nothing is scheduled or committed.</b> There is no sprint, no owner, and no date attached to a single card on this page.</span></li>
+          <li><span class="bx" aria-hidden="true"></span><span><b>Every card carries a "Not built" chip.</b> No card will lose that chip until you have approved the work and it has actually been delivered — until then, read every sentence on this page as a proposal.</span></li>
+          <li><span class="bx" aria-hidden="true"></span><span><b>The estimates are guesses, deliberately honest ones.</b> S / M / L / XL is relative build cost inside a static single-file prototype; the backend chip says whether a convincing version can be faked in the browser at all.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="metagrid" id="metagrid"></div>
+
+    <div class="legend">
+      <h3>How to read a card</h3>
+      <div class="rows">
+        <div class="row">
+          <div class="chips"><span class="chip chip-status"><span class="gl" aria-hidden="true"></span>Not built</span></div>
+          <div>On every card, without exception. Means: proposed, not started. No card on this page has any other status.</div>
+        </div>
+        <div class="row">
+          <div class="chips">
+            <span class="chip chip-effort"><span class="gl">S</span></span>
+            <span class="chip chip-effort"><span class="gl">XL</span></span>
+          </div>
+          <div>Relative build cost in the prototype. <b>S</b> a sitting or two · <b>M</b> a few days · <b>L</b> a substantial slice of the app · <b>XL</b> a project in its own right.</div>
+        </div>
+        <div class="row">
+          <div class="chips">
+            <span class="chip chip-be" data-be="no">Backend no</span>
+            <span class="chip chip-be" data-be="partly">partly</span>
+            <span class="chip chip-be" data-be="yes">yes</span>
+          </div>
+          <div><b>No</b> — demoable honestly with static data. <b>Partly</b> — convincing in the prototype, needs a service to be true. <b>Yes</b> — cannot exist without real infrastructure.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ nav + filters ============================ -->
+  <nav class="nav" aria-label="Jump to a product group">
+    <div class="wrap">
+      <span class="navlabel">Harvested from</span>
+      <span id="navLinks" style="display:contents"></span>
+      <a href="#prioritisation">Prioritisation &rarr;</a>
+    </div>
+    <div class="wrap filters" role="group" aria-label="Filter idea cards">
+      <span class="navlabel">Filter</span>
+      <button type="button" class="fbtn" data-filter="all" aria-pressed="true">All 41</button>
+      <button type="button" class="fbtn" data-filter="S" aria-pressed="false">Effort S</button>
+      <button type="button" class="fbtn" data-filter="M" aria-pressed="false">Effort M</button>
+      <button type="button" class="fbtn" data-filter="L" aria-pressed="false">Effort L</button>
+      <button type="button" class="fbtn" data-filter="XL" aria-pressed="false">Effort XL</button>
+      <button type="button" class="fbtn" data-filter="nobackend" aria-pressed="false">No backend needed</button>
+      <button type="button" class="fbtn" data-filter="picked" aria-pressed="false">My shortlist</button>
+    </div>
+  </nav>
+
+  <!-- ============================ groups render here ============================ -->
+  <div class="groups wrap" id="groups"></div>
+
+  <!-- ============================ prioritisation ============================ -->
+  <section class="wrap prio" id="prioritisation">
+    <div class="prio-head">
+      <div class="eyebrow">If it were up to us</div>
+      <h2>A recommended order — opinionated, and still nothing more than a recommendation.</h2>
+      <p>
+        Three tiers. The first tier is chosen for one reason: it is cheap in a static single-file
+        prototype <em>and</em> it changes what a viewer believes about Console within thirty seconds of
+        a demo. The second tier is real product work with a real payoff. The third tier is where the
+        honest answer is "this needs a service, a browser runtime, or a security review before the
+        first pixel". Ordering is ours; the decision is yours.
+      </p>
+    </div>
+    <div class="prio-cols" id="prioCols"></div>
+    <div class="prio-foot">
+      <h3>Reminder, because this page is a menu and menus get skimmed</h3>
+      <p>
+        Not one of these forty-one ideas is implemented. The tiers above describe the order we would
+        build them <em>if</em> you say go — they are not a status board, and no item has moved out of
+        the "not built" state. Tell us which cards you want and we will come back with a design for
+        those cards only.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>Magna Console — idea backlog · 41 proposals · 0 built</span>
+    <span>Sources: nine competitor products researched Aug 2026 · findings verified, not re-fetched</span>
+  </div>
+</footer>
+
+<script>
+/* =========================================================================
+   THEME
+   ========================================================================= */
+(function(){
+  var KEY = "mv.theme";
+  var btns = Array.prototype.slice.call(document.querySelectorAll("[data-theme-set]"));
+  function current(){
+    try{ return localStorage.getItem(KEY) || "system"; }catch(e){ return "system"; }
+  }
+  function apply(mode){
+    if(mode === "light" || mode === "dark"){
+      document.documentElement.setAttribute("data-theme", mode);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    btns.forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-set") === mode));
+    });
+  }
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var mode = b.getAttribute("data-theme-set");
+      try{ localStorage.setItem(KEY, mode); }catch(e){}
+      apply(mode);
+    });
+  });
+  apply(current());
+})();
+
+/* =========================================================================
+   DATA — nine product groups. Every string is inserted with textContent,
+   so no HTML escaping is involved anywhere below.
+   ========================================================================= */
+var GROUPS = [
+  {
+    id: "cohere",
+    product: "Cohere OS",
+    site: "cohere-os.com",
+    claim: "AI life operating system",
+    what: "Despite the name there is no desktop, no windows and no icons — Cohere OS is a background service with a three-step setup (connect your tools, teach it who you are, live your life). It pushes scheduled briefings at 06:00, 09:00, 12:00, 15:00 and 18:00, takes input by voice note, text or phone call, and keeps a persistent memory built on hybrid RAG plus a decision history with reasoning trails. Integrations are Gmail, Google Calendar, Slack and finance apps; it claims 24/7 operation with sub-five-minute latency.",
+    pattern: "Conversational surface plus scheduled push. No GUI shell at all — the product is the schedule and the memory.",
+    ideas: [
+      {
+        name: "Briefing widgets pinned to the wallpaper",
+        what: "Five fixed daily slots (06:00, 09:00, 12:00, 15:00, 18:00) each render a flat dated card directly onto the wallpaper layer rather than opening a window. Cards stack for the day, grey out once read, and expire at midnight into the Brain. Clicking one opens the window it came from with the relevant item already selected.",
+        fit: "Console has four Spaces and an animated wallpaper that currently carries no information at all. Widgets give the wallpaper a job and let Space 1 become the morning space without adding another app icon to the dock.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "Decision ledger with attached reasoning",
+        what: "Every pass through the approval gate writes one immutable row: what was proposed, which app raised it, the sovereignty tier at that moment, who approved or refused, and the model's stated reason in its own words. The ledger is browsable, filterable by app and by tier, and exportable as a flat file.",
+        fit: "The gate is already the single choke point every write in the OS must pass through, so it is the only place that needs instrumenting — one hook produces a complete audit trail. Each row can link straight into the Brain nodes it touched.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "Voice-note intake in the dock",
+        what: "Hold a mic button in the dock, speak a sentence, and the transcript arrives as a queued intent card — never as an executed action. The card sits in a small tray showing what Console thinks you asked for, and only runs once you send it through the gate.",
+        fit: "The dock already has a contextual zone that changes with the active app, so it can host capture without new chrome. The sovereignty pill decides whether transcription happens on-device or leaves the network — a genuinely different behaviour per tier.",
+        effort: "M", backend: "yes"
+      },
+      {
+        name: "Liveness and latency strip in the menu bar",
+        what: "A small menu-bar readout showing whether background workers are actually running, when each scheduled briefing last fired, how many runs were missed, and the current median response time against a stated target. Clicking it opens a plain history rather than a marketing dial.",
+        fit: "The menu bar already carries the sovereignty pill as an OS-level truth-teller. A second one that admits when the system is behind or asleep reinforces the claim that this is an operating system rather than a chat window with a wallpaper.",
+        effort: "S", backend: "partly"
+      },
+      {
+        name: "Teach-it-who-you-are profile pane",
+        what: "A first-run pane that captures role, live projects, working hours, escalation thresholds in money and days, and a list of counterparties who must never be contacted without an explicit ask. Every app reads the same profile, and it stays editable in one place forever.",
+        fit: "Gives the Brain a root person-node that all seventeen existing typed nodes can hang relationships off, and gives the approval gate a reason to raise its own sensitivity — a draft to a named counterparty stops harder than a draft to a colleague.",
+        effort: "S", backend: "no"
+      }
+    ]
+  },
+  {
+    id: "lindy",
+    product: "Lindy",
+    site: "lindy.ai",
+    claim: "Your next hire is AI",
+    what: "Lindy is an AI teammate that lives inside Slack rather than in its own app. It carries 1,000+ app integrations plus MCP support, joins Meet, Zoom and Teams calls as a named participant that records and transcribes into a queryable record, and gates every write behind mandatory approval while read-only lookups run free. It ships 40+ prebuilt skills, lets you do something once and save it as a shared skill, and exposes memory as an editable plain-text file the team can read and correct. Pricing is $29.99 / $99.99 / $199.99 per user per month against a workspace credit pool with per-person spend caps; SOC 2 Type II, GDPR, HIPAA and PIPEDA are claimed.",
+    pattern: "Chat inside a tool the team already lives in, no shell of its own, approval prompts inline in the conversation.",
+    ideas: [
+      {
+        name: "Record a skill by demonstrating it once",
+        what: "Do a task manually with the gate approving each write as usual, then Console offers to save the whole trace as a named skill with the varying values lifted into typed inputs. Saved skills get an owner, a version, and a plain-language summary of exactly what they will touch.",
+        fit: "Console's gate already records the shape of every write action as it happens, which is most of a recording. Skills would then appear as first-class results in Spotlight and as rows in the existing Agents app rather than needing a new builder surface.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "An editable plain-text memory file",
+        what: "Everything Console has learned also renders as one human-readable memory file in a normal window — facts, preferences, working assumptions, one per line with a source. Delete a line and the matching Brain node is retired with a note saying who removed it and when; edit a line and the graph follows.",
+        fit: "The Brain graph with its cosine-weighted edges is the honest data structure but it is unreadable to a client in a meeting. A text mirror is the trust artifact: it turns an impressive visualisation into something a project director can audit and correct.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "Credit meter with per-person caps",
+        what: "A workspace pool of credits with per-seat caps, a live meter showing what today has cost, and a hard stop that routes an over-cap request to the gate for a human to fund or refuse. Every agent run shows its own cost after the fact, not just before.",
+        fit: "It sits naturally beside the sovereignty pill in the menu bar, and it makes the Private-versus-Public tier trade-off arithmetical instead of rhetorical: on-prem Riyadh DC-1 inference has a different unit cost, and the meter can say so.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "State the read-free, write-gated rule out loud",
+        what: "Publish Console's actual policy as a visible card in Settings — reads never interrupt you, writes always stop at the gate — then mark every action in every app with a read or write glyph so the gate never arrives as a surprise. Hovering a write glyph previews the confirmation you will get.",
+        fit: "Console already behaves this way through one OS-wide gate; the behaviour is simply invisible until it fires. Naming the rule and pre-labelling actions turns an interruption into a promise, at almost no build cost.",
+        effort: "S", backend: "no"
+      },
+      {
+        name: "An agent that attends the meeting as a named participant",
+        what: "Console joins a call under its own name, records, transcribes, and files the outcome as decision rows and task cards. The transcript becomes a citable source in the Brain, so a later answer can point at the minute a commitment was made.",
+        fit: "It would feed the Brain the one input it currently cannot get — spoken commitments — and every task it produces would arrive through the same approval gate as everything else. Also the most exposed idea on this page: consent, recording law and platform APIs all sit in front of it.",
+        effort: "XL", backend: "yes"
+      }
+    ]
+  },
+  {
+    id: "multion",
+    product: "MultiOn",
+    site: "docs.multion.ai",
+    claim: "Motor Cortex layer for AI",
+    what: "MultiOn is an API-first developer product that turns natural language into real browser actions. It runs secure remote browser sessions with native proxy support so sessions survive bot detection, extracts full-page structured data with an LLM, ships a Chrome extension for handing a task between the local human and the agent, and executes agents in parallel across many sessions at once.",
+    pattern: "No end-user shell — the transferable ideas are the human handoff and the parallelism, not the interface.",
+    ideas: [
+      {
+        name: "Take the wheel — handoff mid-run",
+        what: "During an agent run the user can seize the session: the agent freezes, highlights the step it was about to take, and hands over control. When you hand it back, whatever you did is folded into the run trace as a human-performed step and the agent continues from the new state.",
+        fit: "Console's agent mode is currently all-or-nothing scripted, and its most honest weakness is that a real run will hit something it cannot solve. A takeover button turns that failure into a designed moment and gives the approval gate a third option beside approve and refuse: do it yourself.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "Parallel agent sessions, one window each",
+        what: "Launch the same objective across several sessions, or several objectives at once, with each session in its own window on a dedicated Space and its own progress strip. Write requests from all sessions collapse into one ordered queue at the gate so approvals never race each other.",
+        fit: "This is the single idea that best exploits what Console already has and competitors do not: real windowing, snap-to-half, z-order, and four Spaces. Four agents tiled across a Space is a demo no sidebar product can imitate.",
+        effort: "L", backend: "partly"
+      },
+      {
+        name: "Remote browser session instead of an iframe",
+        what: "Replace the embedded iframe with a streamed remote browser session rendered into the Browser window, with proxy support so real sites load and stay logged in. The agent drives the remote session; the user sees the same pixels.",
+        fit: "It retires the honest framing-limitation notice Console currently displays, which is the prototype's most visible ceiling. It is also the heaviest lift here — a real browser farm, real session security, real cost per minute.",
+        effort: "XL", backend: "yes"
+      },
+      {
+        name: "Extract this page as a structured artifact",
+        what: "One action on any page or document produces a typed table — fields, rows, a per-field confidence, and an anchor back to the part of the source each value came from. Low-confidence cells are flagged rather than silently filled.",
+        fit: "Chat already emits CSV, letter and slide-deck artifacts, so this reuses an existing artifact type and an existing viewer. Pointed at a supplier quote or a delay notice it produces exactly the tables Console's dummy data set is built around.",
+        effort: "M", backend: "partly"
+      }
+    ]
+  },
+  {
+    id: "crewai",
+    product: "CrewAI",
+    site: "crewai.com",
+    claim: "Enterprise multi-agent orchestration",
+    what: "CrewAI builds crews of agents that collaborate on a task, with one unified build-and-runtime environment for business teams and engineers alike, centrally governed. It claims 450M+ agentic workflows a month and adoption across 65% of the Fortune 500, citing PepsiCo, DocuSign and Experian, with use cases spanning lead enrichment, curriculum design, customer support and QA automation at claimed 75-96% efficiency gains. There is a cloud platform and an open-source install path.",
+    pattern: "Compose agents into roles and crews, then govern them centrally from a dashboard.",
+    ideas: [
+      {
+        name: "Supervisor agent that decomposes and delegates",
+        what: "Give one objective in plain language — close out PO 4500219871 with Al-Rajhi Steel — and a supervisor breaks it into role tasks, assigns each to a named role agent, and renders the plan as a live tree with per-node status, inputs and outputs. Nodes can be re-assigned or deleted before the run starts.",
+        fit: "Console's Agents app currently lists agents as flat cards with no relationships between them. A plan tree gives the app a reason to exist, and every leaf that wants to write still queues at the same single gate — governance for free.",
+        effort: "L", backend: "partly"
+      },
+      {
+        name: "Governance panel over what each crew may do",
+        what: "Per crew, an explicit allow-list: which apps it can open, which connectors it can reach, which Brain node types it can read, which sovereignty tier it may run under, and whether it is permitted to request writes at all. Anything outside the list is refused before it reaches the gate, with the refusal logged.",
+        fit: "This is the enterprise-buyer answer to the obvious objection about autonomous agents, and it plugs straight into the Private and Public tiers already modelled in the menu bar. A crew marked Private-only simply cannot be run while the pill says Public.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "Crew run ledger with a disputable efficiency figure",
+        what: "Every crew run records duration, steps, cost, and a claimed time saved against the manual baseline — with the baseline shown and editable, so a quantity surveyor who thinks the number is nonsense can correct it and the ledger keeps both figures.",
+        fit: "Console's positioning depends on being believed by people who price risk for a living. A savings figure you can argue with is worth more to that audience than a confident percentage, and the ledger shares its storage with the decision trail.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "A role library built from real Magna roles",
+        what: "Prebuilt role agents that match how the business is actually staffed — planner, quantity surveyor, procurement, contracts, HSE, document control — each shipping with a defined scope, a checklist it works through, and a default crew it belongs to. Roles are editable, not fixed.",
+        fit: "It answers the first question every viewer asks the Agents app: what would I actually put in here. Roles anchored to the existing dummy world — Line 3 package C2, Subcontract GC-8 clause 8.4, the SAR 5.32M exposure — read as a product rather than a template gallery.",
+        effort: "M", backend: "no"
+      }
+    ]
+  },
+  {
+    id: "central",
+    product: "Zapier Central",
+    site: "zapier.com/blog",
+    claim: "An experimental AI bot workspace",
+    what: "Zapier Central gives you bots that are meant to work more like teammates than programs, set up in three steps: add data from Google Sheets, Docs or Notion, teach behaviour in plain language, then chat to run. Bots reach 6,000+ apps through Zapier and can run with or without the user present, and a single user can keep several specialised bots. Chat is the entire control surface — there is no separate builder.",
+    pattern: "No-code teaching by instruction, where the conversation is the builder and the runtime at once.",
+    ideas: [
+      {
+        name: "Chat is the builder — refine an automation in the thread",
+        what: "Describe an automation in Chat and a draft automation card appears in the thread; each following message edits that same card in place — add a condition, change the recipient, narrow the trigger — with a visible diff per turn. It stays a draft until it passes the gate, and only then becomes a real automation.",
+        fit: "Spotlight already turns one sentence into a drafted automation, but it is a single shot with no way to argue with the result. Making the thread the editing surface removes the wizard Console never built and keeps the gate as the only moment anything becomes real.",
+        effort: "M", backend: "no"
+      },
+      {
+        name: "Away runs and a return digest",
+        what: "Automations continue while nobody is at the machine. On return, one digest window says what ran, what it changed, what it decided not to do, and what is still parked at the gate waiting for a human — ordered by consequence, not by time.",
+        fit: "Console's whole claim is an OS that works rather than a chat that waits. A digest is the proof, and it reuses the briefing-widget and decision-ledger surfaces instead of inventing a third notification pattern.",
+        effort: "M", backend: "yes"
+      },
+      {
+        name: "Several narrow bots, each with a drawn data scope",
+        what: "Instead of one assistant that sees everything, several small ones — a claims bot, a procurement bot, a submittals bot — each attached to a specific folder, sheet or Brain subgraph. The scope is drawn on the window chrome itself, so you can see what a bot can and cannot see while you talk to it.",
+        fit: "Console can already read real dragged folders through the Code app's File API, so per-bot scoping has something concrete to bind to. Visible scope on the chrome is also the cheapest trust signal available in a windowed UI.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "A versioned plain-language instruction sheet per agent",
+        what: "Each agent's behaviour is one editable page of prose — how to write, when to escalate, what never to touch — with numbered versions, a diff between any two, and a one-click rollback. No blocks, no nodes, no graph.",
+        fit: "It gives the Agents app an editing surface that a contracts manager can use without training, and it pairs with the plain-text memory file: one page for what the agent knows, one page for how it behaves.",
+        effort: "S", backend: "no"
+      }
+    ]
+  },
+  {
+    id: "comet",
+    product: "Perplexity Comet",
+    site: "perplexity.ai/comet",
+    claim: "A browser with the assistant built into the sidebar",
+    what: "Comet is a Chromium browser whose agent lives natively in the sidebar, knows which tab you are on, and holds context across the whole session. Cross-tab questions are valid input — asking what all these tabs have in common works. A separate Comet Agent mode acts autonomously: finding flights that match your calendar, scheduling meetings, filling forms, managing subscriptions. It has been free on macOS, Windows, Android and iOS since April 2026, with no account needed for core features.",
+    pattern: "Persistent sidebar assistant, cross-surface context, and a distinct autonomous mode you switch into deliberately.",
+    ideas: [
+      {
+        name: "Comparison questions across every open window",
+        what: "Ask one question of everything on the Space and get a structured comparison rather than a summary — where do these three documents disagree, which of these quotes moved, what does the drawing say that the specification does not. Output is a differences table with a citation per cell.",
+        fit: "Console's floating companion already reads every open window on the space, so the input is solved and the missing half is the output shape. Extending it across Spaces makes the four virtual desktops into four comparable contexts instead of four places to lose a window.",
+        effort: "M", backend: "no"
+      },
+      {
+        name: "Autonomous mode with a visible step trace",
+        what: "A mode you deliberately switch into, which streams its steps as a list — each labelled read or write, each with what it saw and what it did — plus a stop button that halts mid-step and a rewind that returns to any earlier step and takes a different branch.",
+        fit: "It makes autonomy legible instead of magical, which is the only version an enterprise buyer will accept. The read and write labels are the same distinction the approval gate already enforces, so the trace and the gate tell one consistent story.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "A session-aware rail inside the Browser app",
+        what: "The Browser app gets its own rail that knows the active tab, remembers what you looked at earlier in the session, and can act on the set — open all of these in a new Space, keep the three that matter, extract the same field from each.",
+        fit: "Console's Browser already has real tabs and a real iframe; what it lacks is anything that treats the tab set as one object. Handing a tab set to a Space connects two features that currently do not know about each other.",
+        effort: "M", backend: "no"
+      },
+      {
+        name: "Calendar-constrained execution",
+        what: "Ask for something that only makes sense against your week — find a site-visit window for Line 3 package C2 that clears the LD exposure date and fits my calendar — and the agent reconciles schedule, calendar and constraint, then proposes three dated options at the gate instead of booking one.",
+        fit: "It gives the sovereignty story teeth: calendar and project schedule are exactly the data a client will insist stays on-prem, so the Private tier becomes a functional requirement rather than a badge. Needs real calendar access to be anything but a script.",
+        effort: "L", backend: "yes"
+      }
+    ]
+  },
+  {
+    id: "littlebird",
+    product: "Littlebird",
+    site: "littlebird.ai",
+    claim: "A second brain for desktop and mobile",
+    what: "Littlebird observes passively — it watches your active window and listens in meetings, so nothing needs pasting in. Its Hummingbird is a floating sidebar summonable from any app without switching windows, and memory is rendered as a magazine-style dashboard of cards (tasks, emails, reminders, preferences, current focus) rather than a linear chat log. It drafts in your voice from learned writing patterns, connects to around 100 integrations including Notion, Linear, Gmail, Google Calendar, Intercom and Klaviyo, and runs scheduled briefings it calls routines. SOC 2, and no training on your data.",
+    pattern: "An omnipresent floating companion plus card-based memory — the log replaced by a dashboard.",
+    ideas: [
+      {
+        name: "A magazine-style memory dashboard",
+        what: "A wall of cards instead of a chat history: what you are working on now, what you are waiting on and from whom, threads that went quiet, commitments with dates attached, and preferences Console has inferred. Cards are projections of Brain state, so correcting a card corrects the graph.",
+        fit: "Console has the graph and the typed nodes but only exposes them as a visualisation. A card wall is the same data in the register a project director reads, and it gives the four Spaces an obvious fifth surface: a Today space that is not an app.",
+        effort: "M", backend: "no"
+      },
+      {
+        name: "Opt-in passive capture of the active window",
+        what: "With an explicit switch on, Console keeps a private timeline of what was actually on screen — document, page, thread — so you can ask what you were looking at when a decision was made. Stays on the device, retention is a number the user sets, and the whole timeline can be dropped in one action.",
+        fit: "It maps precisely onto the sovereignty pill: Private tier can permit capture because nothing leaves Riyadh DC-1, Public tier must disable it outright. That contrast is the strongest argument the pill can make, but this is also the idea most likely to fail a security review — worth proposing, not worth sneaking in.",
+        effort: "L", backend: "yes"
+      },
+      {
+        name: "A collapsed companion pill that survives everything",
+        what: "The companion collapses to a small pill at the screen edge and stays reachable over Mission Control, over a maximised window, and while Spotlight is open — expanding in place with the context of whatever is beneath it rather than opening a panel somewhere else.",
+        fit: "Console's companion already reads the space but it competes with windows for room. A collapsed state plus one hotkey makes it omnipresent instead of intrusive, and it is one of the cheapest cards on this page to try.",
+        effort: "S", backend: "no"
+      },
+      {
+        name: "Drafting in the user's learned voice",
+        what: "A voice profile built from letters the user has actually sent — how much hedging, which sign-off, how formality shifts between a client and a subcontractor — applied to the letter artifact. Each draft carries a short note on where it deviated from your usual register and why.",
+        fit: "Chat already produces a letter artifact, so the pipe exists and only the styling layer is new. In a bilingual contracting business the register question is not cosmetic: the same notice reads differently in Arabic and English, and the profile can hold both.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "Meeting to decisions, with no manual paste",
+        what: "A listener turns a meeting into two outputs: decision rows with who committed to what, and task cards routed to the gate for approval before anything is created. Anything it could not hear clearly is marked unresolved rather than guessed.",
+        fit: "Decisions are the unit Console's Brain is organised around, and meetings are where they are actually made. Every produced task still stops at the gate, so the agent never silently books work off a misheard sentence.",
+        effort: "L", backend: "yes"
+      }
+    ]
+  },
+  {
+    id: "browseros",
+    product: "BrowserOS",
+    site: "browseros.com",
+    claim: "A privacy-first agentic browser",
+    what: "BrowserOS is an open-source Chromium fork positioning itself explicitly as the privacy-first alternative to ChatGPT Atlas and Perplexity. Agents run locally, browsing history stays on the device, you supply your own API keys, and automations run on your machine rather than in a corporate cloud. It routes across 11+ model providers including Moonshot Kimi, Anthropic Claude, Google Gemini, OpenAI and OpenRouter with 500+ models, and fully local inference via Ollama or LM Studio. Chrome extensions still work; macOS, Windows and Linux; free.",
+    pattern: "Browser as OS, local-first model routing, bring your own keys — privacy as the product, not a policy page.",
+    ideas: [
+      {
+        name: "A model routing table bound to the sovereignty tier",
+        what: "One table mapping app plus tier to a provider and model — Chat under Private goes to an on-prem endpoint, Browser under Public may use a hosted frontier model, Brain embeddings never leave the device. Rows are editable, and a row that contradicts the current tier is shown as blocked rather than silently overridden.",
+        fit: "This is the missing mechanism behind Console's best idea. The pill currently declares Private or Public; the routing table is what would make the declaration true, and it turns a coloured badge into an enforceable configuration.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "On-device fallback with visible degradation",
+        what: "When egress is blocked or the network is gone, apps keep working against a smaller local model and say so plainly in the window chrome — this answer came from the on-device model, expect less depth — instead of failing or quietly getting worse.",
+        fit: "Sovereignty is only credible if the restricted mode still works. Admitting the quality difference in the chrome is more persuasive to a cautious buyer than pretending the tiers are identical, and it reuses the per-window status area Console already has.",
+        effort: "M", backend: "yes"
+      },
+      {
+        name: "A provider shelf with bring-your-own-keys",
+        what: "A Settings pane where an administrator adds their own keys, sees per-provider egress destinations in plain language, marks providers as forbidden under the Private tier, and pins a default. Keys are shown as held-locally, never as a hosted convenience.",
+        fit: "It is the concrete answer to the procurement question about where inference happens and whose contract it sits under. It also makes the Connections app coherent: connectors for data, the shelf for models.",
+        effort: "M", backend: "yes"
+      },
+      {
+        name: "Portable, exportable automations",
+        what: "Any automation or crew exports as a single readable file that a human can review in a text editor and import into another Console. A local-only flag marks the ones that must never call out, and the flag travels with the file.",
+        fit: "It suits a business that runs the same processes across projects and joint ventures, and it fits Console's existing character as one static self-contained file with no build step. Reviewable-as-text is also the cheapest possible governance story.",
+        effort: "M", backend: "no"
+      },
+      {
+        name: "A locality statement generated from configuration",
+        what: "A one-screen statement of what never leaves the device and what does — generated from the live routing table and connector list rather than written by hand, so it cannot drift from the truth. Changing a route rewrites the statement in front of you.",
+        fit: "Console already models data movement in the pill, so the statement is a rendering of state that would exist anyway. It is close to free to build and it is the page a client's IT security officer will actually ask for.",
+        effort: "S", backend: "no"
+      }
+    ]
+  },
+  {
+    id: "openwebui",
+    product: "Open WebUI",
+    site: "openwebui.com",
+    claim: "Self-hosted, extensible, runs fully offline",
+    what: "Open WebUI is a self-hosted ChatGPT-like front end that works entirely offline against Ollama or any OpenAI-compatible API. RAG is native rather than an add-on: upload PDFs, Word files or web pages and it splits, indexes and answers with source citations, with selectable vector databases and extraction engines, plus web search for retrieval from 15+ providers including SearXNG, Brave, Google PSE, Kagi, Tavily, Perplexity, Bing and DuckDuckGo. A Pipelines plugin framework runs as a separate server for function calling, rate limiting, usage monitoring via Langfuse, translation via LibreTranslate, content filtering and custom Python surfaced in the UI. Models switch mid-conversation; voice and video chat run on local Whisper or cloud STT with TTS; image generation goes through DALL-E, Gemini, ComfyUI or AUTOMATIC1111; multi-user RBAC lets a team share one private deployment.",
+    pattern: "A familiar chat shell with model, retrieval and plugin control promoted to first-class surfaces instead of buried in settings.",
+    ideas: [
+      {
+        name: "A pipelines framework — third-party panes as real apps",
+        what: "A manifest declares a pane's name, icon, the data scopes it wants and whether it may request writes. Console loads it in a sandboxed window with a real dock icon, and every write it asks for goes through the same approval gate as a built-in app. Panes can be removed without touching Console itself.",
+        fit: "It is how Console stops being nine hard-coded apps and becomes a platform, and the gate is exactly the isolation boundary a plugin system needs — third-party code can ask, but only the user can approve. Sandboxing and scope enforcement are where the real work sits.",
+        effort: "XL", backend: "yes"
+      },
+      {
+        name: "Switch model mid-conversation, with a visible seam",
+        what: "Change model in the middle of a thread and the transcript shows a labelled divider — from here on, a different model, at a different tier — so nobody misattributes an answer later. Earlier turns keep the badge of the model that produced them.",
+        fit: "Console's chat is scripted today, but the seam is a presentation idea that costs almost nothing and pays twice: it demonstrates the routing table and it makes the Private-versus-Public difference visible inside the conversation where it matters.",
+        effort: "S", backend: "no"
+      },
+      {
+        name: "Inline citations that resolve into the Brain",
+        what: "Every factual claim carries a small chip that opens the exact node, document span or page it came from, and claims with no source are visibly marked as unsupported rather than left ambiguous. Clicking a chip focuses that node in the graph.",
+        fit: "The Brain already holds seventeen typed nodes with weighted edges and an embedding preview, so citation targets exist and only the round trip is missing. For a business arguing over a clause reference, an answer you can trace beats an answer that sounds right.",
+        effort: "M", backend: "partly"
+      },
+      {
+        name: "A retrieval control surface, per project",
+        what: "Per project, choose the chunker, the vector store, the embedding model and the web-search provider, and see what each choice changed by running the same query against both settings side by side. Defaults are sensible; the controls are for the one project where they matter.",
+        fit: "It gives the Brain a configuration story rather than only a visualisation, and the side-by-side comparison is the honest way to expose knobs — the user sees the consequence instead of guessing at a dropdown.",
+        effort: "L", backend: "yes"
+      },
+      {
+        name: "Multi-user RBAC over one on-prem deployment",
+        what: "Roles and permissions across a shared install: a shared Brain with node-level visibility, per-user Spaces and windows, and an audit view showing who saw what. One deployment inside the client's network, many people, different reach.",
+        fit: "Every other idea on this page assumes a single user, and Console's on-prem Riyadh DC-1 story only closes when a team shares one install. It is also unavoidably a real product — identity, sessions, per-node authorisation — and belongs at the bottom of the order for that reason.",
+        effort: "XL", backend: "yes"
+      }
+    ]
+  }
+];
+
+var PRIORITY = [
+  {
+    tier: "t1",
+    title: "Do first",
+    sub: "Cheap in a static prototype, and each one changes what a viewer believes within the first minute of a demo.",
+    items: [
+      { id: "lindy-4",     why: "The gate is Console's best idea and is currently invisible until it fires; naming the rule costs a day and reframes an interruption as a promise." },
+      { id: "browseros-5", why: "A locality statement generated from configuration is the page IT security asks for, and it is a rendering of state the prototype already tracks." },
+      { id: "openwebui-2", why: "The model seam is pure presentation, and it makes the Private versus Public difference visible inside the conversation rather than only in the menu bar." },
+      { id: "littlebird-1",why: "A card wall reuses existing Brain data and instantly answers the question the graph does not: so what do I do today." },
+      { id: "comet-1",     why: "The companion already reads every window; only the output shape is missing, so a comparison table is the highest ratio of new capability to new code on this page." },
+      { id: "cohere-5",    why: "A profile pane is a day of work that gives the gate a reason to escalate and the Brain a root node, unlocking several later cards." },
+      { id: "littlebird-3",why: "A collapsed companion pill removes the companion's only real flaw — that it competes with windows for space — for very little effort." },
+      { id: "openwebui-3", why: "Citations resolve against nodes that already exist, and traceability is the feature this audience actually buys." },
+      { id: "central-1",   why: "Spotlight already drafts an automation once; making the thread the editing surface removes the wizard Console never has to build." },
+      { id: "multion-4",   why: "Structured extraction lands in an artifact type Chat already renders, so the demo gains a new verb with no new viewer." },
+      { id: "cohere-4",    why: "A liveness strip that admits missed runs buys more credibility than any polished dashboard, and it is one menu-bar element." }
+    ]
+  },
+  {
+    tier: "t2",
+    title: "Do next",
+    sub: "Real product work with a real payoff. Each depends on something in the first tier, or on a decision only you can make.",
+    items: [
+      { id: "multion-2",   why: "Four agents tiled across a Space is the one demo no sidebar competitor can copy, and it exploits windowing that is already built." },
+      { id: "crewai-1",    why: "The Agents app needs relationships between agents before it needs more agents; a plan tree is that structure." },
+      { id: "crewai-2",    why: "Governance is the first objection any enterprise buyer raises about the plan tree, so it should ship in the same breath as it." },
+      { id: "lindy-1",     why: "Skill recording is mostly a matter of persisting traces the gate already produces, but it needs the plan tree to have somewhere to live." },
+      { id: "lindy-2",     why: "A plain-text memory file is the trust artifact the graph cannot be, and it wants the profile pane in place first." },
+      { id: "multion-1",   why: "Takeover turns the inevitable agent failure into a designed moment, and it needs the step trace to hand over from." },
+      { id: "cohere-1",    why: "Briefing widgets give the wallpaper a job, but they only mean anything once there is real state worth surfacing." },
+      { id: "cohere-2",    why: "The decision ledger is one hook on the gate, and it becomes the storage layer several later cards borrow." },
+      { id: "comet-2",     why: "A visible step trace is the only version of autonomy this market will accept; do it before anything acts unattended." },
+      { id: "central-4",   why: "A versioned instruction sheet gives non-technical staff a way to change agent behaviour without a graph editor." },
+      { id: "central-3",   why: "Per-bot data scope drawn on the chrome is the cheapest trust signal in a windowed UI, and the Code app already reads real folders." },
+      { id: "comet-3",     why: "A session-aware Browser rail connects tabs to Spaces — two features that already exist and currently ignore each other." },
+      { id: "browseros-4", why: "Portable automations suit a business repeating processes across projects, and reviewable-as-text is governance for almost nothing." },
+      { id: "crewai-4",    why: "A role library grounded in real Magna roles answers the first question anyone asks the Agents app." },
+      { id: "littlebird-4",why: "Voice-matched drafting reuses the letter artifact, but it needs a corpus of sent letters before it is more than a style toggle." },
+      { id: "crewai-3",    why: "A disputable savings ledger is worth more than a confident percentage to people who price risk, once there are runs to measure." },
+      { id: "central-2",   why: "The away digest is the proof of the whole premise, so it sits here rather than lower — but it cannot precede a real scheduler." }
+    ]
+  },
+  {
+    tier: "t3",
+    title: "Needs real infrastructure",
+    sub: "Nothing here can be honestly faked. Each one needs a service, a runtime, or a security review before the first pixel.",
+    items: [
+      { id: "browseros-1", why: "The routing table is the mechanism that makes the sovereignty pill true, so it heads this tier despite needing real endpoints." },
+      { id: "browseros-3", why: "A provider shelf with real keys is procurement's actual question, and it cannot be mocked without lying." },
+      { id: "browseros-2", why: "On-device fallback only means something with a real local model behind it; without one it is a label." },
+      { id: "openwebui-1", why: "A pipelines framework is how Console stops being nine hard-coded apps, but sandboxing and scope enforcement are the whole job." },
+      { id: "openwebui-5", why: "RBAC is unavoidable before a client shares one on-prem install, and it is identity work, not UI work." },
+      { id: "openwebui-4", why: "Retrieval controls need a real index to compare against; side-by-side output is meaningless over dummy data." },
+      { id: "multion-3",   why: "A remote browser session retires the framing-limitation notice, but it means a browser farm and a cost per minute." },
+      { id: "comet-4",     why: "Calendar-constrained execution needs genuine calendar and schedule access; scripted, it is a magic trick." },
+      { id: "cohere-3",    why: "Voice intake needs speech-to-text that can run on-prem to be consistent with the Private tier at all." },
+      { id: "lindy-3",     why: "A credit meter has nothing to meter until inference is metered, so it waits on the routing table." },
+      { id: "littlebird-5",why: "Meeting-to-decisions needs capture, diarisation and a consent story before it produces one task card." },
+      { id: "lindy-5",     why: "A meeting-attending agent adds platform APIs and recording law on top of all of that; propose it, do not start it." },
+      { id: "littlebird-2",why: "Passive screen capture is the most valuable and most dangerous idea on this page; it goes last, or not at all, and only by explicit decision." }
+    ]
+  }
+];
+/* END DATA */
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+(function(){
+  var groupsHost = document.getElementById("groups");
+  var navHost = document.getElementById("navLinks");
+  var index = {};
+  var total = 0, byEffort = {S:0,M:0,L:0,XL:0}, noBackend = 0;
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls){ n.className = cls; }
+    if(text !== undefined && text !== null){ n.textContent = text; }
+    return n;
+  }
+
+  function statusChip(){
+    var c = el("span", "chip chip-status");
+    c.appendChild(el("span", "gl"));
+    c.appendChild(el("span", null, "Not built"));
+    c.setAttribute("title", "Proposed only. Not designed, not prototyped, not coded.");
+    return c;
+  }
+  function effortChip(v){
+    var c = el("span", "chip chip-effort");
+    c.appendChild(el("span", "gl", v));
+    c.appendChild(el("span", null, "effort"));
+    c.setAttribute("title", "Relative build cost: " + v);
+    return c;
+  }
+  function backendChip(v){
+    var c = el("span", "chip chip-be", "Backend " + v);
+    c.setAttribute("data-be", v);
+    c.setAttribute("title", "Needs a backend: " + v);
+    return c;
+  }
+
+  GROUPS.forEach(function(g, gi){
+    var section = el("section", "group");
+    section.id = g.id;
+
+    var head = el("div", "group-head");
+
+    var left = el("div");
+    var ix = el("div", "group-ix");
+    ix.appendChild(el("span", "dot"));
+    ix.appendChild(el("span", null, "Group " + (gi + 1) + " of " + GROUPS.length + " — harvested from"));
+    left.appendChild(ix);
+
+    var h2 = el("h2", null, g.product);
+    h2.appendChild(el("small", null, g.site + " — " + g.claim));
+    left.appendChild(h2);
+    left.appendChild(el("p", "group-what", g.what));
+    head.appendChild(left);
+
+    var pat = el("div", "pattern");
+    pat.appendChild(el("div", "k", "UI pattern worth stealing"));
+    pat.appendChild(el("p", null, g.pattern));
+    var cnt = el("div", "cnt");
+    var cb = el("b", null, String(g.ideas.length));
+    cnt.appendChild(cb);
+    cnt.appendChild(document.createTextNode(" ideas below · " + g.ideas.length + " not built · 0 built"));
+    pat.appendChild(cnt);
+    head.appendChild(pat);
+
+    section.appendChild(head);
+
+    var cards = el("div", "cards");
+    g.ideas.forEach(function(idea, ii){
+      var cid = g.id + "-" + (ii + 1);
+      idea._id = cid;
+      idea._product = g.product;
+      index[cid] = idea;
+      total += 1;
+      if(byEffort[idea.effort] !== undefined){ byEffort[idea.effort] += 1; }
+      if(idea.backend === "no"){ noBackend += 1; }
+
+      var card = el("article", "card");
+      card.id = "idea-" + cid;
+      card.setAttribute("data-effort", idea.effort);
+      card.setAttribute("data-backend", idea.backend);
+      card.setAttribute("data-id", cid);
+
+      var top = el("div", "card-top");
+      var titleWrap = el("div");
+      titleWrap.appendChild(el("div", "id", cid.toUpperCase()));
+      titleWrap.appendChild(el("h3", null, idea.name));
+      top.appendChild(titleWrap);
+      top.appendChild(statusChip());
+      card.appendChild(top);
+
+      var from = el("div", "from");
+      from.appendChild(document.createTextNode("from: "));
+      from.appendChild(el("b", null, g.product));
+      from.appendChild(document.createTextNode(" · " + g.site));
+      card.appendChild(from);
+
+      card.appendChild(el("p", "what", idea.what));
+
+      var fit = el("div", "fit");
+      fit.appendChild(el("div", "k", "Why it fits Console"));
+      fit.appendChild(el("p", null, idea.fit));
+      card.appendChild(fit);
+
+      var foot = el("div", "card-foot");
+      var chiprow = el("div", "chiprow");
+      chiprow.appendChild(effortChip(idea.effort));
+      chiprow.appendChild(backendChip(idea.backend));
+      chiprow.appendChild(statusChip());
+      foot.appendChild(chiprow);
+
+      var pick = el("button", "pickbtn", "Shortlist");
+      pick.type = "button";
+      pick.setAttribute("aria-pressed", "false");
+      pick.setAttribute("data-pick", cid);
+      foot.appendChild(pick);
+
+      card.appendChild(foot);
+      cards.appendChild(card);
+    });
+    section.appendChild(cards);
+    groupsHost.appendChild(section);
+
+    var a = document.createElement("a");
+    a.href = "#" + g.id;
+    a.textContent = g.product + " (" + g.ideas.length + ")";
+    navHost.appendChild(a);
+  });
+
+  /* ---- meta counters ---- */
+  var meta = [
+    [String(total), "ideas on this page"],
+    ["0", "of them built"],
+    [String(GROUPS.length), "products harvested"],
+    [String(noBackend), "need no backend at all"]
+  ];
+  var mg = document.getElementById("metagrid");
+  meta.forEach(function(m){
+    var c = el("div", "metacard");
+    c.appendChild(el("div", "n", m[0]));
+    c.appendChild(el("div", "k", m[1]));
+    mg.appendChild(c);
+  });
+
+  /* ---- prioritisation ---- */
+  var cols = document.getElementById("prioCols");
+  PRIORITY.forEach(function(t){
+    var col = el("div", "pcol " + t.tier);
+    col.appendChild(el("h3", null, t.title));
+    col.appendChild(el("p", "sub", t.sub));
+    var ol = el("ol");
+    t.items.forEach(function(it){
+      var idea = index[it.id];
+      var li = el("li");
+      var body = el("div");
+      var nm = el("div", "pname");
+      var link = document.createElement("a");
+      link.href = "#idea-" + it.id;
+      link.textContent = idea ? idea.name : it.id;
+      nm.appendChild(link);
+      body.appendChild(nm);
+      if(idea){
+        body.appendChild(el("div", "pmeta", "from " + idea._product + " · effort " + idea.effort + " · backend " + idea.backend + " · not built"));
+      } else {
+        body.appendChild(el("div", "pmeta", "unresolved id " + it.id));
+      }
+      body.appendChild(el("div", "pwhy", it.why));
+      li.appendChild(body);
+      ol.appendChild(li);
+    });
+    col.appendChild(ol);
+    cols.appendChild(col);
+  });
+
+  /* ---- integrity check: every idea appears exactly once in the order ---- */
+  (function(){
+    var seen = {}, dupes = [], missing = [];
+    PRIORITY.forEach(function(t){
+      t.items.forEach(function(it){
+        if(seen[it.id]){ dupes.push(it.id); }
+        seen[it.id] = true;
+        if(!index[it.id]){ missing.push(it.id); }
+      });
+    });
+    Object.keys(index).forEach(function(k){
+      if(!seen[k]){ missing.push("unranked:" + k); }
+    });
+    if(dupes.length || missing.length){
+      console.warn("backlog integrity", { duplicates: dupes, unresolved: missing });
+    }
+  })();
+
+  /* ---- shortlist ---- */
+  var PKEY = "mv.backlog.shortlist";
+  var picked = {};
+  try{
+    var raw = localStorage.getItem(PKEY);
+    if(raw){ picked = JSON.parse(raw) || {}; }
+  }catch(e){ picked = {}; }
+
+  var counter = document.getElementById("pickCount");
+  function countPicked(){
+    return Object.keys(picked).filter(function(k){ return picked[k]; }).length;
+  }
+  function paintCount(){
+    counter.textContent = "";
+    counter.appendChild(document.createTextNode("Shortlist: "));
+    counter.appendChild(el("b", null, String(countPicked())));
+    counter.appendChild(document.createTextNode(" of " + total + " (still nothing built)"));
+  }
+  function paintCard(cid){
+    var card = document.querySelector('[data-id="' + cid + '"]');
+    var btn = document.querySelector('[data-pick="' + cid + '"]');
+    if(!card || !btn){ return; }
+    var on = !!picked[cid];
+    card.classList.toggle("is-picked", on);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.textContent = on ? "Shortlisted" : "Shortlist";
+  }
+  Object.keys(index).forEach(paintCard);
+  paintCount();
+
+  document.addEventListener("click", function(ev){
+    var btn = ev.target.closest ? ev.target.closest("[data-pick]") : null;
+    if(!btn){ return; }
+    var cid = btn.getAttribute("data-pick");
+    picked[cid] = !picked[cid];
+    try{ localStorage.setItem(PKEY, JSON.stringify(picked)); }catch(e){}
+    paintCard(cid);
+    paintCount();
+    if(activeFilter === "picked"){ applyFilter(); }
+  });
+
+  /* ---- filters ---- */
+  var activeFilter = "all";
+  var fbtns = Array.prototype.slice.call(document.querySelectorAll("[data-filter]"));
+  function applyFilter(){
+    var allCards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+    allCards.forEach(function(card){
+      var show = true;
+      var eff = card.getAttribute("data-effort");
+      var be = card.getAttribute("data-backend");
+      var cid = card.getAttribute("data-id");
+      if(activeFilter === "S" || activeFilter === "M" || activeFilter === "L" || activeFilter === "XL"){
+        show = (eff === activeFilter);
+      } else if(activeFilter === "nobackend"){
+        show = (be === "no");
+      } else if(activeFilter === "picked"){
+        show = !!picked[cid];
+      }
+      card.hidden = !show;
+    });
+    GROUPS.forEach(function(g){
+      var section = document.getElementById(g.id);
+      if(!section){ return; }
+      var visible = section.querySelectorAll(".card:not([hidden])").length;
+      section.style.display = visible ? "" : "none";
+    });
+    fbtns.forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-filter") === activeFilter));
+    });
+  }
+  fbtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      activeFilter = b.getAttribute("data-filter");
+      applyFilter();
+    });
+  });
+  applyFilter();
+})();
+</script>
+</body>
+</html>
