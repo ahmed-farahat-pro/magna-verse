@@ -739,6 +739,108 @@ body.dock-left #quickPanel{left:100px}
 .vp-hint{font-size:10.5px;color:var(--tx-4);padding:0 14px 12px;font-family:var(--mono);text-align:center}
 @media (max-width:767px){ #voicePanel{bottom:130px} }
 
+/* ---- Notification Centre (clock badge + right slide-over) ---- */
+#clockBtn{display:flex;align-items:center;gap:6px;position:relative;padding:2px 6px;border-radius:7px}
+#clockBtn:hover{background:var(--glass-2)}
+#clockBadge{min-width:15px;height:15px;padding:0 4px;border-radius:99px;background:var(--accent);color:#fff;
+  font-size:9.5px;font-weight:700;display:grid;place-items:center;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+#notifPanel{position:fixed;top:calc(var(--menubar-h) + 8px);right:8px;bottom:8px;width:min(360px,calc(100vw - 16px));
+  z-index:231;border-radius:var(--r-xl);background:var(--glass-2);backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line-2);box-shadow:var(--shadow-pop);
+  display:flex;flex-direction:column;transform:translateX(calc(100% + 16px));transition:transform .3s cubic-bezier(.32,.72,0,1);
+  overflow:hidden}
+#notifPanel.on{transform:none}
+.nc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;flex:none}
+.nc-title{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--tx)}
+.nc-title .ico{color:var(--cyan)}
+.nc-btn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--tx-3)}
+.nc-btn:hover{background:var(--glass-3);color:var(--tx)}
+.nc-body{flex:1;overflow-y:auto;padding:0 10px 12px;display:flex;flex-direction:column;gap:7px}
+.nc-item{border:1px solid var(--glass-line);border-radius:12px;background:var(--glass-2);padding:10px 12px;
+  animation:winIn .18s ease-out}
+.nc-item.agent{border-left:2px solid var(--private)}
+.nc-item.toast{border-left:2px solid var(--glass-line-2)}
+.nc-item.approval{border-left:2px solid var(--public)}
+.nc-t{font-size:12px;font-weight:650;color:var(--tx);display:flex;align-items:center;gap:6px}
+.nc-b{font-size:11.5px;color:var(--tx-2);line-height:1.5;margin-top:2px}
+.nc-tm{font-family:var(--mono);font-size:9.5px;color:var(--tx-4);margin-top:4px}
+.nc-acts{display:flex;gap:6px;margin-top:8px}
+.nc-acts .btn{flex:1}
+.nc-empty{text-align:center;color:var(--tx-4);font-size:12px;padding:30px 10px}
+.nc-sec{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx-4);font-weight:700;padding:8px 4px 2px}
+
+/* ---- Control Centre (top-right cluster) ---- */
+#ccPanel{position:fixed;top:calc(var(--menubar-h) + 8px);right:8px;z-index:232;width:min(340px,calc(100vw - 16px));
+  border-radius:var(--r-xl);background:var(--glass-2);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line-2);box-shadow:var(--shadow-pop);padding:12px;display:none}
+#ccPanel.on{display:block;animation:winIn .18s ease-out}
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cc-tile{border:1px solid var(--glass-line);border-radius:14px;background:var(--glass-2);padding:11px 12px}
+.cc-span2{grid-column:span 2}
+.cc-lbl{font-size:11px;font-weight:700;color:var(--tx-2);display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.cc-sub{font-size:10px;color:var(--tx-4);margin-top:6px}
+.cc-seg{display:flex;gap:4px}
+.cc-seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;height:30px;border-radius:9px;
+  border:1px solid var(--glass-line);background:var(--glass-2);color:var(--tx-3);font-size:11.5px;font-weight:600;
+  transition:all .15s}
+.cc-seg button:hover{border-color:var(--tx-4)}
+.cc-seg button.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.cc-toggle{width:44px;height:26px;border-radius:99px;background:var(--glass-3);border:1px solid var(--glass-line-2);
+  position:relative;transition:background .2s}
+.cc-toggle .cc-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:99px;background:var(--tx-2);
+  transition:transform .2s cubic-bezier(.32,.72,0,1)}
+.cc-toggle[aria-pressed="true"]{background:var(--cyan)}
+.cc-toggle[aria-pressed="true"] .cc-knob{transform:translateX(18px);background:#fff}
+.cc-layouts{display:flex;flex-wrap:wrap;gap:4px}
+.cc-layouts button{font-size:10px;padding:4px 8px;border-radius:7px;border:1px solid var(--glass-line);
+  background:var(--glass-2);color:var(--tx-3);transition:all .12s}
+.cc-layouts button:hover{border-color:var(--tx-4);color:var(--tx-2)}
+.cc-layouts button.on{background:var(--cyan);border-color:var(--cyan);color:#04222a;font-weight:700}
+.cc-walls{display:flex;gap:6px;flex-wrap:wrap}
+.cc-walls .wp-opt{width:44px;height:30px}
+.cc-range{width:100%;accent-color:var(--cyan)}
+.cc-act{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--tx-2);cursor:pointer}
+.cc-act:hover{border-color:var(--cyan);color:var(--tx)}
+.cc-act kbd{margin-right:auto}
+
+/* ---- Shortcuts overlay ---- */
+#keysPanel{position:fixed;inset:0;z-index:233;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);
+  display:none;align-items:center;justify-content:center}
+#keysPanel.on{display:flex;animation:fadeIn .15s ease-out}
+.kp-box{width:min(680px,calc(100vw - 32px));max-height:82vh;border-radius:var(--r-xl);background:var(--glass-2);
+  backdrop-filter:var(--blur);border:1px solid var(--glass-line-2);box-shadow:var(--shadow-pop);overflow:hidden;
+  display:flex;flex-direction:column}
+.kp-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;flex:none}
+.kp-title{font-size:14px;font-weight:700;color:var(--tx)}
+.kp-grid{overflow-y:auto;padding:4px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){ .kp-grid{grid-template-columns:1fr} }
+.kp-sec{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx-4);font-weight:700;margin-bottom:6px}
+.kp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;font-size:12px;color:var(--tx-2)}
+.kp-row .keys{display:flex;gap:3px;flex:none}
+
+/* ---- Widget editor ---- */
+#weditPanel{position:fixed;inset:0;z-index:233;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center}
+#weditPanel.on{display:flex;animation:fadeIn .15s ease-out}
+.we-box{width:min(420px,calc(100vw - 32px));max-height:82vh;border-radius:var(--r-xl);background:var(--glass-2);
+  backdrop-filter:var(--blur);border:1px solid var(--glass-line-2);box-shadow:var(--shadow-pop);overflow:hidden;
+  display:flex;flex-direction:column}
+.we-sub{font-size:11.5px;color:var(--tx-3);padding:0 14px 8px;margin:0}
+.we-list{display:flex;flex-direction:column;gap:5px;padding:0 14px;overflow-y:auto;min-height:60px}
+.we-row{display:flex;align-items:center;gap:9px;border:1px solid var(--glass-line);border-radius:11px;
+  background:var(--glass-2);padding:9px 11px;font-size:12.5px;color:var(--tx-2);cursor:grab}
+.we-row.dragging{opacity:.4;border-style:dashed}
+.we-row .we-grip{color:var(--tx-4);display:flex;flex-direction:column;gap:2px}
+.we-row .we-grip i{width:12px;height:2px;border-radius:2px;background:currentColor;display:block}
+.we-row b{color:var(--tx)}
+.we-x{margin-left:auto;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;color:var(--tx-4);flex:none}
+.we-x:hover{background:var(--accent-dim);color:var(--accent-2)}
+.we-add{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;padding:0 14px 6px}
+.we-opt{border:1px dashed var(--glass-line-2);border-radius:11px;padding:9px;text-align:center;font-size:11px;
+  color:var(--tx-3);background:var(--glass-2);transition:all .15s}
+.we-opt:hover{border-color:var(--cyan);color:var(--cyan)}
+.we-opt b{display:block;font-size:11.5px;color:var(--tx-2);margin-bottom:2px}
+
 /* OS-level approval card when no window hosts the action */
 .approve.floating{position:fixed;left:50%;bottom:calc(var(--dock-h) + 24px);transform:translateX(-50%);
   z-index:9996;width:min(440px,calc(100vw - 32px));display:flex;gap:12px;align-items:flex-start;
@@ -1614,12 +1716,15 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     <span class="sp"></span>
     <div id="spacePips" role="group" aria-label="Spaces"></div>
     <button class="mb-btn" id="mcBtn" aria-label="Mission Control"><svg class="ico sm"><use href="#i-grid"/></svg></button>
+    <button class="mb-btn" id="ccBtn" aria-label="Control Centre"><svg class="ico sm"><use href="#i-gear"/></svg></button>
     <button class="mb-btn" id="spotBtn" aria-label="Spotlight search"><svg class="ico sm"><use href="#i-search"/></svg></button>
     <button class="mb-btn" id="themeBtn" aria-label="Toggle theme"><svg class="ico sm"><use href="#i-moon"/></svg></button>
     <button id="sovPill" data-tier="private" aria-label="Sovereignty tier">
       <span class="dot"></span><span id="sovTx">Private</span><span class="scope" id="sovScope">· Riyadh DC-1</span>
     </button>
-    <span id="clock">18:24</span>
+    <button id="clockBtn" aria-label="Notifications" title="Notifications">
+      <span id="clock">18:24</span><span id="clockBadge" hidden></span>
+    </button>
   </div>
 
   <div id="spaces"></div>
@@ -1681,6 +1786,84 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     <div class="vp-hint">“open chat” · “new desktop for bidding” · “make a board deck” · “run an agent” · “what should I do next?”</div>
   </div>
 
+  <!-- Notification Centre — toast history, agent events, approvals -->
+  <div id="notifPanel" role="dialog" aria-label="Notifications">
+    <div class="nc-head">
+      <span class="nc-title"><svg class="ico sm"><use href="#i-bell"/></svg>Notifications</span>
+      <span style="display:flex;gap:4px">
+        <button class="nc-btn" data-ncclear title="Clear all"><svg class="ico sm"><use href="#i-x"/></svg></button>
+        <button class="nc-btn" data-ncx title="Close"><svg class="ico sm"><use href="#i-x"/></svg></button>
+      </span>
+    </div>
+    <div class="nc-body" id="ncBody"></div>
+  </div>
+
+  <!-- Control Centre — every OS toggle in one cluster -->
+  <div id="ccPanel" role="dialog" aria-label="Control Centre">
+    <div class="cc-grid">
+      <div class="cc-tile cc-span2">
+        <div class="cc-lbl">Appearance</div>
+        <div class="cc-seg" data-ccseg="mode">
+          <button data-ccmode="dark"><svg class="ico xs"><use href="#i-moon"/></svg>Dark</button>
+          <button data-ccmode="light"><svg class="ico xs"><use href="#i-sun"/></svg>Light</button>
+        </div>
+      </div>
+      <div class="cc-tile">
+        <div class="cc-lbl">Focus</div>
+        <button class="cc-toggle" data-cctoggle="focus" aria-pressed="false"><span class="cc-knob"></span></button>
+        <div class="cc-sub" data-ccfocuslbl>Agents quiet</div>
+      </div>
+      <div class="cc-tile">
+        <div class="cc-lbl">Clap wake</div>
+        <button class="cc-toggle" data-cctoggle="clap" aria-pressed="false"><span class="cc-knob"></span></button>
+        <div class="cc-sub">Double-clap → voice</div>
+      </div>
+      <div class="cc-tile cc-span2">
+        <div class="cc-lbl">Icon layout</div>
+        <div class="cc-layouts" data-cclayouts></div>
+      </div>
+      <div class="cc-tile cc-span2">
+        <div class="cc-lbl">Dock position</div>
+        <div class="cc-seg" data-ccseg="dock">
+          <button data-ccdock="bottom">Bottom</button>
+          <button data-ccdock="left">Left edge</button>
+        </div>
+      </div>
+      <div class="cc-tile cc-span2">
+        <div class="cc-lbl">Wallpaper</div>
+        <div class="cc-walls" data-ccwalls></div>
+      </div>
+      <div class="cc-tile cc-span2">
+        <div class="cc-lbl">Neural intensity <span class="cc-sub" style="display:inline" data-ccneutx></span></div>
+        <input type="range" class="cc-range" data-ccneu min="0" max="100" step="5">
+      </div>
+      <button class="cc-tile cc-act" data-ccwidgets><svg class="ico sm"><use href="#i-grid"/></svg>Edit this desktop’s widgets</button>
+      <button class="cc-tile cc-act" data-cckeys><kbd>?</kbd>Keyboard shortcuts</button>
+    </div>
+  </div>
+
+  <!-- Shortcuts overlay -->
+  <div id="keysPanel" role="dialog" aria-label="Keyboard shortcuts">
+    <div class="kp-box">
+      <div class="kp-head"><span class="kp-title">Shortcuts &amp; gestures</span>
+        <button class="nc-btn" data-kpx><svg class="ico sm"><use href="#i-x"/></svg></button></div>
+      <div class="kp-grid" id="kpGrid"></div>
+    </div>
+  </div>
+
+  <!-- Widget editor -->
+  <div id="weditPanel" role="dialog" aria-label="Edit widgets">
+    <div class="we-box">
+      <div class="kp-head"><span class="kp-title" data-wetitle>Widgets</span>
+        <button class="nc-btn" data-wex><svg class="ico sm"><use href="#i-x"/></svg></button></div>
+      <p class="we-sub">Drag to reorder · <span>×</span> removes · click below to add. Saved per desktop.</p>
+      <div class="we-list" data-welist></div>
+      <div class="cc-lbl" style="padding:10px 14px 6px">Available widgets</div>
+      <div class="we-add" data-weadd></div>
+      <div style="padding:12px 14px"><button class="btn primary" data-wedone style="width:100%">Done</button></div>
+    </div>
+  </div>
+
   <!-- ===== CONTEXT MENU ===== -->
   <div id="ctxMenu" class="ctx-menu" style="display:none">
     <div class="ctx-title" data-ctx-title></div>
@@ -1701,6 +1884,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     <button class="ctx-item" data-ctx="wallpaper"><svg class="ico xs"><use href="#i-monitor"/></svg>Change Wallpaper</button>
     <button class="ctx-item" data-ctx="theme"><svg class="ico xs"><use href="#i-moon"/></svg>Change Theme</button>
     <button class="ctx-item" data-ctx="dockside"><svg class="ico xs"><use href="#i-grid"/></svg><span data-docklbl>Dock to Left</span></button>
+    <button class="ctx-item" data-ctx="widgets"><svg class="ico xs"><use href="#i-grid"/></svg>Edit Widgets</button>
     <button class="ctx-item" data-ctx="clap"><svg class="ico xs"><use href="#i-spark"/></svg><span data-claplbl>Clap Detection: Off</span></button>
   </div>
 
@@ -1784,10 +1968,299 @@ function isMobile(){ return window.matchMedia("(max-width:767px)").matches; }
 var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function toast(msg,ms){
+  notifPush("toast", "", msg);              /* every toast is kept in the Centre */
+  if(focusMode() && !/approv|approval|delete|blocked/i.test(msg)) return;  /* focus: quiet, but logged */
   var t = el("div","toast", esc(msg));
   $("#toasts").appendChild(t);
   setTimeout(function(){ t.classList.add("out"); setTimeout(function(){ t.remove(); }, 220); }, ms||3400);
 }
+/* ============================================================
+   0b · NOTIFICATION CENTRE + CONTROL CENTRE + SHORTCUTS
+   ============================================================ */
+var NOTIF = { log: [], unread: 0 };
+var NC_APPROVALS = [
+  { id:"a1", t:"Deploy api-gateway v2.4 → production",
+    b:"Requested by CI agent · 14 min ago · affects 3 services",
+    yes:"Deployed", no:"Kept on staging" },
+  { id:"a2", t:"Delete 41 duplicate vendor records",
+    b:"Vendor master cleanup agent · irreversible, needs your sign-off",
+    yes:"Deleted", no:"Left untouched" },
+  { id:"a3", t:"Run Board Pack scheduler now",
+    b:"Outside its 09:00 schedule · will post to the board channel",
+    yes:"Ran once", no:"Skipped" }
+];
+function focusMode(){ return store.get("mv7.focus","off") === "on"; }
+function setFocus(on){
+  store.set("mv7.focus", on ? "on" : "off");
+  syncCC();
+  toast(on ? "Focus on — agents stay quiet, notifications still logged."
+           : "Focus off — agents and toasts are live again.", 2400);
+}
+function notifPush(kind, title, body, approval){
+  NOTIF.log.unshift({ kind:kind, t:title, b:body, at:Date.now(), ap:approval||null, done:null });
+  if(NOTIF.log.length > 60) NOTIF.log.pop();
+  NOTIF.unread++;
+  ncBadge();
+  if($("#notifPanel").classList.contains("on")) ncRender();
+}
+function ncBadge(){
+  var b = $("#clockBadge");
+  b.hidden = NOTIF.unread === 0;
+  b.textContent = NOTIF.unread > 9 ? "9+" : NOTIF.unread;
+}
+function ncAgo(ts){
+  var s = Math.max(1, Math.round((Date.now() - ts)/1000));
+  if(s < 60) return s + "s ago";
+  if(s < 3600) return Math.round(s/60) + "m ago";
+  return Math.round(s/3600) + "h ago";
+}
+function ncRender(){
+  var host = $("#ncBody");
+  var pend = NC_APPROVALS.filter(function(a){ return !a.done; });
+  var parts = [];
+  if(pend.length){
+    parts.push('<div class="nc-sec">Waiting on you</div>');
+    parts.push(pend.map(function(a){
+      return '<div class="nc-item approval"><div class="nc-t">'+ico("i-approve","xs")+esc(a.t)+'</div>'+
+        '<div class="nc-b">'+esc(a.b)+'</div>'+
+        '<div class="nc-acts">'+
+          '<button class="btn sm danger" data-ncok="'+a.id+'">Approve</button>'+
+          '<button class="btn sm" data-ncno="'+a.id+'">Reject</button></div></div>';
+    }).join(""));
+  }
+  parts.push('<div class="nc-sec">Recent</div>');
+  parts.push(NOTIF.log.length ? NOTIF.log.map(function(n){
+    var icon = n.kind === "agent" ? "i-agent" : n.kind === "approval" ? "i-approve" : "i-bell";
+    return '<div class="nc-item '+n.kind+'"><div class="nc-t">'+ico(icon,"xs")+
+      (n.t ? esc(n.t) : (n.kind === "agent" ? "Agent" : "Console"))+'</div>'+
+      '<div class="nc-b">'+esc(n.b)+'</div>'+
+      '<div class="nc-tm">'+ncAgo(n.at)+'</div></div>';
+  }).join("") : '<div class="nc-empty">Nothing yet — toasts and agent events land here.</div>');
+  host.innerHTML = parts.join("");
+}
+function ncOpen(on){
+  var p = $("#notifPanel");
+  p.classList.toggle("on", on !== false);
+  if(on !== false){ NOTIF.unread = 0; ncBadge(); ncRender(); }
+}
+$("#clockBtn").addEventListener("click", function(){ ncOpen(!$("#notifPanel").classList.contains("on")); });
+document.addEventListener("click", function(e){
+  if(e.target.closest("[data-ncx]")){ ncOpen(false); return; }
+  if(e.target.closest("[data-ncclear]")){ NOTIF.log = []; ncRender(); return; }
+  var ok = e.target.closest("[data-ncok]");
+  if(ok){ var a = NC_APPROVALS.filter(function(x){return x.id===ok.getAttribute("data-ncok");})[0];
+    if(a){ a.done = "yes"; toast(a.yes + ".", 2400); ncRender(); } return; }
+  var no = e.target.closest("[data-ncno]");
+  if(no){ var a2 = NC_APPROVALS.filter(function(x){return x.id===no.getAttribute("data-ncno");})[0];
+    if(a2){ a2.done = "no"; toast(a2.no + ".", 2200); ncRender(); } return; }
+});
+/* agent events land in the Centre even when focus mutes the popup */
+function agentNotify(title, body){
+  notifPush("agent", title, body);
+  if(!focusMode()) toast(title + ": " + body.replace(/<[^>]+>/g,""), 4200);
+}
+
+/* ---- Control Centre ---- */
+function ccOpen(on){
+  var p = $("#ccPanel");
+  p.classList.toggle("on", on !== false);
+  if(on !== false) ccRender();
+}
+function setLayout(name){
+  store.set("mv7.layout", name);
+  $$(".icon-layer").forEach(function(el){ el.setAttribute("data-layout", name); });
+  renderIcons();
+}
+function neuIntensity(){ return +store.get("mv7.neui","55"); }
+function setNeuIntensity(v){
+  store.set("mv7.neui", String(v));
+  var cv = $("#neural");
+  if(cv) cv.style.opacity = (v/100 * 0.9).toFixed(2);
+}
+function ccRender(){
+  var mode = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  $$("#ccPanel [data-ccmode]").forEach(function(b){
+    b.classList.toggle("on", b.getAttribute("data-ccmode") === mode); });
+  $$("#ccPanel [data-ccdock]").forEach(function(b){
+    b.classList.toggle("on", b.getAttribute("data-ccdock") ===
+      (document.body.classList.contains("dock-left") ? "left" : "bottom")); });
+  var cur = getCurrentLayout();
+  var box = $("[data-cclayouts]");
+  box.innerHTML = Object.keys(LAYOUTS).map(function(l){
+    return '<button class="'+(l===cur?"on":"")+'" data-cclo="'+l+'">'+l+'</button>'; }).join("");
+  var wl = $("[data-ccwalls]");
+  wl.innerHTML = WALLPAPERS.map(function(wp){
+    var bg = wp.css || "background:var(--wall-1)";
+    return '<div class="wp-opt'+(store.get("mv7.wallpaper","default")===wp.id?" active":"")+'" data-wp="'+wp.id+
+      '" style="'+bg+'" title="'+esc(wp.label)+'"></div>'; }).join("");
+  $$("#ccPanel [data-cctoggle]").forEach(function(b){
+    var k = b.getAttribute("data-cctoggle");
+    b.setAttribute("aria-pressed", String(k === "focus" ? focusMode() : clap.on)); });
+  var fl = $("[data-ccfocuslbl]");
+  if(fl) fl.textContent = focusMode() ? "On — agents quiet" : "Off — agents live";
+  var nr = $("[data-ccneu]");
+  if(nr){ nr.value = neuIntensity(); }
+  var nt = $("[data-ccneutx]");
+  if(nt) nt.textContent = "· " + neuIntensity() + "%";
+}
+function syncCC(){ if($("#ccPanel").classList.contains("on")) ccRender(); }
+$("#ccBtn").addEventListener("click", function(){
+  ccOpen(!$("#ccPanel").classList.contains("on"));
+});
+document.addEventListener("click", function(e){
+  var m = e.target.closest("[data-ccmode]");
+  if(m){ applyTheme(m.getAttribute("data-ccmode") === "light" ? "light" : "dark"); ccRender(); return; }
+  var d = e.target.closest("[data-ccdock]");
+  if(d){ setDockPos(d.getAttribute("data-ccdock")); ccRender(); return; }
+  var l = e.target.closest("[data-cclo]");
+  if(l){ setLayout(l.getAttribute("data-cclo")); ccRender(); return; }
+  var w = e.target.closest("#ccPanel [data-wp]");
+  if(w){ store.set("mv7.wallpaper", w.getAttribute("data-wp"));
+         applyWallpaper(w.getAttribute("data-wp")); ccRender(); return; }
+  var t = e.target.closest("[data-cctoggle]");
+  if(t){ var k = t.getAttribute("data-cctoggle");
+         k === "focus" ? setFocus(!focusMode()) : clapToggle(); ccRender(); return; }
+  if(e.target.closest("[data-ccwidgets]")){ ccOpen(false); weditOpen(); return; }
+  if(e.target.closest("[data-cckeys]")){ ccOpen(false); keysOpen(); return; }
+});
+document.addEventListener("input", function(e){
+  var r = e.target.closest("[data-ccneu]");
+  if(r){ setNeuIntensity(+r.value);
+    var nt = $("[data-ccneutx]"); if(nt) nt.textContent = "· " + r.value + "%"; }
+});
+document.addEventListener("click", function(e){
+  if(e.target === $("#ccPanel")) ccOpen(false);
+});
+
+/* ---- Shortcuts overlay ---- */
+var KEYS_DOC = [
+  ["Global", [
+    ["Spotlight search", "⌘K"], ["Quick AI", "/"], ["This cheat sheet", "?"],
+    ["Close / dismiss", "Esc"], ["Sign out", "—"]]],
+  ["Desktops", [
+    ["Mission Control", "Ctrl ↑"], ["also: two-finger swipe", "↑ / ↓"],
+    ["Switch desktop", "Ctrl ← →"], ["also: two-finger swipe", "← / →"],
+    ["New desktop", "+ pill"], ["Remove desktop", "MC ×"]]],
+  ["Voice & AI", [
+    ["Wake voice mode", "double-clap"], ["Ask anything", "“open chat”"],
+    ["Make artifacts", "“make a board deck”"], ["Stop listening", "“goodbye”"]]],
+  ["Icons & files", [
+    ["Open app / file", "single click"], ["Rename inline", "New → type"],
+    ["Smart-route a file", "drag → orb"], ["Pin app to dock", "drag → dock"],
+    ["Trash selection", "Delete"], ["OS menu", "right-click"]]],
+  ["Windows", [
+    ["Close window", "⌘W"], ["Minimise", "⌘M"], ["Maximise", "dbl-click bar"],
+    ["Snap left / right", "drag to edge"]]],
+  ["Brain graphs", [
+    ["Zoom", "scroll"], ["Pan", "drag canvas"], ["Inspect node", "click"],
+    ["Fit view", "100% btn"]]]
+];
+function keysOpen(on){
+  $("#keysPanel").classList.toggle("on", on !== false);
+}
+document.addEventListener("click", function(e){
+  if(e.target.closest("[data-kpx]") || e.target === $("#keysPanel")) keysOpen(false);
+});
+
+/* ---- Widget editor (per-desktop, drag to reorder) ---- */
+var WG_CATALOG = [
+  ["sovereignty","Sovereignty","Where work runs"],
+  ["exposure","C2 exposure","Live commercial"],
+  ["approvals","Waiting on you","Pending count"],
+  ["agents","Agents","Who is running"],
+  ["automation","Next automation","Schedule"],
+  ["servers","Dev servers","Ports up"],
+  ["brain","Brain activity","Index health"],
+  ["usage","AI usage","Tokens & budget"],
+  ["feed","Agent feed","Live events"]
+];
+function widgetSet(spaceId){
+  try{ var v = JSON.parse(store.get("mv7.widgets","")); if(v && v[spaceId]) return v[spaceId].slice(); }catch(e){}
+  var s = SPACES.filter(function(x){ return x.id === spaceId; })[0];
+  if(WIDGETS[spaceId]) return WIDGETS[spaceId].slice();
+  if(s && s.tpl){
+    var t = DESK_TEMPLATES.filter(function(x){ return x.id === s.tpl; })[0];
+    if(t) return t.widgets.slice();
+  }
+  return ["sovereignty","usage","feed"];
+}
+function saveWidgetSet(spaceId, set){
+  var v = {}; try{ v = JSON.parse(store.get("mv7.widgets","")) || {}; }catch(e){}
+  v[spaceId] = set; store.set("mv7.widgets", JSON.stringify(v));
+}
+var wedit = { set: null, drag: null };
+function weditOpen(){
+  wedit.set = widgetSet(curSpace);
+  var desk = SPACES[spaceIndex(curSpace)];
+  $("[data-wetitle]").textContent = "Widgets — " + desk.name;
+  weditDraw();
+  $("#weditPanel").classList.add("on");
+}
+function weditDraw(){
+  var list = $("[data-welist]");
+  list.innerHTML = wedit.set.length ? wedit.set.map(function(k){
+    var c = WG_CATALOG.filter(function(x){ return x[0] === k; })[0] || [k,k,""];
+    return '<div class="we-row" draggable="true" data-wek="'+k+'">'+
+      '<span class="we-grip"><i></i><i></i><i></i></span><b>'+esc(c[1])+'</b>'+
+      '<span style="font-size:10.5px;color:var(--tx-4)">'+esc(c[2])+'</span>'+
+      '<button class="we-x" data-wexk="'+k+'" aria-label="Remove"><svg class="ico xs"><use href="#i-x"/></svg></button></div>';
+  }).join("") : '<div class="nc-empty" style="padding:16px">No widgets on this desktop.</div>';
+  var add = $("[data-weadd]");
+  add.innerHTML = WG_CATALOG.filter(function(c){ return wedit.set.indexOf(c[0]) < 0; }).map(function(c){
+    return '<button class="we-opt" data-weaddk="'+c[0]+'"><b>+</b>'+esc(c[1])+'</button>';
+  }).join("");
+}
+document.addEventListener("click", function(e){
+  var x = e.target.closest("[data-wex]"); if(x){ $("#weditPanel").classList.remove("on"); return; }
+  if(e.target === $("#weditPanel")){ $("#weditPanel").classList.remove("on"); return; }
+  var rm = e.target.closest("[data-wexk]");
+  if(rm){ wedit.set = wedit.set.filter(function(k){ return k !== rm.getAttribute("data-wexk"); });
+          weditDraw(); return; }
+  var ad = e.target.closest("[data-weaddk]");
+  if(ad){ wedit.set.push(ad.getAttribute("data-weaddk")); weditDraw(); return; }
+  if(e.target.closest("[data-wedone]")){
+    saveWidgetSet(curSpace, wedit.set);
+    renderWidgets();
+    $("#weditPanel").classList.remove("on");
+    toast("Widgets saved for this desktop.", 2000);
+  }
+});
+/* drag-to-reorder inside the editor */
+document.addEventListener("dragstart", function(e){
+  var r = e.target.closest("[data-wek]"); if(!r) return;
+  wedit.drag = r.getAttribute("data-wek"); r.classList.add("dragging");
+  try{ e.dataTransfer.setData("text/plain", wedit.drag); }catch(ex){}
+});
+document.addEventListener("dragend", function(e){
+  var r = e.target.closest("[data-wek]");
+  if(r) r.classList.remove("dragging");
+  wedit.drag = null;
+});
+document.addEventListener("dragover", function(e){
+  if(wedit.drag && e.target.closest("[data-welist]")) e.preventDefault();
+});
+document.addEventListener("drop", function(e){
+  if(!wedit.drag || !e.target.closest("[data-welist]")) return;
+  e.preventDefault();
+  var over = e.target.closest("[data-wek]");
+  var from = wedit.set.indexOf(wedit.drag);
+  if(from < 0) return;
+  wedit.set.splice(from, 1);
+  var to = over ? wedit.set.indexOf(over.getAttribute("data-wek")) : wedit.set.length;
+  if(to < 0) to = wedit.set.length;
+  wedit.set.splice(to + (to >= from ? 0 : 0), 0, wedit.drag);
+  wedit.drag = null;
+  weditDraw();
+});
+/* “?” opens the cheat sheet — never while typing */
+document.addEventListener("keydown", function(e){
+  if(e.key !== "?" || e.metaKey || e.ctrlKey || e.altKey) return;
+  var t = e.target;
+  if(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  if(!document.body.matches('[data-stage="os"]')) return;
+  e.preventDefault();
+  keysOpen(!$("#keysPanel").classList.contains("on"));
+});
 
 /* ============================================================
    1 · boot
@@ -2091,10 +2564,7 @@ function widgetHTML(kind){
 function renderWidgets(){
   SPACES.forEach(function(s){
     var host = $('[data-widgets="'+s.id+'"]'); if(!host) return;
-    var set = WIDGETS[s.id] || (s.tpl && DESK_TEMPLATES.filter(function(t){return t.id===s.tpl;})[0]
-      ? DESK_TEMPLATES.filter(function(t){return t.id===s.tpl;})[0].widgets
-      : ["sovereignty","usage","feed"]);   /* default set for custom desktops */
-    host.innerHTML = set.map(widgetHTML).join("");
+    host.innerHTML = widgetSet(s.id).map(widgetHTML).join("");
   });
 }
 /* a widget is a shortcut into whichever app owns the number it shows */
@@ -2790,6 +3260,10 @@ document.addEventListener("keydown", function(e){
   var mod = e.metaKey || e.ctrlKey;
   if(mod && e.key.toLowerCase() === "k"){ e.preventDefault(); openSpot(true); return; }
   if(e.key === "Escape"){
+    if($("#weditPanel").classList.contains("on")){ $("#weditPanel").classList.remove("on"); return; }
+    if($("#keysPanel").classList.contains("on")){ keysOpen(false); return; }
+    if($("#ccPanel").classList.contains("on")){ ccOpen(false); return; }
+    if($("#notifPanel").classList.contains("on")){ ncOpen(false); return; }
     if(voice.on){ voiceStop(); return; }
     if($("#spot").classList.contains("on")){ openSpot(false); return; }
     if($("#mission").classList.contains("on")){ openMission(false); return; }
@@ -4058,6 +4532,7 @@ document.addEventListener("click", function(e){
   else if(act === "wallpaper"){ openWallpaper(); }
   else if(act === "theme"){ openThemePicker(); }
   else if(act === "dockside"){ setDockPos(document.body.classList.contains("dock-left") ? "bottom" : "left"); }
+  else if(act === "widgets"){ weditOpen(); }
   else if(act === "clap"){ clapToggle(); }
 });
 
@@ -4676,6 +5151,8 @@ setInterval(function(){
   $$(".icon-layer").forEach(function(el){ el.setAttribute("data-layout", layout); });
   /* restore dock edge (Windows-style left option) */
   if(store.get("mv7.dockpos","bottom") === "left") document.body.classList.add("dock-left");
+  /* neural wallpaper intensity */
+  setNeuIntensity(neuIntensity());
 })();
 
 /* ============================================================
@@ -5435,7 +5912,7 @@ function proactivePost(){
   if(FEED_LOG.length > 12) FEED_LOG.pop();
   neuralFlash(2 + Math.floor(Math.random()*3));   /* the wallpaper sees the agent */
   $$(".feed").forEach(function(f){ f.closest("[data-widgets]") && renderWidgets(); });
-  if(Math.random() < .45) toast(ev.t+": "+ev.h.replace(/<[^>]+>/g,""), 4200);
+  agentNotify(ev.t, ev.h.replace(/<[^>]+>/g,""));
 }
 setInterval(function(){
   if(document.body.matches('[data-stage="os"]') && !proactiveMuted()) proactivePost();
