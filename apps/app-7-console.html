@@ -161,11 +161,22 @@ body[data-stage="os"] #boot{display:none}
 #sovPill .scope{font-weight:500;opacity:.75}
 #clock{font-family:var(--mono);color:var(--tx-2);font-size:12px;font-variant-numeric:tabular-nums}
 /* space pips in the menu bar */
-#spacePips{display:flex;align-items:center;gap:5px;padding:0 6px}
-#spacePips button{width:22px;height:14px;border-radius:4px;border:1px solid var(--glass-line-2);
-  background:transparent;transition:background .15s,border-color .15s}
-#spacePips button[aria-current="true"]{background:var(--tx-2);border-color:var(--tx-2)}
-#spacePips button:hover{border-color:var(--tx-3)}
+/* desktop pills in the menu bar — click to switch, + creates a desktop */
+#spacePips{display:flex;align-items:center;gap:4px;padding:0 6px;max-width:44vw;overflow-x:auto;scrollbar-width:none}
+#spacePips::-webkit-scrollbar{display:none}
+.pip{display:flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:var(--r-pill);
+  border:1px solid var(--glass-line);color:var(--tx-3);font-size:11.5px;font-weight:600;
+  white-space:nowrap;flex:none;transition:all .15s}
+.pip:hover{border-color:var(--tx-4);color:var(--tx-2)}
+.pip .pip-n{font-family:var(--mono);font-size:10px;opacity:.7}
+.pip .pip-name{display:none}
+.pip[aria-current="true"]{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.pip[aria-current="true"] .pip-n{opacity:.75}
+.pip-add{width:26px;height:24px;padding:0;justify-content:center;border-style:dashed}
+.pip-add .ico{stroke:var(--tx-3)}
+.pip-add:hover{border-color:var(--cyan)}
+.pip-add:hover .ico{stroke:var(--cyan)}
+@media (min-width:1100px){ .pip .pip-name{display:inline} }
 
 /* ============================ DESKTOP / SPACES ============================ */
 #os{position:fixed;inset:0;z-index:1}
@@ -625,6 +636,23 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1p
 .mc-thumb .tico .ico{width:9px;height:9px;stroke:var(--tile,#fff);stroke-width:2.2}
 .mc-empty{font-size:11.5px;color:var(--tx-4);align-self:center}
 .mc-hint{font-size:11.5px;color:var(--tx-3);text-align:center}
+/* per-card remove button (hidden until hover, like macOS) */
+.mc-del{width:22px;height:22px;border-radius:99px;display:grid;place-items:center;flex:none;
+  background:var(--glass-3);border:1px solid var(--glass-line);color:var(--tx-3);
+  opacity:0;transition:all .15s}
+.mc-space:hover .mc-del{opacity:1}
+.mc-del:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.mc-del .ico{width:11px;height:11px}
+/* the “New desktop” card */
+.mc-new{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  border-style:dashed;background:transparent}
+.mc-new:hover{background:var(--glass-2)}
+.mc-new-ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+  border:1px solid var(--glass-line-2);background:var(--glass-2);color:var(--tx-3);
+  transition:all .15s}
+.mc-new:hover .mc-new-ico{color:var(--cyan);border-color:var(--cyan);
+  box-shadow:0 0 18px rgba(14,165,183,.22)}
+.mc-new-lbl{font-size:12.5px;color:var(--tx-2);font-weight:600}
 
 /* ============================ SHARED APP UI ============================ */
 .pane{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
@@ -1408,7 +1436,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <div id="mission" role="dialog" aria-label="Mission Control">
   <h3>Spaces</h3>
   <div class="mc-grid" id="mcGrid"></div>
-  <p class="mc-hint">Click a space to switch · <kbd>Ctrl</kbd>+<kbd>←</kbd>/<kbd>→</kbd> or two-finger swipe · <kbd>Esc</kbd> to close</p>
+  <p class="mc-hint">Click a desktop to switch · <b>+</b> creates one · double-click to rename · <span>×</span> removes it · <kbd>Ctrl</kbd>+<kbd>↑</kbd> to open · <kbd>Esc</kbd> to close</p>
 </div>
 
 <div id="toasts" role="status" aria-live="polite"></div>
@@ -1569,31 +1597,111 @@ var BADGES = { mail:3, agents:2, autos:1 };
    translates the space layers horizontally — windows keep their
    position, so returning to a space restores it exactly.
    ============================================================ */
-var SPACES = [
+var SPACE_DEFAULTS = [
   { id:0, name:"Delivery",   hint:"C2 exposure, schedule, POs" },
   { id:1, name:"Build",      hint:"Code, previews, repos" },
   { id:2, name:"Research",   hint:"Brain, browser, reading" },
   { id:3, name:"Operations", hint:"Agents, automations, mail" }
 ];
-var curSpace = 0;
+var SPACES = (function(){
+  try{
+    var v = JSON.parse(store.get("mv7.spaces",""));
+    if(v && v.length) return v;
+  }catch(e){}
+  return SPACE_DEFAULTS.slice();
+})();
+function saveSpaces(){ store.set("mv7.spaces", JSON.stringify(SPACES)); }
+function nextSpaceId(){
+  var max = -1;
+  SPACES.forEach(function(s){ if(s.id > max) max = s.id; });
+  return max + 1;
+}
+var curSpace = SPACES[0] ? SPACES[0].id : 0;
 var wins = [];        /* {id, appId, spaceId, x,y,w,h,z, min, max, prevRect, node, body, state, title} */
 var nextId = 1, nextZ = 10;
 
+function spaceShell(s){
+  var sp = el("div","space");
+  sp.id = "space-" + s.id;
+  sp.setAttribute("data-space", s.id);
+  sp.innerHTML = '<div class="icon-layer" data-icons="'+s.id+'" data-layout="'+getCurrentLayout()+'"></div>'+
+                 '<div class="widget-layer" data-widgets="'+s.id+'"></div>'+
+                 '<div class="win-layer" data-winlayer="'+s.id+'"></div>';
+  return sp;
+}
+/* initial build */
 function renderSpaces(){
   var host = $("#spaces");
   host.innerHTML = "";
+  SPACES.forEach(function(s){ host.appendChild(spaceShell(s)); });
+  layoutSpaces(true);
+  renderIcons();
+  renderWidgets();
+}
+/* incremental sync — add/remove spaces WITHOUT wiping the DOM, so open
+   windows (and their mounted app content) survive the change */
+function syncSpaces(){
+  var host = $("#spaces");
+  var keep = {};
+  $$(".space", host).forEach(function(n){ keep[n.getAttribute("data-space")] = n; });
+  /* new spaces appended in order */
   SPACES.forEach(function(s){
-    var sp = el("div","space");
-    sp.id = "space-" + s.id;
-    sp.setAttribute("data-space", s.id);
-    sp.innerHTML = '<div class="icon-layer" data-icons="'+s.id+'" data-layout="'+getCurrentLayout()+'"></div>'+
-                   '<div class="widget-layer" data-widgets="'+s.id+'"></div>'+
-                   '<div class="win-layer" data-winlayer="'+s.id+'"></div>';
-    host.appendChild(sp);
+    if(!keep[String(s.id)]){
+      var ref = null;
+      var idx = SPACES.indexOf(s);
+      for(var k = idx + 1; k < SPACES.length; k++){
+        ref = keep[String(SPACES[k].id)]; if(ref) break;
+      }
+      host.insertBefore(spaceShell(s), ref);
+    } else {
+      delete keep[String(s.id)];
+    }
+  });
+  /* removed spaces: rescue their windows into the first survivor */
+  var survivors = SPACES.map(function(s){ return s.id; });
+  Object.keys(keep).forEach(function(gone){
+    var target = survivors.indexOf(curSpace) > -1 ? curSpace : survivors[0];
+    var layer = $('[data-winlayer="'+gone+'"]', host);
+    var dest = $('[data-winlayer="'+target+'"]', host);
+    if(layer && dest){
+      while(layer.firstChild) dest.appendChild(layer.firstChild);
+    }
+    wins.forEach(function(w){ if(w.spaceId === +gone) w.spaceId = target; });
+    if(keep[gone]) keep[gone].remove();
   });
   layoutSpaces(true);
   renderIcons();
   renderWidgets();
+  renderPips();
+  renderMission();
+  renderMobileBar();
+}
+function addSpace(){
+  var id = nextSpaceId();
+  SPACES.push({ id:id, name:"Space " + (SPACES.length + 1), hint:"New desktop — make it yours" });
+  saveSpaces();
+  syncSpaces();
+  gotoSpace(id);
+  toast("Desktop “" + SPACES[SPACES.length-1].name + "” created. Open Mission Control (⌃↑) to rename or remove it.", 3200);
+}
+function removeSpace(id){
+  if(SPACES.length <= 1){ toast("That’s the last desktop — keep at least one.", 2000); return; }
+  var idx = -1;
+  SPACES.forEach(function(s,i){ if(s.id === id) idx = i; });
+  if(idx < 0) return;
+  SPACES.splice(idx,1);
+  saveSpaces();
+  if(curSpace === id) curSpace = SPACES[Math.max(0, idx-1)].id;
+  syncSpaces();
+  gotoSpace(curSpace, true);
+  toast("Desktop removed. Its windows moved to the current desktop.", 2200);
+}
+function renameSpace(id){
+  var s = null;
+  SPACES.forEach(function(x){ if(x.id === id) s = x; });
+  if(!s) return;
+  var n = prompt("Desktop name:", s.name);
+  if(n && n.trim()){ s.name = n.trim().slice(0,24); saveSpaces(); syncSpaces(); }
 }
 
 /* --- desktop widgets -------------------------------------------------------
@@ -1652,7 +1760,8 @@ function widgetHTML(kind){
 function renderWidgets(){
   SPACES.forEach(function(s){
     var host = $('[data-widgets="'+s.id+'"]'); if(!host) return;
-    host.innerHTML = (WIDGETS[s.id] || []).map(widgetHTML).join("");
+    var set = WIDGETS[s.id] || ["sovereignty","usage"];   /* default set for custom desktops */
+    host.innerHTML = set.map(widgetHTML).join("");
   });
 }
 /* a widget is a shortcut into whichever app owns the number it shows */
@@ -1664,12 +1773,20 @@ document.addEventListener("click", function(e){
   if(t && APPS[t]) openApp(t);
 });
 
+/* space ids are arbitrary (desktops can be created and deleted), so all
+   positioning maths goes through the ORDER of the space, not its id */
+function spaceIndex(id){
+  for(var i=0;i<SPACES.length;i++){ if(SPACES[i].id === id) return i; }
+  return 0;
+}
 function layoutSpaces(instant){
+  var active = spaceIndex(curSpace);
   SPACES.forEach(function(s){
     var sp = $("#space-" + s.id);
     if(!sp) return;
+    var idx = spaceIndex(s.id);
     if(instant) sp.style.transition = "none";
-    sp.style.transform = "translateX(" + ((s.id - curSpace) * 100) + "%)";
+    sp.style.transform = "translateX(" + ((idx - active) * 100) + "%)";
     /* keep off-screen spaces out of the tab order without display:none
        (display:none would kill in-flight window animations) */
     sp.style.pointerEvents = s.id === curSpace ? "" : "none";
@@ -1677,22 +1794,27 @@ function layoutSpaces(instant){
     if(instant) requestAnimationFrame(function(){ sp.style.transition = ""; });
   });
 }
-function gotoSpace(n, silent){
-  n = clamp(n, 0, SPACES.length - 1);
-  if(n === curSpace) return;
-  curSpace = n;
+function gotoSpace(id, silent){
+  var idx = spaceIndex(id);
+  if(SPACES[idx] && SPACES[idx].id === curSpace) return;
+  curSpace = SPACES[idx].id;
   layoutSpaces();
   renderPips(); renderDock(); renderMenuApp(); renderMobileBar();
-  if(!silent) toast("Space " + (n+1) + " · " + SPACES[n].name, 1600);
+  if(!silent) toast("Desktop " + (idx+1) + " · " + SPACES[idx].name, 1600);
 }
+/* menu-bar desktop pills — click to switch, + to create (replaces the old dots) */
 function renderPips(){
   var host = $("#spacePips");
-  host.innerHTML = SPACES.map(function(s){
-    return '<button data-pip="'+s.id+'" aria-current="'+(s.id===curSpace)+'" '+
-           'title="'+esc(s.name)+'" aria-label="Space '+(s.id+1)+': '+esc(s.name)+'"></button>';
-  }).join("");
+  host.innerHTML = SPACES.map(function(s, i){
+    return '<button class="pip" data-pip="'+s.id+'" aria-current="'+(s.id===curSpace)+'" '+
+           'title="'+esc(s.name)+' — '+esc(s.hint||"")+'" aria-label="Desktop '+(i+1)+': '+esc(s.name)+'">'+
+           '<span class="pip-n">'+(i+1)+'</span><span class="pip-name">'+esc(s.name)+'</span></button>';
+  }).join("") + '<button class="pip pip-add" data-pipadd="1" title="New desktop" aria-label="Create new desktop">'+
+    '<svg class="ico xs"><use href="#i-plus"/></svg></button>';
 }
 $("#spacePips").addEventListener("click", function(e){
+  var add = e.target.closest("[data-pipadd]");
+  if(add){ addSpace(); return; }
   var b = e.target.closest("[data-pip]"); if(b) gotoSpace(+b.getAttribute("data-pip"));
 });
 
@@ -1706,8 +1828,7 @@ function saveIconPos(appId, spaceId, x, y){
 function renderIcons(){
   var pos = iconPositions();
   var hid = desktopHidden();
-  var W = Math.max(400, window.innerWidth);
-  var H = Math.max(300, window.innerHeight - barH() - 96);
+  var area = iconArea(), W = area[0], H = area[1];
   SPACES.forEach(function(s){
     var layer = $('[data-icons="'+s.id+'"]'); if(!layer) return;
     var visible = DESKTOP_ORDER.filter(function(id){ return !hid[s.id + ":" + id]; });
@@ -2200,18 +2321,25 @@ $("#mobileBar").addEventListener("click", function(e){
   if(w){ w.min = false; w.node.style.display=""; focusWin(w.id); }
 });
 
-/* mission control */
+/* mission control — Mac-style: click a desktop to enter it, × removes,
+   double-click renames, + creates a fresh desktop */
 function renderMission(){
-  $("#mcGrid").innerHTML = SPACES.map(function(s){
+  var cards = SPACES.map(function(s, i){
     var open = wins.filter(function(w){ return w.spaceId === s.id; });
     var thumbs = open.length ? open.map(function(w){ var a = APPS[w.appId];
         return '<span class="mc-thumb"><span class="tico '+a.tile+'">'+ico(a.icon)+'</span>'+esc(w.title)+'</span>';
       }).join("") : '<span class="mc-empty">No windows — '+esc(s.hint)+'</span>';
+    var kill = SPACES.length > 1 ? '<button class="mc-del" data-mcdel="'+s.id+'" title="Remove desktop" aria-label="Remove desktop '+esc(s.name)+'">'+
+      '<svg class="ico xs"><use href="#i-x"/></svg></button>' : "";
     return '<div class="mc-space" data-mcspace="'+s.id+'" aria-current="'+(s.id===curSpace)+'" role="button" tabindex="0">'+
-             '<div class="hd"><span class="n">'+(s.id+1)+'</span>'+esc(s.name)+
-             '<span class="cnt">'+open.length+' window'+(open.length===1?"":"s")+'</span></div>'+
+             '<div class="hd"><span class="n">'+(i+1)+'</span>'+esc(s.name)+
+             '<span class="cnt">'+open.length+' window'+(open.length===1?"":"s")+'</span>'+kill+'</div>'+
              '<div class="mc-thumbs">'+thumbs+'</div></div>';
   }).join("");
+  $("#mcGrid").innerHTML = cards +
+    '<div class="mc-space mc-new" data-mcadd="1" role="button" tabindex="0" aria-label="New desktop">'+
+      '<div class="mc-new-ico"><svg class="ico lg"><use href="#i-plus"/></svg></div>'+
+      '<div class="mc-new-lbl">New desktop</div></div>';
 }
 function openMission(on){
   if(on){ renderMission(); $("#mission").classList.add("on"); }
@@ -2219,9 +2347,17 @@ function openMission(on){
 }
 $("#mcBtn").addEventListener("click", function(){ openMission(!$("#mission").classList.contains("on")); });
 $("#mission").addEventListener("click", function(e){
+  var del = e.target.closest("[data-mcdel]");
+  if(del){ e.stopPropagation(); removeSpace(+del.getAttribute("data-mcdel")); return; }
+  var add = e.target.closest("[data-mcadd]");
+  if(add){ addSpace(); openMission(false); return; }
   var s = e.target.closest("[data-mcspace]");
   if(s){ gotoSpace(+s.getAttribute("data-mcspace")); openMission(false); return; }
   if(e.target.id === "mission") openMission(false);
+});
+$("#mission").addEventListener("dblclick", function(e){
+  var s = e.target.closest(".mc-space:not(.mc-new)");
+  if(s && !e.target.closest("[data-mcdel]")) renameSpace(+s.getAttribute("data-mcspace"));
 });
 
 /* gestures: two-finger horizontal swipe (trackpad) changes space */
@@ -2232,7 +2368,8 @@ window.addEventListener("wheel", function(e){
   if(Math.abs(e.deltaX) < 28 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
   if(wheelLock) return;
   wheelLock = true; setTimeout(function(){ wheelLock = false; }, 520);
-  gotoSpace(curSpace + (e.deltaX > 0 ? 1 : -1));
+  var cur = spaceIndex(curSpace);
+  gotoSpace(SPACES[clamp(cur + (e.deltaX > 0 ? 1 : -1), 0, SPACES.length-1)].id);
 }, {passive:true});
 
 /* touch: horizontal swipe on the wallpaper changes space; swipe-down on a
@@ -2249,7 +2386,8 @@ document.addEventListener("touchend", function(e){
   if(tStart.bar && dy > 70 && Math.abs(dx) < 60){
     closeWin(+tStart.bar.closest(".win").getAttribute("data-win"));
   } else if(tStart.onWall && Math.abs(dx) > 70 && Math.abs(dy) < 50){
-    gotoSpace(curSpace + (dx < 0 ? 1 : -1));
+    var ci = spaceIndex(curSpace);
+    gotoSpace(SPACES[clamp(ci + (dx < 0 ? 1 : -1), 0, SPACES.length-1)].id);
   }
   tStart = null;
 }, {passive:true});
@@ -2263,8 +2401,21 @@ document.addEventListener("keydown", function(e){
     if($("#mission").classList.contains("on")){ openMission(false); return; }
     if($("#compPanel").classList.contains("on")){ $("#compPanel").classList.remove("on"); return; }
   }
-  if(e.ctrlKey && e.key === "ArrowRight"){ e.preventDefault(); gotoSpace(curSpace+1); return; }
-  if(e.ctrlKey && e.key === "ArrowLeft"){  e.preventDefault(); gotoSpace(curSpace-1); return; }
+  if(e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown")){
+    e.preventDefault(); openMission(!$("#mission").classList.contains("on")); return;
+  }
+  if(e.ctrlKey && e.key === "ArrowRight"){
+    e.preventDefault();
+    var cr = spaceIndex(curSpace);
+    if(cr < SPACES.length-1) gotoSpace(SPACES[cr+1].id);
+    return;
+  }
+  if(e.ctrlKey && e.key === "ArrowLeft"){
+    e.preventDefault();
+    var cl = spaceIndex(curSpace);
+    if(cl > 0) gotoSpace(SPACES[cl-1].id);
+    return;
+  }
   if(mod && e.key.toLowerCase() === "w"){ var f=focusedWin(); if(f){ e.preventDefault(); closeWin(f.id); } return; }
   if(mod && e.key.toLowerCase() === "m"){ var g=focusedWin(); if(g){ e.preventDefault(); minWin(g.id); } return; }
   if(mod && e.key.toLowerCase() === "up" ){ return; }
@@ -2278,10 +2429,12 @@ function buildSpotActions(){
     SPOT_ACTIONS.push({ sec:"Applications", t:"Open " + APPS[id].name, d:"Application",
       icon:APPS[id].icon, tile:APPS[id].tile, kb:"↵", run:function(){ openApp(id); } });
   });
-  SPACES.forEach(function(s){
-    SPOT_ACTIONS.push({ sec:"Spaces", t:s.name, d:"Space " + (s.id+1) + " · " + s.hint,
+  SPACES.forEach(function(s, si){
+    SPOT_ACTIONS.push({ sec:"Desktops", t:s.name, d:"Desktop " + (si+1) + " · " + (s.hint || ""),
       icon:"i-grid", tile:"g-set", run:function(){ gotoSpace(s.id); } });
   });
+  SPOT_ACTIONS.push({ sec:"Desktops", t:"New desktop", d:"Create a fresh workspace",
+    icon:"i-plus", tile:"g-set", run:function(){ addSpace(); } });
   BRAIN_NODES.slice(0,40).forEach(function(n){
     SPOT_ACTIONS.push({ sec:"Brain", t:n.label, d:n.kind + " · " + n.src,
       icon:n.kind === "email" ? "i-mail" : "i-file", tile:"g-brain",
@@ -2914,8 +3067,7 @@ function renderDesktopFiles(){
     var filePos = {};
     try{ filePos = JSON.parse(store.get("mv7.filePos","{}")); }catch(e){}
     var appCount = DESKTOP_ORDER.filter(function(id){ return !desktopHidden()[s.id+":"+id]; }).length;
-    var W = Math.max(400, window.innerWidth);
-    var H = Math.max(300, window.innerHeight - barH() - 96);
+    var area = iconArea(), W = area[0], H = area[1];
     files.forEach(function(f, i){
       var saved = filePos[f.id];
       var globalIdx = appCount + i;
@@ -3252,64 +3404,111 @@ var THEMES = [
 ];
 
 /* ---- LAYOUT POSITIONING ENGINE ---- */
+/* ---- LAYOUT POSITIONING ENGINE ----
+   Every layout is bounded: icons never leave the usable area, and the
+   area itself excludes the right-side widget rail so nothing hides under
+   the live cards. Icon footprint ≈ 88×92. */
+function iconArea(){
+  var W = Math.max(420, window.innerWidth);
+  var H = Math.max(320, window.innerHeight - barH() - 110); /* dock clearance */
+  if(!isMobile()) W = Math.max(400, W - 336);               /* widget rail */
+  return [W, H];
+}
+function fit(x, y, W, H){
+  return [clamp(Math.round(x), 10, Math.max(10, W - 92)),
+          clamp(Math.round(y), 10, Math.max(10, H - 98))];
+}
 var LAYOUTS = {
+  /* column-major flow — the macOS classic */
   grid: function(i,n,W,H){
-    var SY=96,SX=100,T=14,L=14,pc=Math.max(1,Math.floor(H/SY));
-    return [L+Math.floor(i/pc)*SX, T+(i%pc)*SY];
+    var SX=100,SY=96,pc=Math.max(1,Math.floor((H-10)/SY));
+    return fit(16+Math.floor(i/pc)*SX, 12+(i%pc)*SY, W, H);
   },
+  /* row-major flow — reads left to right */
   rows: function(i,n,W,H){
-    var SX=100,SY=96,L=14,T=14,pr=Math.max(1,Math.floor(W/SX));
-    return [L+(i%pr)*SX, T+Math.floor(i/pr)*SY];
+    var SX=100,SY=96,pr=Math.max(1,Math.floor((W-10)/SX));
+    return fit(16+(i%pr)*SX, 12+Math.floor(i/pr)*SY, W, H);
   },
+  /* evenly-filled columns, top-aligned groups */
   columns: function(i,n,W,H){
-    var SX=100,SY=96,L=14,T=14,pc=Math.max(1,Math.floor(H/SY));
-    return [L+Math.floor(i/pc)*SX, T+(i%pc)*SY];
+    var cols=Math.max(1,Math.ceil(Math.sqrt(n*W/(H*1.1))));
+    var per=Math.ceil(n/cols);
+    return fit(16+Math.floor(i/per)*100, 12+(i%per)*96, W, H);
   },
+  /* organized cells with an organic wobble */
   floating: function(i,n,W,H){
-    var COLS=Math.ceil(Math.sqrt(n*W/H)),ROWS=Math.ceil(n/COLS);
-    var cw=W/COLS,ch=H/ROWS,bx=(i%COLS)*cw+cw/2-44,by=Math.floor(i/COLS)*ch+ch/2-38;
-    return [bx+Math.sin(i*2.4)*18, by+Math.cos(i*1.7)*14];
+    var SX=106,SY=102,pc=Math.max(1,Math.floor((H-10)/SY));
+    var col=Math.floor(i/pc),row=i%pc;
+    return fit(16+col*SX+Math.sin(i*2.4)*13, 12+row*SY+Math.cos(i*1.7)*10, W, H);
   },
+  /* one or more concentric rings, sized to the icon count */
   circular: function(i,n,W,H){
-    var cx=W/2-44,cy=H/2-38,R=Math.min(W,H)/2-60,a=(i/n)*Math.PI*2-Math.PI/2;
-    return [cx+Math.cos(a)*R, cy+Math.sin(a)*R];
+    var cx=W/2-44, cy=H/2-46, maxR=Math.min(W,H)/2-58;
+    var perRing=Math.max(4,Math.floor((2*Math.PI*maxR)/102));
+    var ring=Math.floor(i/perRing), idx=i%perRing;
+    var cnt=Math.min(perRing, n-ring*perRing);
+    var R=Math.max(40, maxR-ring*112);
+    var a=(idx/Math.max(1,cnt))*Math.PI*2-Math.PI/2;
+    return fit(cx+Math.cos(a)*R, cy+Math.sin(a)*R, W, H);
   },
+  /* shortest-column flow with varying block heights */
   masonry: function(i,n,W,H){
-    /* simulate prior placements so the shortest-column state is correct
-       across calls (varying block heights give it the Pinterest look) */
     var COLS=Math.max(3,Math.floor(W/140)),cw=W/COLS;
     var h=[];for(var c=0;c<COLS;c++)h[c]=0;
     for(var j=0;j<=i;j++){
       var best=0;
       for(var c2=0;c2<COLS;c2++){ if(h[c2]<h[best]) best=c2; }
-      if(j===i) return [best*cw+(cw-88)/2, h[best]+14];
+      if(j===i) return fit(best*cw+(cw-88)/2, h[best]+12, W, H);
       h[best]+=96+((j*37)%3)*26;
     }
   },
+  /* sunflower/phyllotaxis — radius normalized so all icons stay inside */
   spiral: function(i,n,W,H){
-    var cx=W/2-44,cy=H/2-38,a=i*2.4,r=Math.sqrt(i)*22;
-    return [cx+Math.cos(a)*r, cy+Math.sin(a)*r];
+    var cx=W/2-44, cy=H/2-46, maxR=Math.min(W,H)/2-56;
+    var r=Math.sqrt((i+1)/n)*maxR, a=i*2.39996; /* golden angle */
+    return fit(cx+Math.cos(a)*r, cy+Math.sin(a)*r, W, H);
   },
+  /* sine rows — wraps into stacked wave lines instead of one long line */
   wave: function(i,n,W,H){
-    return [14+i*100, H/2+Math.sin(i*0.8)*60];
+    var SX=100, pr=Math.max(1,Math.floor((W-20)/SX));
+    var row=Math.floor(i/pr), col=i%pr, rows=Math.ceil(n/pr);
+    var rowH=(H-24)/Math.max(1,rows);
+    var y=14+row*rowH+rowH/2-46+Math.sin(col*0.7)*Math.min(22,rowH*0.28);
+    return fit(16+col*SX, y, W, H);
   },
+  /* staggered columns — each column offset downward like a cascade */
   diagonal: function(i,n,W,H){
-    var pc=Math.max(1,Math.floor(H/70));
-    return [14+Math.floor(i/pc)*110+(i%pc)*12, 14+(i%pc)*70];
+    var pc=Math.max(2,Math.floor((H-10)/82));
+    var col=Math.floor(i/pc), row=i%pc;
+    var perCol=Math.ceil(n/Math.ceil(n/pc));
+    var drop=(H-100-row*82)*0;
+    return fit(16+col*104+row*10, 12+row*82+col*14, W, H);
   },
+  /* tight overlapping groups */
   stacked: function(i,n,W,H){
-    var pr=Math.max(1,Math.floor((W-80)/70));
-    return [40+(i%pr)*70, 40+Math.floor(i/pr)*56];
+    var SX=94,SY=72,pr=Math.max(1,Math.floor((W-50)/SX));
+    return fit(30+(i%pr)*SX, 26+Math.floor(i/pr)*SY, W, H);
   },
+  /* deterministic pseudo-random scatter inside bounds */
   scattered: function(i,n,W,H){
     var s=i*7919+104729;
     function r(){s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;}
-    return [r()*(W-100)+10, r()*(H-120)+10];
+    return fit(10+r()*(W-104), 10+r()*(H-110), W, H);
   },
+  /* concentric rings of growing capacity, radius fitted to the area */
   orbital: function(i,n,W,H){
-    var cx=W/2-44,cy=H/2-38,ring=Math.floor(i/6),pos=i%6,R=80+ring*70;
-    var a=(pos/6)*Math.PI*2+ring*0.5;
-    return [cx+Math.cos(a)*R, cy+Math.sin(a)*R];
+    var cx=W/2-44, cy=H/2-46, maxR=Math.min(W,H)/2-56;
+    var rings=[],left=n,cap=6;
+    while(left>0){ var c=Math.min(cap,left); rings.push(c); left-=c; cap+=6; }
+    var R0=maxR/Math.max(1,rings.length);
+    var idx=i,ring=0;
+    for(var r2=0;r2<rings.length;r2++){
+      if(idx<rings[r2]){ ring=r2; break; }
+      idx-=rings[r2];
+    }
+    var cnt=rings[ring]||1, R=Math.max(36,(ring+1)*R0);
+    var a=(idx/cnt)*Math.PI*2+ring*0.5;
+    return fit(cx+Math.cos(a)*R, cy+Math.sin(a)*R, W, H);
   }
 };
 function getCurrentLayout(){ return store.get("mv7.layout","grid"); }
