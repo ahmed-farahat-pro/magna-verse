@@ -3063,54 +3063,170 @@ MOUNT.browser = function(body, w){
   renderTabs(); go(w.params.url || "magna://home");
 };
 
-/* ---------------------------------------------------------- AGENTS */
+/* ---------------------------------------------------------- AGENTS
+   Crew tab from CrewAI (a supervisor decomposes an objective and delegates to
+   role agents); Running tab from MultiOn (watch the work, and take control of
+   the tool mid-run rather than only approving the outcome). */
+var CREW = [
+  { role:"Supervisor",  nm:"Delivery Supervisor", tile:"g-agents", icon:"i-agent",
+    d:"Receives the objective, splits it, reviews what comes back, reports once." },
+  { role:"Commercial",  nm:"Risk Research Agent", tile:"g-brain", icon:"i-brain",
+    d:"Finds the governing clause and builds the commercial position." },
+  { role:"Schedule",    nm:"PO Slippage Watch",   tile:"g-agents", icon:"i-clock",
+    d:"Compares every open PO against the live baseline." },
+  { role:"Quantity",    nm:"Measure Agent",       tile:"g-api",    icon:"i-chart",
+    d:"Values the variation from the measured works." },
+  { role:"Assurance",   nm:"QA Agent",            tile:"g-task",   icon:"i-check",
+    d:"Re-runs the numbers independently before anything leaves." }
+];
+var CREW_PLAN = [
+  { who:"Delivery Supervisor", act:"Split the objective into four tasks", st:"done" },
+  { who:"PO Slippage Watch",   act:"Confirm slip against Baseline r7 — 11 days, critical", st:"done" },
+  { who:"Risk Research Agent", act:"Quote GC-8 8.4 and establish the LD position", st:"done" },
+  { who:"Measure Agent",       act:"Value the variation from measured works", st:"running" },
+  { who:"QA Agent",            act:"Re-derive SAR 5.32M independently", st:"queued" },
+  { who:"Delivery Supervisor", act:"Assemble and request approval to send", st:"queued" }
+];
+var RUN_STEPS = [
+  { t:"open",  d:"p6-schedule · read Baseline r7", tool:"MCP" },
+  { t:"read",  d:"1,842 activities · 3 past threshold", tool:"MCP" },
+  { t:"open",  d:"sap-po-lookup · PO 4500219871", tool:"MCP" },
+  { t:"read",  d:"4 of 6 lines awaiting goods receipt", tool:"MCP" },
+  { t:"search",d:"Company Knowledge · GC-8 clause 8.4", tool:"Brain" },
+  { t:"quote", d:"LD 0.15%/day, capped 10%, binds past day 67", tool:"Brain" },
+  { t:"calc",  d:"exposure at 45 days = SAR 5.32M", tool:"Model" },
+  { t:"draft", d:"variation notice VN-C2-0114", tool:"Chat" }
+];
 MOUNT.agents = function(body, w){
-  body.innerHTML = '<div class="pane"><div class="pane-scroll">'+
-    '<h4 class="sec">Agents</h4>'+
-    '<p class="sub">Four agents, two of them running now. They hand work to each other — the map below is the '+
-    'crew, not a list of isolated bots. Read actions run free; every write waits for you.</p>'+
-    '<div class="grid2">'+ AGENTS.map(function(a){
-      return '<div class="agc"><div class="top"><span class="av '+a.tile+'">'+ico(a.icon,"sm")+'</span>'+
-      '<span class="nm">'+esc(a.name)+'</span>'+
-      (a.state==="running"?'<span class="st"><span class="d"></span>running</span>':'<span class="tag">idle</span>')+
-      '</div><p>'+esc(a.desc)+'</p><div class="foot">'+
-      a.tags.map(function(t){ return '<span class="tag">'+esc(t)+'</span>'; }).join("")+
-      (a.delegates?'<span class="tag sg">'+ico("i-agent","xs")+'→ '+esc(a.delegates)+'</span>':"")+
-      '<button class="btn sm" data-agrun="'+esc(a.name)+'" style="margin-left:auto">Run now</button>'+
-      '</div></div>';
-    }).join("") + '</div>'+
-    '<h4 class="sec" style="margin-top:22px">Delegation</h4>'+
-    '<p class="sub">Who calls whom. PO Slippage Watch and Risk Research Agent delegate both ways — one finds the '+
-    'slip, the other finds the clause that makes it expensive.</p>'+
-    '<div class="dmap"><svg viewBox="0 0 520 150">'+
-      '<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">'+
-      '<path d="M0 0 L10 5 L0 10 z" fill="var(--signal)"/></marker></defs>'+
-      '<rect class="box" x="14" y="20" width="150" height="42" rx="9"/>'+
-      '<text x="89" y="38" text-anchor="middle">PO Slippage Watch</text>'+
-      '<text x="89" y="52" text-anchor="middle" fill="var(--tx-4)">every 2 hours · read-only</text>'+
-      '<rect class="box" x="196" y="20" width="150" height="42" rx="9"/>'+
-      '<text x="271" y="38" text-anchor="middle">Risk Research Agent</text>'+
-      '<text x="271" y="52" text-anchor="middle" fill="var(--tx-4)">clause + position</text>'+
-      '<rect class="box" x="378" y="20" width="128" height="42" rx="9"/>'+
-      '<text x="442" y="38" text-anchor="middle">Board Pack Drafter</text>'+
-      '<text x="442" y="52" text-anchor="middle" fill="var(--tx-4)">Thursday 07:00</text>'+
-      '<rect class="box" x="196" y="98" width="150" height="38" rx="9"/>'+
-      '<text x="271" y="121" text-anchor="middle">HSE Digest</text>'+
-      '<path class="ln" d="M166 34 L192 34"/>'+
-      '<path class="ln" d="M192 50 L168 50"/>'+
-      '<path class="ln" d="M348 41 L374 41"/>'+
-      '<path class="ln" d="M271 96 L271 66"/>'+
-    '</svg></div>'+
-    '</div></div>';
+  w.state.tab = "crew"; w.state.step = 0; w.state.timer = null; w.state.taken = false;
+  body.innerHTML = '<div class="pane">'+
+    '<div class="tabs">'+
+      '<button class="tab" data-agtab="crew" aria-selected="true">Crew</button>'+
+      '<button class="tab" data-agtab="all" aria-selected="false">All agents</button>'+
+      '<button class="tab" data-agtab="run" aria-selected="false">Running</button>'+
+    '</div><div class="pane-scroll" data-agbody></div></div>';
+  function stopRun(){ if(w.state.timer){ clearTimeout(w.state.timer); w.state.timer = null; } }
+  function drawCrew(){
+    var host = body.querySelector("[data-agbody]");
+    host.innerHTML = '<h4 class="sec">Software delivery crew</h4>'+
+      '<p class="sub">One supervisor, four specialists. You give the supervisor an objective; it decides '+
+      'the split, delegates, reviews what comes back and reports once — rather than you briefing five '+
+      'agents separately. Every write any member proposes still lands in your approval queue.</p>'+
+      '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+        '<input class="bw-url" data-agobj style="flex:1;border-radius:10px" '+
+        'value="Prepare the C2 exposure position for Thursday" spellcheck="false">'+
+        '<button class="btn primary" data-agstart>'+ico("i-play","xs")+'Give objective</button></div>'+
+      '<div class="grid2">'+ CREW.map(function(c){
+        return '<div class="agc"><div class="top"><span class="av '+c.tile+'">'+ico(c.icon,"sm")+'</span>'+
+          '<span class="nm">'+esc(c.nm)+'<br><span style="font-weight:400;font-size:10.5px;color:var(--tx-4)">'+
+          esc(c.role)+'</span></span></div><p>'+esc(c.d)+'</p></div>';
+      }).join("") +'</div>'+
+      '<h4 class="sec" style="margin-top:20px">How it split the last objective</h4>'+
+      '<div class="tl">'+ CREW_PLAN.map(function(p){
+        var col = p.st === "done" ? "var(--private)" : p.st === "running" ? "var(--public)" : "var(--tx-4)";
+        return '<div class="tl-i"><div class="tt">'+esc(p.act)+
+          '<span class="tag" style="margin-left:8px;color:'+col+';border-color:'+col+'55">'+p.st+'</span></div>'+
+          '<div class="tm">'+esc(p.who)+'</div></div>';
+      }).join("") +'</div>';
+  }
+  function drawAll(){
+    body.querySelector("[data-agbody]").innerHTML = '<h4 class="sec">Agents</h4>'+
+      '<p class="sub">Read actions run free inside their granted scope. Every write waits for you.</p>'+
+      '<div class="grid2">'+ AGENTS.map(function(a){
+        return '<div class="agc"><div class="top"><span class="av '+a.tile+'">'+ico(a.icon,"sm")+'</span>'+
+        '<span class="nm">'+esc(a.name)+'</span>'+
+        (a.state==="running"?'<span class="st"><span class="d"></span>running</span>':'<span class="tag">idle</span>')+
+        '</div><p>'+esc(a.desc)+'</p><div class="foot">'+
+        a.tags.map(function(t){ return '<span class="tag">'+esc(t)+'</span>'; }).join("")+
+        (a.delegates?'<span class="tag sg">'+ico("i-agent","xs")+'→ '+esc(a.delegates)+'</span>':"")+
+        '<button class="btn sm" data-agrun="'+esc(a.name)+'" style="margin-left:auto">Run now</button>'+
+        '</div></div>'; }).join("") +'</div>';
+  }
+  function drawRun(){
+    var host = body.querySelector("[data-agbody]");
+    var s = w.state.step, done = s >= RUN_STEPS.length;
+    host.innerHTML = '<h4 class="sec">Risk Research Agent · live</h4>'+
+      '<p class="sub">Watch the actual tool calls as they happen. You can take the tool away from the '+
+      'agent at any point, do it yourself, then hand it back — the run continues from where you left it.</p>'+
+      '<div class="card" style="border-color:color-mix(in srgb,var(--public) 40%,transparent)">'+
+        '<h5>'+ico("i-agent","sm")+'Objective<span class="tag pb" style="margin-left:auto">'+
+        (w.state.taken ? "you have control" : done ? "complete" : "running")+'</span></h5>'+
+        '<p>Establish the commercial position on the C2 rebar delay and draft the notice.</p>'+
+        '<div class="bar" style="margin-top:10px"><i style="width:'+
+          Math.round(Math.min(s,RUN_STEPS.length)/RUN_STEPS.length*100)+'%;background:var(--public)"></i></div>'+
+        '<div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap">'+
+          (done ? '' :
+            '<button class="btn sm" data-agpause>'+(w.state.timer?"Pause":"Resume")+'</button>'+
+            '<button class="btn sm '+(w.state.taken?"primary":"")+'" data-agtake>'+
+              (w.state.taken?"Hand back to agent":"Take control")+'</button>')+
+          '<button class="btn sm" data-agreset>Restart</button>'+
+        '</div></div>'+
+      '<div class="cd-term" style="height:auto;max-height:260px;margin-top:12px;border-radius:10px;'+
+        'border:1px solid var(--glass-line)">'+
+        RUN_STEPS.slice(0, s).map(function(r){
+          return '<div><span class="p">✓</span> '+esc(r.t)+'  '+esc(r.d)+
+                 '  <span style="color:var(--tx-4)">['+esc(r.tool)+']</span></div>'; }).join("")+
+        (!done && !w.state.taken ? '<div><span class="w">▸</span> '+esc(RUN_STEPS[s].t)+'  '+
+          esc(RUN_STEPS[s].d)+'  <span style="color:var(--tx-4)">['+esc(RUN_STEPS[s].tool)+']</span></div>' : "")+
+        (w.state.taken ? '<div><span class="w">‖</span> paused — you hold the tool. The agent is waiting.</div>' : "")+
+        (done ? '<div><span class="p">✓</span> draft ready · waiting on your approval to send</div>' : "")+
+      '</div>'+
+      (done ? '<div class="card" style="margin-top:12px"><h5>'+ico("i-approve","sm")+'Next step needs you</h5>'+
+        '<p>The notice is drafted. Sending it is a write, so it will not go without your yes.</p>'+
+        '<button class="btn primary sm" data-agsend style="margin-top:9px">Review and send</button></div>' : "");
+  }
+  function tick(){
+    if(w.state.taken) return;
+    if(w.state.step >= RUN_STEPS.length){ w.state.timer = null; drawRun(); return; }
+    w.state.step++;
+    drawRun();
+    w.state.timer = setTimeout(tick, REDUCED ? 120 : 900);
+  }
+  function draw(){
+    setWinTitle(w, "Agents", w.state.tab === "run" ? "live run" : w.state.tab);
+    if(w.state.tab === "crew") drawCrew();
+    else if(w.state.tab === "all") drawAll();
+    else drawRun();
+  }
   body.addEventListener("click", function(e){
-    var b = e.target.closest("[data-agrun]"); if(!b) return;
-    requestApproval(w, {
-      title:"Run “"+b.getAttribute("data-agrun")+"” now?",
+    var t = e.target.closest("[data-agtab]");
+    if(t){ stopRun(); w.state.tab = t.getAttribute("data-agtab");
+           $$("[data-agtab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           if(w.state.tab === "run" && w.state.step === 0){ w.state.timer = setTimeout(tick, 400); }
+           draw(); return; }
+    if(e.target.closest("[data-agstart]")){
+      var o = body.querySelector("[data-agobj]");
+      toast("Supervisor accepted: “" + (o?o.value:"") + "”. Split into 4 tasks across the crew.", 4200);
+      w.state.tab = "run"; w.state.step = 0; w.state.taken = false;
+      $$("[data-agtab]", body).forEach(function(x){
+        x.setAttribute("aria-selected", String(x.getAttribute("data-agtab")==="run")); });
+      draw(); stopRun(); w.state.timer = setTimeout(tick, 500); return;
+    }
+    if(e.target.closest("[data-agpause]")){
+      if(w.state.timer){ stopRun(); toast("Paused."); } else { w.state.timer = setTimeout(tick, 200); }
+      drawRun(); return;
+    }
+    if(e.target.closest("[data-agtake]")){
+      w.state.taken = !w.state.taken;
+      if(w.state.taken){ stopRun(); toast("You have the tool. The agent is waiting, not cancelled.", 3600); }
+      else { toast("Handed back. Resuming from step " + (w.state.step+1) + "."); w.state.timer = setTimeout(tick, 300); }
+      drawRun(); return;
+    }
+    if(e.target.closest("[data-agreset]")){ stopRun(); w.state.step = 0; w.state.taken = false; drawRun(); return; }
+    if(e.target.closest("[data-agsend]")){
+      requestApproval(w, { title:"Send the drafted variation notice?",
+        detail:"Goes to Khalid Al-Rashid at Al-Rajhi Steel, citing GC-8 8.4. The assessed sum is blank.",
+        confirm:"Review draft", okToast:"Opened in Mail as a draft. Nothing was sent.",
+        onApprove:function(){ openApp("mail"); } });
+      return;
+    }
+    var r = e.target.closest("[data-agrun]");
+    if(r){ requestApproval(w, {
+      title:"Run “"+r.getAttribute("data-agrun")+"” now?",
       detail:"It will read SAP and P6. It cannot write anything without asking you again.",
-      confirm:"Run",
-      okToast:"Running. Watch the dock badge for the result."
-    });
+      confirm:"Run", okToast:"Running. Watch it on the Running tab." }); }
   });
+  draw();
 };
 
 /* ---------------------------------------------------------- AUTOMATIONS */
