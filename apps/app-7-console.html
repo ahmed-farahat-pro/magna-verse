@@ -539,6 +539,18 @@ body.dragging{cursor:grabbing}
   display:flex;align-items:flex-end;gap:8px;padding:9px 12px;border-radius:var(--r-xl);
   background:var(--chrome);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   border:1px solid var(--glass-line);box-shadow:0 18px 40px rgba(0,0,0,.42);max-width:calc(100vw - 24px)}
+/* Windows-style left edge dock — toggled from the desktop context menu */
+body.dock-left #dock{left:12px;right:auto;bottom:12px;top:calc(var(--menubar-h) + 12px);transform:none;
+  flex-direction:column;align-items:center;justify-content:flex-end;
+  max-width:none;max-height:calc(100vh - var(--menubar-h) - 24px);overflow-y:auto;scrollbar-width:none}
+body.dock-left #dock::-webkit-scrollbar{display:none}
+body.dock-left .dk-ctx{flex-direction:column}
+body.dock-left .dk-sep{width:1px;align-self:stretch;margin:3px 6px}
+/* desktop content makes room for the edge dock */
+body.dock-left .icon-layer{left:88px}
+body.dock-left #quickAI{left:100px}
+body.dock-left #quickPanel{left:100px}
+@media (max-width:767px){ body.dock-left #dock{top:auto;bottom:0;flex-direction:row;max-height:none} }
 /* --dk is set by renderDock: icons shrink so any count fits without overflow */
 .dk{width:var(--dk,50px);height:var(--dk,50px);border-radius:14px;display:grid;place-items:center;position:relative;flex:none;
   box-shadow:0 6px 16px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.2);
@@ -588,20 +600,35 @@ body.dragging{cursor:grabbing}
   padding-top:9px;margin-top:4px;line-height:1.6}
 #compPanel .ctx b{color:var(--private)}
 
-/* ---- Quick AI — the always-visible ask bar (bottom-left) ---- */
-#quickAI{position:fixed;left:20px;bottom:calc(var(--dock-h) + 22px);z-index:210;height:44px;
-  display:flex;align-items:center;gap:10px;padding:0 16px 0 7px;border-radius:var(--r-pill);
+/* ---- Quick AI — the always-visible ask bar (draggable, bottom-left) ---- */
+#quickAI{position:fixed;left:20px;bottom:calc(var(--dock-h) + 22px);z-index:210;height:46px;
+  display:flex;align-items:center;gap:10px;padding:0 18px 0 7px;border-radius:var(--r-pill);
   border:1px solid var(--glass-line-2);background:var(--chrome);backdrop-filter:var(--blur);
   -webkit-backdrop-filter:var(--blur);box-shadow:0 10px 28px rgba(0,0,0,.35);
-  color:var(--tx-2);font-size:13px;font-weight:650;transition:all .18s cubic-bezier(.25,.1,.25,1)}
+  color:var(--tx-2);font-size:13px;font-weight:650;cursor:grab;touch-action:none;
+  transition:border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
 #quickAI:hover{border-color:var(--cyan);color:var(--tx);transform:translateY(-2px);
-  box-shadow:0 14px 32px rgba(0,0,0,.42),0 0 18px rgba(14,165,183,.15)}
-#quickAI:active{transform:scale(.97)}
-.qa-orb{width:32px;height:32px;border-radius:99px;display:grid;place-items:center;flex:none;
-  background:radial-gradient(circle at 34% 28%,#fff,var(--accent) 62%)}
-.qa-orb .ico{width:15px;height:15px;stroke:#fff;stroke-width:2}
+  box-shadow:0 14px 32px rgba(0,0,0,.42),0 0 20px rgba(14,165,183,.18)}
+#quickAI:active{cursor:grabbing;transform:scale(.97)}
+#quickAI.dragging{cursor:grabbing;transition:none;transform:none;opacity:.9;z-index:400}
+/* the orb: spinning aurora ring around a live core */
+.qa-orb{width:34px;height:34px;border-radius:99px;display:grid;place-items:center;flex:none;
+  position:relative;background:radial-gradient(circle at 34% 28%,#fff,var(--accent) 62%)}
+.qa-orb::before{content:"";position:absolute;inset:-3.5px;border-radius:99px;z-index:-1;
+  background:conic-gradient(from 0deg,var(--cyan),var(--signal),var(--violet),var(--cyan));
+  filter:blur(3.5px);opacity:.65}
+@media (prefers-reduced-motion: no-preference){
+  .qa-orb::before{animation:qaSpin 3.2s linear infinite}
+  .qa-orb{animation:qaBreathe 3.6s ease-in-out infinite}
+}
+@keyframes qaSpin{to{transform:rotate(360deg)}}
+@keyframes qaBreathe{0%,100%{box-shadow:0 0 10px rgba(215,25,32,.35)}50%{box-shadow:0 0 20px rgba(215,25,32,.55)}}
+.qa-orb .ico{width:16px;height:16px;stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))}
 #quickAI kbd{margin-left:4px;font-family:var(--mono);font-size:10px;color:var(--tx-4);
   border:1px solid var(--glass-line);border-radius:4px;padding:1px 5px;background:var(--glass-2)}
+.qa-grip{display:flex;flex-direction:column;gap:2px;margin-left:2px;opacity:.5;flex:none}
+.qa-grip i{width:9px;height:2px;border-radius:2px;background:var(--tx-3);display:block}
+#quickAI:hover .qa-grip{opacity:.9}
 #quickPanel{position:fixed;left:20px;bottom:calc(var(--dock-h) + 76px);z-index:211;
   width:min(420px,calc(100vw - 40px));border-radius:var(--r-lg);background:var(--glass-2);
   backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line);
@@ -612,6 +639,13 @@ body.dragging{cursor:grabbing}
 .qa-title .ico{color:var(--cyan)}
 .qa-x{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--tx-3)}
 .qa-x:hover{background:var(--glass-3);color:var(--tx)}
+.qa-mic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--tx-3);
+  position:relative}
+.qa-mic:hover{background:var(--glass-3);color:var(--tx)}
+.qa-mic.on{color:var(--cyan)}
+@media (prefers-reduced-motion: no-preference){
+  .qa-mic.on{animation:glowPulse 2.4s ease-in-out infinite}
+}
 .qa-body{padding:0 14px 14px}
 .qa-in{display:flex;align-items:center;gap:9px;border:1px solid var(--glass-line-2);border-radius:11px;
   background:var(--glass-3);padding:10px 12px}
@@ -1522,14 +1556,18 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
   <div id="compPanel" role="dialog" aria-label="Companion"></div>
 
   <!-- Quick AI — one ask away on every desktop -->
-  <button id="quickAI" aria-label="Quick AI — ask or request anything">
+  <button id="quickAI" aria-label="Quick AI — ask or request anything" title="Drag to reposition · click to ask">
     <span class="qa-orb"><svg class="ico"><use href="#i-spark"/></svg></span>
     <span class="qa-tx">Ask&nbsp;AI<kbd>/</kbd></span>
+    <span class="qa-grip" aria-hidden="true"><i></i><i></i><i></i></span>
   </button>
   <div id="quickPanel" role="dialog" aria-label="Quick AI">
     <div class="qa-head">
       <span class="qa-title"><svg class="ico sm"><use href="#i-spark"/></svg>Quick AI</span>
-      <button class="qa-x" data-qax aria-label="Close"><svg class="ico sm"><use href="#i-x"/></svg></button>
+      <span style="display:flex;gap:4px">
+        <button class="qa-mic" data-qam title="Clap detection — double-clap anywhere and I’ll appear" aria-label="Toggle clap detection"><svg class="ico sm"><use href="#i-shield"/></svg></button>
+        <button class="qa-x" data-qax aria-label="Close"><svg class="ico sm"><use href="#i-x"/></svg></button>
+      </span>
     </div>
     <div class="qa-body">
       <div class="qa-in">
@@ -1566,6 +1604,8 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     <button class="ctx-item" data-ctx="props"><svg class="ico xs"><use href="#i-shield"/></svg>Properties</button>
     <button class="ctx-item" data-ctx="wallpaper"><svg class="ico xs"><use href="#i-monitor"/></svg>Change Wallpaper</button>
     <button class="ctx-item" data-ctx="theme"><svg class="ico xs"><use href="#i-moon"/></svg>Change Theme</button>
+    <button class="ctx-item" data-ctx="dockside"><svg class="ico xs"><use href="#i-grid"/></svg><span data-docklbl>Dock to Left</span></button>
+    <button class="ctx-item" data-ctx="clap"><svg class="ico xs"><use href="#i-spark"/></svg><span data-claplbl>Clap Detection: Off</span></button>
   </div>
 
   <!-- ===== WALLPAPER PICKER ===== -->
@@ -1613,7 +1653,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
   <h3>Spaces</h3>
   <div class="mc-grid" id="mcGrid"></div>
   <div class="mc-mem" id="mcMem"></div>
-  <p class="mc-hint">Click a desktop to switch · <b>+</b> creates one · double-click to rename · <span>×</span> removes it · <kbd>Ctrl</kbd>+<kbd>↑</kbd> to open · <kbd>Esc</kbd> to close</p>
+  <p class="mc-hint">Click a desktop to switch · <b>+</b> creates one · double-click to rename · <span>×</span> removes it · two-finger swipe <b>up</b> or <kbd>Ctrl</kbd>+<kbd>↑</kbd> opens this · <kbd>Esc</kbd> closes</p>
 </div>
 
 <div id="toasts" role="status" aria-live="polite"></div>
@@ -2478,6 +2518,21 @@ function dockBtn(id, running){
          ico(a.icon)+(BADGES[id]?'<span class="badge">'+BADGES[id]+'</span>':"")+
          '<span class="run"></span><span class="dk-tip">'+esc(a.name)+'</span></button>';
 }
+/* Windows-style left edge dock, toggled from the desktop context menu */
+function setDockPos(p){
+  document.body.classList.toggle("dock-left", p === "left");
+  store.set("mv7.dockpos", p);
+  renderDock();
+  renderIcons();
+  syncCtxLabels();
+  toast(p === "left" ? "Dock moved to the left edge." : "Dock moved to the bottom.", 2000);
+}
+function syncCtxLabels(){
+  var dl = $("[data-docklbl]"), cl = $("[data-claplbl]");
+  if(dl) dl.textContent = document.body.classList.contains("dock-left") ? "Dock to Bottom" : "Dock to Left";
+  if(cl) cl.textContent = "Clap Detection: " + (clap.on ? "On" : "Off");
+}
+
 function renderDock(){
   var run = runningIds(), ctx = contextualIds(), pinned = dockPinned();
   /* only pinned + running/contextual live in the dock; the full catalogue
@@ -2495,7 +2550,10 @@ function renderDock(){
   var items = $$(".dk", dock).length;
   if(items > 0){
     var seps = $$(".dk-sep", dock).length;
-    var avail = window.innerWidth - 48;          /* page side margins   */
+    /* vertical dock fits to viewport HEIGHT instead of width */
+    var avail = document.body.classList.contains("dock-left")
+      ? window.innerHeight - barH() - 48
+      : window.innerWidth - 48;                  /* page side margins   */
     avail -= 24;                                  /* dock padding        */
     avail -= seps * 13;                           /* separators          */
     var gap = 8;
@@ -2585,11 +2643,25 @@ $("#mission").addEventListener("dblclick", function(e){
   if(s && !e.target.closest("[data-mcdel]")) renameSpace(+s.getAttribute("data-mcspace"));
 });
 
-/* gestures: two-finger horizontal swipe (trackpad) changes space */
+/* gestures: two-finger horizontal swipe (trackpad) changes space;
+   two-finger swipe up opens Mission Control, swipe down closes it */
 var wheelLock = false;
 window.addEventListener("wheel", function(e){
   if(!document.body.matches('[data-stage="os"]')) return;
   if(e.target.closest(".win-body")) return;             /* let app content scroll */
+  /* vertical: two-finger swipe up opens Mission Control, down closes it */
+  if(Math.abs(e.deltaY) >= 64 && Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+    if(wheelLock) return;
+    var mOn = $("#mission").classList.contains("on");
+    if(e.deltaY < 0 && !mOn){
+      wheelLock = true; setTimeout(function(){ wheelLock = false; }, 620);
+      openMission(true);
+    } else if(e.deltaY > 0 && mOn){
+      wheelLock = true; setTimeout(function(){ wheelLock = false; }, 620);
+      openMission(false);
+    }
+    return;
+  }
   if(Math.abs(e.deltaX) < 28 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
   if(wheelLock) return;
   wheelLock = true; setTimeout(function(){ wheelLock = false; }, 520);
@@ -3412,6 +3484,7 @@ var ctxState = { target:null, type:null }; /* type: "desktop"|"file"|"folder" */
 function showCtx(x, y, type, targetId){
   var m = $("#ctxMenu");
   m.style.display = "block";
+  syncCtxLabels();
   m.style.left = Math.min(x, window.innerWidth - 220) + "px";
   m.style.top = Math.min(y, window.innerHeight - 340) + "px";
   ctxState = { target:targetId||null, type:type };
@@ -3533,6 +3606,8 @@ document.addEventListener("click", function(e){
   }
   else if(act === "wallpaper"){ openWallpaper(); }
   else if(act === "theme"){ openThemePicker(); }
+  else if(act === "dockside"){ setDockPos(document.body.classList.contains("dock-left") ? "bottom" : "left"); }
+  else if(act === "clap"){ clapToggle(); }
 });
 
 /* ---- WALLPAPER PICKER ---- */
@@ -3644,7 +3719,10 @@ var THEMES = [
 function iconArea(){
   var W = Math.max(420, window.innerWidth);
   var H = Math.max(320, window.innerHeight - barH() - 110); /* dock clearance */
-  if(!isMobile()) W = Math.max(400, W - 336);               /* widget rail */
+  if(!isMobile()){
+    W = Math.max(400, W - 336);               /* widget rail */
+    if(document.body.classList.contains("dock-left")) W -= 90;  /* edge dock */
+  }
   return [W, H];
 }
 function fit(x, y, W, H){
@@ -3915,7 +3993,7 @@ document.addEventListener("pointercancel", function(){
   if(dock) dock.classList.remove("drop-target");
 });
 
-/* ---- APPLY SAVED WALLPAPER + THEME ON LOAD ---- */
+/* ---- APPLY SAVED WALLPAPER + THEME + DOCK ON LOAD ---- */
 (function(){
   var wp = store.get("mv7.wallpaper","default");
   if(wp !== "default") applyWallpaper(wp);
@@ -3924,6 +4002,8 @@ document.addEventListener("pointercancel", function(){
   /* set layout attribute on icon layers */
   var layout = getCurrentLayout();
   $$(".icon-layer").forEach(function(el){ el.setAttribute("data-layout", layout); });
+  /* restore dock edge (Windows-style left option) */
+  if(store.get("mv7.dockpos","bottom") === "left") document.body.classList.add("dock-left");
 })();
 
 /* ============================================================
@@ -4080,13 +4160,126 @@ function quickAIOpen(on){
   }
 }
 $("#quickAI").addEventListener("click", function(){
+  if(qaJustDragged) return;            /* a reposition is not a click */
   quickAIOpen(!$("#quickPanel").classList.contains("on"));
 });
+/* repositionable Ask AI pill — drag anywhere, position persists.
+   The panel follows its anchor side so it never opens off-screen. */
+var qaDrag = null, qaJustDragged = false;
+(function(){
+  var n = $("#quickAI");
+  var saved = null;
+  try{ saved = JSON.parse(store.get("mv7.qapos","")); }catch(e){}
+  if(saved && saved.length === 2){
+    n.style.left = clamp(saved[0], 6, window.innerWidth - 120) + "px";
+    n.style.top  = clamp(saved[1], 40, window.innerHeight - 60) + "px";
+    n.style.bottom = "auto";
+  }
+  n.addEventListener("pointerdown", function(e){
+    if(isMobile()) return;
+    var r = n.getBoundingClientRect();
+    qaDrag = { sx:e.clientX, sy:e.clientY, ox:r.left, oy:r.top, moved:false, w:r.width, h:r.height };
+    n.setPointerCapture && n.setPointerCapture(e.pointerId);
+  });
+  n.addEventListener("pointermove", function(e){
+    if(!qaDrag) return;
+    var dx = e.clientX - qaDrag.sx, dy = e.clientY - qaDrag.sy;
+    if(!qaDrag.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+    if(!qaDrag.moved){ qaDrag.moved = true; n.classList.add("dragging"); quickAIOpen(false); }
+    n.style.left = clamp(qaDrag.ox + dx, 6, window.innerWidth  - qaDrag.w - 6) + "px";
+    n.style.top  = clamp(qaDrag.oy + dy, 40, window.innerHeight - qaDrag.h - 6) + "px";
+    n.style.bottom = "auto";
+  });
+  function finish(){
+    if(!qaDrag) return;
+    if(qaDrag.moved){
+      qaJustDragged = true;
+      setTimeout(function(){ qaJustDragged = false; }, 350);
+      n.classList.remove("dragging");
+      store.set("mv7.qapos", JSON.stringify([parseInt(n.style.left,10), parseInt(n.style.top,10)]));
+      toast("Ask AI pinned here — I’ll remember it.", 1800);
+    }
+    qaDrag = null;
+  }
+  n.addEventListener("pointerup", finish);
+  n.addEventListener("pointercancel", finish);
+})();
 document.addEventListener("click", function(e){
   if(e.target.closest("[data-qax]")){ quickAIOpen(false); return; }
+  if(e.target.closest("[data-qam]")){ e.stopPropagation(); clapToggle(); return; }
   if(e.target === $("#quickPanel")) quickAIOpen(false);
   var c = e.target.closest("[data-qa]"); if(!c) return;
   quickAIRun(c.getAttribute("data-qa"), $("#quickPanel [data-qain]").value.trim());
+});
+
+/* ---- 1c · CLAP DETECTION -----------------------------------------------
+   Double-clap anywhere → Quick AI opens and greets. Web Audio spike
+   detection on the mic stream; strictly opt-in (mic permission), and
+   nothing is recorded or sent anywhere — amplitude only, in-tab. */
+var clap = { ctx:null, analyser:null, data:null, stream:null, on:false, last:0, spikes:[] };
+function clapStart(){
+  if(clap.on) return;
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    toast("This browser can’t listen for claps.", 2400); return;
+  }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    clap.ctx = new AC();
+    var src = clap.ctx.createMediaStreamSource(stream);
+    clap.analyser = clap.ctx.createAnalyser();
+    clap.analyser.fftSize = 512;
+    clap.data = new Uint8Array(clap.analyser.frequencyBinCount);
+    src.connect(clap.analyser);
+    clap.stream = stream; clap.on = true; clap.spikes = [];
+    store.set("mv7.clap","on");
+    syncClapUI();
+    toast("Clap detection on — double-clap anywhere and I’ll appear.", 3200);
+    clapLoop();
+  }).catch(function(){
+    toast("Microphone blocked — allow it to use clap detection.", 2600);
+  });
+}
+function clapStop(){
+  if(!clap.on) return;
+  clap.on = false;
+  try{ clap.stream && clap.stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+  try{ clap.ctx && clap.ctx.close(); }catch(e){}
+  clap.ctx = null; clap.analyser = null; clap.stream = null;
+  store.set("mv7.clap","off");
+  syncClapUI();
+  toast("Clap detection off.", 1800);
+}
+function clapToggle(){ clap.on ? clapStop() : clapStart(); }
+function syncClapUI(){
+  var b = $(".qa-mic"); if(b) b.classList.toggle("on", clap.on);
+}
+function clapLoop(){
+  if(!clap.on || !clap.analyser) return;
+  requestAnimationFrame(clapLoop);
+  clap.analyser.getByteFrequencyData(clap.data);
+  var sum = 0;
+  for(var i = 0; i < clap.data.length; i++) sum += clap.data[i];
+  var avg = sum / clap.data.length;
+  var now = performance.now();
+  /* a clap is a sharp broadband spike; two inside ~600ms is a double-clap */
+  if(avg > 58 && now - clap.last > 110){
+    clap.spikes.push(now);
+    clap.last = now;
+  }
+  while(clap.spikes.length && now - clap.spikes[0] > 600) clap.spikes.shift();
+  if(clap.spikes.length >= 2){
+    clap.spikes = [];
+    quickAIOpen(true);
+    toast("I’m here — what do you need?", 2400);
+  }
+}
+/* resume after reload once the user interacts (AudioContext needs a gesture) */
+document.addEventListener("click", function bootClap(){
+  if(store.get("mv7.clap","") === "on" && !clap.on){
+    syncClapUI();
+    clapStart();
+  }
+  document.removeEventListener("click", bootClap);
 });
 $("#quickPanel [data-qain]").addEventListener("keydown", function(e){
   if(e.key === "Enter"){
