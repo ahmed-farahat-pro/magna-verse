@@ -185,7 +185,7 @@ body:not([data-stage="os"]) #os{display:none}
 .dicon.dragging{opacity:.75;z-index:60}
 .dicon .tile{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;position:relative;
   box-shadow:0 10px 22px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.22);
-  transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}
+  transition:transform .16s cubic-bezier(.2,.8,.3,1.1)}
 .dicon:hover .tile{transform:translateY(-4px) scale(1.05)}
 .dicon .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 46%);pointer-events:none}
@@ -317,6 +317,16 @@ body:not([data-stage="os"]) #os{display:none}
 
 /* Circular — center-pivot */
 [data-layout="circular"] .dicon{transition:transform .3s ease}
+
+/* Animated layouts must freeze under the pointer, otherwise the element
+   keeps moving between pointerdown and pointerup and clicks never land.
+   Hover pauses the icon's own animation and — for orbital, where the whole
+   layer rotates — the layer spin as well. */
+@media (hover:hover){
+  .dicon:hover{animation-play-state:paused}
+  [data-layout="orbital"] .icon-layer:has(.dicon:hover),
+  [data-layout="orbital"] .icon-layer:focus-within{animation-play-state:paused}
+}
 
 /* =============== FILE MANAGER =============== */
 .fm-wrap{display:flex;flex-direction:column;height:100%}
@@ -508,12 +518,13 @@ body.dragging{cursor:grabbing}
   display:flex;align-items:flex-end;gap:8px;padding:9px 12px;border-radius:var(--r-xl);
   background:var(--chrome);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   border:1px solid var(--glass-line);box-shadow:0 18px 40px rgba(0,0,0,.42);max-width:calc(100vw - 24px)}
-.dk{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;position:relative;flex:none;
+/* --dk is set by renderDock: icons shrink so any count fits without overflow */
+.dk{width:var(--dk,50px);height:var(--dk,50px);border-radius:14px;display:grid;place-items:center;position:relative;flex:none;
   box-shadow:0 6px 16px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.2);
   transition:transform .18s cubic-bezier(.2,.9,.3,1.5)}
 .dk::after{content:"";position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(160deg,rgba(255,255,255,.26),transparent 46%);pointer-events:none}
-.dk .ico{width:23px;height:23px;stroke:var(--tile,#fff);stroke-width:1.85;position:relative;z-index:1}
+.dk .ico{width:calc(var(--dk,50px)*.46);height:calc(var(--dk,50px)*.46);stroke:var(--tile,#fff);stroke-width:1.85;position:relative;z-index:1}
 @media (hover:hover){ .dk:hover{transform:translateY(-13px) scale(1.16)} }
 .dk .run{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:99px;
   background:var(--tx-2);opacity:0;transition:opacity .15s}
@@ -1534,7 +1545,10 @@ var APPS = {
   ppt:     { name:"Slides",      icon:"i-slides", tile:"g-ppt",     w:1000,h:700, minW:560, minH:420, multi:true  },
   trash:   { name:"Trash",       icon:"i-x",      tile:"g-trash",   w:700, h:520, minW:400, minH:340, multi:false }
 };
-var DOCK_PINNED = ["chat","brain","code","browser","terminal"];
+/* Dock shows the 7 core apps. Running/contextual apps are appended with a
+   separator, and renderDock shrinks --dk so the bar never overflows —
+   everything else stays on the desktop and in Spotlight. */
+var DOCK_PINNED = ["chat","brain","mail","files","agents","settings","trash"];
 var DOCK_REST   = ["files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","market","tasks",
                    "approvals","ledger","memory","models","conn","mail","settings","trash"];
 var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","word","ppt","sheets","docs","slides","gantt",
@@ -1727,6 +1741,10 @@ var iconDrag = null;
 document.addEventListener("pointerdown", function(e){
   if(isMobile()) return;
   var ic = e.target.closest(".dicon"), dk = e.target.closest(".dk");
+  /* file/folder icons are owned by the freeDrag handler below — running
+     both systems on the same icon made drags fight each other (glitching,
+     phantom proxies, laggy clicks) */
+  if(ic && ic.classList.contains("dicon-file")) return;
   var node = ic || dk; if(!node) return;
   var from = ic ? "desktop" : "dock";
   var id = node.getAttribute("data-app") || node.getAttribute("data-open");
@@ -1773,7 +1791,13 @@ document.addEventListener("pointerup", function(e){
   dock.classList.remove("drop-target");
   d.node.classList.remove("dragging");
   if(d.proxy) d.proxy.remove();
-  if(!d.moved) return;                        /* a plain click, handled elsewhere */
+  if(!d.moved){
+    /* plain tap — open directly from pointerup. Native click events are
+       unreliable on animated icons (orbital/wave/floating keep moving the
+       element between down and up, so the browser never dispatches click). */
+    if(APPS[d.id]){ lastPtrOpen = Date.now(); openApp(d.id); }
+    return;
+  }
 
   var onDock = pointerOverDock(e.clientX, e.clientY);
   var pinned = dockPinned();
@@ -1833,10 +1857,14 @@ document.addEventListener("pointerup", function(e){
   }
 });
 
-/* open on click — but never when the pointer-up was a drag */
+/* open on click — mobile/touch path (desktop opens from pointerup above;
+   lastPtrOpen prevents a double open when both events fire) */
+var lastPtrOpen = 0;
 document.addEventListener("click", function(e){
   var b = e.target.closest("[data-open]");
-  if(b && !b.classList.contains("dragging")){ openApp(b.getAttribute("data-open")); }
+  if(!b || b.classList.contains("dragging")) return;
+  if(!isMobile() && Date.now() - lastPtrOpen < 500) return;
+  openApp(b.getAttribute("data-open"));
 });
 
 /* ============================================================
@@ -2104,18 +2132,29 @@ function dockBtn(id, running){
 }
 function renderDock(){
   var run = runningIds(), ctx = contextualIds(), pinned = dockPinned();
-  var html = pinned.map(function(id){ return dockBtn(id, run[id]); }).join("");
-  var extra = ctx.filter(function(id){ return pinned.indexOf(id) < 0; });
+  /* only pinned + running/contextual live in the dock; the full catalogue
+     stays on the desktop and in Spotlight */
+  var html = pinned.map(function(id){ return APPS[id] ? dockBtn(id, run[id]) : ""; }).join("");
+  var extra = ctx.filter(function(id){ return pinned.indexOf(id) < 0 && APPS[id]; });
   if(extra.length){
     html += '<span class="dk-sep"></span>';
     html += '<span class="dk-ctx">' + extra.map(function(id){ return dockBtn(id, run[id]); }).join("") + '</span>';
   }
-  var rest = DOCK_REST.filter(function(id){ return pinned.indexOf(id) < 0 && extra.indexOf(id) < 0; });
-  if(rest.length){
-    html += '<span class="dk-sep"></span>';
-    html += rest.map(function(id){ return dockBtn(id, run[id]); }).join("");
+  var dock = $("#dock");
+  dock.innerHTML = html;
+  /* shrink-to-fit: compute an icon size so the dock never overflows the
+     viewport, no matter how many apps are pinned or running */
+  var items = $$(".dk", dock).length;
+  if(items > 0){
+    var seps = $$(".dk-sep", dock).length;
+    var avail = window.innerWidth - 48;          /* page side margins   */
+    avail -= 24;                                  /* dock padding        */
+    avail -= seps * 13;                           /* separators          */
+    var gap = 8;
+    var size = Math.floor((avail - (items - 1) * gap) / items);
+    size = clamp(size, 26, 50);
+    dock.style.setProperty("--dk", size + "px");
   }
-  $("#dock").innerHTML = html;
 }
 function renderMobileBar(){
   var open = wins.filter(function(w){ return w.spaceId === curSpace; });
@@ -2344,6 +2383,7 @@ window.addEventListener("resize", function(){
   });
   layoutSpaces(true);
   renderIcons();
+  renderDock();
 });
 
 /* ============================================================
@@ -2977,24 +3017,24 @@ function showCtx(x, y, type, targetId){
 function hideCtx(){ $("#ctxMenu").style.display = "none"; }
 document.addEventListener("click", hideCtx);
 document.addEventListener("contextmenu", function(e){
-  /* prevent default browser context menu on desktop/files */
+  /* native menus stay inside app windows, the dock, the menu bar, modals
+     and text fields — everywhere else the OS menu takes over */
+  if(e.target.closest(".win") || e.target.closest("#dock") || e.target.closest("#menubar") ||
+     e.target.closest(".modal-overlay") || e.target.closest("input") || e.target.closest("textarea") ||
+     e.target.closest("[contenteditable]") || e.target.closest("[contenteditable=true]")) return;
+  e.preventDefault();
   var ic = e.target.closest(".dicon");
-  var lay = e.target.closest("[data-icons]");
-  if(ic || (lay && !e.target.closest(".win") && !e.target.closest("#dock"))){
-    e.preventDefault();
-    var type = "desktop";
-    var targetId = null;
-    if(ic){
-      targetId = ic.getAttribute("data-file") || ic.getAttribute("data-open") || ic.getAttribute("data-app");
-      if(ic.classList.contains("dicon-file")){
-        var f = VFS.get(targetId);
-        type = f && f.type === "folder" ? "folder" : "file";
-      } else {
-        type = "app";
-      }
+  var type = "desktop", targetId = null;
+  if(ic){
+    targetId = ic.getAttribute("data-file") || ic.getAttribute("data-open") || ic.getAttribute("data-app");
+    if(ic.classList.contains("dicon-file")){
+      var f = targetId ? VFS.get(targetId) : null;
+      type = f && f.type === "folder" ? "folder" : "file";
+    } else {
+      type = "app";
     }
-    showCtx(e.clientX, e.clientY, type, targetId);
   }
+  showCtx(e.clientX, e.clientY, type, targetId);
 });
 document.addEventListener("click", function(e){
   var item = e.target.closest("[data-ctx]"); if(!item) return;
@@ -3019,6 +3059,7 @@ document.addEventListener("click", function(e){
     }
   }
   else if(act === "open" && s.target){
+    if(s.type === "app"){ openApp(s.target); return; }
     var f = VFS.get(s.target);
     if(f){
       if(f.type === "folder") openApp("files", {folderId:f.id});
@@ -3352,7 +3393,8 @@ document.addEventListener("pointerdown", function(e){
     gx:e.clientX-r.left, gy:e.clientY-r.top,
     moved:false, proxy:null
   };
-  grab(ic, e.pointerId);
+  /* no pointer capture — document-level listeners track the gesture, and
+     capture was interfering with dblclick-to-open on file icons */
 });
 document.addEventListener("pointermove", function(e){
   if(!freeDrag) return;
