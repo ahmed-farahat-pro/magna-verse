@@ -542,6 +542,17 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .doc table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0}
 .doc th,.doc td{border:1px solid #ddd;padding:5px 7px;text-align:left}
 .doc th{background:#f4f4f4;font-weight:700}
+/* retrieval citations under an answer — clicking one opens it in the Brain */
+.cites{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0 0;padding-top:11px;
+  border-top:1px solid var(--glass-line)}
+.cites .cl{display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--tx-4);font-weight:700;width:100%;margin-bottom:2px}
+.cites .cl .ico{color:var(--private)}
+.cite{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:8px;
+  background:var(--glass-3);border:1px solid var(--glass-line);font-size:11.5px;color:var(--tx-2)}
+.cite:hover{border-color:var(--private);color:var(--tx)}
+.cite .ico{color:var(--tx-4)}
+.cite .src{font-family:var(--mono);font-size:9.5px;color:var(--tx-4)}
 .ch-comp{flex:none;border-top:1px solid var(--glass-line);padding:10px 12px;background:rgba(0,0,0,.14)}
 :root[data-theme="light"] .ch-comp{background:rgba(255,255,255,.4)}
 .ch-ta{width:100%;background:var(--glass-3);border:1px solid var(--glass-line);border-radius:12px;
@@ -1114,12 +1125,16 @@ var APPS = {
   db:      { name:"Database",    icon:"i-db",     tile:"g-db",      w:1000,h:660, minW:600, minH:420, multi:true  },
   market:  { name:"Marketplace", icon:"i-market", tile:"g-market",  w:960, h:660, minW:520, minH:400, multi:false },
   tasks:   { name:"Task Manager",icon:"i-task",   tile:"g-task",    w:900, h:600, minW:520, minH:380, multi:false },
-  approvals:{name:"Approvals",   icon:"i-approve",tile:"g-vault",   w:840, h:620, minW:480, minH:380, multi:false }
+  approvals:{name:"Approvals",   icon:"i-approve",tile:"g-vault",   w:840, h:620, minW:480, minH:380, multi:false },
+  ledger:  { name:"Ledger",      icon:"i-doc",    tile:"g-docs",    w:880, h:640, minW:480, minH:380, multi:false },
+  memory:  { name:"Memory",      icon:"i-brain",  tile:"g-project", w:940, h:640, minW:520, minH:400, multi:false },
+  models:  { name:"Models",      icon:"i-model",  tile:"g-monitor", w:900, h:640, minW:520, minH:400, multi:false }
 };
 var DOCK_PINNED = ["chat","brain","code","browser","terminal"];
-var DOCK_REST   = ["api","db","agents","autos","market","tasks","approvals","conn","mail","settings"];
+var DOCK_REST   = ["api","db","agents","autos","market","tasks","approvals","ledger","memory",
+                   "models","conn","mail","settings"];
 var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","api","db","agents","autos",
-                     "market","tasks","approvals","conn","mail","settings"];
+                     "market","tasks","approvals","ledger","memory","models","conn","mail","settings"];
 
 /* badges that make the desktop informative rather than decorative */
 var BADGES = { mail:3, agents:2, autos:1 };
@@ -1861,12 +1876,54 @@ $("#companion").addEventListener("click", function(){
   var ctx = open.length
     ? open.map(function(w){ return "· " + APPS[w.appId].name + " — " + esc(w.title); }).join("<br>")
     : "· nothing open on this space";
+  /* the one thing only an OS-level assistant can do: answer across windows */
+  var canCompare = open.length >= 2;
   p.innerHTML =
     '<h4>Console companion</h4>'+
     '<p>I can see every window on this space at once — ask me to compare them, or to carry something from one app into another.</p>'+
-    '<div class="ctx"><b>Reading '+open.length+' window'+(open.length===1?"":"s")+' on “'+esc(SPACES[curSpace].name)+'”</b><br>'+ctx+'</div>';
+    '<div class="ctx"><b>Reading '+open.length+' window'+(open.length===1?"":"s")+' on &ldquo;'+esc(SPACES[curSpace].name)+'&rdquo;</b><br>'+ctx+'</div>'+
+    (canCompare
+      ? '<button class="btn sm primary" data-compare style="margin-top:10px;width:100%">'+
+        ico("i-spark","xs")+'Compare these '+open.length+' windows</button>'
+      : '<p style="font-size:11.5px;color:var(--tx-4);margin:10px 0 0">Open a second window and I can '+
+        'compare across them — that is something a single chat page structurally cannot do.</p>');
   p.classList.add("on");
 });
+/* a scripted cross-window answer, built from what is actually open right now */
+$("#compPanel").addEventListener("click", function(e){
+  if(!e.target.closest("[data-compare]")) return;
+  var open = wins.filter(function(w){ return w.spaceId===curSpace && !w.min; });
+  var names = open.map(function(w){ return APPS[w.appId].name; });
+  var p = $("#compPanel");
+  p.innerHTML = '<h4>Across '+open.length+' windows</h4>'+
+    '<div class="ctx" style="border:0;padding:0;margin:0 0 10px"><b>'+esc(names.join(" · "))+'</b></div>'+
+    '<p style="font-size:12.5px;line-height:1.6">'+ crossWindowAnswer(open) +'</p>'+
+    '<div class="ctx">Only the OS layer can see all of these at once. A chat page sees one conversation.</div>';
+});
+function crossWindowAnswer(open){
+  var ids = {}; open.forEach(function(w){ ids[w.appId] = w; });
+  if(ids.brain && ids.chat)
+    return "The node selected in <b>Brain</b> and the thread open in <b>Chat</b> are the same subject — "+
+      "Package C2. Brain puts <b>Baseline r7</b> at 0.93 similarity to it, and your Chat answer leans on "+
+      "the standby rate rather than the schedule. If the rate card in Brain is stale, the SAR 5.32M in "+
+      "Chat moves with it.";
+  if(ids.db && ids.api)
+    return "The <b>Database</b> grid and the <b>API Studio</b> response disagree on line 30: the table shows "+
+      "142 t received, the API returns 142 t but still marks it <code>partial</code>. Same number, "+
+      "different status derivation — worth pinning down before either feeds the board pack.";
+  if(ids.code && ids.browser)
+    return "The file open in <b>Code</b> is the page loaded in <b>Browser</b>. The exposure figure is "+
+      "hardcoded in the HTML, so the preview will not move when the model changes — that is a real "+
+      "divergence between what you are editing and what the board will read.";
+  if(ids.terminal && (ids.code || ids.api))
+    return "<b>Terminal</b> has a dev server on :5173 and :8080. Whatever you are editing will not be "+
+      "reflected until the watcher picks it up — the preview you are looking at may be one save behind.";
+  if(ids.approvals && ids.agents)
+    return "Two of the agents in <b>Agents</b> are the requesters behind items sitting in <b>Approvals</b>. "+
+      "Risk Research Agent is blocked on your email decision, so its run is idle rather than finished.";
+  return "These windows do not currently overlap on a subject. Open <b>Brain</b> alongside <b>Chat</b> and "+
+    "I can tell you whether the answer on screen is actually supported by what is indexed.";
+}
 
 /* re-clamp windows when the viewport changes so nothing is lost off-screen */
 window.addEventListener("resize", function(){
@@ -2147,7 +2204,8 @@ var CHAT_REPLIES = [
       '<li>Rebar crew standby — SAR 4.23M (94k/day idled)</li>'+
       '<li>Fabricator escalation — SAR 0.88M (2.1%)</li></ul>'+
       '<p>Standby, not LD, is where the money actually goes. Check the standby rate against the '+
-      'current rate card before you commit this to the board.</p>'; } },
+      'current rate card before you commit this to the board.</p>'+
+      citeHTML(["n2","n3","n19","n4"]); } },
   { match:/slide|deck|present|board pack/i, build:function(){ return "ARTIFACT:deck"; } },
   { match:/letter|notice|pdf|document|draft/i, build:function(){ return "ARTIFACT:doc"; } },
   { match:/csv|export|spreadsheet|excel/i, build:function(){ return "ARTIFACT:csv"; } },
@@ -2157,6 +2215,17 @@ var CHAT_REPLIES = [
       'package to anchor on — C2, C3, D1 or E4 — and whether you want the commercial position, the schedule '+
       'position, or both. I would rather ask than guess at a number you have to defend.</p>'; } }
 ];
+/* inline retrieval citations — every claim traceable back into the Brain graph */
+function citeHTML(ids){
+  var chips = ids.map(function(id){
+    var n = nodeById(id); if(!n) return "";
+    return '<button class="cite" data-cite="'+id+'">'+ico("i-file","xs")+esc(n.label)+
+           '<span class="src">'+esc(n.src)+'</span></button>';
+  }).join("");
+  if(!chips) return "";
+  return '<div class="cites"><span class="cl">'+ico("i-brain","xs")+'Answered from '+ids.length+
+         ' indexed sources</span>'+chips+'</div>';
+}
 var DECK = [
   {h:"Package C2 — commercial position", b:["Exposure at 45 days: SAR 5.32M","LD cap binds only past day 67","Standby cost is the dominant term"]},
   {h:"Where the delay actually is", b:["4 of 6 PO lines awaiting goods receipt","11 days behind Baseline r7","On the critical path to package finish"]},
@@ -2276,6 +2345,8 @@ MOUNT.chat = function(body, w){
     draw();
   }
   body.addEventListener("click", function(e){
+    var c = e.target.closest("[data-cite]");
+    if(c){ var bw = openApp("brain"); brainSelect(bw, c.getAttribute("data-cite")); return; }
     if(e.target.closest("[data-csv]")){
       var csv = "line,material,qty_t,promised,received_t,status\n10,B500B 16mm,320,2026-08-03,320,complete\n20,B500B 20mm,280,2026-08-03,280,complete\n30,B500B 25mm,240,2026-08-03,142,partial\n40,B500B 32mm,180,2026-08-03,0,awaiting\n50,B500B 12mm,140,2026-08-10,0,awaiting\n60,couplers,80,2026-08-10,0,awaiting\n";
       var a = document.createElement("a");
@@ -3875,6 +3946,310 @@ MOUNT.approvals = function(body, w){
     renderDock(); renderIcons(); renderWidgets();
     draw();
     toast(ok ? "Approved — " + a.act : "Rejected. Nothing was written.");
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- LEDGER
+   From Cohere OS's decision history: the approval gate is the one choke point
+   every write in the OS passes through, so instrumenting it once yields a
+   complete, defensible audit trail with the reasoning attached. */
+var LEDGER = [
+  { t:"12:31", who:"you", act:"Approved · Send email to Khalid Al-Rashid", tier:"private",
+    app:"Approvals", why:"Confirms the 19 Sep date so the variation can be valued. Cited GC-8 8.4.",
+    nodes:["n7","n2"] },
+  { t:"12:18", who:"you", act:"Rejected · DELETE 14 duplicate vendor rows", tier:"private",
+    app:"Database", why:"Merge scores above 0.95 but two rows still carry open POs. Not reversible.",
+    nodes:["n13"] },
+  { t:"11:52", who:"Risk Research Agent", act:"Read Subcontract GC-8 clause 8.4", tier:"private",
+    app:"Brain", why:"Read-only, inside granted scope — ran without asking.", nodes:["n2"] },
+  { t:"09:41", who:"you", act:"Approved · Split rebar across 2 vendors", tier:"private",
+    app:"Chat", why:"Single-source risk on Al-Rajhi exceeded the dual-source premium of 1.8%. "+
+    "Borrowing C3 float was already declined on 11 Aug.", nodes:["n5","n17","n3"] },
+  { t:"08:22", who:"you", act:"Approved · Raise Jira issue RYD-2411", tier:"private",
+    app:"Agents", why:"PO Slippage Watch confirmed 11 days against Baseline r7.", nodes:["n4"] },
+  { t:"08:04", who:"system", act:"Tier held at Private for C2 threads", tier:"private",
+    app:"Governance", why:"Standing decision — nothing touching GC-8 or PO data may run Public.",
+    nodes:["n33"] },
+  { t:"06:00", who:"P6 slip heartbeat", act:"Posted 3 threshold breaches", tier:"private",
+    app:"Automations", why:"Scheduled run. Write scope limited to #ryd-m3-delivery.", nodes:["n14"] }
+];
+MOUNT.ledger = function(body, w){
+  w.state.filter = "all";
+  body.innerHTML = '<div class="pane">'+
+    '<div class="tabs">'+ [["all","Everything"],["you","Your decisions"],["agent","Agent actions"],
+      ["auto","Automated"]].map(function(t){
+      return '<button class="tab" data-ltab="'+t[0]+'" aria-selected="'+(t[0]==="all")+'">'+t[1]+'</button>';
+    }).join("") +'</div>'+
+    '<div class="pane-scroll" data-lbody></div></div>';
+  function draw(){
+    var rows = LEDGER.filter(function(r){
+      if(w.state.filter === "you") return r.who === "you";
+      if(w.state.filter === "agent") return /Agent$/.test(r.who);
+      if(w.state.filter === "auto") return r.who === "system" || /heartbeat|scheduler|sweep/i.test(r.who);
+      return true;
+    });
+    setWinTitle(w, "Ledger", rows.length + " entries today");
+    body.querySelector("[data-lbody]").innerHTML =
+      '<h4 class="sec">Decision ledger</h4>'+
+      '<p class="sub">One immutable row per pass through the approval gate — what was proposed, which app '+
+      'raised it, the sovereignty tier at that moment, who decided, and the stated reason. This is what '+
+      'lets a decision be defended weeks later without reconstructing it from memory.</p>'+
+      '<div class="tl">'+ rows.map(function(r){
+        var ok = /^Approved/.test(r.act), no = /^Rejected/.test(r.act);
+        var col = ok ? "var(--private)" : no ? "var(--accent-2)" : "var(--signal)";
+        return '<div class="tl-i" style="padding-bottom:18px">'+
+          '<div class="tt">'+esc(r.act)+'</div>'+
+          '<div class="td">'+esc(r.why)+'</div>'+
+          '<div class="tm">'+esc(r.t)+' · '+esc(r.who)+' · '+esc(r.app)+
+            ' · <span style="color:var(--private)">'+esc(r.tier)+'</span></div>'+
+          (r.nodes && r.nodes.length ? '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'+
+            r.nodes.map(function(id){ var n = nodeById(id);
+              return n ? '<button class="tag sg" data-lnode="'+id+'">'+ico("i-brain","xs")+esc(n.label)+'</button>' : "";
+            }).join("")+'</div>' : "")+
+          '<style></style></div>';
+      }).join("") +'</div>'+
+      '<div class="card" style="margin-top:14px"><h5>'+ico("i-download","sm")+'Export</h5>'+
+      '<p>The ledger is append-only and exportable as a flat file for an auditor. Nothing in it can be '+
+      'edited after the fact — that is the point.</p>'+
+      '<button class="btn sm" data-lexport style="margin-top:9px">Export as CSV</button></div>';
+  }
+  body.addEventListener("click", function(e){
+    var t = e.target.closest("[data-ltab]");
+    if(t){ w.state.filter = t.getAttribute("data-ltab");
+           $$("[data-ltab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           draw(); return; }
+    var n = e.target.closest("[data-lnode]");
+    if(n){ var bw = openApp("brain"); brainSelect(bw, n.getAttribute("data-lnode")); return; }
+    if(e.target.closest("[data-lexport]")){
+      var csv = "time,actor,action,tier,app,reason\n" + LEDGER.map(function(r){
+        return [r.t, r.who, r.act, r.tier, r.app, '"'+r.why.replace(/"/g,'""')+'"'].join(",");
+      }).join("\n") + "\n";
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+      a.download = "console-ledger.csv"; a.click();
+      toast("Exported. The file never left your browser.");
+    }
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- MEMORY
+   From Littlebird's card dashboard and Lindy's editable plain-text memory:
+   what the system believes about you should be readable and correctable. */
+var MEM_CARDS = [
+  { k:"Working style", v:"Asks for the working, not the summary",
+    d:"Answers lead with the calculation and name the weakest assumption.", src:"observed 21 days" },
+  { k:"Current focus", v:"Package C2 rebar exposure",
+    d:"Four threads, one board deadline. Surfaced first in Spotlight and the dock.", src:"today" },
+  { k:"Register", v:"Formal فصحى for outbound letters",
+    d:"Three drafts rewritten more formally; Arabic drafts now default to فصحى.", src:"09–13 Aug" },
+  { k:"Verification habit", v:"Checks every figure against SAP",
+    d:"Console attaches the SAP source line to every number it gives you.", src:"observed 21 days" },
+  { k:"Reading window", v:"Never opens Mail before 08:00",
+    d:"Morning briefs are held to 08:00 rather than pushed at 06:00.", src:"observed 14 days" },
+  { k:"Risk posture", v:"Protects downstream packages",
+    d:"Twice declined to borrow float from C3 for a quick C2 win.", src:"11 Aug, 14 Aug" }
+];
+var MEM_FILE = [
+  "# Console memory — ahmad.farahat",
+  "# Plain text on purpose. Edit or delete any line; the Brain stops using it immediately.",
+  "",
+  "[project]",
+  "primary = RYD-M3 Package C2 (Riyadh Metro Line 3)",
+  "governing_contract = Subcontract GC-8, clause 8.4 (LD 0.15%/day, cap 10%)",
+  "ld_cap_binds_at = day 67",
+  "key_po = 4500219871, Al-Rajhi Steel, 1240 t grade B500B",
+  "",
+  "[preferences]",
+  "answer_style = show the working, then the weakest assumption",
+  "arabic_register = فصحى for outbound, dialect acceptable in chat",
+  "always_cite = SAP line reference for any figure",
+  "brief_time = 08:00 (never 06:00)",
+  "",
+  "[decisions]",
+  "2026-08-11 declined borrowing float from C3",
+  "2026-08-14 split rebar across two vendors",
+  "standing  C2 threads stay on the Private tier"
+].join("\n");
+MOUNT.memory = function(body, w){
+  w.state.tab = "cards";
+  body.innerHTML = '<div class="pane">'+
+    '<div class="tabs">'+
+      '<button class="tab" data-metab="cards" aria-selected="true">What Console believes</button>'+
+      '<button class="tab" data-metab="file" aria-selected="false">Memory file</button>'+
+      '<button class="tab" data-metab="scope" aria-selected="false">Scopes</button>'+
+    '</div><div class="pane-scroll" data-mebody></div></div>';
+  function draw(){
+    var host = body.querySelector("[data-mebody]");
+    setWinTitle(w, "Memory", w.state.tab === "file" ? "plain text" : "");
+    if(w.state.tab === "cards"){
+      host.innerHTML = '<h4 class="sec">What Console believes about how you work</h4>'+
+        '<p class="sub">Not a chat log — a dashboard of what has actually been inferred, each card naming '+
+        'the evidence and what it changed. Forget any card and the Brain stops using it.</p>'+
+        '<div class="grid2">'+ MEM_CARDS.map(function(m, i){
+          return '<div class="card"><h5>'+esc(m.k)+
+            '<span class="tag" style="margin-left:auto">'+esc(m.src)+'</span></h5>'+
+            '<p style="font-size:14px;color:var(--tx);font-weight:600;margin:2px 0 5px">'+esc(m.v)+'</p>'+
+            '<p>'+esc(m.d)+'</p>'+
+            '<button class="btn sm" data-meforget="'+i+'" style="margin-top:9px">Forget this</button></div>';
+        }).join("") +'</div>';
+      return;
+    }
+    if(w.state.tab === "file"){
+      host.innerHTML = '<h4 class="sec">The memory file</h4>'+
+        '<p class="sub">Everything above, as plain text you can read and correct directly. No hidden '+
+        'embedding you cannot inspect — if it is not in this file, the Brain is not using it as a preference.</p>'+
+        '<textarea data-mefile spellcheck="false" style="width:100%;height:340px;background:rgba(0,0,0,.24);'+
+        'border:1px solid var(--glass-line);border-radius:10px;padding:14px;font-family:var(--mono);'+
+        'font-size:12px;line-height:1.7;color:var(--tx-2);resize:vertical;outline:none">'+esc(MEM_FILE)+'</textarea>'+
+        '<div style="display:flex;gap:7px;margin-top:10px">'+
+          '<button class="btn primary sm" data-mesave>Save</button>'+
+          '<button class="btn sm" data-merevert>Revert</button></div>';
+      return;
+    }
+    host.innerHTML = '<h4 class="sec">Memory scopes</h4>'+
+      '<p class="sub">Four separate stores. Nothing crosses from one into another without you moving it.</p>'+
+      [["Personal","Only you. Working style, register, reading habits.","6 facts"],
+       ["Project","Everyone on RYD-M3. Contract terms, decisions, key documents.","23 facts"],
+       ["Workspace","Magna KSA Production. Governance rules and standing tier decisions.","4 facts"],
+       ["Team","Delivery seat. Shared skills and recorded workflows.","2 facts"]]
+      .map(function(r){
+        return '<div class="runrow"><span class="dot" style="background:var(--signal)"></span>'+
+          '<div class="mid"><div class="nm">'+esc(r[0])+'</div>'+
+          '<div class="sub" style="margin:0;font-size:11.5px">'+esc(r[1])+'</div></div>'+
+          '<span class="tag">'+esc(r[2])+'</span></div>';
+      }).join("");
+  }
+  body.addEventListener("click", function(e){
+    var t = e.target.closest("[data-metab]");
+    if(t){ w.state.tab = t.getAttribute("data-metab");
+           $$("[data-metab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           draw(); return; }
+    var f = e.target.closest("[data-meforget]");
+    if(f){ MEM_CARDS.splice(+f.getAttribute("data-meforget"), 1); draw();
+           toast("Forgotten. The Brain will not use that pattern again."); return; }
+    if(e.target.closest("[data-mesave]")){ toast("Memory file saved. Takes effect on the next answer."); return; }
+    if(e.target.closest("[data-merevert]")){ draw(); toast("Reverted."); return; }
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- MODELS
+   From BrowserOS's local-first routing and Open WebUI's model control:
+   which model ran, where it ran, and who chose — surfaced, not buried. */
+var MODEL_ROWS = [
+  { nm:"Kimi K2 Instruct", spec:"1T MoE · 256k ctx", loc:"local", host:"magna-riyadh-dc1 · 8×H200",
+    use:"Default. Best all-round reasoning and the longest context.", tier:"private", cost:"SAR 0.06 / 1k" },
+  { nm:"DeepSeek V3.1", spec:"671B MoE · 128k ctx", loc:"local", host:"magna-riyadh-dc1 · 8×H200",
+    use:"Code, SQL and structured extraction from messy exports.", tier:"private", cost:"SAR 0.04 / 1k" },
+  { nm:"Qwen 3", spec:"235B · 128k ctx", loc:"local", host:"magna-riyadh-dc1 · 8×H200",
+    use:"Best Arabic ↔ English. Contracts, HR policy, site correspondence.", tier:"private", cost:"SAR 0.03 / 1k" },
+  { nm:"NVIDIA Nemotron", spec:"120B · 128k ctx", loc:"local", host:"magna-riyadh-dc1 · 8×H200",
+    use:"Fastest first token. Summaries, drafting, high-volume batch.", tier:"private", cost:"SAR 0.02 / 1k" },
+  { nm:"bge-m3", spec:"embedding · 1024-dim", loc:"local", host:"magna-riyadh-dc1 · 1×H200",
+    use:"Every Brain embedding. Never leaves the cluster.", tier:"private", cost:"included" },
+  { nm:"Claude / GPT / Gemini", spec:"frontier · via key", loc:"cloud", host:"vendor endpoint, outside KSA",
+    use:"Available on the Public tier only, using a key you supply.", tier:"public", cost:"vendor billed" }
+];
+MOUNT.models = function(body, w){
+  w.state.tab = "catalogue"; w.state.auto = true;
+  body.innerHTML = '<div class="pane">'+
+    '<div class="tabs">'+
+      '<button class="tab" data-mdtab="catalogue" aria-selected="true">Catalogue</button>'+
+      '<button class="tab" data-mdtab="router" aria-selected="false">Router</button>'+
+      '<button class="tab" data-mdtab="keys" aria-selected="false">Keys &amp; vault</button>'+
+      '<button class="tab" data-mdtab="usage" aria-selected="false">Usage</button>'+
+    '</div><div class="pane-scroll" data-mdbody></div></div>';
+  function draw(){
+    var host = body.querySelector("[data-mdbody]");
+    setWinTitle(w, "Models", w.state.tab);
+    if(w.state.tab === "catalogue"){
+      host.innerHTML = '<h4 class="sec">Six models, five of them on your own hardware</h4>'+
+        '<p class="sub">The tier of a thread decides which of these it may reach. On Private, only the '+
+        'in-cluster models are selectable — that is what makes the zero-egress claim true rather than a promise.</p>'+
+        MODEL_ROWS.map(function(m){
+          var pv = m.tier === "private";
+          return '<div class="card"><h5>'+ico(pv?"i-shield":"i-globe","sm")+esc(m.nm)+
+            '<span class="tag '+(pv?"pv":"pb")+'" style="margin-left:auto">'+(pv?"in cluster":"leaves network")+'</span></h5>'+
+            '<div class="kv"><span class="k">Spec</span><span class="v">'+esc(m.spec)+'</span></div>'+
+            '<div class="kv"><span class="k">Runs on</span><span class="v">'+esc(m.host)+'</span></div>'+
+            '<div class="kv"><span class="k">Cost</span><span class="v">'+esc(m.cost)+'</span></div>'+
+            '<p style="margin-top:8px">'+esc(m.use)+'</p></div>';
+        }).join("");
+      return;
+    }
+    if(w.state.tab === "router"){
+      host.innerHTML = '<h4 class="sec">Automatic routing</h4>'+
+        '<p class="sub">Pick a model per thread, or let Console choose by task, cost, latency and tier. '+
+        'The router will never cross the tier boundary to save money.</p>'+
+        '<div class="card"><h5>'+ico("i-sliders","sm")+'Route automatically'+
+          '<button class="btn sm" data-mdauto style="margin-left:auto">'+
+          (w.state.auto?"On":"Off")+'</button></h5>'+
+          '<p>When on, a short factual question goes to Nemotron, Arabic drafting to Qwen 3, code and SQL '+
+          'to DeepSeek, and anything multi-document to Kimi K2.</p></div>'+
+        [["Arabic contract clause","Qwen 3","best Arabic ↔ English"],
+         ["Exposure maths, multi-doc","Kimi K2 Instruct","longest context, strongest reasoning"],
+         ["SQL from a schema","DeepSeek V3.1","strongest structured output"],
+         ["One-line status summary","NVIDIA Nemotron","fastest first token, cheapest"],
+         ["Brain embedding","bge-m3 (local)","never leaves the cluster"]]
+        .map(function(r){
+          return '<div class="runrow"><span class="dot" style="background:var(--private)"></span>'+
+            '<div class="mid"><div class="nm">'+esc(r[0])+'</div>'+
+            '<div class="sub" style="margin:0;font-size:11px">'+esc(r[2])+'</div></div>'+
+            '<span class="tag pv">'+esc(r[1])+'</span></div>';
+        }).join("");
+      return;
+    }
+    if(w.state.tab === "keys"){
+      host.innerHTML = '<h4 class="sec">Keys and the vault</h4>'+
+        '<p class="sub">In-cluster models need no key. A frontier vendor does, and Console will only hold '+
+        'it in the vault — scoped, never shown to a model, never written into a prompt.</p>'+
+        '<div class="card"><h5>'+ico("i-vault","sm")+'Secret vault</h5>'+
+        '<div class="kv"><span class="k">SAP service principal</span><span class="v">••••••••  rotated 4 d ago</span></div>'+
+        '<div class="kv"><span class="k">GitHub token</span><span class="v">••••••••  scoped repo:read</span></div>'+
+        '<div class="kv"><span class="k">Frontier vendor key</span><span class="v" style="color:var(--tx-4)">not set</span></div>'+
+        '<p style="margin-top:9px">Agents receive a short-lived scoped grant, never the secret itself.</p></div>'+
+        '<div class="card"><h5>'+ico("i-warn","sm")+'Bring your own key</h5>'+
+        '<p>Adding a vendor key enables the Public tier for this workspace. Any thread using it sends its '+
+        'prompt and every retrieved passage outside Magna&rsquo;s network. Console will say so, every time, '+
+        'before the first call.</p>'+
+        '<button class="btn sm" data-mdkey style="margin-top:9px">Add a vendor key</button></div>';
+      return;
+    }
+    host.innerHTML = '<h4 class="sec">Usage and budget</h4>'+
+      '<p class="sub">Per-model spend today, against a workspace cap. Local inference is billed as GPU '+
+      'time, not per token, which is why the in-cluster rows are so much cheaper.</p>'+
+      '<div class="card"><h5>Today · SAR 12.40 of SAR 200</h5>'+
+      '<div class="bar" style="margin-top:8px"><i style="width:6.2%"></i></div>'+
+      '<div class="kv" style="margin-top:10px"><span class="k">Kimi K2 Instruct</span><span class="v">184k tok · SAR 11.04</span></div>'+
+      '<div class="kv"><span class="k">Qwen 3</span><span class="v">31k tok · SAR 0.93</span></div>'+
+      '<div class="kv"><span class="k">DeepSeek V3.1</span><span class="v">18k tok · SAR 0.43</span></div>'+
+      '<div class="kv"><span class="k">bge-m3 embeddings</span><span class="v">1.1M tok · SAR 0.00</span></div>'+
+      '<div class="kv"><span class="k">Egress</span><span class="v" style="color:var(--private)">0 bytes</span></div></div>'+
+      '<div class="card"><h5>'+ico("i-sliders","sm")+'Caps</h5>'+
+      '<div class="kv"><span class="k">Workspace daily</span><span class="v">SAR 200</span></div>'+
+      '<div class="kv"><span class="k">Per person daily</span><span class="v">SAR 40</span></div>'+
+      '<div class="kv"><span class="k">Per agent run</span><span class="v">SAR 5</span></div>'+
+      '<p style="margin-top:9px">An agent that would exceed its cap stops and asks, rather than spending '+
+      'and telling you afterwards.</p></div>';
+  }
+  body.addEventListener("click", function(e){
+    var t = e.target.closest("[data-mdtab]");
+    if(t){ w.state.tab = t.getAttribute("data-mdtab");
+           $$("[data-mdtab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           draw(); return; }
+    if(e.target.closest("[data-mdauto]")){ w.state.auto = !w.state.auto; draw();
+      toast(w.state.auto ? "Routing automatically by task, cost and tier." : "Model is fixed per thread."); return; }
+    if(e.target.closest("[data-mdkey]")){
+      requestApproval(w, {
+        title:"Enable the Public tier with your own key?",
+        detail:"Any thread that uses it sends prompts and retrieved internal text outside Magna's network. "+
+               "The key is held in the vault and never shown to a model.",
+        confirm:"Enable Public tier",
+        okToast:"Key stored in the vault. Public tier is now selectable per thread."
+      });
+    }
   });
   draw();
 };
