@@ -1,0 +1,2713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>MagnaVERSE Console — Private AI operating environment</title>
+<script>
+/* theme before first paint — no flash */
+(function(){
+  try{
+    var t = localStorage.getItem("mv7.theme") || "dark";
+    if(t === "light") document.documentElement.setAttribute("data-theme","light");
+  }catch(e){}
+})();
+</script>
+<style>
+/* ============================================================
+   MagnaVERSE — app 7 "Console"
+   A desktop operating environment. Riyadh Glass: dark-primary
+   translucency, glass windows, magnifying dock, real Spaces.
+   Dark is the design's home; light is a genuine frosted variant.
+   ============================================================ */
+:root{
+  --wall-1:#0A0F1C; --wall-2:#04060C; --wall-glow:rgba(46,15,228,.18);
+  --bg:#05070C;
+  --glass:rgba(19,23,33,.68); --glass-2:rgba(26,31,43,.74); --glass-3:rgba(34,40,54,.8);
+  --glass-line:rgba(255,255,255,.10); --glass-line-2:rgba(255,255,255,.18);
+  --chrome:rgba(11,14,20,.62);
+  --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#787E8D; --tx-4:#4C5262;
+  --accent:#D71920; --accent-2:#FF4A50; --accent-dim:rgba(215,25,32,.16);
+  --signal:#5B4FE0; --signal-dim:rgba(91,79,224,.16);
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+  --cyan:#0EA5B7; --blue:#3B7BFF; --violet:#8B5CF6;
+  --shadow-win:0 30px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.4);
+  --shadow-pop:0 20px 50px rgba(0,0,0,.5);
+  --r:10px; --r-lg:16px; --r-xl:22px; --r-pill:99px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --menubar-h:34px; --dock-h:80px;
+  --blur:saturate(1.5) blur(26px);
+}
+:root[data-theme="light"]{
+  --wall-1:#EEF1F7; --wall-2:#DFE4EE; --wall-glow:rgba(46,15,228,.10);
+  --bg:#E9ECF3;
+  --glass:rgba(255,255,255,.72); --glass-2:rgba(255,255,255,.82); --glass-3:rgba(244,246,250,.9);
+  --glass-line:rgba(12,16,26,.10); --glass-line-2:rgba(12,16,26,.18);
+  --chrome:rgba(255,255,255,.68);
+  --tx:#0D1018; --tx-2:#3D434F; --tx-3:#6B7280; --tx-4:#9AA0AC;
+  --accent-dim:rgba(215,25,32,.10);
+  --signal-dim:rgba(91,79,224,.10);
+  --private:#128A5B; --private-dim:rgba(18,138,91,.12);
+  --public:#A9711A;  --public-dim:rgba(169,113,26,.12);
+  --shadow-win:0 30px 70px rgba(20,26,40,.18), 0 0 0 1px rgba(12,16,26,.06);
+  --shadow-sm:0 2px 8px rgba(20,26,40,.10);
+  --shadow-pop:0 20px 50px rgba(20,26,40,.18);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg); color:var(--tx); font-family:var(--sans); font-size:14px;
+  -webkit-font-smoothing:antialiased; overflow:hidden; overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ico.sm{width:16px;height:16px}.ico.xs{width:13px;height:13px}.ico.lg{width:26px;height:26px}
+/* the sprite must NOT be display:none — a hidden SVG root stops some
+   browsers resolving the gradient paint servers defined inside it */
+#sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+
+/* ============================ BOOT / SIGN IN ============================ */
+#boot{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(ellipse at 50% 30%, var(--wall-1), var(--wall-2) 70%)}
+body[data-stage="os"] #boot{display:none}
+.boot-card{width:100%;max-width:390px;text-align:center}
+.boot-mark{width:66px;margin:0 auto 22px;display:block}
+.boot-mark path{stroke-dasharray:1250;stroke-dashoffset:1250;animation:draw 1.5s cubic-bezier(.16,1,.3,1) forwards}
+.boot-mark path:nth-child(2){animation-delay:.18s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.boot-card h1{font-size:23px;font-weight:700;letter-spacing:-.02em;margin:0 0 7px}
+.boot-card .lede{font-size:13.5px;color:var(--tx-2);margin:0 0 22px;line-height:1.55}
+.boot-res{border:1px solid var(--glass-line);background:var(--glass);border-radius:var(--r-lg);
+  padding:12px 14px;margin-bottom:18px;text-align:left;font-size:12px;color:var(--tx-2)}
+.boot-res .r{display:flex;align-items:center;gap:8px}
+.boot-res .r+.r{margin-top:6px}
+.boot-res .dot{width:6px;height:6px;border-radius:99px;background:var(--private);flex:none}
+.boot-res b{color:var(--tx)}
+.boot-res .ms{margin-left:auto;font-family:var(--mono);color:var(--tx-3);font-size:11px}
+.boot-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.bdg{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:5px;
+  border:1px solid color-mix(in srgb,var(--private) 30%,transparent);color:var(--private);background:var(--private-dim)}
+.pbtn{width:100%;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:14.5px;font-weight:650;border:1px solid var(--glass-line-2);background:var(--glass-2);
+  transition:background .15s,transform .12s}
+.pbtn:hover{background:var(--glass-3)}
+.pbtn:active{transform:scale(.985)}
+.pbtn.primary{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.pbtn.primary:hover{opacity:.9}
+.pbtn+.pbtn{margin-top:9px}
+.pbtn .pmark{width:20px;height:14px}
+.boot-note{font-size:11.5px;color:var(--tx-3);margin-top:16px;line-height:1.55}
+.boot-status{font-family:var(--mono);font-size:12px;color:var(--private);margin-top:14px;min-height:18px}
+
+/* ============================ WALLPAPER ============================ */
+#wallpaper{position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:radial-gradient(ellipse at 28% 18%, var(--wall-1), var(--wall-2) 72%)}
+#wallpaper .glow{position:absolute;width:70vmax;height:70vmax;left:58%;top:-22%;border-radius:50%;
+  background:radial-gradient(circle, var(--wall-glow), transparent 62%);filter:blur(30px)}
+#wallpaper .glow.b{left:-24%;top:56%;background:radial-gradient(circle, rgba(215,25,32,.14), transparent 62%)}
+#wallpaper .grid{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:52px 52px}
+:root[data-theme="light"] #wallpaper .grid{background-image:linear-gradient(rgba(12,16,26,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(12,16,26,.04) 1px,transparent 1px)}
+/* the animated brand mark — the wallpaper IS the logo */
+#wallMark{position:absolute;left:50%;top:50%;width:min(58vmin,620px);transform:translate(-50%,-50%);opacity:.16}
+:root[data-theme="light"] #wallMark{opacity:.2}
+#wallMark path{stroke-dasharray:1250;stroke-dashoffset:1250}
+@media (prefers-reduced-motion: no-preference){
+  #wallMark path{animation:draw 2.4s cubic-bezier(.16,1,.3,1) .3s forwards}
+  #wallMark path:nth-child(2){animation-delay:.55s}
+  #wallMark{animation:markBreathe 16s ease-in-out 3s infinite}
+  #wallpaper .glow{animation:glowDrift 26s ease-in-out infinite alternate}
+  #wallpaper .glow.b{animation-duration:34s;animation-direction:alternate-reverse}
+}
+@media (prefers-reduced-motion: reduce){ #wallMark path{stroke-dashoffset:0} }
+@keyframes markBreathe{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.035)}}
+@keyframes glowDrift{0%{transform:translate(0,0)}100%{transform:translate(-7%,9%)}}
+
+/* ============================ MENU BAR ============================ */
+#menubar{position:fixed;top:0;left:0;right:0;height:var(--menubar-h);z-index:200;
+  display:flex;align-items:center;gap:13px;padding:0 12px;font-size:12.5px;
+  background:var(--chrome);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--glass-line)}
+#menubar .mb-brand{display:flex;align-items:center;gap:7px;font-weight:750;letter-spacing:-.01em}
+#menubar .mb-brand svg{width:16px;height:11px}
+#menubar .mb-app{color:var(--tx-2);font-weight:600}
+#menubar .sp{flex:1}
+.mb-btn{display:flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:7px;color:var(--tx-2)}
+.mb-btn:hover{background:var(--glass-2);color:var(--tx)}
+#sovPill{display:flex;align-items:center;gap:7px;height:24px;padding:0 11px;border-radius:var(--r-pill);
+  font-size:11.5px;font-weight:650;color:var(--private);background:var(--private-dim);
+  border:1px solid color-mix(in srgb,var(--private) 32%,transparent)}
+#sovPill[data-tier="public"]{color:var(--public);background:var(--public-dim);
+  border-color:color-mix(in srgb,var(--public) 34%,transparent)}
+#sovPill .dot{width:6px;height:6px;border-radius:99px;background:currentColor}
+@media (prefers-reduced-motion: no-preference){ #sovPill .dot{animation:sovPulse 2.4s ease-in-out infinite} }
+@keyframes sovPulse{0%,100%{box-shadow:0 0 0 0 currentColor;opacity:1}70%{box-shadow:0 0 0 5px transparent;opacity:.55}}
+#sovPill .scope{font-weight:500;opacity:.75}
+#clock{font-family:var(--mono);color:var(--tx-2);font-size:12px;font-variant-numeric:tabular-nums}
+/* space pips in the menu bar */
+#spacePips{display:flex;align-items:center;gap:5px;padding:0 6px}
+#spacePips button{width:22px;height:14px;border-radius:4px;border:1px solid var(--glass-line-2);
+  background:transparent;transition:background .15s,border-color .15s}
+#spacePips button[aria-current="true"]{background:var(--tx-2);border-color:var(--tx-2)}
+#spacePips button:hover{border-color:var(--tx-3)}
+
+/* ============================ DESKTOP / SPACES ============================ */
+#os{position:fixed;inset:0;z-index:1}
+body:not([data-stage="os"]) #os{display:none}
+#spaces{position:absolute;inset:var(--menubar-h) 0 0 0;overflow:hidden}
+.space{position:absolute;inset:0;transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .3s ease}
+@media (prefers-reduced-motion: reduce){ .space{transition:none} }
+.space[hidden]{display:none}
+
+/* --- desktop icons --- */
+.icon-layer{position:absolute;inset:0;padding:16px 14px}
+.dicon{position:absolute;width:88px;padding:8px 4px 6px;border-radius:14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
+  transition:background .15s;touch-action:none}
+.dicon:hover{background:rgba(255,255,255,.07)}
+:root[data-theme="light"] .dicon:hover{background:rgba(12,16,26,.06)}
+.dicon.dragging{opacity:.75;z-index:60}
+.dicon .tile{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;position:relative;
+  box-shadow:0 10px 22px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.22);
+  transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}
+.dicon:hover .tile{transform:translateY(-4px) scale(1.05)}
+.dicon .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 46%);pointer-events:none}
+.dicon .tile .ico{width:26px;height:26px;stroke:#fff;stroke-width:1.8;position:relative;z-index:1}
+.dicon .lbl{font-size:11.5px;color:var(--tx-2);line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,.55)}
+:root[data-theme="light"] .dicon .lbl{text-shadow:none;color:var(--tx-2)}
+.dicon .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:99px;
+  background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}
+/* per-app tile gradients — each app owns a hue, never one shared gradient */
+.g-chat{background:linear-gradient(150deg,#F0353C,#9C1015)}
+.g-brain{background:linear-gradient(150deg,#43E0A6,#12795A)}
+.g-code{background:linear-gradient(150deg,#7C6BFF,#3A2BA8)}
+.g-browser{background:linear-gradient(150deg,#2CC5D8,#0A6673)}
+.g-agents{background:linear-gradient(150deg,#5B94FF,#1B3FA8)}
+.g-auto{background:linear-gradient(150deg,#F0B44E,#9A6410)}
+.g-conn{background:linear-gradient(150deg,#9AA0AE,#4A4F5C)}
+.g-mail{background:linear-gradient(150deg,#F077B6,#8E2A63)}
+.g-set{background:linear-gradient(150deg,#6E7482,#33373F)}
+
+/* ============================ WINDOWS ============================ */
+.win-layer{position:absolute;inset:0}
+.win{position:absolute;display:flex;flex-direction:column;border-radius:var(--r-xl);overflow:hidden;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line);box-shadow:var(--shadow-win);min-width:0;min-height:0}
+@media (prefers-reduced-motion: no-preference){
+  .win.opening{animation:winIn .3s cubic-bezier(.16,1,.3,1)}
+  .win.closing{animation:winOut .18s ease-in forwards}
+}
+@keyframes winIn{from{opacity:0;transform:scale(.9) translateY(18px)}to{opacity:1;transform:none}}
+@keyframes winOut{to{opacity:0;transform:scale(.94)}}
+.win.focused{border-color:var(--glass-line-2);box-shadow:0 40px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.07)}
+:root[data-theme="light"] .win.focused{box-shadow:0 40px 90px rgba(20,26,40,.22), 0 0 0 1px rgba(12,16,26,.1)}
+.win.maxed{border-radius:0}
+.win-bar{height:40px;flex:none;display:flex;align-items:center;gap:10px;padding:0 12px;cursor:grab;
+  border-bottom:1px solid var(--glass-line);background:linear-gradient(rgba(255,255,255,.045),transparent);
+  touch-action:none;user-select:none}
+:root[data-theme="light"] .win-bar{background:linear-gradient(rgba(12,16,26,.03),transparent)}
+.win-bar:active{cursor:grabbing}
+.win-lights{display:flex;gap:7px;flex:none}
+.win-lights button{width:12px;height:12px;border-radius:99px;position:relative;transition:filter .12s}
+.win-lights button:hover{filter:brightness(1.18)}
+.wl-close{background:#FF5F57}.wl-min{background:#FEBC2E}.wl-max{background:#28C840}
+.win:not(.focused) .win-lights button{background:var(--tx-4)}
+.win-ttl{display:flex;align-items:center;gap:8px;min-width:0}
+.win-ttl .tico{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;flex:none}
+.win-ttl .tico .ico{width:11px;height:11px;stroke:#fff;stroke-width:2}
+.win-ttl b{font-size:12.5px;font-weight:640;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win:not(.focused) .win-ttl b{color:var(--tx-3)}
+.win-ttl .sub{font-size:11.5px;color:var(--tx-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-bar .sp{flex:1}
+.win-body{flex:1;min-height:0;display:flex;overflow:hidden;position:relative}
+/* resize handles */
+.rz{position:absolute;z-index:5}
+.rz-n{top:-3px;left:10px;right:10px;height:8px;cursor:ns-resize}
+.rz-s{bottom:-3px;left:10px;right:10px;height:8px;cursor:ns-resize}
+.rz-w{left:-3px;top:10px;bottom:10px;width:8px;cursor:ew-resize}
+.rz-e{right:-3px;top:10px;bottom:10px;width:8px;cursor:ew-resize}
+.rz-nw{top:-3px;left:-3px;width:16px;height:16px;cursor:nwse-resize}
+.rz-ne{top:-3px;right:-3px;width:16px;height:16px;cursor:nesw-resize}
+.rz-sw{bottom:-3px;left:-3px;width:16px;height:16px;cursor:nesw-resize}
+.rz-se{bottom:-3px;right:-3px;width:16px;height:16px;cursor:nwse-resize}
+.win.maxed .rz{display:none}
+/* snap ghost */
+#snapGhost{position:fixed;z-index:150;border-radius:var(--r-xl);pointer-events:none;display:none;
+  background:rgba(120,150,255,.14);border:2px solid rgba(140,170,255,.5);
+  backdrop-filter:blur(3px);transition:all .12s ease}
+#snapGhost.on{display:block}
+/* iframes must not swallow pointer events mid-drag */
+body.dragging iframe{pointer-events:none}
+body.dragging{cursor:grabbing}
+
+/* ============================ DOCK ============================ */
+#dock{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:200;
+  display:flex;align-items:flex-end;gap:8px;padding:9px 12px;border-radius:var(--r-xl);
+  background:var(--chrome);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line);box-shadow:0 18px 40px rgba(0,0,0,.42);max-width:calc(100vw - 24px)}
+.dk{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;position:relative;flex:none;
+  box-shadow:0 6px 16px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.2);
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.5)}
+.dk::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg,rgba(255,255,255,.26),transparent 46%);pointer-events:none}
+.dk .ico{width:23px;height:23px;stroke:#fff;stroke-width:1.85;position:relative;z-index:1}
+@media (hover:hover){ .dk:hover{transform:translateY(-13px) scale(1.16)} }
+.dk .run{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:99px;
+  background:var(--tx-2);opacity:0;transition:opacity .15s}
+.dk[data-running="1"] .run{opacity:1}
+.dk .badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 5px;border-radius:99px;
+  background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;z-index:2}
+.dk-sep{width:1px;align-self:stretch;background:var(--glass-line);margin:6px 3px}
+.dk-ctx{display:flex;gap:8px;align-items:flex-end}
+.dk-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);white-space:nowrap;
+  background:var(--glass-3);border:1px solid var(--glass-line);padding:4px 9px;border-radius:7px;font-size:11.5px;
+  color:var(--tx);box-shadow:var(--shadow-sm);opacity:0;pointer-events:none;transition:opacity .12s}
+@media (hover:hover){ .dk:hover .dk-tip{opacity:1} }
+
+/* ============================ COMPANION ============================ */
+#companion{position:fixed;right:20px;bottom:calc(var(--dock-h) + 22px);z-index:210;width:54px;height:54px;
+  border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(circle at 34% 28%, #fff, var(--accent) 62%);
+  box-shadow:0 0 34px rgba(215,25,32,.45), 0 8px 22px rgba(0,0,0,.4)}
+@media (prefers-reduced-motion: no-preference){ #companion{animation:orbFloat 5.5s ease-in-out infinite} }
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+#companion .ico{width:22px;height:22px;stroke:#fff;stroke-width:2}
+#companion:hover{filter:brightness(1.08)}
+#compPanel{position:fixed;right:20px;bottom:calc(var(--dock-h) + 88px);z-index:210;width:min(340px,calc(100vw - 40px));
+  border-radius:var(--r-lg);background:var(--glass-2);backdrop-filter:var(--blur);border:1px solid var(--glass-line);
+  box-shadow:var(--shadow-pop);padding:14px;display:none}
+#compPanel.on{display:block;animation:winIn .2s ease-out}
+#compPanel h4{margin:0 0 4px;font-size:13px;font-weight:700}
+#compPanel p{margin:0 0 10px;font-size:12.5px;color:var(--tx-2);line-height:1.55}
+#compPanel .ctx{font-family:var(--mono);font-size:11px;color:var(--tx-3);border-top:1px solid var(--glass-line);
+  padding-top:9px;margin-top:4px;line-height:1.6}
+#compPanel .ctx b{color:var(--private)}
+
+/* ============================ SPOTLIGHT ============================ */
+#spot{position:fixed;inset:0;z-index:300;display:none;padding-top:14vh;justify-content:center;
+  background:rgba(0,0,0,.42);backdrop-filter:blur(6px)}
+#spot.on{display:flex}
+.spot-box{width:min(620px,calc(100vw - 32px));max-height:66vh;display:flex;flex-direction:column;
+  border-radius:var(--r-lg);background:var(--glass-2);backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line-2);box-shadow:0 40px 90px rgba(0,0,0,.6);overflow:hidden;
+  animation:winIn .18s ease-out}
+.spot-top{display:flex;align-items:center;gap:11px;padding:14px 16px;border-bottom:1px solid var(--glass-line)}
+.spot-top .ico{color:var(--tx-3)}
+#spotIn{flex:1;background:none;border:0;outline:none;font-size:16.5px;color:var(--tx)}
+#spotIn::placeholder{color:var(--tx-4)}
+.spot-list{overflow-y:auto;padding:6px}
+.spot-sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4);
+  font-weight:700;padding:9px 10px 5px}
+.sp-item{width:100%;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;text-align:left}
+.sp-item[aria-selected="true"]{background:var(--signal-dim)}
+.sp-item:hover{background:var(--glass-3)}
+.sp-item .lead{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none}
+.sp-item .lead .ico{width:14px;height:14px;stroke:#fff;stroke-width:2}
+.sp-item .t{font-size:13px;font-weight:600;display:block}
+.sp-item .d{font-size:11.5px;color:var(--tx-3);display:block;margin-top:1px}
+.sp-item .kb{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--tx-4);flex:none}
+.spot-foot{padding:8px 14px;border-top:1px solid var(--glass-line);display:flex;gap:14px;
+  font-size:11px;color:var(--tx-4)}
+kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1px solid var(--glass-line);
+  border-radius:4px;padding:1px 5px}
+
+/* ============================ MISSION CONTROL ============================ */
+#mission{position:fixed;inset:0;z-index:250;display:none;flex-direction:column;gap:18px;
+  padding:calc(var(--menubar-h) + 22px) 26px 26px;background:rgba(4,6,12,.72);backdrop-filter:blur(18px)}
+:root[data-theme="light"] #mission{background:rgba(230,234,242,.8)}
+#mission.on{display:flex;animation:fadeIn .18s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#mission h3{margin:0;font-size:13px;font-weight:700;color:var(--tx-2);letter-spacing:.02em}
+.mc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;align-content:start}
+.mc-space{border-radius:var(--r-lg);border:1px solid var(--glass-line);background:var(--glass);
+  padding:12px;cursor:pointer;transition:border-color .15s,transform .15s}
+.mc-space:hover{border-color:var(--glass-line-2);transform:translateY(-3px)}
+.mc-space[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.mc-space .hd{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:12.5px;font-weight:650}
+.mc-space .hd .n{font-family:var(--mono);font-size:11px;color:var(--tx-3)}
+.mc-space .hd .cnt{margin-left:auto;font-size:11px;color:var(--tx-3)}
+.mc-thumbs{display:flex;flex-wrap:wrap;gap:6px;min-height:52px}
+.mc-thumb{display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:8px;
+  background:var(--glass-3);border:1px solid var(--glass-line);font-size:11.5px}
+.mc-thumb .tico{width:14px;height:14px;border-radius:4px;display:grid;place-items:center}
+.mc-thumb .tico .ico{width:9px;height:9px;stroke:#fff;stroke-width:2.2}
+.mc-empty{font-size:11.5px;color:var(--tx-4);align-self:center}
+.mc-hint{font-size:11.5px;color:var(--tx-3);text-align:center}
+
+/* ============================ SHARED APP UI ============================ */
+.pane{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.pane-scroll{flex:1;min-height:0;overflow-y:auto;padding:18px 20px}
+.side{width:210px;flex:none;border-right:1px solid var(--glass-line);background:rgba(0,0,0,.14);
+  display:flex;flex-direction:column;overflow-y:auto;padding:10px 8px}
+:root[data-theme="light"] .side{background:rgba(255,255,255,.35)}
+.side-h{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx-4);font-weight:700;padding:8px 9px 5px}
+.side-i{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;width:100%;text-align:left;
+  font-size:12.5px;color:var(--tx-2)}
+.side-i:hover{background:var(--glass-3);color:var(--tx)}
+.side-i[aria-current="true"]{background:var(--glass-3);color:var(--tx);font-weight:600}
+.side-i .ico{color:var(--tx-3)}
+.side-i[aria-current="true"] .ico{color:var(--accent)}
+.side-i .cnt{margin-left:auto;font-size:11px;color:var(--tx-4);font-family:var(--mono)}
+.tabs{display:flex;gap:3px;padding:8px 10px;border-bottom:1px solid var(--glass-line);flex:none;overflow-x:auto;
+  scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 12px;border-radius:8px;font-size:12.5px;color:var(--tx-3);white-space:nowrap;flex:none}
+.tab:hover{background:var(--glass-3);color:var(--tx-2)}
+.tab[aria-selected="true"]{background:var(--glass-3);color:var(--tx);font-weight:640}
+h4.sec{margin:0 0 4px;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-width:64ch}
+.card{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);padding:14px 16px}
+.card+.card{margin-top:10px}
+.card h5{margin:0 0 6px;font-size:13px;font-weight:680;display:flex;align-items:center;gap:8px}
+.card p{margin:0;font-size:12.5px;color:var(--tx-2);line-height:1.6}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10px;padding:2px 6px;
+  border-radius:5px;border:1px solid var(--glass-line);color:var(--tx-3);background:var(--glass-3)}
+.tag.pv{color:var(--private);background:var(--private-dim);border-color:color-mix(in srgb,var(--private) 30%,transparent)}
+.tag.pb{color:var(--public);background:var(--public-dim);border-color:color-mix(in srgb,var(--public) 32%,transparent)}
+.tag.ac{color:var(--accent-2);background:var(--accent-dim);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.tag.sg{color:#A99BFF;background:var(--signal-dim);border-color:color-mix(in srgb,var(--signal) 34%,transparent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 13px;
+  border-radius:9px;border:1px solid var(--glass-line-2);background:var(--glass-3);font-size:12.5px;font-weight:600}
+.btn:hover{background:var(--glass-2);border-color:var(--tx-4)}
+.btn.primary{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.btn.primary:hover{opacity:.88;background:var(--tx)}
+.btn.sm{height:27px;padding:0 10px;font-size:11.5px}
+.btn.danger{background:var(--accent);border-color:var(--accent);color:#fff}
+.bar{height:6px;border-radius:99px;background:var(--glass-3);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.kv{display:flex;gap:10px;font-size:12.5px;padding:7px 0;border-bottom:1px solid var(--glass-line)}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--tx-3);min-width:130px;flex:none}
+.kv .v{color:var(--tx);font-family:var(--mono);font-size:12px}
+.empty-msg{padding:40px 20px;text-align:center;color:var(--tx-3);font-size:12.5px}
+
+/* ============================ TOAST ============================ */
+#toasts{position:fixed;bottom:calc(var(--dock-h) + 20px);left:50%;transform:translateX(-50%);z-index:320;
+  display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(460px,calc(100vw - 32px))}
+.toast{background:var(--glass-3);backdrop-filter:var(--blur);border:1px solid var(--glass-line-2);
+  border-radius:11px;padding:10px 15px;font-size:12.5px;box-shadow:var(--shadow-pop);
+  animation:toastIn .22s cubic-bezier(.16,1,.3,1);max-width:100%}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.toast.out{animation:toastOut .2s ease-in forwards}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
+
+/* ============================ MOBILE ============================ */
+#mobileBar{position:fixed;bottom:0;left:0;right:0;z-index:220;display:none;height:64px;
+  background:var(--chrome);backdrop-filter:var(--blur);border-top:1px solid var(--glass-line);
+  align-items:center;gap:8px;padding:0 12px;overflow-x:auto;scrollbar-width:none}
+#mobileBar::-webkit-scrollbar{display:none}
+.mb-card{flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:44px;border-radius:11px;
+  background:var(--glass-2);border:1px solid var(--glass-line);font-size:12px}
+.mb-card .tico{width:22px;height:22px;border-radius:6px;display:grid;place-items:center}
+.mb-card .tico .ico{width:13px;height:13px;stroke:#fff;stroke-width:2}
+@media (max-width:767px){
+  :root{--dock-h:0px}
+  #dock{display:none}
+  #companion{bottom:80px;right:14px;width:48px;height:48px}
+  #compPanel{bottom:140px;right:14px}
+  #mobileBar{display:flex}
+  #toasts{bottom:82px}
+  .icon-layer{padding:14px 10px}
+  /* springboard: icons flow in a fixed grid, no free positioning */
+  .icon-layer{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));
+    gap:8px;align-content:start}
+  .dicon{position:static !important;width:auto;min-height:44px}
+  /* windows go full-screen, chrome stripped to a back bar */
+  .win{inset:0 !important;width:auto !important;height:auto !important;
+    border-radius:0;border:0;transform:none !important}
+  .win-bar{height:52px;cursor:default;padding:0 10px}
+  .win-lights{display:none}
+  .win-mobile-back{display:flex !important}
+  .rz{display:none}
+  .side{position:absolute;left:0;top:0;bottom:0;z-index:8;width:min(78vw,260px);
+    transform:translateX(-101%);transition:transform .24s cubic-bezier(.32,.72,0,1);
+    background:var(--glass-3);backdrop-filter:var(--blur)}
+  .win[data-side="open"] .side{transform:translateX(0)}
+  .win-side-toggle{display:grid !important}
+  #spacePips{display:none}
+  #menubar .mb-app{display:none}
+  #sovPill .scope{display:none}
+  .btn{min-height:38px}
+}
+.win-mobile-back,.win-side-toggle{display:none;width:34px;height:34px;border-radius:8px;
+  place-items:center;color:var(--tx-2);flex:none}
+.win-mobile-back:hover,.win-side-toggle:hover{background:var(--glass-3);color:var(--tx)}
+@media (min-width:768px){ .win-mobile-back,.win-side-toggle{display:none !important} }
+
+/* ============================ CHAT APP ============================ */
+.ch{display:flex;flex-direction:column;flex:1;min-width:0}
+.ch-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 18px}
+.msg{margin:0 0 18px;font-size:13.5px;line-height:1.68}
+.msg.u{display:flex;justify-content:flex-end}
+.msg.u .bub{background:var(--glass-3);border:1px solid var(--glass-line);padding:10px 14px;
+  border-radius:16px 16px 4px 16px;max-width:82%;color:var(--tx)}
+.msg.a .who{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--tx-3);margin-bottom:7px;font-weight:600}
+.msg.a .who svg{width:14px;height:10px}
+.msg.a p{margin:0 0 10px;color:var(--tx-2)}
+.msg.a b{color:var(--tx)}
+.msg.a ul{margin:0 0 10px;padding-left:20px;color:var(--tx-2)}
+.msg.a li{margin-bottom:4px}
+.think{font-size:11.5px;color:var(--tx-4);font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.think svg{width:13px;height:9px}
+@media (prefers-reduced-motion: no-preference){ .think svg{animation:thinkPulse 1.5s ease-in-out infinite} }
+@keyframes thinkPulse{0%,100%{opacity:.45}50%{opacity:1}}
+.artifact{border:1px solid var(--glass-line-2);border-radius:12px;overflow:hidden;margin:0 0 12px;background:var(--glass-3)}
+.artifact .ah{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--glass-line);
+  font-size:12px;font-weight:640}
+.artifact .ah .ico{color:var(--tx-3)}
+.artifact .ah .sp{flex:1}
+.artifact .abody{padding:12px}
+/* slide deck viewer */
+.deck{aspect-ratio:16/9;background:var(--glass);border-radius:8px;border:1px solid var(--glass-line);
+  padding:20px;display:flex;flex-direction:column;justify-content:center;gap:9px;position:relative;overflow:hidden}
+.deck h6{margin:0;font-size:17px;font-weight:750;letter-spacing:-.015em}
+.deck ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--tx-2);line-height:1.7}
+.deck .num{position:absolute;right:12px;bottom:10px;font-family:var(--mono);font-size:10.5px;color:var(--tx-4)}
+.deck-nav{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11.5px;color:var(--tx-3)}
+.deck-nav .sp{flex:1}
+.dots{display:flex;gap:5px}
+.dots i{width:6px;height:6px;border-radius:99px;background:var(--tx-4);display:block;cursor:pointer}
+.dots i.on{background:var(--accent)}
+/* document / pdf preview */
+.doc{background:#fff;color:#111;border-radius:6px;padding:22px 24px;font-size:12px;line-height:1.7;
+  max-height:280px;overflow-y:auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.doc h6{margin:0 0 4px;font-size:15px;color:#000}
+.doc .meta{font-size:10.5px;color:#666;margin-bottom:14px;font-family:var(--mono)}
+.doc p{margin:0 0 9px;color:#222}
+.doc table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0}
+.doc th,.doc td{border:1px solid #ddd;padding:5px 7px;text-align:left}
+.doc th{background:#f4f4f4;font-weight:700}
+.ch-comp{flex:none;border-top:1px solid var(--glass-line);padding:10px 12px;background:rgba(0,0,0,.14)}
+:root[data-theme="light"] .ch-comp{background:rgba(255,255,255,.4)}
+.ch-ta{width:100%;background:var(--glass-3);border:1px solid var(--glass-line);border-radius:12px;
+  padding:10px 12px;font-size:13px;resize:none;min-height:42px;max-height:120px;outline:none}
+.ch-ta:focus{border-color:var(--glass-line-2)}
+.ch-row{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:99px;
+  border:1px solid var(--glass-line);background:var(--glass-3);font-size:11.5px;color:var(--tx-2)}
+.chip:hover{color:var(--tx);border-color:var(--glass-line-2)}
+.chip[aria-pressed="true"]{color:#A99BFF;background:var(--signal-dim);border-color:color-mix(in srgb,var(--signal) 40%,transparent)}
+.ch-send{margin-left:auto;width:32px;height:32px;border-radius:99px;background:var(--accent);color:#fff;display:grid;place-items:center}
+.ch-send:disabled{opacity:.35}
+
+/* ============================ BRAIN APP ============================ */
+.br-wrap{flex:1;display:flex;min-width:0}
+.br-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.br-graph{flex:1;min-height:0;position:relative;overflow:hidden}
+.br-graph svg{width:100%;height:100%;display:block}
+.br-edge{stroke:var(--tx-4);fill:none}
+.br-edge.hot{stroke:var(--private);stroke-width:2}
+.br-node{cursor:pointer}
+.br-node circle{stroke:rgba(255,255,255,.25);stroke-width:1.5;transition:r .18s ease}
+.br-node:hover circle{stroke:#fff;stroke-width:2.5}
+.br-node.sel circle{stroke:#fff;stroke-width:3}
+.br-node text{font-size:9.5px;fill:var(--tx-2);text-anchor:middle;pointer-events:none;font-family:var(--sans)}
+@media (prefers-reduced-motion: no-preference){
+  .br-node.pulse circle{animation:nodePulse 2.6s ease-in-out infinite}
+}
+@keyframes nodePulse{0%,100%{opacity:1}50%{opacity:.62}}
+.br-legend{position:absolute;left:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:9px;font-size:10.5px;color:var(--tx-3)}
+.br-legend span{display:flex;align-items:center;gap:5px}
+.br-legend i{width:8px;height:8px;border-radius:99px;display:block}
+.br-hint{position:absolute;right:12px;top:12px;font-size:10.5px;color:var(--tx-4);font-family:var(--mono)}
+.br-detail{width:288px;flex:none;border-left:1px solid var(--glass-line);background:rgba(0,0,0,.16);
+  overflow-y:auto;padding:14px}
+:root[data-theme="light"] .br-detail{background:rgba(255,255,255,.4)}
+.br-detail h5{margin:0 0 3px;font-size:13.5px;font-weight:700;line-height:1.35}
+.br-detail .src{font-size:11px;color:var(--tx-3);font-family:var(--mono);margin-bottom:11px}
+.br-sect{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4);font-weight:700;
+  margin:14px 0 6px}
+.vec{font-family:var(--mono);font-size:10px;color:var(--tx-3);background:var(--glass-3);
+  border:1px solid var(--glass-line);border-radius:7px;padding:7px 9px;line-height:1.6;word-break:break-all}
+.simrow{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;cursor:pointer;border-radius:6px}
+.simrow:hover{background:var(--glass-3)}
+.simrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-2)}
+.simrow .sc{font-family:var(--mono);font-size:10.5px;color:var(--private);flex:none}
+.simrow .mini{width:7px;height:7px;border-radius:99px;flex:none}
+.why{font-size:12px;color:var(--tx-2);line-height:1.65;border-left:2px solid var(--signal);padding-left:10px}
+/* email + behaviour + reasoning lists */
+.erow{display:flex;gap:11px;padding:11px 12px;border-bottom:1px solid var(--glass-line);font-size:12.5px}
+.erow:last-child{border-bottom:0}
+.erow .av{width:30px;height:30px;border-radius:99px;flex:none;display:grid;place-items:center;
+  font-size:11px;font-weight:700;color:#fff;background:var(--signal)}
+.erow .mid{flex:1;min-width:0}
+.erow .fr{font-weight:640;color:var(--tx);display:flex;align-items:center;gap:7px}
+.erow .sj{color:var(--tx-2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.erow .ex{color:var(--tx-3);font-size:11.5px;margin-top:3px;line-height:1.5}
+.erow .rt{font-family:var(--mono);font-size:10.5px;color:var(--tx-4);flex:none}
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:1px;background:var(--glass-line-2)}
+.tl-i{position:relative;padding:0 0 16px}
+.tl-i::before{content:"";position:absolute;left:-19px;top:5px;width:9px;height:9px;border-radius:99px;
+  background:var(--signal);box-shadow:0 0 0 3px var(--bg)}
+.tl-i .tt{font-size:12.5px;font-weight:640}
+.tl-i .td{font-size:11.5px;color:var(--tx-3);margin-top:2px;line-height:1.55}
+.tl-i .tm{font-family:var(--mono);font-size:10.5px;color:var(--tx-4);margin-top:3px}
+
+/* ============================ CODE APP (Finder) ============================ */
+.cd{flex:1;display:flex;min-width:0}
+.cd-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.cd-crumb{flex:none;display:flex;align-items:center;gap:5px;padding:8px 12px;border-bottom:1px solid var(--glass-line);
+  font-size:12px;color:var(--tx-3);overflow-x:auto;scrollbar-width:none}
+.cd-crumb::-webkit-scrollbar{display:none}
+.cd-crumb button{color:var(--tx-2);white-space:nowrap}
+.cd-crumb button:hover{color:var(--tx);text-decoration:underline}
+.cd-crumb .sep{opacity:.4}
+.cd-split{flex:1;min-height:0;display:flex}
+.cd-files{width:230px;flex:none;border-right:1px solid var(--glass-line);overflow-y:auto;padding:8px}
+.fi{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;width:100%;text-align:left;
+  font-size:12.5px;color:var(--tx-2)}
+.fi:hover{background:var(--glass-3);color:var(--tx)}
+.fi[aria-current="true"]{background:var(--signal-dim);color:var(--tx)}
+.fi .ico{color:var(--tx-3);flex:none}
+.fi.dir .ico{color:var(--blue)}
+.fi .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi .sz{font-family:var(--mono);font-size:10px;color:var(--tx-4);flex:none}
+.cd-right{flex:1;min-width:0;display:flex;flex-direction:column}
+.cd-editor{flex:1;min-height:0;overflow:auto;background:rgba(0,0,0,.24);padding:12px 0}
+:root[data-theme="light"] .cd-editor{background:rgba(248,249,252,.7)}
+.cd-editor pre{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--tx-2)}
+.cd-editor .ln{display:flex}
+.cd-editor .ln .g{width:44px;flex:none;text-align:right;padding-right:12px;color:var(--tx-4);user-select:none}
+.cd-editor .ln .c{white-space:pre-wrap;word-break:break-word;flex:1;padding-right:14px}
+.cd-preview{flex:none;height:46%;border-top:1px solid var(--glass-line);display:flex;flex-direction:column;
+  background:rgba(0,0,0,.2)}
+.cd-pbar{flex:none;display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--glass-line);
+  font-size:11.5px;color:var(--tx-3)}
+.cd-pbar .sp{flex:1}
+.cd-pstage{flex:1;min-height:0;display:grid;place-items:center;padding:12px;overflow:auto}
+.devframe{background:#0b0b0d;border-radius:12px;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;max-height:100%}
+.devframe.phone{border-radius:26px;padding:9px 5px;width:220px}
+.devframe.phone::before{content:"";height:16px;flex:none;display:block;position:relative}
+.devframe.phone .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:62px;height:15px;
+  background:#0b0b0d;border-radius:99px;z-index:2}
+.devframe.desktop{width:100%;max-width:520px}
+.devframe .bar{height:16px;flex:none;display:flex;align-items:center;gap:4px;padding:0 6px}
+.devframe .bar i{width:6px;height:6px;border-radius:99px;background:#3a3a40;display:block}
+.devframe iframe{border:0;background:#fff;border-radius:6px;width:100%;flex:1;min-height:150px}
+.devframe.phone iframe{border-radius:16px;height:390px}
+.devframe.desktop iframe{height:300px}
+.cd-term{flex:none;height:120px;border-top:1px solid var(--glass-line);background:#06080a;overflow-y:auto;
+  padding:9px 12px;font-family:var(--mono);font-size:11px;line-height:1.65;color:#8FBF9F}
+.cd-term .p{color:#3FCF95}
+.cd-term .w{color:#E0A33C}
+.cd-term .e{color:#FF6B6B}
+.cd-drop{position:absolute;inset:0;z-index:20;display:none;place-items:center;
+  background:rgba(91,79,224,.16);border:2px dashed var(--signal);border-radius:14px;margin:8px}
+.cd-drop.on{display:grid}
+.cd-drop .in{text-align:center;font-size:13px;font-weight:650;color:var(--tx)}
+.cd-drop .in small{display:block;font-size:11.5px;color:var(--tx-2);font-weight:400;margin-top:4px}
+.repo{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--glass-line);
+  border-radius:11px;background:var(--glass-3)}
+.repo+.repo{margin-top:8px}
+.repo .lead{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;color:#fff}
+.repo .mid{flex:1;min-width:0}
+.repo .nm{font-size:12.5px;font-weight:640}
+.repo .br{font-size:11px;color:var(--tx-3);font-family:var(--mono);margin-top:2px}
+
+/* ============================ BROWSER APP ============================ */
+.bw{flex:1;display:flex;flex-direction:column;min-width:0}
+.bw-tabs{flex:none;display:flex;align-items:center;gap:3px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none}
+.bw-tabs::-webkit-scrollbar{display:none}
+.bw-tab{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:8px 8px 0 0;font-size:11.5px;
+  color:var(--tx-3);max-width:170px;flex:none;border:1px solid transparent}
+.bw-tab[aria-selected="true"]{background:var(--glass-3);color:var(--tx);border-color:var(--glass-line);border-bottom-color:transparent}
+.bw-tab .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bw-tab .x{opacity:.5}
+.bw-tab .x:hover{opacity:1}
+.bw-bar{flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--glass-line);
+  border-top:1px solid var(--glass-line)}
+.bw-nav{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--tx-3);flex:none}
+.bw-nav:hover{background:var(--glass-3);color:var(--tx)}
+.bw-nav:disabled{opacity:.3}
+.bw-url{flex:1;min-width:0;height:30px;border-radius:99px;background:var(--glass-3);border:1px solid var(--glass-line);
+  padding:0 13px;font-size:12.5px;outline:none;font-family:var(--mono)}
+.bw-url:focus{border-color:var(--glass-line-2)}
+.bw-marks{flex:none;display:flex;gap:5px;padding:6px 10px;border-bottom:1px solid var(--glass-line);
+  overflow-x:auto;scrollbar-width:none}
+.bw-marks::-webkit-scrollbar{display:none}
+.bw-mark{font-size:11px;padding:4px 9px;border-radius:7px;background:var(--glass-3);border:1px solid var(--glass-line);
+  color:var(--tx-2);white-space:nowrap;flex:none}
+.bw-mark:hover{color:var(--tx)}
+.bw-stage{flex:1;min-height:0;position:relative;background:#fff}
+:root[data-theme="light"] .bw-stage{background:#fff}
+.bw-stage iframe{width:100%;height:100%;border:0;display:block}
+.bw-block{position:absolute;inset:0;display:none;place-items:center;padding:30px;text-align:center;
+  background:var(--glass);backdrop-filter:blur(8px)}
+.bw-block.on{display:grid}
+.bw-block .in{max-width:420px}
+.bw-block h5{margin:0 0 8px;font-size:15px;font-weight:700}
+.bw-block p{margin:0 0 12px;font-size:12.5px;color:var(--tx-2);line-height:1.65}
+.bw-block code{font-family:var(--mono);font-size:11.5px;background:var(--glass-3);padding:2px 6px;border-radius:5px}
+.intra{padding:34px 38px;font-family:var(--sans);color:#16181D;background:#fff;height:100%;overflow-y:auto}
+.intra h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
+.intra .lede{color:#5A5F6B;font-size:13.5px;margin:0 0 20px}
+.intra h2{font-size:15px;margin:22px 0 8px}
+.intra p,.intra li{font-size:13px;line-height:1.7;color:#333}
+.intra table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+.intra th,.intra td{border:1px solid #E2E4E9;padding:7px 9px;text-align:left}
+.intra th{background:#F6F7F9;font-weight:700}
+.intra .pill{display:inline-block;font-size:11px;background:#EAF7EF;color:#12794F;padding:3px 9px;
+  border-radius:99px;font-weight:650}
+.agentbar{flex:none;display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--signal-dim);
+  border-bottom:1px solid color-mix(in srgb,var(--signal) 34%,transparent);font-size:12px}
+.agentbar .sp{flex:1}
+.agentsteps{padding:10px 12px;border-bottom:1px solid var(--glass-line);font-family:var(--mono);font-size:11px;
+  color:var(--tx-2);line-height:1.8;max-height:120px;overflow-y:auto}
+.agentsteps .ok{color:var(--private)}
+.agentsteps .run{color:var(--public)}
+
+/* ============================ APPROVAL BAR (OS-wide) ============================ */
+.approve{flex:none;display:flex;align-items:flex-start;gap:11px;padding:12px 14px;
+  background:var(--public-dim);border-bottom:1px solid color-mix(in srgb,var(--public) 40%,transparent)}
+.approve .ico{color:var(--public);margin-top:1px}
+.approve .mid{flex:1;min-width:0;font-size:12.5px;line-height:1.6}
+.approve .mid b{display:block;margin-bottom:2px}
+.approve .acts{display:flex;gap:7px;flex:none;align-self:center}
+@media (prefers-reduced-motion: no-preference){ .approve{animation:growDown .22s ease-out} }
+@keyframes growDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+/* ============================ AGENTS / AUTOS / CONN ============================ */
+.agc{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);padding:14px;
+  display:flex;flex-direction:column;gap:8px}
+.agc .top{display:flex;align-items:center;gap:9px}
+.agc .av{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;color:#fff}
+.agc .nm{font-size:13px;font-weight:680;flex:1;min-width:0}
+.agc .st{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--private)}
+.agc .st .d{width:6px;height:6px;border-radius:99px;background:var(--private)}
+@media (prefers-reduced-motion: no-preference){ .agc .st .d{animation:sovPulse 2s infinite} }
+.agc p{margin:0;font-size:12px;color:var(--tx-2);line-height:1.6}
+.agc .foot{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dmap{border:1px solid var(--glass-line);border-radius:var(--r-lg);background:var(--glass-2);padding:14px}
+.dmap svg{width:100%;height:auto;display:block}
+.dmap text{font-size:9px;fill:var(--tx-2);font-family:var(--sans)}
+.dmap .box{fill:var(--glass-3);stroke:var(--glass-line-2)}
+.dmap .ln{stroke:var(--signal);fill:none;stroke-width:1.6;marker-end:url(#arw)}
+.conn-card{border:1px solid var(--glass-line);border-radius:12px;background:var(--glass-2);padding:13px;
+  display:flex;flex-direction:column;gap:9px}
+.conn-card .top{display:flex;align-items:center;gap:9px}
+.conn-card .bt{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;
+  font-size:12px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.conn-card .nm{font-size:12.5px;font-weight:650;flex:1;min-width:0}
+.conn-card p{margin:0;font-size:11.5px;color:var(--tx-2);line-height:1.55}
+.runrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--glass-line);
+  border-radius:10px;background:var(--glass-3);font-size:12.5px}
+.runrow+.runrow{margin-top:7px}
+.runrow .dot{width:7px;height:7px;border-radius:99px;flex:none}
+.runrow .mid{flex:1;min-width:0}
+.runrow .nm{font-weight:620}
+.runrow .sub{font-size:11px;color:var(--tx-3);margin-top:2px;font-family:var(--mono)}
+</style>
+</head>
+<body data-stage="boot">
+
+<svg id="sprite" aria-hidden="true"><defs>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 12a7.7 7.7 0 0 1-8 7.5 9 9 0 0 1-2.6-.35L4.5 20.5l1.4-4.2A7.4 7.4 0 0 1 4.5 12a7.7 7.7 0 0 1 8-7.5 7.7 7.7 0 0 1 8 7.5Z"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5.2a3.2 3.2 0 0 0-6 1.4c-1.4.5-2.3 1.8-2.3 3.3 0 .9.3 1.7.9 2.3-.4.6-.6 1.3-.6 2 0 2 1.7 3.6 3.8 3.6.7 1.2 2 2 3.5 2h.7Z"/><path d="M12 5.2a3.2 3.2 0 0 1 6 1.4c1.4.5 2.3 1.8 2.3 3.3 0 .9-.3 1.7-.9 2.3.4.6.6 1.3.6 2 0 2-1.7 3.6-3.8 3.6-.7 1.2-2 2-3.5 2H12Z"/><path d="M12 5.2v14.6"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><path d="M9 7.5 4.5 12 9 16.5M15 7.5 19.5 12 15 16.5"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.3 2.4 3.4 5.4 3.4 8.5S14.3 18.1 12 20.5c-2.3-2.4-3.4-5.4-3.4-8.5S9.7 5.9 12 3.5Z"/></symbol>
+<symbol id="i-agent" viewBox="0 0 24 24"><circle cx="12" cy="8.3" r="3.6"/><path d="M4.9 20.2a7.3 7.3 0 0 1 14.2 0"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 3 5.5 13.5h5.6L10.3 21 18 10.4h-5.6Z"/></symbol>
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3.5v5M15 3.5v5"/><path d="M6.5 8.5h11v3.2a5.5 5.5 0 0 1-11 0Z"/><path d="M12 17.2v3.3"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><path d="m3.6 6.8 8.4 5.9 8.4-5.9"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 2.6l1.5 2.1 2.5-.6.5 2.5 2.4.9-1.1 2.3 1.6 2-2 1.6.3 2.6-2.6.2-1.2 2.3-2.4-1.1-2.4 1.1-1.2-2.3-2.6-.2.3-2.6-2-1.6 1.6-2L2.1 7.5l2.4-.9.5-2.5 2.5.6Z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8Z"/><path d="M14 3.5V8h4.5"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.2l2 2.4h7.8a2 2 0 0 1 2 2v8.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2l7 2.6v5.4c0 4.3-2.9 8-7 9.6-4.1-1.6-7-5.3-7-9.6V5.8Z"/><path d="M9.2 12.2l2 2 3.6-4"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></symbol>
+<symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.2 5.6"/><path d="M20 4.5V11h-6.2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3.5 8.5 4.3L12 12 3.5 7.8Z"/><path d="m4 12.2 8 4 8-4"/><path d="m4 16.4 8 4 8-4"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3 1.8"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5Z"/></symbol>
+<symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M7 10l2.6 2.4L7 15M12.5 15h4"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M10.6 5h2.8"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
+<symbol id="i-git" viewBox="0 0 24 24"><circle cx="7" cy="6" r="2.4"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="12" r="2.4"/><path d="M7 8.4v7.2M9.2 16.6 14.9 13"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.8 2.9 19.5h18.2Z"/><path d="M12 10v4M12 17v.6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.6"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="M8 10.5l4 4 4-4"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z"/></symbol>
+<symbol id="i-slides" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M9 20.5h6M12 17v3.5"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0"/></symbol>
+<symbol id="i-magna" viewBox="0 0 640 440"><path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<linearGradient id="mgA" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/></linearGradient>
+<linearGradient id="mgB" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient>
+</defs></svg>
+
+<!-- ============================ BOOT ============================ -->
+<div id="boot">
+  <div class="boot-card">
+    <svg class="boot-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>MagnaVERSE Console</h1>
+    <p class="lede">A private AI operating environment. Every app, agent and document runs on Magna's own hardware in Riyadh.</p>
+    <div class="boot-res">
+      <div class="r"><span class="dot"></span><b>Data residency: Saudi Arabia</b><span class="ms">~15 ms</span></div>
+      <div class="r"><svg class="ico xs" style="color:var(--tx-3)"><use href="#i-clock"/></svg><span><bdi dir="rtl">١٧ ربيع الأول ١٤٤٨هـ</bdi> · 18 Aug 2026</span><span class="ms">Maghrib 18:41</span></div>
+      <div class="boot-badges">
+        <span class="bdg">PDPL</span><span class="bdg">NCA ECC-1</span><span class="bdg">SDAIA</span><span class="bdg">Vision 2030</span>
+      </div>
+    </div>
+    <button class="pbtn primary" id="bootSso">
+      <svg class="pmark" viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg>
+      Sign in with Magna ID
+    </button>
+    <button class="pbtn" id="bootGuest">Explore as a guest</button>
+    <div class="boot-status" id="bootStatus" role="status"></div>
+    <p class="boot-note">A prototype with local dummy data. Never type a real password here — Console never asks for one.</p>
+  </div>
+</div>
+
+<!-- ============================ OS ============================ -->
+<div id="os">
+  <div id="wallpaper" aria-hidden="true">
+    <div class="glow"></div><div class="glow b"></div><div class="grid"></div>
+    <svg id="wallMark" viewBox="0 0 640 440">
+      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div id="menubar">
+    <span class="mb-brand"><svg viewBox="0 0 640 440" aria-hidden="true"><use href="#i-magna"/></svg>Console</span>
+    <span class="mb-app" id="mbApp">Desktop</span>
+    <span class="sp"></span>
+    <div id="spacePips" role="group" aria-label="Spaces"></div>
+    <button class="mb-btn" id="mcBtn" aria-label="Mission Control"><svg class="ico sm"><use href="#i-grid"/></svg></button>
+    <button class="mb-btn" id="spotBtn" aria-label="Spotlight search"><svg class="ico sm"><use href="#i-search"/></svg></button>
+    <button class="mb-btn" id="themeBtn" aria-label="Toggle theme"><svg class="ico sm"><use href="#i-moon"/></svg></button>
+    <button id="sovPill" data-tier="private" aria-label="Sovereignty tier">
+      <span class="dot"></span><span id="sovTx">Private</span><span class="scope" id="sovScope">· Riyadh DC-1</span>
+    </button>
+    <span id="clock">18:24</span>
+  </div>
+
+  <div id="spaces"></div>
+
+  <div id="dock" role="toolbar" aria-label="Dock"></div>
+
+  <button id="companion" aria-label="Ask the Console companion"><svg class="ico"><use href="#i-spark"/></svg></button>
+  <div id="compPanel" role="dialog" aria-label="Companion"></div>
+
+  <div id="mobileBar" role="toolbar" aria-label="Open apps"></div>
+</div>
+
+<div id="snapGhost" aria-hidden="true"></div>
+
+<div id="spot" role="dialog" aria-modal="true" aria-label="Spotlight">
+  <div class="spot-box">
+    <div class="spot-top">
+      <svg class="ico"><use href="#i-search"/></svg>
+      <input id="spotIn" type="text" placeholder="Open an app, search the Brain, or describe an automation…" autocomplete="off" spellcheck="false">
+      <kbd>esc</kbd>
+    </div>
+    <div class="spot-list" id="spotList"></div>
+    <div class="spot-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> run</span><span><kbd>esc</kbd> close</span></div>
+  </div>
+</div>
+
+<div id="mission" role="dialog" aria-label="Mission Control">
+  <h3>Spaces</h3>
+  <div class="mc-grid" id="mcGrid"></div>
+  <p class="mc-hint">Click a space to switch · <kbd>Ctrl</kbd>+<kbd>←</kbd>/<kbd>→</kbd> or two-finger swipe · <kbd>Esc</kbd> to close</p>
+</div>
+
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ============================================================
+   0 · utilities
+   ============================================================ */
+var $ = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+var store = {
+  get:function(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function el(tag,cls,html){ var n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; }
+function ico(id,cls){ return '<svg class="ico '+(cls||"")+'"><use href="#'+id+'"/></svg>'; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function isMobile(){ return window.matchMedia("(max-width:767px)").matches; }
+var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function toast(msg,ms){
+  var t = el("div","toast", esc(msg));
+  $("#toasts").appendChild(t);
+  setTimeout(function(){ t.classList.add("out"); setTimeout(function(){ t.remove(); }, 220); }, ms||3400);
+}
+
+/* ============================================================
+   1 · boot
+   ============================================================ */
+var BOOT_STEPS = ["Authorising with Magna ID…","Attesting the Riyadh DC-1 enclave…","Mounting your Brain index…","Restoring 4 spaces…"];
+function boot(){
+  var i = 0, st = $("#bootStatus");
+  $("#bootSso").disabled = true; $("#bootGuest").disabled = true;
+  (function step(){
+    if(i >= BOOT_STEPS.length){ startOS(); return; }
+    st.textContent = BOOT_STEPS[i++];
+    setTimeout(step, REDUCED ? 90 : 340);
+  })();
+}
+$("#bootSso").addEventListener("click", boot);
+$("#bootGuest").addEventListener("click", boot);
+
+function startOS(){
+  document.body.setAttribute("data-stage","os");
+  renderSpaces(); renderDock(); renderPips(); tickClock();
+  if(!isMobile()) toast("Signed in. Press ⌘K for Spotlight, Ctrl+→ to change space.", 5200);
+}
+
+/* clock */
+function tickClock(){
+  var d = new Date();
+  $("#clock").textContent = d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  setTimeout(tickClock, 20000);
+}
+
+/* theme */
+function applyTheme(t){
+  if(t === "light") document.documentElement.setAttribute("data-theme","light");
+  else document.documentElement.removeAttribute("data-theme");
+  store.set("mv7.theme", t);
+  $("#themeBtn").innerHTML = ico(t === "light" ? "i-sun" : "i-moon","sm");
+}
+applyTheme(store.get("mv7.theme","dark"));
+$("#themeBtn").addEventListener("click", function(){
+  applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light");
+});
+
+/* sovereignty pill — OS-level, two modes (focused Chat thread vs workspace default) */
+var tier = "private";
+function renderSov(){
+  var p = $("#sovPill"), w = focusedWin();
+  var chatFocused = w && w.appId === "chat";
+  p.setAttribute("data-tier", tier);
+  $("#sovTx").textContent = tier === "public" ? "Public" : "Private";
+  $("#sovScope").textContent = chatFocused ? "· this thread" : "· new threads";
+  p.title = chatFocused ? "Sovereignty tier for the focused chat thread"
+                        : "Default tier for new threads — focus a Chat window to change that thread's tier";
+}
+$("#sovPill").addEventListener("click", function(){
+  tier = tier === "private" ? "public" : "private";
+  renderSov();
+  toast(tier === "public"
+    ? "Switched to Public — prompts and retrieved text will leave Magna's network."
+    : "Back on Private — inference runs on the Riyadh DC-1 cluster. Egress 0 bytes.");
+});
+
+/* ============================================================
+   2 · app registry
+   Each app declares its chrome, tile colour, window size and a
+   mount(bodyEl, win) that fills the window body. Content lives in
+   section 6; the shell below never needs to know what's inside.
+   ============================================================ */
+var APPS = {
+  chat:    { name:"Chat",        icon:"i-chat",   tile:"g-chat",    w:720, h:560, minW:380, minH:320, multi:true  },
+  brain:   { name:"Brain",       icon:"i-brain",  tile:"g-brain",   w:960, h:640, minW:520, minH:400, multi:false },
+  code:    { name:"Code",        icon:"i-code",   tile:"g-code",    w:1000,h:660, minW:600, minH:420, multi:true  },
+  browser: { name:"Browser",     icon:"i-globe",  tile:"g-browser", w:900, h:620, minW:420, minH:360, multi:true  },
+  agents:  { name:"Agents",      icon:"i-agent",  tile:"g-agents",  w:800, h:600, minW:460, minH:380, multi:false },
+  autos:   { name:"Automations", icon:"i-bolt",   tile:"g-auto",    w:760, h:560, minW:440, minH:360, multi:false },
+  conn:    { name:"Connections", icon:"i-plug",   tile:"g-conn",    w:820, h:600, minW:460, minH:380, multi:false },
+  mail:    { name:"Mail",        icon:"i-mail",   tile:"g-mail",    w:860, h:600, minW:460, minH:380, multi:false },
+  settings:{ name:"Settings",    icon:"i-gear",   tile:"g-set",     w:780, h:580, minW:480, minH:380, multi:false }
+};
+var DOCK_PINNED = ["chat","brain","code","browser"];
+var DOCK_REST   = ["agents","autos","conn","mail","settings"];
+var DESKTOP_ORDER = ["chat","brain","code","browser","agents","autos","conn","mail","settings"];
+
+/* badges that make the desktop informative rather than decorative */
+var BADGES = { mail:3, agents:2, autos:1 };
+
+/* ============================================================
+   3 · spaces
+   Four desktops. A window belongs to exactly one space. Switching
+   translates the space layers horizontally — windows keep their
+   position, so returning to a space restores it exactly.
+   ============================================================ */
+var SPACES = [
+  { id:0, name:"Delivery",   hint:"C2 exposure, schedule, POs" },
+  { id:1, name:"Build",      hint:"Code, previews, repos" },
+  { id:2, name:"Research",   hint:"Brain, browser, reading" },
+  { id:3, name:"Operations", hint:"Agents, automations, mail" }
+];
+var curSpace = 0;
+var wins = [];        /* {id, appId, spaceId, x,y,w,h,z, min, max, prevRect, node, body, state, title} */
+var nextId = 1, nextZ = 10;
+
+function renderSpaces(){
+  var host = $("#spaces");
+  host.innerHTML = "";
+  SPACES.forEach(function(s){
+    var sp = el("div","space");
+    sp.id = "space-" + s.id;
+    sp.setAttribute("data-space", s.id);
+    sp.innerHTML = '<div class="icon-layer" data-icons="'+s.id+'"></div><div class="win-layer" data-winlayer="'+s.id+'"></div>';
+    host.appendChild(sp);
+  });
+  layoutSpaces(true);
+  renderIcons();
+}
+function layoutSpaces(instant){
+  SPACES.forEach(function(s){
+    var sp = $("#space-" + s.id);
+    if(!sp) return;
+    if(instant) sp.style.transition = "none";
+    sp.style.transform = "translateX(" + ((s.id - curSpace) * 100) + "%)";
+    /* keep off-screen spaces out of the tab order without display:none
+       (display:none would kill in-flight window animations) */
+    sp.style.pointerEvents = s.id === curSpace ? "" : "none";
+    sp.setAttribute("aria-hidden", String(s.id !== curSpace));
+    if(instant) requestAnimationFrame(function(){ sp.style.transition = ""; });
+  });
+}
+function gotoSpace(n, silent){
+  n = clamp(n, 0, SPACES.length - 1);
+  if(n === curSpace) return;
+  curSpace = n;
+  layoutSpaces();
+  renderPips(); renderDock(); renderMenuApp(); renderMobileBar();
+  if(!silent) toast("Space " + (n+1) + " · " + SPACES[n].name, 1600);
+}
+function renderPips(){
+  var host = $("#spacePips");
+  host.innerHTML = SPACES.map(function(s){
+    return '<button data-pip="'+s.id+'" aria-current="'+(s.id===curSpace)+'" '+
+           'title="'+esc(s.name)+'" aria-label="Space '+(s.id+1)+': '+esc(s.name)+'"></button>';
+  }).join("");
+}
+$("#spacePips").addEventListener("click", function(e){
+  var b = e.target.closest("[data-pip]"); if(b) gotoSpace(+b.getAttribute("data-pip"));
+});
+
+/* --- desktop icons, draggable and position-persisted per space --- */
+function iconPositions(){
+  try{ return JSON.parse(store.get("mv7.icons","")) || {}; }catch(e){ return {}; }
+}
+function saveIconPos(appId, spaceId, x, y){
+  var p = iconPositions(); p[spaceId + ":" + appId] = [x,y]; store.set("mv7.icons", JSON.stringify(p));
+}
+function renderIcons(){
+  var pos = iconPositions();
+  /* default layout flows top-to-bottom then wraps into a new column, so a
+     short viewport never strands an icon under the dock */
+  var STEP_Y = 96, STEP_X = 100, TOP = 14, LEFT = 14;
+  var avail = Math.max(200, window.innerHeight - 34 - 96);
+  var perCol = Math.max(1, Math.floor(avail / STEP_Y));
+  SPACES.forEach(function(s){
+    var layer = $('[data-icons="'+s.id+'"]'); if(!layer) return;
+    layer.innerHTML = DESKTOP_ORDER.map(function(id, i){
+      var a = APPS[id], key = s.id + ":" + id;
+      var col = Math.floor(i / perCol), row = i % perCol;
+      var xy = pos[key] || [LEFT + col * STEP_X, TOP + row * STEP_Y];
+      var badge = BADGES[id] ? '<span class="badge">'+BADGES[id]+'</span>' : "";
+      return '<button class="dicon" data-open="'+id+'" data-app="'+id+'" '+
+             'style="left:'+xy[0]+'px;top:'+xy[1]+'px" aria-label="Open '+esc(a.name)+'">'+
+             '<span class="tile '+a.tile+'">'+ico(a.icon)+badge+'</span>'+
+             '<span class="lbl">'+esc(a.name)+'</span></button>';
+    }).join("");
+  });
+}
+
+/* icon drag-to-reposition (desktop only; mobile uses a fixed springboard grid) */
+var iconDrag = null;
+document.addEventListener("pointerdown", function(e){
+  var ic = e.target.closest(".dicon"); if(!ic || isMobile()) return;
+  var layer = ic.parentElement;
+  iconDrag = { node:ic, id:ic.getAttribute("data-app"), space:+layer.getAttribute("data-icons"),
+               sx:e.clientX, sy:e.clientY, ox:ic.offsetLeft, oy:ic.offsetTop, moved:false };
+  ic.setPointerCapture && ic.setPointerCapture(e.pointerId);
+});
+document.addEventListener("pointermove", function(e){
+  if(!iconDrag) return;
+  var dx = e.clientX - iconDrag.sx, dy = e.clientY - iconDrag.sy;
+  if(!iconDrag.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+  iconDrag.moved = true;
+  iconDrag.node.classList.add("dragging");
+  var lay = iconDrag.node.parentElement;
+  iconDrag.node.style.left = clamp(iconDrag.ox + dx, 0, lay.clientWidth  - iconDrag.node.offsetWidth) + "px";
+  iconDrag.node.style.top  = clamp(iconDrag.oy + dy, 0, lay.clientHeight - iconDrag.node.offsetHeight) + "px";
+});
+document.addEventListener("pointerup", function(){
+  if(!iconDrag) return;
+  var d = iconDrag; iconDrag = null;
+  d.node.classList.remove("dragging");
+  if(d.moved){ saveIconPos(d.id, d.space, parseInt(d.node.style.left,10), parseInt(d.node.style.top,10)); }
+});
+
+/* open on click — but never when the pointer-up was a reposition drag */
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-open]");
+  if(b && !b.classList.contains("dragging")){ openApp(b.getAttribute("data-open")); }
+});
+
+/* ============================================================
+   4 · window engine
+   Frame state (x/y/w/h/z) is style-only and updated on every
+   pointermove. Content is mounted once and never re-rendered by
+   the engine — that split is what keeps dragging smooth.
+   ============================================================ */
+function focusedWin(){ var f=null; wins.forEach(function(w){ if(w.spaceId===curSpace && !w.min && (!f||w.z>f.z)) f=w; }); return f; }
+function winById(id){ return wins.filter(function(w){ return w.id===id; })[0]; }
+
+function openApp(appId, params){
+  var a = APPS[appId]; if(!a) return;
+  if(!a.multi){
+    var ex = wins.filter(function(w){ return w.appId===appId; })[0];
+    if(ex){
+      if(ex.spaceId !== curSpace) gotoSpace(ex.spaceId, true);
+      ex.min = false; ex.node.style.display=""; focusWin(ex.id); renderDock(); renderMobileBar(); return ex;
+    }
+  }
+  var deskW = window.innerWidth, deskH = window.innerHeight - 34;
+  var open = wins.filter(function(w){ return w.spaceId===curSpace; }).length;
+  var w = {
+    id: nextId++, appId: appId, spaceId: curSpace, title: a.name,
+    w: Math.min(a.w, deskW - 40), h: Math.min(a.h, deskH - 40 - 70),
+    z: nextZ++, min:false, max:false, prevRect:null, state:{}, params: params||{}
+  };
+  w.x = clamp(70 + open * 30, 8, Math.max(8, deskW - w.w - 8));
+  w.y = clamp(24 + open * 26, 6, Math.max(6, deskH - w.h - 80));
+  wins.push(w);
+  mountWindow(w);
+  focusWin(w.id);
+  renderDock(); renderMobileBar();
+  return w;
+}
+
+function mountWindow(w){
+  var a = APPS[w.appId];
+  var n = el("section","win opening");
+  n.setAttribute("data-win", w.id);
+  n.setAttribute("role","dialog");
+  n.setAttribute("aria-label", a.name);
+  n.style.cssText = "left:"+w.x+"px;top:"+w.y+"px;width:"+w.w+"px;height:"+w.h+"px;z-index:"+w.z;
+  n.innerHTML =
+    '<div class="win-bar" data-bar>'+
+      '<button class="win-mobile-back" data-wact="close" aria-label="Back to desktop">'+ico("i-chev-l","sm")+'</button>'+
+      '<div class="win-lights">'+
+        '<button class="wl-close" data-wact="close" aria-label="Close"></button>'+
+        '<button class="wl-min"   data-wact="min"   aria-label="Minimise"></button>'+
+        '<button class="wl-max"   data-wact="max"   aria-label="Maximise"></button>'+
+      '</div>'+
+      '<button class="win-side-toggle" data-wact="side" aria-label="Toggle sidebar">'+ico("i-layers","sm")+'</button>'+
+      '<span class="win-ttl"><span class="tico '+a.tile+'">'+ico(a.icon)+'</span>'+
+        '<b data-wtitle>'+esc(a.name)+'</b><span class="sub" data-wsub></span></span>'+
+      '<span class="sp"></span>'+
+    '</div>'+
+    '<div class="win-body" data-body></div>'+
+    ["n","s","w","e","nw","ne","sw","se"].map(function(d){ return '<div class="rz rz-'+d+'" data-rz="'+d+'"></div>'; }).join("");
+  $('[data-winlayer="'+w.spaceId+'"]').appendChild(n);
+  w.node = n;
+  w.body = n.querySelector("[data-body]");
+  setTimeout(function(){ n.classList.remove("opening"); }, 320);
+  /* content is mounted exactly once */
+  try{ (MOUNT[w.appId] || MOUNT._missing)(w.body, w); }
+  catch(err){ w.body.innerHTML = '<div class="empty-msg">This app failed to load: '+esc(err.message)+'</div>'; }
+}
+
+function focusWin(id){
+  var w = winById(id); if(!w) return;
+  w.z = ++nextZ; w.node.style.zIndex = w.z;
+  wins.forEach(function(x){ x.node && x.node.classList.toggle("focused", x.id === id); });
+  renderMenuApp(); renderSov();
+}
+function closeWin(id){
+  var w = winById(id); if(!w) return;
+  w.node.classList.add("closing");
+  var n = w.node;
+  setTimeout(function(){ n.remove(); }, REDUCED ? 0 : 190);
+  wins = wins.filter(function(x){ return x.id !== id; });
+  renderDock(); renderMenuApp(); renderMobileBar(); renderSov();
+}
+function minWin(id){
+  var w = winById(id); if(!w) return;
+  w.min = true; w.node.style.display = "none";
+  renderDock(); renderMenuApp(); renderMobileBar();
+}
+function maxWin(id){
+  var w = winById(id); if(!w) return;
+  if(w.max){
+    w.max = false; w.node.classList.remove("maxed");
+    var r = w.prevRect || {x:60,y:30,w:800,h:560};
+    w.x=r.x; w.y=r.y; w.w=r.w; w.h=r.h; applyRect(w);
+  } else {
+    w.prevRect = {x:w.x,y:w.y,w:w.w,h:w.h};
+    w.max = true; w.node.classList.add("maxed");
+    w.node.style.cssText = "left:0;top:0;width:100%;height:100%;z-index:"+w.z;
+  }
+}
+function applyRect(w){
+  w.node.style.left = w.x+"px"; w.node.style.top = w.y+"px";
+  w.node.style.width = w.w+"px"; w.node.style.height = w.h+"px";
+  w.node.style.transform = "";
+}
+function setWinTitle(w, title, sub){
+  var t = w.node.querySelector("[data-wtitle]"), s = w.node.querySelector("[data-wsub]");
+  if(title){ w.title = title; t.textContent = title; }
+  if(sub != null) s.textContent = sub;
+  renderMenuApp();
+}
+function renderMenuApp(){
+  var f = focusedWin();
+  $("#mbApp").textContent = f ? f.title : "Desktop";
+}
+
+/* window controls + click-to-focus */
+document.addEventListener("pointerdown", function(e){
+  var n = e.target.closest(".win"); if(!n) return;
+  var id = +n.getAttribute("data-win");
+  var f = focusedWin();
+  if(!f || f.id !== id) focusWin(id);
+}, true);
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-wact]"); if(!b) return;
+  var n = b.closest(".win"), id = +n.getAttribute("data-win"), act = b.getAttribute("data-wact");
+  if(act === "close") closeWin(id);
+  else if(act === "min") minWin(id);
+  else if(act === "max") maxWin(id);
+  else if(act === "side") n.setAttribute("data-side", n.getAttribute("data-side") === "open" ? "shut" : "open");
+});
+/* double-click the title bar to maximise, like a real OS */
+document.addEventListener("dblclick", function(e){
+  var bar = e.target.closest("[data-bar]"); if(!bar || e.target.closest("[data-wact]")) return;
+  maxWin(+bar.closest(".win").getAttribute("data-win"));
+});
+
+/* --- drag --- */
+var drag = null;
+document.addEventListener("pointerdown", function(e){
+  var bar = e.target.closest("[data-bar]");
+  if(!bar || e.target.closest("[data-wact]") || isMobile()) return;
+  var w = winById(+bar.closest(".win").getAttribute("data-win"));
+  if(!w || w.max) return;
+  drag = { w:w, sx:e.clientX, sy:e.clientY, ox:w.x, oy:w.y, snap:null };
+  document.body.classList.add("dragging");
+  bar.setPointerCapture && bar.setPointerCapture(e.pointerId);
+});
+document.addEventListener("pointermove", function(e){
+  if(!drag) return;
+  var w = drag.w, deskH = window.innerHeight - 34;
+  w.x = drag.ox + (e.clientX - drag.sx);
+  w.y = clamp(drag.oy + (e.clientY - drag.sy), 0, deskH - 40);
+  /* transform during the drag: compositor only, no reflow */
+  w.node.style.transform = "translate3d("+(w.x - drag.ox)+"px,"+(w.y - drag.oy)+"px,0)";
+  w.node.style.left = drag.ox+"px"; w.node.style.top = drag.oy+"px";
+  detectSnap(e.clientX, e.clientY);
+});
+document.addEventListener("pointerup", function(){
+  if(!drag) return;
+  var w = drag.w, snap = drag.snap;
+  w.node.style.transform = "";
+  applyRect(w);
+  document.body.classList.remove("dragging");
+  hideGhost();
+  if(snap) applySnap(w, snap);
+  drag = null;
+});
+function detectSnap(cx, cy){
+  var W = window.innerWidth, T = 34, E = 26;
+  var s = null;
+  if(cx <= E) s = "left"; else if(cx >= W - E) s = "right"; else if(cy <= T + 6) s = "max";
+  drag.snap = s;
+  if(s) showGhost(s); else hideGhost();
+}
+function ghostRect(kind){
+  var W = window.innerWidth, T = 34, H = window.innerHeight - T, pad = 8, dock = isMobile()?8:74;
+  if(kind === "left")  return {left:pad, top:T+pad, width:W/2 - pad*1.5, height:H - pad - dock};
+  if(kind === "right") return {left:W/2 + pad/2, top:T+pad, width:W/2 - pad*1.5, height:H - pad - dock};
+  return {left:0, top:T, width:W, height:H};
+}
+function showGhost(kind){
+  var g = $("#snapGhost"), r = ghostRect(kind);
+  g.classList.add("on");
+  g.style.left=r.left+"px"; g.style.top=r.top+"px"; g.style.width=r.width+"px"; g.style.height=r.height+"px";
+}
+function hideGhost(){ $("#snapGhost").classList.remove("on"); }
+function applySnap(w, kind){
+  if(kind === "max"){ if(!w.max) maxWin(w.id); return; }
+  var r = ghostRect(kind);
+  w.prevRect = {x:w.x,y:w.y,w:w.w,h:w.h};
+  w.x=r.left; w.y=r.top - 34; w.w=r.width; w.h=r.height;
+  applyRect(w);
+  toast("Snapped " + kind, 1400);
+}
+
+/* --- resize --- */
+var rez = null;
+document.addEventListener("pointerdown", function(e){
+  var h = e.target.closest("[data-rz]"); if(!h || isMobile()) return;
+  var w = winById(+h.closest(".win").getAttribute("data-win"));
+  if(!w || w.max) return;
+  rez = { w:w, dir:h.getAttribute("data-rz"), sx:e.clientX, sy:e.clientY,
+          ox:w.x, oy:w.y, ow:w.w, oh:w.h };
+  document.body.classList.add("dragging");
+  h.setPointerCapture && h.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+document.addEventListener("pointermove", function(e){
+  if(!rez) return;
+  var w = rez.w, a = APPS[w.appId], d = rez.dir;
+  var dx = e.clientX - rez.sx, dy = e.clientY - rez.sy;
+  var minW = a.minW || 320, minH = a.minH || 220;
+  if(d.indexOf("e") > -1) w.w = Math.max(minW, rez.ow + dx);
+  if(d.indexOf("s") > -1) w.h = Math.max(minH, rez.oh + dy);
+  if(d.indexOf("w") > -1){ var nw = Math.max(minW, rez.ow - dx); w.x = rez.ox + (rez.ow - nw); w.w = nw; }
+  if(d.indexOf("n") > -1){ var nh = Math.max(minH, rez.oh - dy); w.y = Math.max(0, rez.oy + (rez.oh - nh)); w.h = nh; }
+  applyRect(w);
+});
+document.addEventListener("pointerup", function(){
+  if(!rez) return;
+  document.body.classList.remove("dragging"); rez = null;
+});
+
+/* ============================================================
+   5 · dock, mobile bar, mission control, gestures, spotlight
+   ============================================================ */
+function runningIds(){
+  var m = {}; wins.forEach(function(w){ if(w.spaceId===curSpace) m[w.appId] = true; }); return m;
+}
+/* the contextual dock zone: the three apps with live activity right
+   now, so the dock reflects state instead of being a static shelf */
+function contextualIds(){
+  var out = [];
+  if(BADGES.agents) out.push("agents");
+  if(BADGES.autos)  out.push("autos");
+  if(BADGES.mail)   out.push("mail");
+  return out.slice(0,3);
+}
+function dockBtn(id, running){
+  var a = APPS[id];
+  return '<button class="dk '+a.tile+'" data-open="'+id+'" data-running="'+(running?1:0)+'" aria-label="'+esc(a.name)+'">'+
+         ico(a.icon)+(BADGES[id]?'<span class="badge">'+BADGES[id]+'</span>':"")+
+         '<span class="run"></span><span class="dk-tip">'+esc(a.name)+'</span></button>';
+}
+function renderDock(){
+  var run = runningIds(), ctx = contextualIds();
+  var html = DOCK_PINNED.map(function(id){ return dockBtn(id, run[id]); }).join("");
+  html += '<span class="dk-sep"></span>';
+  html += '<span class="dk-ctx">' + ctx.map(function(id){ return dockBtn(id, run[id]); }).join("") + '</span>';
+  html += '<span class="dk-sep"></span>';
+  html += DOCK_REST.filter(function(id){ return ctx.indexOf(id) < 0; })
+                   .map(function(id){ return dockBtn(id, run[id]); }).join("");
+  $("#dock").innerHTML = html;
+}
+function renderMobileBar(){
+  var open = wins.filter(function(w){ return w.spaceId === curSpace; });
+  $("#mobileBar").innerHTML = open.length
+    ? open.map(function(w){ var a = APPS[w.appId];
+        return '<button class="mb-card" data-mbwin="'+w.id+'"><span class="tico '+a.tile+'">'+ico(a.icon)+'</span>'+
+               esc(w.title)+'</button>'; }).join("")
+    : '<span style="color:var(--tx-4);font-size:12px;padding:0 6px">Tap an app to open it</span>';
+}
+$("#mobileBar").addEventListener("click", function(e){
+  var b = e.target.closest("[data-mbwin]"); if(!b) return;
+  var w = winById(+b.getAttribute("data-mbwin"));
+  if(w){ w.min = false; w.node.style.display=""; focusWin(w.id); }
+});
+
+/* mission control */
+function renderMission(){
+  $("#mcGrid").innerHTML = SPACES.map(function(s){
+    var open = wins.filter(function(w){ return w.spaceId === s.id; });
+    var thumbs = open.length ? open.map(function(w){ var a = APPS[w.appId];
+        return '<span class="mc-thumb"><span class="tico '+a.tile+'">'+ico(a.icon)+'</span>'+esc(w.title)+'</span>';
+      }).join("") : '<span class="mc-empty">No windows — '+esc(s.hint)+'</span>';
+    return '<div class="mc-space" data-mcspace="'+s.id+'" aria-current="'+(s.id===curSpace)+'" role="button" tabindex="0">'+
+             '<div class="hd"><span class="n">'+(s.id+1)+'</span>'+esc(s.name)+
+             '<span class="cnt">'+open.length+' window'+(open.length===1?"":"s")+'</span></div>'+
+             '<div class="mc-thumbs">'+thumbs+'</div></div>';
+  }).join("");
+}
+function openMission(on){
+  if(on){ renderMission(); $("#mission").classList.add("on"); }
+  else $("#mission").classList.remove("on");
+}
+$("#mcBtn").addEventListener("click", function(){ openMission(!$("#mission").classList.contains("on")); });
+$("#mission").addEventListener("click", function(e){
+  var s = e.target.closest("[data-mcspace]");
+  if(s){ gotoSpace(+s.getAttribute("data-mcspace")); openMission(false); return; }
+  if(e.target.id === "mission") openMission(false);
+});
+
+/* gestures: two-finger horizontal swipe (trackpad) changes space */
+var wheelLock = false;
+window.addEventListener("wheel", function(e){
+  if(!document.body.matches('[data-stage="os"]')) return;
+  if(e.target.closest(".win-body")) return;             /* let app content scroll */
+  if(Math.abs(e.deltaX) < 28 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+  if(wheelLock) return;
+  wheelLock = true; setTimeout(function(){ wheelLock = false; }, 520);
+  gotoSpace(curSpace + (e.deltaX > 0 ? 1 : -1));
+}, {passive:true});
+
+/* touch: horizontal swipe on the wallpaper changes space; swipe-down on a
+   window bar closes it (the mobile "swipe to dismiss") */
+var tStart = null;
+document.addEventListener("touchstart", function(e){
+  if(e.touches.length !== 1) return;
+  tStart = { x:e.touches[0].clientX, y:e.touches[0].clientY,
+             bar: e.target.closest("[data-bar]"), onWall: !e.target.closest(".win") };
+}, {passive:true});
+document.addEventListener("touchend", function(e){
+  if(!tStart || !e.changedTouches.length) return;
+  var dx = e.changedTouches[0].clientX - tStart.x, dy = e.changedTouches[0].clientY - tStart.y;
+  if(tStart.bar && dy > 70 && Math.abs(dx) < 60){
+    closeWin(+tStart.bar.closest(".win").getAttribute("data-win"));
+  } else if(tStart.onWall && Math.abs(dx) > 70 && Math.abs(dy) < 50){
+    gotoSpace(curSpace + (dx < 0 ? 1 : -1));
+  }
+  tStart = null;
+}, {passive:true});
+
+/* keyboard */
+document.addEventListener("keydown", function(e){
+  var mod = e.metaKey || e.ctrlKey;
+  if(mod && e.key.toLowerCase() === "k"){ e.preventDefault(); openSpot(true); return; }
+  if(e.key === "Escape"){
+    if($("#spot").classList.contains("on")){ openSpot(false); return; }
+    if($("#mission").classList.contains("on")){ openMission(false); return; }
+    if($("#compPanel").classList.contains("on")){ $("#compPanel").classList.remove("on"); return; }
+  }
+  if(e.ctrlKey && e.key === "ArrowRight"){ e.preventDefault(); gotoSpace(curSpace+1); return; }
+  if(e.ctrlKey && e.key === "ArrowLeft"){  e.preventDefault(); gotoSpace(curSpace-1); return; }
+  if(mod && e.key.toLowerCase() === "w"){ var f=focusedWin(); if(f){ e.preventDefault(); closeWin(f.id); } return; }
+  if(mod && e.key.toLowerCase() === "m"){ var g=focusedWin(); if(g){ e.preventDefault(); minWin(g.id); } return; }
+  if(mod && e.key.toLowerCase() === "up" ){ return; }
+});
+
+/* spotlight */
+var SPOT_ACTIONS = [];
+function buildSpotActions(){
+  SPOT_ACTIONS = [];
+  Object.keys(APPS).forEach(function(id){
+    SPOT_ACTIONS.push({ sec:"Applications", t:"Open " + APPS[id].name, d:"Application",
+      icon:APPS[id].icon, tile:APPS[id].tile, kb:"↵", run:function(){ openApp(id); } });
+  });
+  SPACES.forEach(function(s){
+    SPOT_ACTIONS.push({ sec:"Spaces", t:s.name, d:"Space " + (s.id+1) + " · " + s.hint,
+      icon:"i-grid", tile:"g-set", run:function(){ gotoSpace(s.id); } });
+  });
+  BRAIN_NODES.slice(0,40).forEach(function(n){
+    SPOT_ACTIONS.push({ sec:"Brain", t:n.label, d:n.kind + " · " + n.src,
+      icon:n.kind === "email" ? "i-mail" : "i-file", tile:"g-brain",
+      run:function(){ var w = openApp("brain"); brainSelect(w, n.id); } });
+  });
+  SPOT_ACTIONS.push({ sec:"Actions", t:"Switch this thread to Public", d:"Sovereignty · needs confirmation",
+    icon:"i-shield", tile:"g-conn", run:function(){ $("#sovPill").click(); } });
+  SPOT_ACTIONS.push({ sec:"Actions", t:"New automation from a sentence", d:"Describe it and Console drafts it",
+    icon:"i-bolt", tile:"g-auto", run:function(){ openApp("autos"); toast("Describe the automation in the Automations window.",4000); } });
+}
+var spotIdx = 0, spotHits = [];
+function openSpot(on){
+  var s = $("#spot");
+  if(on){ buildSpotActions(); s.classList.add("on"); $("#spotIn").value=""; spotFilter(""); $("#spotIn").focus(); }
+  else s.classList.remove("on");
+}
+function spotFilter(q){
+  q = q.trim().toLowerCase();
+  spotHits = !q ? SPOT_ACTIONS.slice(0,9)
+    : SPOT_ACTIONS.filter(function(a){ return (a.t+" "+a.d).toLowerCase().indexOf(q) > -1; }).slice(0,24);
+  /* a sentence long enough to be an intent, not a lookup, offers to become an automation */
+  if(q.split(/\s+/).length >= 4){
+    spotHits.unshift({ sec:"Create", t:'Create automation: "'+q+'"', d:"Console will draft it for your approval",
+      icon:"i-bolt", tile:"g-auto", run:function(){
+        var w = openApp("autos"); autosDraft(w, q); } });
+  }
+  spotIdx = 0; renderSpot();
+}
+function renderSpot(){
+  var host = $("#spotList"), sec = "", html = "";
+  if(!spotHits.length){ host.innerHTML = '<div class="empty-msg">Nothing matches that.</div>'; return; }
+  spotHits.forEach(function(a,i){
+    if(a.sec !== sec){ sec = a.sec; html += '<div class="spot-sec">'+esc(sec)+'</div>'; }
+    html += '<button class="sp-item" data-si="'+i+'" aria-selected="'+(i===spotIdx)+'">'+
+            '<span class="lead '+(a.tile||"g-set")+'">'+ico(a.icon)+'</span>'+
+            '<span style="min-width:0"><span class="t">'+esc(a.t)+'</span><span class="d">'+esc(a.d)+'</span></span>'+
+            (a.kb?'<span class="kb">'+a.kb+'</span>':"")+'</button>';
+  });
+  host.innerHTML = html;
+  var sel = host.querySelector('[aria-selected="true"]');
+  if(sel && sel.scrollIntoView) sel.scrollIntoView({block:"nearest"});
+}
+$("#spotBtn").addEventListener("click", function(){ openSpot(true); });
+$("#spotIn").addEventListener("input", function(){ spotFilter(this.value); });
+$("#spotIn").addEventListener("keydown", function(e){
+  if(e.key === "ArrowDown"){ e.preventDefault(); spotIdx = Math.min(spotIdx+1, spotHits.length-1); renderSpot(); }
+  else if(e.key === "ArrowUp"){ e.preventDefault(); spotIdx = Math.max(spotIdx-1, 0); renderSpot(); }
+  else if(e.key === "Enter"){ e.preventDefault(); runSpot(spotIdx); }
+});
+$("#spotList").addEventListener("click", function(e){
+  var b = e.target.closest("[data-si]"); if(b) runSpot(+b.getAttribute("data-si"));
+});
+$("#spot").addEventListener("click", function(e){ if(e.target.id === "spot") openSpot(false); });
+function runSpot(i){
+  var a = spotHits[i]; if(!a) return;
+  openSpot(false);
+  setTimeout(function(){ a.run(); }, 60);
+}
+
+/* companion — reads across every open window, which is the one thing
+   only an OS-level assistant can do */
+$("#companion").addEventListener("click", function(){
+  var p = $("#compPanel");
+  if(p.classList.contains("on")){ p.classList.remove("on"); return; }
+  var open = wins.filter(function(w){ return w.spaceId===curSpace && !w.min; });
+  var ctx = open.length
+    ? open.map(function(w){ return "· " + APPS[w.appId].name + " — " + esc(w.title); }).join("<br>")
+    : "· nothing open on this space";
+  p.innerHTML =
+    '<h4>Console companion</h4>'+
+    '<p>I can see every window on this space at once — ask me to compare them, or to carry something from one app into another.</p>'+
+    '<div class="ctx"><b>Reading '+open.length+' window'+(open.length===1?"":"s")+' on “'+esc(SPACES[curSpace].name)+'”</b><br>'+ctx+'</div>';
+  p.classList.add("on");
+});
+
+/* re-clamp windows when the viewport changes so nothing is lost off-screen */
+window.addEventListener("resize", function(){
+  var W = window.innerWidth, H = window.innerHeight - 34;
+  wins.forEach(function(w){
+    if(w.max || !w.node) return;
+    w.w = Math.min(w.w, Math.max(280, W - 16));
+    w.h = Math.min(w.h, Math.max(200, H - 16));
+    w.x = clamp(w.x, 0, Math.max(0, W - 60));
+    w.y = clamp(w.y, 0, Math.max(0, H - 40));
+    applyRect(w);
+  });
+  layoutSpaces(true);
+  renderIcons();
+});
+
+/* ============================================================
+   6 · DATA — all dummy, all internally consistent
+   The Brain is the centre of gravity: documents, emails, people,
+   systems and decisions are all nodes in one graph, with
+   similarity-weighted edges standing in for a vector index.
+   ============================================================ */
+var KIND_COLOR = { doc:"#3FCF95", email:"#F077B6", person:"#5B94FF", system:"#0EA5B7",
+                   decision:"#F0B44E", project:"#8B5CF6" };
+var KIND_LABEL = { doc:"Document", email:"Email", person:"Person", system:"System",
+                   decision:"Decision", project:"Project" };
+
+/* x/y are normalised 0–1 and laid out by hand so the graph reads as
+   three clusters (commercial / schedule / people) rather than a hairball */
+var BRAIN_NODES = [
+  {id:"n1", kind:"project",  label:"RYD-M3 Package C2",      src:"Primavera P6",       x:.50, y:.46, hot:true,
+   note:"Riyadh Metro line 3, package C2. 1,842 activities, baseline r7. The centre of almost every thread you have open."},
+  {id:"n2", kind:"doc",      label:"Subcontract GC-8",        src:"Company Knowledge",  x:.24, y:.24,
+   note:"Clause 8.4 sets liquidated damages at 0.15% of package value per day, capped at 10%."},
+  {id:"n3", kind:"doc",      label:"PO 4500219871",           src:"SAP S/4HANA",        x:.20, y:.44,
+   note:"Al-Rajhi Steel · 1,240 t grade B500B rebar. 4 of 6 lines awaiting goods receipt."},
+  {id:"n4", kind:"doc",      label:"Baseline r7.xer",         src:"Primavera P6",       x:.72, y:.28,
+   note:"The schedule of record. C2 rebar-fixing chain is 11 days behind and on the critical path."},
+  {id:"n5", kind:"decision", label:"Split rebar to 2 vendors", src:"Decision log",      x:.66, y:.62, hot:true,
+   note:"Taken 14 Aug. Rationale: single-source risk on Al-Rajhi exceeded the unit-rate penalty of dual-sourcing."},
+  {id:"n6", kind:"person",   label:"Khalid Al-Rashid",        src:"Directory",          x:.14, y:.66,
+   note:"Al-Rajhi Steel commercial lead. 9 threads, mostly about delivery dates."},
+  {id:"n7", kind:"email",    label:"Re: C2 rebar slip",       src:"Outlook",            x:.30, y:.78,
+   note:"Khalid confirms 03 Aug promised date will not hold; proposes 19 Sep. You have not replied."},
+  {id:"n8", kind:"system",   label:"sap-po-lookup",           src:"MCP server",         x:.08, y:.30,
+   note:"Read-only connector into SAP purchase orders, vendor master and goods receipts."},
+  {id:"n9", kind:"doc",      label:"HSE register wk 33",       src:"Company Knowledge", x:.84, y:.56,
+   note:"Two lost-time incidents, both on the C2 rebar deck. Feeds the weekly digest."},
+  {id:"n10",kind:"decision", label:"Escalate above SAR 1M",   src:"Governance",         x:.56, y:.80,
+   note:"Standing rule: exposure over SAR 1M goes to the Thursday board pack automatically."},
+  {id:"n11",kind:"person",   label:"Nouf Al-Otaibi",          src:"Directory",          x:.86, y:.80,
+   note:"Commercial director. Owns the board pack. Prefers numbers with the working shown."},
+  {id:"n12",kind:"email",    label:"Board pack — Thursday",   src:"Outlook",            x:.74, y:.88,
+   note:"Nouf asking for the C2 exposure figure before Thursday 09:00."},
+  {id:"n13",kind:"doc",      label:"Vendor master extract",   src:"SAP S/4HANA",        x:.10, y:.86,
+   note:"2026-08 extract. 41 probable duplicate vendor records flagged."},
+  {id:"n14",kind:"system",   label:"p6-schedule",             src:"MCP server",         x:.90, y:.36,
+   note:"Nightly Primavera snapshot. Drives the slip-detection heartbeat at 06:00 AST."},
+  {id:"n15",kind:"doc",      label:"RYD-M3 BEP v4",           src:"Confluence",         x:.44, y:.14,
+   note:"BIM execution plan, appendix C carries the ISO 19650 file-naming rules."},
+  {id:"n16",kind:"email",    label:"Variation notice draft",  src:"Outlook",            x:.38, y:.92,
+   note:"Draft to Al-Rajhi citing GC-8 8.4. Commercial figure still blank — waiting on you."},
+  {id:"n17",kind:"decision", label:"Keep C3 float untouched", src:"Decision log",       x:.90, y:.68,
+   note:"You declined to borrow float from package C3 on 11 Aug, to protect its own tunnel handover."}
+];
+/* edges carry a cosine-style similarity so the graph doubles as a
+   picture of what the retriever would actually pull back */
+var BRAIN_EDGES = [
+  ["n1","n2",.81],["n1","n3",.88],["n1","n4",.93],["n1","n5",.90],["n1","n9",.64],["n1","n15",.58],
+  ["n2","n3",.72],["n2","n16",.86],["n3","n6",.79],["n3","n8",.91],["n3","n13",.55],
+  ["n4","n14",.92],["n4","n5",.74],["n5","n10",.69],["n5","n17",.77],
+  ["n6","n7",.94],["n7","n16",.83],["n10","n12",.80],["n11","n12",.90],["n1","n10",.61],
+  ["n9","n11",.48],["n4","n17",.66],["n12","n5",.58]
+];
+function nodeById(id){ return BRAIN_NODES.filter(function(n){ return n.id===id; })[0]; }
+function neighbours(id){
+  return BRAIN_EDGES.filter(function(e){ return e[0]===id || e[1]===id; })
+    .map(function(e){ return { node: nodeById(e[0]===id ? e[1] : e[0]), score: e[2] }; })
+    .sort(function(a,b){ return b.score - a.score; });
+}
+/* a stable pseudo-embedding so the same node always shows the same vector */
+function fakeVec(seed, n){
+  var out = [], h = 0;
+  for(var i=0;i<seed.length;i++) h = (h*31 + seed.charCodeAt(i)) % 100000;
+  for(var j=0;j<n;j++){ h = (h*1103515245 + 12345) % 2147483648; out.push(((h/2147483648)*2-1).toFixed(3)); }
+  return out;
+}
+
+var EMAILS = [
+  {from:"Khalid Al-Rashid", org:"Al-Rajhi Steel", subj:"Re: C2 rebar slip — revised dates",
+   when:"08:12", read:false, why:"Linked to PO 4500219871 and to your open C2 exposure thread.", node:"n7"},
+  {from:"Nouf Al-Otaibi", org:"Magna Commercial", subj:"Board pack — need the C2 figure by Thu 09:00",
+   when:"07:40", read:false, why:"Mentions a deadline inside 48h on a project you touched today.", node:"n12"},
+  {from:"P6 Nightly", org:"Automation", subj:"Slip alert — 3 activities past 5 days",
+   when:"06:00", read:true, why:"Triggered by the heartbeat you created on 09 Aug.", node:"n14"},
+  {from:"Sara Bin Zayed", org:"Magna HSE", subj:"Week 33 register — 2 LTIs on the C2 deck",
+   when:"Yesterday", read:true, why:"Same package as your active work; HSE feeds the same board pack.", node:"n9"},
+  {from:"SAP Notifications", org:"System", subj:"41 duplicate vendor candidates flagged",
+   when:"Yesterday", read:true, why:"You opened the vendor clean-up thread twice this week.", node:"n13"}
+];
+
+var BEHAVIOUR = [
+  {t:"Opened PO 4500219871 for the 4th time this week", d:"Console now surfaces it in the dock's contextual zone.", m:"today 08:14"},
+  {t:"Asked for exposure maths, not a summary", d:"You reliably ask for the working. Answers now lead with the calculation.", m:"today 08:16"},
+  {t:"Declined to borrow float from C3", d:"Second time you protected a downstream package over a quick win.", m:"11 Aug"},
+  {t:"Rewrote 3 drafts to a more formal register", d:"Arabic official-letter drafts now default to فصحى.", m:"09–13 Aug"},
+  {t:"Never opens Mail before 08:00", d:"Morning briefs are held until 08:00 rather than pushed at 06:00.", m:"observed 14 days"},
+  {t:"Always checks a figure against SAP before sending", d:"Console attaches the SAP source line to every number it gives you.", m:"observed 21 days"}
+];
+
+var REASONING = [
+  {q:"Why did you split the rebar order across two vendors?",
+   a:"Because on 14 Aug the single-source risk on Al-Rajhi (11 days behind, 4 of 6 lines with no goods receipt) exceeded the unit-rate penalty of dual-sourcing. The alternative — borrowing float from C3 — you had already declined on 11 Aug.",
+   cite:["n5","n3","n17"]},
+  {q:"Why is the board pack figure SAR 5.32M and not the LD cap?",
+   a:"Because GC-8 clause 8.4 caps liquidated damages at 10% of package value, which only becomes the binding constraint past day 67. At 45 days the dominant cost is idled rebar crew standby plus the fabricator's price-escalation clause.",
+   cite:["n2","n1"]},
+  {q:"Why does Console keep surfacing Khalid's email?",
+   a:"It sits on the shortest path between the PO you keep reopening and the variation notice you have left unsent. Two of your open threads depend on a date only he can confirm.",
+   cite:["n7","n6","n16"]}
+];
+
+var PROJECTS = [
+  { id:"p1", name:"c2-status", desc:"Package C2 status page", files:[
+    { n:"index.html", t:"html", code:'<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <title>Package C2 — Status</title>\n  <style>\n    body{font:15px -apple-system,system-ui,sans-serif;margin:0;padding:28px;background:#0c0c0e;color:#f2f3f6}\n    h1{font-size:20px;margin:0 0 4px}\n    .sub{color:#9a9aa2;font-size:13px;margin-bottom:20px}\n    .n{font-size:34px;font-weight:800;color:#ff4a50;letter-spacing:-.02em}\n    table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}\n    th,td{border-bottom:1px solid #26262b;padding:9px 6px;text-align:left}\n    th{color:#9a9aa2;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}\n    .ok{color:#3fcf95}.bad{color:#e0a33c}\n  </style>\n</head>\n<body>\n  <h1>Package C2 — rebar</h1>\n  <div class="sub">RYD-M3 · updated from SAP + P6</div>\n  <div class="n">SAR 5.32M</div>\n  <div class="sub">exposure at 45 days</div>\n  <table>\n    <tr><th>Metric</th><th>Value</th></tr>\n    <tr><td>Ordered</td><td>1,240 t</td></tr>\n    <tr><td>Delivered</td><td class="bad">742 t</td></tr>\n    <tr><td>Promised</td><td>03 Aug 2026</td></tr>\n    <tr><td>Schedule slip</td><td class="bad">11 days</td></tr>\n    <tr><td>Critical path</td><td class="bad">yes</td></tr>\n    <tr><td>Residency</td><td class="ok">Riyadh DC-1</td></tr>\n  </table>\n</body>\n</html>' },
+    { n:"README.md", t:"md", code:"# c2-status\n\nA single-page status board for Package C2.\n\n- Reads nothing live — figures are pasted from the SAP and P6 pulls\n- Deployed as a link for the Thursday board pack\n" }
+  ]},
+  { id:"p2", name:"exposure-calc", desc:"Exposure model, plain JS", files:[
+    { n:"calc.js", t:"js", code:"// Exposure model for a rebar delay.\n// Every figure traceable: LD from GC-8 8.4, standby from the crew rate card.\n\nconst PACKAGE_VALUE = 41800000;   // SAR, C2 scope\nconst LD_RATE       = 0.0015;     // 0.15% per day, GC-8 8.4\nconst LD_CAP        = 0.10;       // 10% of package value\nconst STANDBY_DAY   = 94000;      // SAR/day, idled rebar crew\nconst ESCALATION    = 0.021;      // fabricator price escalation\n\nexport function exposure(days){\n  const ld      = Math.min(PACKAGE_VALUE * LD_RATE * days, PACKAGE_VALUE * LD_CAP);\n  const standby = STANDBY_DAY * days;\n  const esc     = PACKAGE_VALUE * ESCALATION * (days / 45);\n  return { ld, standby, esc, total: ld + standby + esc };\n}\n\n// Day the LD cap becomes binding — the number people get wrong.\nexport const capBitesAt = Math.ceil(LD_CAP / LD_RATE);   // 67\n" }
+  ]}
+];
+
+var AGENTS = [
+  {id:"a1", name:"PO Slippage Watch", tile:"g-agents", icon:"i-agent", state:"running",
+   desc:"Checks every open PO against the live P6 baseline every two hours. Read-only — it raises, it never writes.",
+   tags:["sap-po-lookup","p6-schedule"], delegates:"Risk Research Agent"},
+  {id:"a2", name:"Risk Research Agent", tile:"g-brain", icon:"i-brain", state:"running",
+   desc:"When slippage is confirmed, pulls the governing clause and drafts the commercial position.",
+   tags:["clause-finder","Company Knowledge"], delegates:"PO Slippage Watch"},
+  {id:"a3", name:"Board Pack Drafter", tile:"g-auto", icon:"i-slides", state:"idle",
+   desc:"Assembles the Thursday narrative from the week's exposure, HSE and schedule movement.",
+   tags:["Thursday 07:00"], delegates:null},
+  {id:"a4", name:"HSE Digest", tile:"g-conn", icon:"i-shield", state:"idle",
+   desc:"Weekly incident summary with your reporting thresholds already applied.",
+   tags:["hse-digest"], delegates:null}
+];
+
+var AUTOS = [
+  {name:"P6 slip heartbeat", when:"Daily 06:00 AST", last:"today 06:00", state:"ok",
+   desc:"Reads P6, flags any RYD-M3 activity slipping more than 5 days, posts to #ryd-m3-delivery."},
+  {name:"Board pack scheduler", when:"Thursdays 07:00", last:"in 41 min", state:"due",
+   desc:"Runs Board Pack Drafter and puts the deck in your drafts — never sends it."},
+  {name:"Vendor duplicate sweep", when:"Weekly Sunday", last:"2 days ago", state:"ok",
+   desc:"Scores the SAP vendor master for probable duplicates and proposes safe merges."}
+];
+
+var CONNECTORS = [
+  {k:"GitHub",    ab:"GH", bg:"#24292F", st:"linked",   d:"12 repositories · read + PR write with approval"},
+  {k:"GitLab",    ab:"GL", bg:"#E24329", st:"linked",   d:"4 groups · self-managed instance inside the DC"},
+  {k:"SAP S/4HANA",ab:"SAP",bg:"#0FAAFF", st:"linked",   d:"Purchase orders, vendor master, goods receipts"},
+  {k:"Primavera P6",ab:"P6", bg:"#164C9E", st:"linked",   d:"Activities, baselines, float · nightly snapshot"},
+  {k:"Jira",      ab:"JR", bg:"#2684FF", st:"linked",   d:"Search and read; writes need your approval"},
+  {k:"Confluence",ab:"CF", bg:"#1868DB", st:"linked",   d:"Standards, BEPs and procedures"},
+  {k:"Outlook",   ab:"OL", bg:"#0A66C2", st:"linked",   d:"Mail and calendar · feeds the Brain's email graph"},
+  {k:"SharePoint",ab:"SP", bg:"#037B62", st:"available",d:"Document libraries and site pages"},
+  {k:"ServiceNow",ab:"SN", bg:"#5FB08A", st:"available",d:"Incidents, changes and CMDB records"},
+  {k:"Teams",     ab:"TM", bg:"#5059C9", st:"available",d:"Channel posts and meeting transcripts"}
+];
+
+/* ============================================================
+   7 · the OS-wide approval gate
+   Any app that is about to write something calls this. One visual
+   language for every write action, everywhere — the thing that
+   makes "nothing irreversible happens without your yes" true by
+   construction rather than per-feature.
+   ============================================================ */
+function requestApproval(w, opts){
+  var host = w.body;
+  var bar = el("div","approve");
+  bar.innerHTML =
+    ico("i-warn") +
+    '<div class="mid"><b>'+esc(opts.title)+'</b>'+esc(opts.detail)+'</div>'+
+    '<div class="acts"><button class="btn sm" data-ap="no">Cancel</button>'+
+    '<button class="btn sm primary" data-ap="yes">'+esc(opts.confirm||"Approve")+'</button></div>';
+  host.insertBefore(bar, host.firstChild);
+  bar.addEventListener("click", function(e){
+    var b = e.target.closest("[data-ap]"); if(!b) return;
+    var yes = b.getAttribute("data-ap") === "yes";
+    bar.remove();
+    if(yes){ toast(opts.okToast || "Approved — running now."); opts.onApprove && opts.onApprove(); }
+    else { toast("Cancelled. Nothing was written."); opts.onCancel && opts.onCancel(); }
+  });
+}
+
+/* ============================================================
+   8 · MOUNT — each app fills its own window body, once
+   ============================================================ */
+var MOUNT = {};
+MOUNT._missing = function(body){ body.innerHTML = '<div class="empty-msg">This app has no content yet.</div>'; };
+
+/* ---------------------------------------------------------- CHAT */
+var CHAT_REPLIES = [
+  { match:/exposure|cost|sar|maths|money/i, build:function(){
+      return '<p>Short answer: at 45 days the exposure on C2 is <b>SAR 5.32 million</b>, and the 10% '+
+      'liquidated-damages cap does <i>not</i> protect you — it only starts to bite past day 67.</p>'+
+      '<ul><li>Liquidated damages — SAR 2.82M (GC-8 8.4, 0.15%/day)</li>'+
+      '<li>Rebar crew standby — SAR 4.23M (94k/day idled)</li>'+
+      '<li>Fabricator escalation — SAR 0.88M (2.1%)</li></ul>'+
+      '<p>Standby, not LD, is where the money actually goes. Check the standby rate against the '+
+      'current rate card before you commit this to the board.</p>'; } },
+  { match:/slide|deck|present|board pack/i, build:function(){ return "ARTIFACT:deck"; } },
+  { match:/letter|notice|pdf|document|draft/i, build:function(){ return "ARTIFACT:doc"; } },
+  { match:/csv|export|spreadsheet|excel/i, build:function(){ return "ARTIFACT:csv"; } },
+  { match:/.*/, build:function(q){
+      return '<p>I can see SAP S/4HANA, Primavera P6, Outlook and 8,400 Company Knowledge documents, and this '+
+      'thread is running on the Riyadh DC-1 cluster.</p><p>To answer “'+esc(q)+'” precisely, tell me which '+
+      'package to anchor on — C2, C3, D1 or E4 — and whether you want the commercial position, the schedule '+
+      'position, or both. I would rather ask than guess at a number you have to defend.</p>'; } }
+];
+var DECK = [
+  {h:"Package C2 — commercial position", b:["Exposure at 45 days: SAR 5.32M","LD cap binds only past day 67","Standby cost is the dominant term"]},
+  {h:"Where the delay actually is", b:["4 of 6 PO lines awaiting goods receipt","11 days behind Baseline r7","On the critical path to package finish"]},
+  {h:"What we did about it", b:["Split remaining tonnage across 2 vendors","Protected C3 float — declined to borrow","Variation notice drafted, not sent"]},
+  {h:"Decision needed Thursday", b:["Approve the dual-source unit rate (+1.8%)","Or accept a 19 Sep single-source date","Recommendation: approve the split"]}
+];
+MOUNT.chat = function(body, w){
+  w.state.deck = 0; w.state.effort = "High";
+  body.innerHTML =
+    '<div class="ch">'+
+      '<div class="ch-scroll" data-scroll>'+
+        '<div class="msg a"><div class="who">'+ico("i-magna")+'MagnaVERSE · Kimi K2 Instruct</div>'+
+        '<p>Ask about a package, a PO, the schedule, or your Company Knowledge. I can also build you a '+
+        'slide deck, an official letter or a CSV — say the word and it appears in this thread.</p></div>'+
+      '</div>'+
+      '<div class="ch-comp">'+
+        '<textarea class="ch-ta" data-ta rows="1" placeholder="Message Console…"></textarea>'+
+        '<div class="ch-row">'+
+          '<button class="chip" data-eff>'+ico("i-bolt","xs")+'<span data-efftx>High</span></button>'+
+          '<button class="chip" aria-pressed="true" data-kb>'+ico("i-db","xs")+'Company Knowledge</button>'+
+          '<button class="chip" data-ask="Build me a board deck for Thursday">'+ico("i-slides","xs")+'Slides</button>'+
+          '<button class="chip" data-ask="Draft the official variation letter to Al-Rajhi">'+ico("i-file","xs")+'Letter</button>'+
+          '<button class="ch-send" data-send disabled aria-label="Send">'+ico("i-send","sm")+'</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  var ta = body.querySelector("[data-ta]"), scroll = body.querySelector("[data-scroll]"),
+      send = body.querySelector("[data-send]");
+  function grow(){ ta.style.height="auto"; ta.style.height=Math.min(ta.scrollHeight,120)+"px"; }
+  ta.addEventListener("input", function(){ grow(); send.disabled = !ta.value.trim(); });
+  ta.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); fire(ta.value); }
+  });
+  send.addEventListener("click", function(){ fire(ta.value); });
+  body.addEventListener("click", function(e){
+    var a = e.target.closest("[data-ask]"); if(a){ fire(a.getAttribute("data-ask")); return; }
+    var k = e.target.closest("[data-kb]");
+    if(k){ var on = k.getAttribute("aria-pressed") !== "true"; k.setAttribute("aria-pressed", String(on));
+           toast(on ? "Company Knowledge on — 8,400 documents searched when the question needs it"
+                    : "Company Knowledge off — answers use the model only"); return; }
+    var ef = e.target.closest("[data-eff]");
+    if(ef){ var order=["Low","Medium","High","Max"], i=order.indexOf(w.state.effort);
+            w.state.effort = order[(i+1)%4];
+            body.querySelector("[data-efftx]").textContent = w.state.effort;
+            toast("Reasoning effort: " + w.state.effort); return; }
+  });
+  function fire(text){
+    text = (text||"").trim(); if(!text) return;
+    ta.value=""; grow(); send.disabled = true;
+    var u = el("div","msg u"); u.innerHTML = '<div class="bub" dir="auto">'+esc(text)+'</div>';
+    scroll.appendChild(u);
+    setWinTitle(w, "Chat", text.slice(0,34));
+    var a = el("div","msg a");
+    a.innerHTML = '<div class="who">'+ico("i-magna")+'MagnaVERSE · Kimi K2 Instruct</div>'+
+                  '<div class="think">'+ico("i-magna")+'Thinking · '+w.state.effort.toLowerCase()+' effort · searching 2 documents…</div>';
+    scroll.appendChild(a);
+    scroll.scrollTop = scroll.scrollHeight;
+    setTimeout(function(){
+      var rule = CHAT_REPLIES.filter(function(r){ return r.match.test(text); })[0];
+      var out = rule.build(text);
+      a.innerHTML = '<div class="who">'+ico("i-magna")+'MagnaVERSE · Kimi K2 Instruct</div>' +
+        (out.indexOf("ARTIFACT:") === 0 ? artifactHTML(out.split(":")[1], w) : out);
+      if(out === "ARTIFACT:deck") wireDeck(a, w);
+      scroll.scrollTop = scroll.scrollHeight;
+    }, REDUCED ? 120 : 900);
+  }
+  function artifactHTML(kind, w){
+    if(kind === "deck"){
+      return '<p>Four slides, built from this week&rsquo;s exposure, HSE and schedule movement:</p>'+
+        '<div class="artifact"><div class="ah">'+ico("i-slides","sm")+'C2-board-pack.pptx<span class="sp"></span>'+
+        '<span class="tag pv">private</span></div><div class="abody" data-deckhost></div></div>';
+    }
+    if(kind === "doc"){
+      return '<p>Drafted, not sent. The commercial figure is deliberately left blank for you.</p>'+
+        '<div class="artifact"><div class="ah">'+ico("i-file","sm")+'variation-notice-C2.pdf<span class="sp"></span>'+
+        '<button class="btn sm" onclick="window.print()">'+ico("i-download","xs")+'Print / PDF</button></div>'+
+        '<div class="abody"><div class="doc"><h6>Variation Notice — Package C2</h6>'+
+        '<div class="meta">Ref VN-C2-0114 · 18 Aug 2026 · To: Al-Rajhi Steel Co.</div>'+
+        '<p>Dear Mr Al-Rashid,</p><p>We write in respect of Subcontract GC-8 and the supply of grade B500B '+
+        'reinforcement to Package C2 of the Riyadh Metro Line 3 works.</p>'+
+        '<p>As at the date of this notice, 4 of 6 order lines under PO 4500219871 remain outstanding against '+
+        'a promised delivery date of 03 August 2026. The resulting delay to the rebar-fixing sequence is '+
+        '11 days and lies on the critical path.</p>'+
+        '<table><tr><th>Item</th><th>Position</th></tr>'+
+        '<tr><td>Ordered</td><td>1,240 t</td></tr><tr><td>Delivered</td><td>742 t</td></tr>'+
+        '<tr><td>Outstanding</td><td>498 t</td></tr><tr><td>Delay</td><td>11 days</td></tr>'+
+        '<tr><td>Assessed sum</td><td>SAR ____________</td></tr></table>'+
+        '<p>Liquidated damages accrue under clause 8.4 at 0.15% of package value per day, capped at 10%.</p>'+
+        '<p>Yours faithfully,<br>Ahmad Farahat<br>Delivery, Magna KSA</p></div></div></div>';
+    }
+    return '<p>Six rows, one per PO line:</p><div class="artifact"><div class="ah">'+ico("i-file","sm")+
+      'PO-4500219871-lines.csv<span class="sp"></span>'+
+      '<button class="btn sm" data-csv>'+ico("i-download","xs")+'Download</button></div>'+
+      '<div class="abody"><pre style="margin:0;font-family:var(--mono);font-size:11px;color:var(--tx-2);line-height:1.7">'+
+      'line,material,qty_t,promised,received_t,status\n10,B500B 16mm,320,2026-08-03,320,complete\n'+
+      '20,B500B 20mm,280,2026-08-03,280,complete\n30,B500B 25mm,240,2026-08-03,142,partial\n'+
+      '40,B500B 32mm,180,2026-08-03,0,awaiting\n50,B500B 12mm,140,2026-08-10,0,awaiting\n'+
+      '60,couplers,80,2026-08-10,0,awaiting</pre></div></div>';
+  }
+  function wireDeck(scope, w){
+    var host = scope.querySelector("[data-deckhost]"); if(!host) return;
+    function draw(){
+      var s = DECK[w.state.deck];
+      host.innerHTML = '<div class="deck"><h6>'+esc(s.h)+'</h6><ul>'+
+        s.b.map(function(x){ return "<li>"+esc(x)+"</li>"; }).join("")+
+        '</ul><span class="num">'+(w.state.deck+1)+' / '+DECK.length+'</span></div>'+
+        '<div class="deck-nav"><button class="btn sm" data-dk="-1">'+ico("i-chev-l","xs")+'</button>'+
+        '<button class="btn sm" data-dk="1">'+ico("i-chev-r","xs")+'</button><span class="sp"></span>'+
+        '<span class="dots">'+DECK.map(function(_,i){ return '<i class="'+(i===w.state.deck?"on":"")+'" data-dkgo="'+i+'"></i>'; }).join("")+
+        '</span></div>';
+    }
+    host.addEventListener("click", function(e){
+      var n = e.target.closest("[data-dk]"), g = e.target.closest("[data-dkgo]");
+      if(n){ w.state.deck = clamp(w.state.deck + (+n.getAttribute("data-dk")), 0, DECK.length-1); draw(); }
+      if(g){ w.state.deck = +g.getAttribute("data-dkgo"); draw(); }
+    });
+    draw();
+  }
+  body.addEventListener("click", function(e){
+    if(e.target.closest("[data-csv]")){
+      var csv = "line,material,qty_t,promised,received_t,status\n10,B500B 16mm,320,2026-08-03,320,complete\n20,B500B 20mm,280,2026-08-03,280,complete\n30,B500B 25mm,240,2026-08-03,142,partial\n40,B500B 32mm,180,2026-08-03,0,awaiting\n50,B500B 12mm,140,2026-08-10,0,awaiting\n60,couplers,80,2026-08-10,0,awaiting\n";
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+      a.download = "PO-4500219871-lines.csv"; a.click();
+      toast("Downloaded. The file never left your browser.");
+    }
+  });
+  if(w.params.q) setTimeout(function(){ fire(w.params.q); }, 200);
+};
+
+/* ---------------------------------------------------------- BRAIN */
+MOUNT.brain = function(body, w){
+  w.state.tab = "graph"; w.state.sel = "n1";
+  body.innerHTML =
+    '<div class="br-wrap">'+
+      '<div class="br-main">'+
+        '<div class="tabs" role="tablist">'+
+          '<button class="tab" data-brtab="graph"   aria-selected="true">Graph</button>'+
+          '<button class="tab" data-brtab="emails"  aria-selected="false">Email graph</button>'+
+          '<button class="tab" data-brtab="behave"  aria-selected="false">Behaviour</button>'+
+          '<button class="tab" data-brtab="why"     aria-selected="false">Reasoning</button>'+
+          '<button class="tab" data-brtab="index"   aria-selected="false">Index</button>'+
+        '</div>'+
+        '<div data-brbody style="flex:1;min-height:0;display:flex;flex-direction:column"></div>'+
+      '</div>'+
+      '<div class="br-detail" data-brdetail></div>'+
+    '</div>';
+  var host = body.querySelector("[data-brbody]");
+  body.addEventListener("click", function(e){
+    var t = e.target.closest("[data-brtab]");
+    if(t){ w.state.tab = t.getAttribute("data-brtab");
+           $$(".tab", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           drawTab(); return; }
+    var n = e.target.closest("[data-brnode]");
+    if(n){ brainSelect(w, n.getAttribute("data-brnode")); return; }
+  });
+  function drawTab(){
+    var t = w.state.tab;
+    if(t === "graph"){
+      host.innerHTML = '<div class="br-graph">' + graphSVG(w.state.sel) +
+        '<div class="br-hint">click a node · edges are cosine similarity</div>'+
+        '<div class="br-legend">' + Object.keys(KIND_COLOR).map(function(k){
+          return '<span><i style="background:'+KIND_COLOR[k]+'"></i>'+KIND_LABEL[k]+'</span>'; }).join("") +
+        '</div></div>';
+    } else if(t === "emails"){
+      host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Email, as part of the graph</h4>'+
+        '<p class="sub">Console reads your mail to place it in the Brain — who wrote it, which document or PO it '+
+        'touches, and why it matters right now. Nothing is auto-replied.</p>'+
+        EMAILS.map(function(m){
+          return '<div class="erow"><div class="av">'+esc(m.from.split(" ").map(function(p){return p[0];}).join("").slice(0,2))+'</div>'+
+          '<div class="mid"><div class="fr">'+esc(m.from)+
+          (m.read?"":' <span class="tag ac">unread</span>')+'<span class="tag">'+esc(m.org)+'</span></div>'+
+          '<div class="sj">'+esc(m.subj)+'</div>'+
+          '<div class="ex">'+ico("i-brain","xs")+' '+esc(m.why)+'</div></div>'+
+          '<span class="rt">'+esc(m.when)+'</span></div>';
+        }).join("") + '</div>';
+    } else if(t === "behave"){
+      host.innerHTML = '<div class="pane-scroll"><h4 class="sec">What Console has learned about how you work</h4>'+
+        '<p class="sub">Observed patterns, and the concrete change each one made to how Console behaves. '+
+        'Every line here is editable and deletable in Settings → Memory.</p>'+
+        '<div class="tl">' + BEHAVIOUR.map(function(b){
+          return '<div class="tl-i"><div class="tt">'+esc(b.t)+'</div><div class="td">'+esc(b.d)+'</div>'+
+                 '<div class="tm">'+esc(b.m)+'</div></div>'; }).join("") + '</div></div>';
+    } else if(t === "why"){
+      host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Why you did what you did</h4>'+
+        '<p class="sub">The Brain keeps the reasoning, not just the outcome — so a decision can be defended '+
+        'weeks later without reconstructing it from memory.</p>'+
+        REASONING.map(function(r){
+          return '<div class="card"><h5>'+ico("i-brain","sm")+esc(r.q)+'</h5>'+
+          '<p class="why" style="margin-top:8px">'+esc(r.a)+'</p>'+
+          '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">'+
+          r.cite.map(function(id){ var n=nodeById(id);
+            return '<button class="tag sg" data-brnode="'+id+'">'+ico("i-file","xs")+esc(n.label)+'</button>'; }).join("")+
+          '</div></div>'; }).join("") + '</div>';
+    } else {
+      host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Index health</h4>'+
+        '<p class="sub">The retrieval layer behind every answer. Embeddings are computed on Magna GPUs and the '+
+        'vectors never leave Riyadh DC-1.</p>'+
+        '<div class="grid2">'+
+          card("Documents indexed","8,412","Company Knowledge, Confluence, SharePoint")+
+          card("Vectors","1.94M","1,024-dim · cosine · HNSW graph")+
+          card("Email messages","36,180","Outlook · last 24 months")+
+          card("Nodes in the graph", String(BRAIN_NODES.length)+" shown","of 214,880 total entities")+
+          card("Last full rebuild","today 04:12","incremental every 15 min")+
+          card("Egress","0 bytes","embeddings computed in-cluster")+
+        '</div>'+
+        '<div class="card" style="margin-top:12px"><h5>'+ico("i-shield","sm")+'Why this matters</h5>'+
+        '<p>A retriever that runs outside your network has to ship the question <i>and</i> the retrieved passages '+
+        'to a third party. Running it in-cluster is what lets the Private tier promise egress of zero while still '+
+        'answering from 8,400 documents.</p></div></div>';
+    }
+  }
+  function card(k,v,d){
+    return '<div class="card"><h5>'+esc(k)+'</h5><p style="font-size:19px;font-weight:750;color:var(--tx);'+
+           'margin:2px 0 4px;letter-spacing:-.02em">'+esc(v)+'</p><p>'+esc(d)+'</p></div>';
+  }
+  w.state.drawTab = drawTab;
+  w.state.drawDetail = drawDetail;
+  function drawDetail(){
+    var n = nodeById(w.state.sel), d = body.querySelector("[data-brdetail]");
+    if(!n){ d.innerHTML = ""; return; }
+    var nb = neighbours(n.id);
+    d.innerHTML =
+      '<span class="tag" style="color:'+KIND_COLOR[n.kind]+';border-color:'+KIND_COLOR[n.kind]+'55">'+
+        KIND_LABEL[n.kind]+'</span>'+
+      '<h5 style="margin-top:8px">'+esc(n.label)+'</h5>'+
+      '<div class="src">'+esc(n.src)+'</div>'+
+      '<p style="font-size:12.5px;color:var(--tx-2);line-height:1.6;margin:0">'+esc(n.note)+'</p>'+
+      '<div class="br-sect">Embedding · first 8 of 1,024</div>'+
+      '<div class="vec">['+fakeVec(n.id+n.label, 8).join(", ")+', …]</div>'+
+      '<div class="br-sect">Nearest neighbours</div>'+
+      (nb.length ? nb.map(function(s){
+        return '<div class="simrow" data-brnode="'+s.node.id+'">'+
+        '<span class="mini" style="background:'+KIND_COLOR[s.node.kind]+'"></span>'+
+        '<span class="nm">'+esc(s.node.label)+'</span><span class="sc">'+s.score.toFixed(2)+'</span></div>';
+      }).join("") : '<p style="font-size:12px;color:var(--tx-4)">No edges yet.</p>')+
+      '<div class="br-sect">Why it surfaced</div>'+
+      '<p class="why">'+esc(n.hot
+        ? "You have touched this in three separate threads today, and two open windows depend on it."
+        : "It sits within two hops of what you are working on right now.")+'</p>'+
+      '<button class="btn sm" style="margin-top:12px;width:100%" data-askbrain="'+esc(n.label)+'">'+
+        ico("i-chat","xs")+'Ask Chat about this</button>';
+  }
+  body.addEventListener("click", function(e){
+    var a = e.target.closest("[data-askbrain]");
+    if(a) openApp("chat", { q:"Tell me about " + a.getAttribute("data-askbrain") + " and why it matters for C2." });
+  });
+  drawTab(); drawDetail();
+};
+function graphSVG(sel){
+  var nb = {}; neighbours(sel).forEach(function(s){ nb[s.node.id] = s.score; });
+  var edges = BRAIN_EDGES.map(function(e){
+    var a = nodeById(e[0]), b = nodeById(e[1]);
+    var hot = (e[0]===sel || e[1]===sel);
+    return '<line class="br-edge'+(hot?" hot":"")+'" x1="'+(a.x*100)+'%" y1="'+(a.y*100)+'%" '+
+           'x2="'+(b.x*100)+'%" y2="'+(b.y*100)+'%" stroke-width="'+(hot?2:(e[2]*1.6).toFixed(1))+'" '+
+           'opacity="'+(hot?.85:(e[2]*0.4).toFixed(2))+'"/>';
+  }).join("");
+  var nodes = BRAIN_NODES.map(function(n){
+    var r = n.id === sel ? 15 : (n.hot ? 12 : (nb[n.id] ? 10 : 8));
+    return '<g class="br-node'+(n.id===sel?" sel":"")+(n.hot?" pulse":"")+'" data-brnode="'+n.id+'" '+
+           'transform="translate(0,0)" style="--x:0">'+
+           '<circle cx="'+(n.x*100)+'%" cy="'+(n.y*100)+'%" r="'+r+'" fill="'+KIND_COLOR[n.kind]+'" '+
+           'opacity="'+(n.id===sel||nb[n.id]||n.hot?1:.55)+'"/>'+
+           '<text x="'+(n.x*100)+'%" y="'+(n.y*100)+'%" dy="'+(r+13)+'">'+esc(n.label.slice(0,22))+'</text></g>';
+  }).join("");
+  return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0">'+
+         '</svg><svg style="position:absolute;inset:0">'+edges+nodes+'</svg>';
+}
+function brainSelect(w, id){
+  if(!w || w.appId !== "brain") return;
+  w.state.sel = id;
+  if(w.state.tab !== "graph"){
+    w.state.tab = "graph";
+    $$(".tab", w.body).forEach(function(x){ x.setAttribute("aria-selected", String(x.getAttribute("data-brtab")==="graph")); });
+  }
+  w.state.drawTab(); w.state.drawDetail();
+  setWinTitle(w, "Brain", nodeById(id) ? nodeById(id).label : "");
+}
+
+/* ---------------------------------------------------------- CODE (Finder) */
+MOUNT.code = function(body, w){
+  w.state.proj = null; w.state.file = 0; w.state.device = "desktop"; w.state.dropped = null;
+  body.innerHTML =
+    '<div class="cd">'+
+      '<div class="side">'+
+        '<div class="side-h">Projects</div>'+
+        PROJECTS.map(function(p,i){
+          return '<button class="side-i" data-proj="'+p.id+'">'+ico("i-folder","sm")+
+                 '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis">'+esc(p.name)+'</span></button>';
+        }).join("")+
+        '<div class="side-h" style="margin-top:8px">Repositories</div>'+
+        '<button class="side-i" data-repo="github">'+ico("i-git","sm")+'GitHub</button>'+
+        '<button class="side-i" data-repo="gitlab">'+ico("i-git","sm")+'GitLab</button>'+
+        '<div class="side-h" style="margin-top:8px">Local</div>'+
+        '<button class="side-i" data-local>'+ico("i-download","sm")+'Import from Mac</button>'+
+      '</div>'+
+      '<div class="cd-main" data-cdmain style="position:relative">'+
+        '<div class="cd-drop" data-drop><div class="in">Drop a folder or files here'+
+          '<small>Read locally in your browser · nothing is uploaded anywhere</small></div></div>'+
+        '<div data-cdbody style="flex:1;min-height:0;display:flex;flex-direction:column"></div>'+
+      '</div>'+
+    '</div>';
+  var host = body.querySelector("[data-cdbody]"), main = body.querySelector("[data-cdmain]"),
+      dz = body.querySelector("[data-drop]");
+
+  /* ---- REAL drag and drop of files/folders off the user's machine ---- */
+  var depth = 0;
+  ["dragenter","dragover"].forEach(function(ev){
+    main.addEventListener(ev, function(e){ e.preventDefault(); e.stopPropagation();
+      if(ev==="dragenter") depth++; dz.classList.add("on"); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    main.addEventListener(ev, function(e){ e.preventDefault(); e.stopPropagation();
+      if(ev==="dragleave"){ depth--; if(depth>0) return; }
+      depth = 0; dz.classList.remove("on");
+    });
+  });
+  main.addEventListener("drop", function(e){
+    var items = e.dataTransfer && e.dataTransfer.items;
+    if(!items || !items.length) return;
+    var tree = { name:"Dropped", dir:true, kids:[] }, pending = 0, done = false;
+    function finish(){ if(done) return; done = true;
+      w.state.dropped = tree; w.state.proj = "_local"; w.state.file = 0; drawLocal(tree);
+      toast("Read " + countFiles(tree) + " file(s) locally. Nothing was uploaded.", 4200); }
+    function walk(entry, into){
+      if(!entry) return;
+      if(entry.isFile){
+        pending++;
+        entry.file(function(f){
+          into.kids.push({ name:entry.name, dir:false, size:f.size, file:f });
+          if(--pending === 0) finish();
+        }, function(){ if(--pending === 0) finish(); });
+      } else if(entry.isDirectory){
+        var node = { name:entry.name, dir:true, kids:[] };
+        into.kids.push(node);
+        pending++;
+        var rd = entry.createReader();
+        rd.readEntries(function(list){
+          list.slice(0,60).forEach(function(en){ walk(en, node); });
+          if(--pending === 0) finish();
+        }, function(){ if(--pending === 0) finish(); });
+      }
+    }
+    var got = false;
+    for(var i=0;i<items.length;i++){
+      var en = items[i].webkitGetAsEntry && items[i].webkitGetAsEntry();
+      if(en){ got = true; walk(en, tree); }
+    }
+    if(!got){
+      /* browsers without the entry API still give us a flat FileList */
+      var fl = e.dataTransfer.files;
+      for(var j=0;j<fl.length;j++) tree.kids.push({ name:fl[j].name, dir:false, size:fl[j].size, file:fl[j] });
+      finish();
+    } else if(pending === 0) finish();
+  });
+  body.querySelector("[data-local]").addEventListener("click", function(){
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.multiple = true;
+    try{ inp.webkitdirectory = true; }catch(e){}
+    inp.addEventListener("change", function(){
+      var tree = { name:"Imported", dir:true, kids:[] };
+      Array.prototype.slice.call(inp.files).slice(0,120).forEach(function(f){
+        tree.kids.push({ name:f.webkitRelativePath || f.name, dir:false, size:f.size, file:f });
+      });
+      w.state.dropped = tree; w.state.proj = "_local"; w.state.file = 0; drawLocal(tree);
+      toast("Imported " + tree.kids.length + " file(s). Read locally only.", 4200);
+    });
+    inp.click();
+  });
+  function countFiles(n){ return n.dir ? n.kids.reduce(function(a,k){ return a+countFiles(k); },0) : 1; }
+  function flatten(n, out, pre){
+    out = out || []; pre = pre || "";
+    n.kids.forEach(function(k){
+      if(k.dir) flatten(k, out, pre + k.name + "/");
+      else out.push({ name: pre + k.name, size:k.size, file:k.file });
+    });
+    return out;
+  }
+
+  body.addEventListener("click", function(e){
+    var p = e.target.closest("[data-proj]");
+    if(p){ w.state.proj = p.getAttribute("data-proj"); w.state.file = 0;
+           $$(".side-i", body).forEach(function(x){ x.setAttribute("aria-current", String(x===p)); });
+           drawProject(); return; }
+    var r = e.target.closest("[data-repo]");
+    if(r){ w.state.proj = "_repo"; drawRepos(r.getAttribute("data-repo")); return; }
+    var f = e.target.closest("[data-fidx]");
+    if(f){ w.state.file = +f.getAttribute("data-fidx");
+           if(w.state.proj === "_local") drawLocal(w.state.dropped); else drawProject(); return; }
+    var d = e.target.closest("[data-dev]");
+    if(d){ w.state.device = d.getAttribute("data-dev");
+           if(w.state.proj === "_local") drawLocal(w.state.dropped); else drawProject(); return; }
+  });
+
+  function fileRow(name, size, i, cur){
+    var ext = (name.split(".").pop()||"").toLowerCase();
+    var icon = ["html","htm"].indexOf(ext)>-1 ? "i-code" : ext==="md" ? "i-file" : ext==="js" ? "i-code" : "i-file";
+    return '<button class="fi" data-fidx="'+i+'" aria-current="'+(i===cur)+'">'+ico(icon,"sm")+
+           '<span class="nm">'+esc(name)+'</span>'+
+           (size!=null?'<span class="sz">'+(size<1024?size+"B":(size/1024).toFixed(1)+"K")+'</span>':"")+'</button>';
+  }
+  function deviceFrame(html){
+    var dev = w.state.device;
+    var srcdoc = ' srcdoc="'+esc(html).replace(/"/g,"&quot;")+'"';
+    if(dev === "phone")
+      return '<div class="devframe phone"><span class="notch"></span><iframe sandbox="allow-scripts"'+srcdoc+'></iframe></div>';
+    if(dev === "android")
+      return '<div class="devframe phone" style="border-radius:18px"><iframe sandbox="allow-scripts"'+srcdoc+'></iframe></div>';
+    return '<div class="devframe desktop"><div class="bar"><i></i><i></i><i></i></div>'+
+           '<iframe sandbox="allow-scripts"'+srcdoc+'></iframe></div>';
+  }
+  function shell(crumb, files, editor, previewHTML, term){
+    host.innerHTML =
+      '<div class="cd-crumb">'+crumb+'</div>'+
+      '<div class="cd-split">'+
+        '<div class="cd-files">'+files+'</div>'+
+        '<div class="cd-right">'+
+          '<div class="cd-editor">'+editor+'</div>'+
+          '<div class="cd-preview">'+
+            '<div class="cd-pbar">'+ico("i-eye","xs")+'Live preview<span class="sp"></span>'+
+              ['desktop','phone','android'].map(function(d){
+                return '<button class="btn sm" data-dev="'+d+'" style="'+(w.state.device===d?"background:var(--glass-2);border-color:var(--tx-4)":"")+'">'+
+                       (d==="desktop"?"Desktop":d==="phone"?"iPhone":"Android")+'</button>'; }).join("")+
+            '</div>'+
+            '<div class="cd-pstage">'+previewHTML+'</div>'+
+          '</div>'+
+          '<div class="cd-term">'+term+'</div>'+
+        '</div>'+
+      '</div>';
+  }
+  function codeLines(code){
+    return code.split("\n").map(function(l,i){
+      return '<div class="ln"><span class="g">'+(i+1)+'</span><span class="c">'+esc(l)+'</span></div>';
+    }).join("");
+  }
+  var TERM_OK =
+    '<div><span class="p">›</span> npm install</div>'+
+    '<div>added 0 packages · no dependencies — this project is plain HTML/JS</div>'+
+    '<div><span class="p">›</span> npm run dev</div>'+
+    '<div class="w">Dev server listening on http://localhost:5173</div>'+
+    '<div>watching for file changes…</div>'+
+    '<div style="color:var(--tx-4);margin-top:6px">— simulated shell. The preview above is a real iframe '+
+    'rendering this file; no port is actually bound.</div>';
+
+  function drawProject(){
+    var p = PROJECTS.filter(function(x){ return x.id === w.state.proj; })[0];
+    if(!p) return drawWelcome();
+    var f = p.files[w.state.file] || p.files[0];
+    setWinTitle(w, "Code", p.name + " / " + f.n);
+    var html = f.t === "html" ? f.code
+      : '<!doctype html><html><body style="font:14px -apple-system,system-ui,sans-serif;padding:22px;'+
+        'background:#fff;color:#333"><b>'+esc(f.n)+'</b><p style="color:#666;font-size:13px">'+
+        'No HTML entry point in this file — open <code>index.html</code> to see a rendered preview.</p></body></html>';
+    shell(
+      '<button>'+esc(p.name)+'</button><span class="sep">/</span><button>'+esc(f.n)+'</button>',
+      p.files.map(function(x,i){ return fileRow(x.n, null, i, w.state.file); }).join(""),
+      '<pre>'+codeLines(f.code)+'</pre>',
+      deviceFrame(html),
+      TERM_OK
+    );
+  }
+  function drawLocal(tree){
+    if(!tree) return drawWelcome();
+    var files = flatten(tree);
+    if(!files.length){ host.innerHTML = '<div class="empty-msg">That folder had no readable files in it.</div>'; return; }
+    var i = clamp(w.state.file, 0, files.length-1), f = files[i];
+    setWinTitle(w, "Code", f.name);
+    var reader = new FileReader();
+    reader.onload = function(){
+      var text = String(reader.result || "");
+      var isHTML = /\.html?$/i.test(f.name);
+      var preview = isHTML ? text
+        : '<!doctype html><html><body style="font:14px -apple-system,system-ui,sans-serif;padding:22px;'+
+          'background:#fff;color:#333"><b>'+esc(f.name)+'</b>'+
+          '<p style="color:#666;font-size:13px">Rendered preview needs an <code>.html</code> file. '+
+          'This one is shown in the editor.</p></body></html>';
+      shell(
+        '<button>'+esc(tree.name)+'</button><span class="sep">/</span><button>'+esc(f.name)+'</button>'+
+          '<span class="sep">·</span><span>'+files.length+' files, read locally</span>',
+        files.map(function(x,ix){ return fileRow(x.name, x.size, ix, i); }).join(""),
+        '<pre>'+codeLines(text.slice(0, 40000))+'</pre>',
+        deviceFrame(preview),
+        '<div><span class="p">›</span> console import ./'+esc(tree.name)+'</div>'+
+        '<div>read '+files.length+' file(s) · '+(files.reduce(function(a,x){return a+(x.size||0);},0)/1024).toFixed(1)+' KB</div>'+
+        '<div class="w">files stayed in this browser tab — no upload, no server</div>'+
+        (isHTML ? '<div><span class="p">›</span> rendering '+esc(f.name)+' in the preview pane</div>' : "")
+      );
+    };
+    reader.onerror = function(){ host.innerHTML = '<div class="empty-msg">Could not read that file.</div>'; };
+    if(f.file) reader.readAsText(f.file); else host.innerHTML = '<div class="empty-msg">No file handle.</div>';
+  }
+  function drawRepos(which){
+    setWinTitle(w, "Code", which === "github" ? "GitHub" : "GitLab");
+    var repos = which === "github"
+      ? [{n:"magna/ryd-m3-dashboards", b:"main · 3 open PRs"},{n:"magna/exposure-model", b:"main · clean"},
+         {n:"magna/console-prototypes", b:"feat/app-7 · 1 ahead"}]
+      : [{n:"delivery/p6-sync", b:"main · self-managed"},{n:"delivery/sap-connectors", b:"main · protected"}];
+    host.innerHTML = '<div class="pane-scroll"><h4 class="sec">'+(which==="github"?"GitHub":"GitLab")+'</h4>'+
+      '<p class="sub">Linked through the Connections app. Console can read any of these and open a pull request, '+
+      'but a PR is a write — it always asks first.</p>'+
+      repos.map(function(r){
+        return '<div class="repo"><span class="lead" style="background:'+(which==="github"?"#24292F":"#E24329")+'">'+
+        ico("i-git","sm")+'</span><div class="mid"><div class="nm">'+esc(r.n)+'</div>'+
+        '<div class="br">'+esc(r.b)+'</div></div>'+
+        '<button class="btn sm" data-clone="'+esc(r.n)+'">Clone</button></div>';
+      }).join("")+
+      '<div class="card" style="margin-top:14px"><h5>'+ico("i-warn","sm")+'What is simulated here</h5>'+
+      '<p>This prototype has no backend, so there is no OAuth token and no real clone. The repository list is '+
+      'dummy data — the linking flow shows the shape of the integration, not a live connection.</p></div></div>';
+    host.addEventListener("click", function(e){
+      var c = e.target.closest("[data-clone]"); if(!c) return;
+      requestApproval(w, {
+        title:"Clone " + c.getAttribute("data-clone") + " into this workspace?",
+        detail:"Writes to the workspace volume in Riyadh DC-1. Nothing leaves the network.",
+        confirm:"Clone",
+        okToast:"Cloned (simulated). Open it from Projects.",
+      });
+    });
+  }
+  function drawWelcome(){
+    setWinTitle(w, "Code", "");
+    host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Code</h4>'+
+      '<p class="sub">Open one of the projects on the left, connect a repository, or drag a folder from your Mac '+
+      'straight into this window — Console reads it in the browser and renders it live.</p>'+
+      '<div class="grid2">'+
+        '<div class="card"><h5>'+ico("i-folder","sm")+'Drag a folder in</h5><p>Real drag and drop. Files are read '+
+        'with the File API and never uploaded — you can drop a whole site and see it render.</p></div>'+
+        '<div class="card"><h5>'+ico("i-phone","sm")+'Device previews</h5><p>The same file rendered in Desktop, '+
+        'iPhone and Android frames. Real iframes, real layout — not screenshots.</p></div>'+
+        '<div class="card"><h5>'+ico("i-term","sm")+'Dev server</h5><p>A simulated shell with a port and a watch '+
+        'log. The preview beside it is genuinely live; the port is not really bound.</p></div>'+
+        '<div class="card"><h5>'+ico("i-git","sm")+'GitHub &amp; GitLab</h5><p>Linked repositories, branch state, '+
+        'and PR creation behind the same approval gate every other write action uses.</p></div>'+
+      '</div></div>';
+  }
+  drawWelcome();
+};
+
+/* ---------------------------------------------------------- BROWSER */
+var INTRANET = {
+  "magna://home": { title:"Magna Intranet", html:
+    '<div class="intra"><h1>Magna KSA — Delivery</h1><p class="lede">Internal home · Riyadh DC-1 · '+
+    '<span class="pill">Private tier</span></p>'+
+    '<h2>Active packages</h2><table><tr><th>Package</th><th>Status</th><th>Exposure</th></tr>'+
+    '<tr><td>RYD-M3 C2</td><td>11 days behind</td><td>SAR 5.32M</td></tr>'+
+    '<tr><td>RYD-M3 C3</td><td>on baseline</td><td>—</td></tr>'+
+    '<tr><td>RYD-M3 D1</td><td>2 days behind</td><td>SAR 0.31M</td></tr></table>'+
+    '<h2>Notices</h2><ul><li>Board pack due Thursday 09:00</li>'+
+    '<li>Vendor master clean-up — 41 duplicates flagged</li>'+
+    '<li>HSE: 2 LTIs on the C2 deck, week 33</li></ul></div>' },
+  "magna://po/4500219871": { title:"PO 4500219871", html:
+    '<div class="intra"><h1>PO 4500219871</h1><p class="lede">Al-Rajhi Steel · grade B500B rebar · '+
+    '<span class="pill">SAP S/4HANA</span></p>'+
+    '<table><tr><th>Line</th><th>Material</th><th>Qty</th><th>Received</th><th>Status</th></tr>'+
+    '<tr><td>10</td><td>B500B 16mm</td><td>320 t</td><td>320 t</td><td>complete</td></tr>'+
+    '<tr><td>20</td><td>B500B 20mm</td><td>280 t</td><td>280 t</td><td>complete</td></tr>'+
+    '<tr><td>30</td><td>B500B 25mm</td><td>240 t</td><td>142 t</td><td>partial</td></tr>'+
+    '<tr><td>40</td><td>B500B 32mm</td><td>180 t</td><td>0 t</td><td>awaiting</td></tr>'+
+    '<tr><td>50</td><td>B500B 12mm</td><td>140 t</td><td>0 t</td><td>awaiting</td></tr>'+
+    '<tr><td>60</td><td>couplers</td><td>80 t</td><td>0 t</td><td>awaiting</td></tr></table>'+
+    '<p>Promised delivery 03 Aug 2026. 498 t outstanding.</p></div>' },
+  "magna://knowledge": { title:"Company Knowledge", html:
+    '<div class="intra"><h1>Company Knowledge</h1><p class="lede">8,412 documents · indexed in-cluster</p>'+
+    '<ul><li>Subcontract GC-8 — LD clauses.pdf</li><li>RYD-M3 Baseline r7.xer</li>'+
+    '<li>RYD-M3 BEP v4 — appendix C.pdf</li><li>HSE register — week 33.xlsx</li>'+
+    '<li>Vendor master extract 2026-08.csv</li></ul></div>' }
+};
+MOUNT.browser = function(body, w){
+  w.state.tabs = [{ url:"magna://home", title:"Magna Intranet" }];
+  w.state.cur = 0; w.state.hist = [];
+  body.innerHTML =
+    '<div class="bw">'+
+      '<div class="bw-tabs" data-bwtabs></div>'+
+      '<div class="bw-bar">'+
+        '<button class="bw-nav" data-bw="back" aria-label="Back">'+ico("i-chev-l","sm")+'</button>'+
+        '<button class="bw-nav" data-bw="fwd" aria-label="Forward">'+ico("i-chev-r","sm")+'</button>'+
+        '<button class="bw-nav" data-bw="reload" aria-label="Reload">'+ico("i-reload","sm")+'</button>'+
+        '<input class="bw-url" data-url placeholder="Search or type a URL…" spellcheck="false">'+
+        '<button class="btn sm" data-bw="agent">'+ico("i-spark","xs")+'Agent</button>'+
+      '</div>'+
+      '<div class="bw-marks">'+
+        Object.keys(INTRANET).map(function(u){
+          return '<button class="bw-mark" data-go="'+esc(u)+'">'+esc(INTRANET[u].title)+'</button>'; }).join("")+
+        '<button class="bw-mark" data-go="https://example.com">example.com</button>'+
+        '<button class="bw-mark" data-go="https://wikipedia.org">wikipedia.org</button>'+
+      '</div>'+
+      '<div data-agenthost></div>'+
+      '<div class="bw-stage" data-stage>'+
+        '<div class="bw-block" data-block><div class="in"></div></div>'+
+      '</div>'+
+    '</div>';
+  var stage = body.querySelector("[data-stage]"), block = body.querySelector("[data-block]"),
+      urlIn = body.querySelector("[data-url]");
+  function renderTabs(){
+    body.querySelector("[data-bwtabs]").innerHTML = w.state.tabs.map(function(t,i){
+      return '<button class="bw-tab" data-bwtab="'+i+'" aria-selected="'+(i===w.state.cur)+'">'+
+             ico("i-globe","xs")+'<span class="nm">'+esc(t.title)+'</span>'+
+             (w.state.tabs.length>1?'<span class="x" data-bwclose="'+i+'">'+ico("i-x","xs")+'</span>':"")+'</button>';
+    }).join("") + '<button class="bw-tab" data-bwnew aria-label="New tab">'+ico("i-plus","xs")+'</button>';
+  }
+  function go(url){
+    url = (url||"").trim(); if(!url) return;
+    if(!/^[a-z]+:\/\//i.test(url)){
+      /* a bare word is a search, like any real browser */
+      url = /\./.test(url) ? "https://" + url : "magna://search?q=" + encodeURIComponent(url);
+    }
+    var t = w.state.tabs[w.state.cur];
+    w.state.hist.push(t.url);
+    t.url = url;
+    urlIn.value = url;
+    block.classList.remove("on");
+    var old = stage.querySelector("iframe"); if(old) old.remove();
+    var internal = INTRANET[url];
+    if(internal){
+      t.title = internal.title;
+      var f = document.createElement("iframe");
+      f.setAttribute("sandbox","");
+      f.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>'+
+        'body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}'+
+        '.intra{padding:34px 38px;color:#16181D;background:#fff;min-height:100vh}'+
+        '.intra h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}'+
+        '.intra .lede{color:#5A5F6B;font-size:13.5px;margin:0 0 20px}'+
+        '.intra h2{font-size:15px;margin:22px 0 8px}'+
+        '.intra p,.intra li{font-size:13px;line-height:1.7;color:#333}'+
+        '.intra table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}'+
+        '.intra th,.intra td{border:1px solid #E2E4E9;padding:7px 9px;text-align:left}'+
+        '.intra th{background:#F6F7F9;font-weight:700}'+
+        '.intra .pill{display:inline-block;font-size:11px;background:#EAF7EF;color:#12794F;padding:3px 9px;border-radius:99px;font-weight:650}'+
+        '</style></head><body>'+internal.html+'</body></html>';
+      stage.insertBefore(f, block);
+    } else if(url.indexOf("magna://search") === 0){
+      t.title = "Search";
+      var q = decodeURIComponent(url.split("q=")[1] || "");
+      showBlock('<h5>Console searched your Brain, not the web</h5>'+
+        '<p>“'+esc(q)+'” was resolved against your own index because this thread is on the Private tier. '+
+        'Public web search would send the query outside the network.</p>'+
+        '<button class="btn primary" data-brainq>'+ico("i-brain","xs")+'Open it in Brain</button>');
+    } else {
+      t.title = url.replace(/^https?:\/\//,"").split("/")[0];
+      var fr = document.createElement("iframe");
+      fr.setAttribute("referrerpolicy","no-referrer");
+      fr.setAttribute("sandbox","allow-scripts allow-same-origin allow-popups");
+      var settled = false;
+      fr.addEventListener("load", function(){ settled = true; });
+      fr.src = url;
+      stage.insertBefore(fr, block);
+      /* most real sites refuse to be framed; say so plainly instead of
+         leaving a blank rectangle */
+      setTimeout(function(){
+        if(settled) return;
+        showBlock('<h5>'+esc(t.title)+' refused to load in a frame</h5>'+
+          '<p>Most sites send <code>X-Frame-Options: DENY</code> or a <code>frame-ancestors</code> policy, which '+
+          'stops any other page — including this one — from embedding them. A real browser is not subject to that; '+
+          'a page pretending to be one is.</p>'+
+          '<p>Internal Magna pages in the bookmarks bar always render, because Console serves those itself.</p>');
+      }, 2600);
+    }
+    renderTabs(); setWinTitle(w, "Browser", t.title);
+  }
+  function showBlock(html){ block.querySelector(".in").innerHTML = html; block.classList.add("on"); }
+  body.addEventListener("click", function(e){
+    var g = e.target.closest("[data-go]"); if(g){ go(g.getAttribute("data-go")); return; }
+    var c = e.target.closest("[data-bwclose]");
+    if(c){ e.stopPropagation(); var i=+c.getAttribute("data-bwclose");
+           w.state.tabs.splice(i,1); w.state.cur = clamp(w.state.cur,0,w.state.tabs.length-1);
+           renderTabs(); go(w.state.tabs[w.state.cur].url); return; }
+    var t = e.target.closest("[data-bwtab]");
+    if(t){ w.state.cur = +t.getAttribute("data-bwtab"); go(w.state.tabs[w.state.cur].url); return; }
+    if(e.target.closest("[data-bwnew]")){
+      w.state.tabs.push({url:"magna://home",title:"Magna Intranet"});
+      w.state.cur = w.state.tabs.length-1; go("magna://home"); return;
+    }
+    if(e.target.closest("[data-brainq]")){ openApp("brain"); return; }
+    var b = e.target.closest("[data-bw]");
+    if(b){
+      var act = b.getAttribute("data-bw");
+      if(act === "back"){ var u = w.state.hist.pop(); if(u) go(u); }
+      else if(act === "reload") go(w.state.tabs[w.state.cur].url);
+      else if(act === "fwd") toast("Nothing forward in this tab's history.");
+      else if(act === "agent") runAgent();
+      return;
+    }
+  });
+  urlIn.addEventListener("keydown", function(e){ if(e.key === "Enter") go(urlIn.value); });
+
+  /* agentic browsing — scripted, and gated by the same approval bar */
+  function runAgent(){
+    var hostA = body.querySelector("[data-agenthost]");
+    hostA.innerHTML =
+      '<div class="agentbar">'+ico("i-spark","sm")+'<b>Browser agent</b>'+
+      '<span style="color:var(--tx-2)">checking the supplier portal for a revised delivery date</span>'+
+      '<span class="sp"></span><button class="btn sm" data-agentstop>Stop</button></div>'+
+      '<div class="agentsteps" data-steps></div>';
+    var steps = [
+      "open  alrajhi-portal.example / orders",
+      "auth  session reused from Connections · no credentials typed",
+      "find  order 4500219871",
+      "read  promised date → 19 Sep 2026 (was 03 Aug)",
+      "diff  +47 days against PO, +11 days against Baseline r7",
+      "draft reply to Khalid Al-Rashid citing GC-8 8.4"
+    ];
+    var sh = body.querySelector("[data-steps]"), i = 0;
+    (function next(){
+      if(i >= steps.length){
+        requestApproval(w, {
+          title:"Send the drafted reply to Khalid Al-Rashid?",
+          detail:"The agent found the new date and wrote a reply. Sending is a write action — it needs your yes.",
+          confirm:"Review draft",
+          okToast:"Opened in Mail as a draft. Nothing was sent.",
+          onApprove:function(){ openApp("mail"); }
+        });
+        return;
+      }
+      sh.innerHTML += '<div><span class="ok">✓</span> ' + esc(steps[i++]) + '</div>';
+      sh.scrollTop = sh.scrollHeight;
+      setTimeout(next, REDUCED ? 80 : 620);
+    })();
+    hostA.addEventListener("click", function(e){
+      if(e.target.closest("[data-agentstop]")){ hostA.innerHTML = ""; toast("Agent stopped."); }
+    });
+  }
+  renderTabs(); go(w.params.url || "magna://home");
+};
+
+/* ---------------------------------------------------------- AGENTS */
+MOUNT.agents = function(body, w){
+  body.innerHTML = '<div class="pane"><div class="pane-scroll">'+
+    '<h4 class="sec">Agents</h4>'+
+    '<p class="sub">Four agents, two of them running now. They hand work to each other — the map below is the '+
+    'crew, not a list of isolated bots. Read actions run free; every write waits for you.</p>'+
+    '<div class="grid2">'+ AGENTS.map(function(a){
+      return '<div class="agc"><div class="top"><span class="av '+a.tile+'">'+ico(a.icon,"sm")+'</span>'+
+      '<span class="nm">'+esc(a.name)+'</span>'+
+      (a.state==="running"?'<span class="st"><span class="d"></span>running</span>':'<span class="tag">idle</span>')+
+      '</div><p>'+esc(a.desc)+'</p><div class="foot">'+
+      a.tags.map(function(t){ return '<span class="tag">'+esc(t)+'</span>'; }).join("")+
+      (a.delegates?'<span class="tag sg">'+ico("i-agent","xs")+'→ '+esc(a.delegates)+'</span>':"")+
+      '<button class="btn sm" data-agrun="'+esc(a.name)+'" style="margin-left:auto">Run now</button>'+
+      '</div></div>';
+    }).join("") + '</div>'+
+    '<h4 class="sec" style="margin-top:22px">Delegation</h4>'+
+    '<p class="sub">Who calls whom. PO Slippage Watch and Risk Research Agent delegate both ways — one finds the '+
+    'slip, the other finds the clause that makes it expensive.</p>'+
+    '<div class="dmap"><svg viewBox="0 0 520 150">'+
+      '<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">'+
+      '<path d="M0 0 L10 5 L0 10 z" fill="var(--signal)"/></marker></defs>'+
+      '<rect class="box" x="14" y="20" width="150" height="42" rx="9"/>'+
+      '<text x="89" y="38" text-anchor="middle">PO Slippage Watch</text>'+
+      '<text x="89" y="52" text-anchor="middle" fill="var(--tx-4)">every 2 hours · read-only</text>'+
+      '<rect class="box" x="196" y="20" width="150" height="42" rx="9"/>'+
+      '<text x="271" y="38" text-anchor="middle">Risk Research Agent</text>'+
+      '<text x="271" y="52" text-anchor="middle" fill="var(--tx-4)">clause + position</text>'+
+      '<rect class="box" x="378" y="20" width="128" height="42" rx="9"/>'+
+      '<text x="442" y="38" text-anchor="middle">Board Pack Drafter</text>'+
+      '<text x="442" y="52" text-anchor="middle" fill="var(--tx-4)">Thursday 07:00</text>'+
+      '<rect class="box" x="196" y="98" width="150" height="38" rx="9"/>'+
+      '<text x="271" y="121" text-anchor="middle">HSE Digest</text>'+
+      '<path class="ln" d="M166 34 L192 34"/>'+
+      '<path class="ln" d="M192 50 L168 50"/>'+
+      '<path class="ln" d="M348 41 L374 41"/>'+
+      '<path class="ln" d="M271 96 L271 66"/>'+
+    '</svg></div>'+
+    '</div></div>';
+  body.addEventListener("click", function(e){
+    var b = e.target.closest("[data-agrun]"); if(!b) return;
+    requestApproval(w, {
+      title:"Run “"+b.getAttribute("data-agrun")+"” now?",
+      detail:"It will read SAP and P6. It cannot write anything without asking you again.",
+      confirm:"Run",
+      okToast:"Running. Watch the dock badge for the result."
+    });
+  });
+};
+
+/* ---------------------------------------------------------- AUTOMATIONS */
+MOUNT.autos = function(body, w){
+  body.innerHTML = '<div class="pane"><div class="pane-scroll" data-autohost></div></div>';
+  w.state.draw = function(){
+    body.querySelector("[data-autohost]").innerHTML =
+      '<h4 class="sec">Automations</h4>'+
+      '<p class="sub">Scheduled work that runs whether or not you are here. Describe a new one in plain language — '+
+      'Spotlight (⌘K) drafts it, and nothing is created until you approve the definition.</p>'+
+      '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+        '<input class="bw-url" data-autoin placeholder="e.g. every morning, summarise P6 slippage and post it" '+
+        'style="flex:1;border-radius:10px">'+
+        '<button class="btn primary" data-autodraft>'+ico("i-plus","xs")+'Draft it</button>'+
+      '</div>'+
+      AUTOS.map(function(a){
+        var col = a.state === "due" ? "var(--public)" : "var(--private)";
+        return '<div class="runrow"><span class="dot" style="background:'+col+'"></span>'+
+        '<div class="mid"><div class="nm">'+esc(a.name)+'</div>'+
+        '<div class="sub" style="margin:0;font-size:11px">'+esc(a.when)+' · last run '+esc(a.last)+'</div>'+
+        '<p style="font-size:11.5px;color:var(--tx-3);margin:4px 0 0;line-height:1.5">'+esc(a.desc)+'</p></div>'+
+        '<button class="btn sm" data-autorun="'+esc(a.name)+'">Run</button></div>';
+      }).join("");
+  };
+  w.state.draw();
+  body.addEventListener("click", function(e){
+    if(e.target.closest("[data-autodraft]")){
+      var v = body.querySelector("[data-autoin]").value.trim();
+      if(!v){ toast("Describe what it should do first."); return; }
+      autosDraft(w, v); return;
+    }
+    var r = e.target.closest("[data-autorun]");
+    if(r){ requestApproval(w, {
+      title:"Run “"+r.getAttribute("data-autorun")+"” outside its schedule?",
+      detail:"It may post to a channel. That is a write, so it needs your approval.",
+      confirm:"Run once", okToast:"Ran once. The schedule is unchanged." }); }
+  });
+};
+function autosDraft(w, sentence){
+  if(!w || w.appId !== "autos") return;
+  var host = w.body.querySelector("[data-autohost]");
+  var inp = w.body.querySelector("[data-autoin]"); if(inp) inp.value = sentence;
+  var card = el("div","card");
+  card.style.cssText = "margin:0 0 14px;border-color:color-mix(in srgb,var(--signal) 40%,transparent)";
+  card.innerHTML = '<h5>'+ico("i-bolt","sm")+'Drafted from your sentence</h5>'+
+    '<p style="margin-bottom:10px">“'+esc(sentence)+'”</p>'+
+    '<div class="kv"><span class="k">Trigger</span><span class="v">daily 06:00 AST</span></div>'+
+    '<div class="kv"><span class="k">Reads</span><span class="v">p6-schedule, sap-po-lookup</span></div>'+
+    '<div class="kv"><span class="k">Writes</span><span class="v">posts to #ryd-m3-delivery</span></div>'+
+    '<div class="kv"><span class="k">Tier</span><span class="v">Private · Riyadh DC-1</span></div>'+
+    '<div style="display:flex;gap:7px;margin-top:12px">'+
+      '<button class="btn primary sm" data-autocreate>Create it</button>'+
+      '<button class="btn sm" data-autodiscard>Discard</button></div>';
+  host.insertBefore(card, host.children[3] || null);
+  card.addEventListener("click", function(e){
+    if(e.target.closest("[data-autocreate]")){
+      AUTOS.unshift({ name: sentence.slice(0,42), when:"Daily 06:00 AST", last:"never", state:"ok",
+                      desc:"Created from a sentence in Spotlight. Read-only until you grant it a write scope." });
+      w.state.draw(); toast("Automation created. It has no write scope yet.");
+    }
+    if(e.target.closest("[data-autodiscard]")){ card.remove(); toast("Discarded."); }
+  });
+}
+
+/* ---------------------------------------------------------- CONNECTIONS */
+MOUNT.conn = function(body, w){
+  body.innerHTML = '<div class="pane"><div class="pane-scroll">'+
+    '<h4 class="sec">Connections</h4>'+
+    '<p class="sub">Seven systems linked, three available. Every connector runs inside the DC — a linked system '+
+    'does not imply anything leaves the network.</p>'+
+    '<div class="grid2">'+ CONNECTORS.map(function(c){
+      return '<div class="conn-card"><div class="top">'+
+        '<span class="bt" style="background:'+c.bg+'">'+esc(c.ab)+'</span>'+
+        '<span class="nm">'+esc(c.k)+'</span>'+
+        (c.st==="linked"?'<span class="tag pv">'+ico("i-check","xs")+'linked</span>':'<span class="tag">available</span>')+
+        '</div><p>'+esc(c.d)+'</p>'+
+        '<button class="btn sm" data-conn="'+esc(c.k)+'" data-st="'+c.st+'">'+
+        (c.st==="linked"?"Manage":"Link")+'</button></div>';
+    }).join("") + '</div>'+
+    '<div class="card" style="margin-top:14px"><h5>'+ico("i-warn","sm")+'What is simulated</h5>'+
+    '<p>This prototype has no backend, so no OAuth handshake happens and no token is stored. Linking shows the '+
+    'shape of the flow and the scopes a real integration would request.</p></div>'+
+    '</div></div>';
+  body.addEventListener("click", function(e){
+    var b = e.target.closest("[data-conn]"); if(!b) return;
+    var k = b.getAttribute("data-conn");
+    if(b.getAttribute("data-st") === "linked"){ toast(k + " — read scopes active; writes ask each time."); return; }
+    requestApproval(w, {
+      title:"Link " + k + " to this workspace?",
+      detail:"Requests read scopes only. Console will ask again before its first write.",
+      confirm:"Link", okToast:k + " linked (simulated)."
+    });
+  });
+};
+
+/* ---------------------------------------------------------- MAIL */
+MOUNT.mail = function(body, w){
+  body.innerHTML =
+    '<div class="cd">'+
+      '<div class="side">'+
+        '<div class="side-h">Mailboxes</div>'+
+        '<button class="side-i" aria-current="true">'+ico("i-mail","sm")+'Inbox<span class="cnt">2</span></button>'+
+        '<button class="side-i">'+ico("i-file","sm")+'Drafts<span class="cnt">1</span></button>'+
+        '<button class="side-i">'+ico("i-send","sm")+'Sent</button>'+
+        '<div class="side-h" style="margin-top:8px">Brain</div>'+
+        '<button class="side-i" data-openbrain>'+ico("i-brain","sm")+'Email graph</button>'+
+      '</div>'+
+      '<div class="cd-main"><div class="pane-scroll">'+
+        '<h4 class="sec">Inbox</h4>'+
+        '<p class="sub">Console reads mail to place it in the Brain — it never replies on its own. The line under '+
+        'each message is why it thinks the message matters today.</p>'+
+        EMAILS.map(function(m){
+          return '<div class="erow"><div class="av">'+esc(m.from.split(" ").map(function(p){return p[0];}).join("").slice(0,2))+'</div>'+
+          '<div class="mid"><div class="fr">'+esc(m.from)+
+          (m.read?"":' <span class="tag ac">unread</span>')+'</div>'+
+          '<div class="sj">'+esc(m.subj)+'</div>'+
+          '<div class="ex">'+ico("i-brain","xs")+' '+esc(m.why)+'</div></div>'+
+          '<span class="rt">'+esc(m.when)+'</span></div>';
+        }).join("")+
+      '</div></div>'+
+    '</div>';
+  body.addEventListener("click", function(e){
+    if(e.target.closest("[data-openbrain]")){
+      var b = openApp("brain");
+      if(b){ b.state.tab = "emails";
+             $$(".tab", b.body).forEach(function(x){ x.setAttribute("aria-selected", String(x.getAttribute("data-brtab")==="emails")); });
+             b.state.drawTab(); }
+    }
+  });
+};
+
+/* ---------------------------------------------------------- SETTINGS */
+var SET_PANES = {
+  general: function(){ return '<h4 class="sec">General</h4><p class="sub">Workspace and session basics.</p>'+
+    '<div class="card">'+
+    '<div class="kv"><span class="k">Workspace</span><span class="v">Magna KSA · Production</span></div>'+
+    '<div class="kv"><span class="k">Cluster</span><span class="v">magna-riyadh-dc1 · 8×H200</span></div>'+
+    '<div class="kv"><span class="k">Seat</span><span class="v">Delivery · Riyadh</span></div>'+
+    '<div class="kv"><span class="k">Signed in as</span><span class="v">ahmad.farahat@magna.ai</span></div>'+
+    '</div>'; },
+  appearance: function(){ return '<h4 class="sec">Appearance</h4>'+
+    '<p class="sub">Console is dark by default because the desktop metaphor reads better against a dark ground. '+
+    'Light is a genuine frosted variant, not an inversion.</p>'+
+    '<div class="card"><h5>Theme</h5><div style="display:flex;gap:7px;margin-top:8px">'+
+    '<button class="btn sm" data-settheme="dark">Dark</button>'+
+    '<button class="btn sm" data-settheme="light">Light</button></div></div>'+
+    '<div class="card"><h5>Wallpaper</h5><p>The wallpaper is the Magna mark, drawn live in SVG and breathing '+
+    'slowly. It carries no image file and respects reduced-motion.</p></div>'; },
+  spaces: function(){ return '<h4 class="sec">Spaces</h4>'+
+    '<p class="sub">Four desktops, each with its own windows and icon layout. Switch with the pips in the menu bar, '+
+    'Ctrl + ←/→, a two-finger swipe, or Mission Control.</p>'+
+    SPACES.map(function(s){
+      var n = wins.filter(function(w){ return w.spaceId===s.id; }).length;
+      return '<div class="card"><h5>'+ico("i-grid","sm")+'Space '+(s.id+1)+' · '+esc(s.name)+'</h5>'+
+      '<p>'+esc(s.hint)+' — '+n+' window'+(n===1?"":"s")+' open.</p></div>'; }).join(""); },
+  models: function(){ return '<h4 class="sec">Models</h4>'+
+    '<p class="sub">All four run on Magna GPUs. Nothing here calls a public endpoint on the Private tier.</p>'+
+    '<div class="card"><div class="kv"><span class="k">Kimi K2 Instruct</span><span class="v">1T MoE · 256k ctx</span></div>'+
+    '<div class="kv"><span class="k">DeepSeek V3.1</span><span class="v">671B MoE · 128k ctx</span></div>'+
+    '<div class="kv"><span class="k">Qwen 3</span><span class="v">235B · 128k ctx · best Arabic</span></div>'+
+    '<div class="kv"><span class="k">NVIDIA Nemotron</span><span class="v">120B · fastest first token</span></div></div>'; },
+  sovereignty: function(){ return '<h4 class="sec">Sovereignty &amp; data</h4>'+
+    '<p class="sub">Where inference runs, and what leaves the boundary.</p>'+
+    '<div class="card"><h5>'+ico("i-shield","sm")+'Private (active)</h5>'+
+    '<p>Magna cluster, Riyadh DC-1. Prompts, files, embeddings and outputs stay inside your network. '+
+    'Egress today: 0 bytes.</p></div>'+
+    '<div class="card"><h5>'+ico("i-globe","sm")+'Public</h5>'+
+    '<p>Routed to an endpoint outside the Magna boundary. Switching a thread that already contains internal data '+
+    'always asks first.</p></div>'+
+    '<div class="card"><h5>Compliance</h5><p>PDPL aligned · NCA ECC-1 controls · SDAIA AI ethics · '+
+    'Vision 2030 sovereign-AI programme.</p></div>'; },
+  memory: function(){ return '<h4 class="sec">Memory</h4>'+
+    '<p class="sub">Everything the Brain has inferred about how you work. Editable and deletable — the behaviour '+
+    'tab in Brain shows what each line changed.</p>'+
+    BEHAVIOUR.map(function(b){
+      return '<div class="runrow"><span class="dot" style="background:var(--signal)"></span>'+
+      '<div class="mid"><div class="nm">'+esc(b.t)+'</div>'+
+      '<div class="sub" style="margin:0;font-size:11px">'+esc(b.m)+'</div></div>'+
+      '<button class="btn sm" data-forget="'+esc(b.t)+'">Forget</button></div>'; }).join(""); },
+  about: function(){ return '<h4 class="sec">About Console</h4>'+
+    '<p class="sub">App 7 of the MagnaVERSE redesign set — the desktop-OS concept.</p>'+
+    '<div class="card"><h5>What is real in this prototype</h5>'+
+    '<p>Windowing (drag, resize, snap, minimise, maximise, z-order), four Spaces with gestures, the Brain graph, '+
+    'reading real files and folders you drag in, live iframe previews of your own HTML, and a real browser '+
+    'iframe with honest block detection.</p></div>'+
+    '<div class="card"><h5>What is simulated</h5>'+
+    '<p>The AI replies are scripted, not a model. Dev servers show a port and a log but bind nothing. iOS and '+
+    'Android are device frames, not simulators. GitHub/GitLab linking has no OAuth or token because there is no '+
+    'backend. Everything else you see is dummy data, internally consistent.</p></div>'; }
+};
+MOUNT.settings = function(body, w){
+  w.state.pane = "general";
+  var keys = [["general","General","i-gear"],["appearance","Appearance","i-sun"],["spaces","Spaces","i-grid"],
+              ["models","Models","i-layers"],["sovereignty","Sovereignty & data","i-shield"],
+              ["memory","Memory","i-brain"],["about","About Console","i-spark"]];
+  body.innerHTML = '<div class="cd"><div class="side">'+
+    '<div class="side-h">Settings</div>'+
+    keys.map(function(k){ return '<button class="side-i" data-pane="'+k[0]+'" aria-current="'+(k[0]==="general")+'">'+
+      ico(k[2],"sm")+esc(k[1])+'</button>'; }).join("")+
+    '</div><div class="cd-main"><div class="pane-scroll" data-sethost></div></div></div>';
+  function draw(){ body.querySelector("[data-sethost]").innerHTML = SET_PANES[w.state.pane](); }
+  body.addEventListener("click", function(e){
+    var p = e.target.closest("[data-pane]");
+    if(p){ w.state.pane = p.getAttribute("data-pane");
+           $$("[data-pane]", body).forEach(function(x){ x.setAttribute("aria-current", String(x===p)); });
+           draw(); return; }
+    var t = e.target.closest("[data-settheme]");
+    if(t){ applyTheme(t.getAttribute("data-settheme")); toast("Theme updated."); return; }
+    var f = e.target.closest("[data-forget]");
+    if(f){ var name = f.getAttribute("data-forget");
+           for(var i=0;i<BEHAVIOUR.length;i++){ if(BEHAVIOUR[i].t === name){ BEHAVIOUR.splice(i,1); break; } }
+           draw(); toast("Forgotten. The Brain will not use that pattern again."); return; }
+  });
+  draw();
+};
+
+/* ============================================================
+   9 · go
+   ============================================================ */
+buildSpotActions();
+renderSov();
+if(store.get("mv7.seen","0") !== "1"){ store.set("mv7.seen","1"); }
+})();
+</script>
+</body>
+</html>
