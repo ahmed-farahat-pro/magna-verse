@@ -184,38 +184,38 @@ body:not([data-stage="os"]) #os{display:none}
 .dicon:hover .tile{transform:translateY(-4px) scale(1.05)}
 .dicon .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 46%);pointer-events:none}
-.dicon .tile .ico{width:26px;height:26px;stroke:#fff;stroke-width:1.8;position:relative;z-index:1}
+.dicon .tile .ico{width:26px;height:26px;stroke:var(--tile,#fff);stroke-width:1.8;position:relative;z-index:1}
 .dicon .lbl{font-size:11.5px;color:var(--tx-2);line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,.55)}
 :root[data-theme="light"] .dicon .lbl{text-shadow:none;color:var(--tx-2)}
 .dicon .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:99px;
   background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;
   box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}
-/* per-app tile gradients — each app owns a hue, never one shared gradient */
-.g-chat{background:linear-gradient(150deg,#F0353C,#9C1015)}
-.g-brain{background:linear-gradient(150deg,#43E0A6,#12795A)}
-.g-code{background:linear-gradient(150deg,#7C6BFF,#3A2BA8)}
-.g-browser{background:linear-gradient(150deg,#2CC5D8,#0A6673)}
-.g-agents{background:linear-gradient(150deg,#5B94FF,#1B3FA8)}
-.g-auto{background:linear-gradient(150deg,#F0B44E,#9A6410)}
-.g-conn{background:linear-gradient(150deg,#9AA0AE,#4A4F5C)}
-.g-mail{background:linear-gradient(150deg,#F077B6,#8E2A63)}
-.g-set{background:linear-gradient(150deg,#6E7482,#33373F)}
-.g-terminal{background:linear-gradient(150deg,#3DDC97,#0D5C42)}
-.g-api{background:linear-gradient(150deg,#FF8A4C,#9B3B10)}
-.g-db{background:linear-gradient(150deg,#4FC3F7,#0B5A82)}
-.g-market{background:linear-gradient(150deg,#FFC24B,#A05A08)}
-.g-task{background:linear-gradient(150deg,#8E9BFF,#39428F)}
-.g-vault{background:linear-gradient(150deg,#C77DFF,#5B2A85)}
-.g-devices{background:linear-gradient(150deg,#5FE3C0,#12695A)}
-.g-monitor{background:linear-gradient(150deg,#7DD3FC,#0C4A6E)}
-.g-project{background:linear-gradient(150deg,#A78BFA,#4C2889)}
-.g-docs{background:linear-gradient(150deg,#94A3B8,#3F4A5A)}
-.g-skill{background:linear-gradient(150deg,#FDBA74,#9A4A10)}
-.g-mcp{background:linear-gradient(150deg,#67E8F9,#0E5C6B)}
-.g-sheets{background:linear-gradient(150deg,#3FCF95,#0D7A4A)}
-.g-docs2{background:linear-gradient(150deg,#60A5FA,#2563EB)}
-.g-slides{background:linear-gradient(150deg,#F59E0B,#B45309)}
-.g-gantt{background:linear-gradient(150deg,#A78BFA,#6D28D9)}
+/* per-app tile colours — transparent glass, colour only as accent */
+.g-chat{--tile:#F0353C;background:rgba(240,53,60,.12);border:1px solid rgba(240,53,60,.25)}
+.g-brain{--tile:#43E0A6;background:rgba(67,224,166,.12);border:1px solid rgba(67,224,166,.25)}
+.g-code{--tile:#7C6BFF;background:rgba(124,107,255,.12);border:1px solid rgba(124,107,255,.25)}
+.g-browser{--tile:#2CC5D8;background:rgba(44,197,216,.12);border:1px solid rgba(44,197,216,.25)}
+.g-agents{--tile:#5B94FF;background:rgba(91,148,255,.12);border:1px solid rgba(91,148,255,.25)}
+.g-auto{--tile:#F0B44E;background:rgba(240,180,78,.12);border:1px solid rgba(240,180,78,.25)}
+.g-conn{--tile:#9AA0AE;background:rgba(154,160,174,.12);border:1px solid rgba(154,160,174,.25)}
+.g-mail{--tile:#F077B6;background:rgba(240,119,182,.12);border:1px solid rgba(240,119,182,.25)}
+.g-set{--tile:#6E7482;background:rgba(110,116,130,.12);border:1px solid rgba(110,116,130,.25)}
+.g-terminal{--tile:#3DDC97;background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.25)}
+.g-api{--tile:#FF8A4C;background:rgba(255,138,76,.12);border:1px solid rgba(255,138,76,.25)}
+.g-db{--tile:#4FC3F7;background:rgba(79,195,247,.12);border:1px solid rgba(79,195,247,.25)}
+.g-market{--tile:#FFC24B;background:rgba(255,194,75,.12);border:1px solid rgba(255,194,75,.25)}
+.g-task{--tile:#8E9BFF;background:rgba(142,155,255,.12);border:1px solid rgba(142,155,255,.25)}
+.g-vault{--tile:#C77DFF;background:rgba(199,125,255,.12);border:1px solid rgba(199,125,255,.25)}
+.g-devices{--tile:#5FE3C0;background:rgba(95,227,192,.12);border:1px solid rgba(95,227,192,.25)}
+.g-monitor{--tile:#7DD3FC;background:rgba(125,211,252,.12);border:1px solid rgba(125,211,252,.25)}
+.g-project{--tile:#A78BFA;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25)}
+.g-docs{--tile:#94A3B8;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.25)}
+.g-skill{--tile:#FDBA74;background:rgba(253,186,116,.12);border:1px solid rgba(253,186,116,.25)}
+.g-mcp{--tile:#67E8F9;background:rgba(103,232,249,.12);border:1px solid rgba(103,232,249,.25)}
+.g-sheets{--tile:#3FCF95;background:rgba(63,207,149,.12);border:1px solid rgba(63,207,149,.25)}
+.g-docs2{--tile:#60A5FA;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25)}
+.g-slides{--tile:#F59E0B;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25)}
+.g-gantt{--tile:#A78BFA;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25)}
 
 /* ============================ DESKTOP WIDGETS ============================
    Live cards sitting on the wallpaper. The desktop should tell you the state
@@ -271,7 +271,7 @@ body:not([data-stage="os"]) #os{display:none}
 .win:not(.focused) .win-lights button{background:var(--tx-4)}
 .win-ttl{display:flex;align-items:center;gap:8px;min-width:0}
 .win-ttl .tico{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;flex:none}
-.win-ttl .tico .ico{width:11px;height:11px;stroke:#fff;stroke-width:2}
+.win-ttl .tico .ico{width:11px;height:11px;stroke:var(--tile,#fff);stroke-width:2}
 .win-ttl b{font-size:12.5px;font-weight:640;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .win:not(.focused) .win-ttl b{color:var(--tx-3)}
 .win-ttl .sub{font-size:11.5px;color:var(--tx-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -307,7 +307,7 @@ body.dragging{cursor:grabbing}
   transition:transform .18s cubic-bezier(.2,.9,.3,1.5)}
 .dk::after{content:"";position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(160deg,rgba(255,255,255,.26),transparent 46%);pointer-events:none}
-.dk .ico{width:23px;height:23px;stroke:#fff;stroke-width:1.85;position:relative;z-index:1}
+.dk .ico{width:23px;height:23px;stroke:var(--tile,#fff);stroke-width:1.85;position:relative;z-index:1}
 @media (hover:hover){ .dk:hover{transform:translateY(-13px) scale(1.16)} }
 .dk .run{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:99px;
   background:var(--tx-2);opacity:0;transition:opacity .15s}
@@ -323,7 +323,7 @@ body.dragging{cursor:grabbing}
   display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;opacity:.92}
 .icon-proxy .tile{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;
   box-shadow:0 16px 34px rgba(0,0,0,.5);transform:scale(1.06)}
-.icon-proxy .tile .ico{width:26px;height:26px;stroke:#fff;stroke-width:1.8}
+.icon-proxy .tile .ico{width:26px;height:26px;stroke:var(--tile,#fff);stroke-width:1.8}
 .icon-proxy .lbl{font-size:11.5px;color:var(--tx);text-shadow:0 1px 4px rgba(0,0,0,.7)}
 .dicon.dragging,.dk.dragging{opacity:.28}
 .dk-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);white-space:nowrap;
@@ -370,7 +370,7 @@ body.dragging{cursor:grabbing}
 .sp-item[aria-selected="true"]{background:var(--signal-dim)}
 .sp-item:hover{background:var(--glass-3)}
 .sp-item .lead{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none}
-.sp-item .lead .ico{width:14px;height:14px;stroke:#fff;stroke-width:2}
+.sp-item .lead .ico{width:14px;height:14px;stroke:var(--tile,#fff);stroke-width:2}
 .sp-item .t{font-size:13px;font-weight:600;display:block}
 .sp-item .d{font-size:11.5px;color:var(--tx-3);display:block;margin-top:1px}
 .sp-item .kb{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--tx-4);flex:none}
@@ -400,7 +400,7 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1p
 .mc-thumb{display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:8px;
   background:var(--glass-3);border:1px solid var(--glass-line);font-size:11.5px}
 .mc-thumb .tico{width:14px;height:14px;border-radius:4px;display:grid;place-items:center}
-.mc-thumb .tico .ico{width:9px;height:9px;stroke:#fff;stroke-width:2.2}
+.mc-thumb .tico .ico{width:9px;height:9px;stroke:var(--tile,#fff);stroke-width:2.2}
 .mc-empty{font-size:11.5px;color:var(--tx-4);align-self:center}
 .mc-hint{font-size:11.5px;color:var(--tx-3);text-align:center}
 
@@ -470,7 +470,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .mb-card{flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:44px;border-radius:11px;
   background:var(--glass-2);border:1px solid var(--glass-line);font-size:12px}
 .mb-card .tico{width:22px;height:22px;border-radius:6px;display:grid;place-items:center}
-.mb-card .tico .ico{width:13px;height:13px;stroke:#fff;stroke-width:2}
+.mb-card .tico .ico{width:13px;height:13px;stroke:var(--tile,#fff);stroke-width:2}
 @media (max-width:767px){
   :root{--dock-h:0px}
   #dock{display:none}
