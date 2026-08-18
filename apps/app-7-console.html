@@ -199,6 +199,34 @@ body:not([data-stage="os"]) #os{display:none}
 .g-mail{background:linear-gradient(150deg,#F077B6,#8E2A63)}
 .g-set{background:linear-gradient(150deg,#6E7482,#33373F)}
 
+/* ============================ DESKTOP WIDGETS ============================
+   Live cards sitting on the wallpaper. The desktop should tell you the state
+   of your work before you open anything — informative, not decorative. */
+.widget-layer{position:absolute;top:16px;right:16px;width:296px;display:flex;flex-direction:column;gap:12px;
+  z-index:6;pointer-events:none}
+.widget-layer>*{pointer-events:auto}
+.wg{border-radius:var(--r-lg);background:var(--glass);backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line);padding:13px 15px;
+  box-shadow:0 12px 30px rgba(0,0,0,.3);cursor:pointer;transition:border-color .16s,transform .16s}
+.wg:hover{border-color:var(--glass-line-2);transform:translateY(-2px)}
+.wg .wh{display:flex;align-items:center;gap:7px;font-size:10px;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--tx-4);font-weight:700;margin-bottom:9px}
+.wg .wh .ico{width:12px;height:12px;color:var(--tx-3)}
+.wg .wh .sp{flex:1}
+.wg .big{font-size:25px;font-weight:750;letter-spacing:-.025em;line-height:1.1}
+.wg .sm{font-size:11.5px;color:var(--tx-2);line-height:1.5;margin-top:4px}
+.wg .row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tx-2);padding:5px 0}
+.wg .row+.row{border-top:1px solid var(--glass-line)}
+.wg .row .d{width:6px;height:6px;border-radius:99px;flex:none}
+.wg .row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wg .row .v{font-family:var(--mono);font-size:10.5px;color:var(--tx-3);flex:none}
+.wg.pv .big{color:var(--private)}
+.wg.pb .big{color:var(--public)}
+.wg.sg .big{color:#A99BFF}
+.wg .meter{height:5px;border-radius:99px;background:var(--glass-3);overflow:hidden;margin-top:9px}
+.wg .meter i{display:block;height:100%;border-radius:99px}
+@media (prefers-reduced-motion: no-preference){ .wg .live{animation:sovPulse 2.2s infinite} }
+
 /* ============================ WINDOWS ============================ */
 .win-layer{position:absolute;inset:0}
 .win{position:absolute;display:flex;flex-direction:column;border-radius:var(--r-xl);overflow:hidden;
@@ -270,6 +298,16 @@ body.dragging{cursor:grabbing}
   background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;z-index:2}
 .dk-sep{width:1px;align-self:stretch;background:var(--glass-line);margin:6px 3px}
 .dk-ctx{display:flex;gap:8px;align-items:flex-end}
+/* dock is a drop target while an icon is being dragged over it */
+#dock.drop-target{border-color:var(--signal);box-shadow:0 0 0 2px var(--signal-dim), 0 18px 40px rgba(0,0,0,.42)}
+/* the floating proxy that follows the pointer, so an icon can leave its layer */
+.icon-proxy{position:fixed;z-index:400;pointer-events:none;width:88px;
+  display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;opacity:.92}
+.icon-proxy .tile{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;
+  box-shadow:0 16px 34px rgba(0,0,0,.5);transform:scale(1.06)}
+.icon-proxy .tile .ico{width:26px;height:26px;stroke:#fff;stroke-width:1.8}
+.icon-proxy .lbl{font-size:11.5px;color:var(--tx);text-shadow:0 1px 4px rgba(0,0,0,.7)}
+.dicon.dragging,.dk.dragging{opacity:.28}
 .dk-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);white-space:nowrap;
   background:var(--glass-3);border:1px solid var(--glass-line);padding:4px 9px;border-radius:7px;font-size:11.5px;
   color:var(--tx);box-shadow:var(--shadow-sm);opacity:0;pointer-events:none;transition:opacity .12s}
@@ -508,10 +546,27 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 /* ============================ BRAIN APP ============================ */
 .br-wrap{flex:1;display:flex;min-width:0}
 .br-main{flex:1;min-width:0;display:flex;flex-direction:column}
-.br-graph{flex:1;min-height:0;position:relative;overflow:hidden}
+.br-graph{flex:1;min-height:0;position:relative;overflow:hidden;cursor:grab;touch-action:none}
+.br-graph.panning{cursor:grabbing}
 .br-graph svg{width:100%;height:100%;display:block}
-.br-edge{stroke:var(--tx-4);fill:none}
-.br-edge.hot{stroke:var(--private);stroke-width:2}
+.br-canvas{position:absolute;inset:0}
+.br-edge{stroke:var(--tx-2);fill:none;stroke-linecap:round}
+.br-edge.hot{stroke:var(--private)}
+.br-flow{filter:none}
+@media (prefers-reduced-motion: reduce){ .br-flow{display:none} }
+/* opacity + scale only — `r` is an SVG geometry property and animating it in
+   CSS is not reliable across engines */
+@media (prefers-reduced-motion: no-preference){
+  .br-halo{animation:haloPulse 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+}
+@keyframes haloPulse{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:.12;transform:scale(1.18)}}
+/* zoom controls, bottom-right of the canvas */
+.br-zoom{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;
+  background:var(--glass-3);border:1px solid var(--glass-line);border-radius:var(--r-pill);
+  padding:4px 6px;box-shadow:var(--shadow-sm);z-index:3}
+.br-zoom button{width:26px;height:26px;border-radius:99px;display:grid;place-items:center;color:var(--tx-2)}
+.br-zoom button:hover{background:var(--glass-2);color:var(--tx)}
+.br-zoom span{font-family:var(--mono);font-size:10.5px;color:var(--tx-3);padding:0 6px;min-width:40px;text-align:center}
 .br-node{cursor:pointer}
 .br-node circle{stroke:rgba(255,255,255,.25);stroke-width:1.5;transition:r .18s ease}
 .br-node:hover circle{stroke:#fff;stroke-width:2.5}
@@ -830,6 +885,20 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z"/></symbol>
 <symbol id="i-slides" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M9 20.5h6M12 17v3.5"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0"/></symbol>
+<symbol id="i-market" viewBox="0 0 24 24"><path d="M3.5 8.5h17l-1.2 11a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8Z"/><path d="M8.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5"/><path d="M9.5 12.5h5"/></symbol>
+<symbol id="i-skill" viewBox="0 0 24 24"><path d="M12 3.2l2.4 4.1 4.6.9-3.3 3.4.7 4.7-4.4-2.2-4.4 2.2.7-4.7L5 8.2l4.6-.9Z"/><path d="M12 19v2M9 21h6"/></symbol>
+<symbol id="i-mcp" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="9.5" rx="2"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/><path d="M8.5 13.5h2M13.5 13.5h2"/></symbol>
+<symbol id="i-task" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><path d="M7 15l2.4-4 2.3 2.4L14.2 9l2.8 6"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.6 2H4.9Z"/><path d="M10 20.2a2.2 2.2 0 0 0 4 0"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></symbol>
+<symbol id="i-api" viewBox="0 0 24 24"><path d="M7.5 4.5 4 8l3.5 3.5"/><path d="M16.5 12.5 20 16l-3.5 3.5"/><path d="M13.5 4.5 10 19.5"/></symbol>
+<symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3.2 8 4.2v9.2l-8 4.2-8-4.2V7.4Z"/><path d="m4 7.4 8 4.2 8-4.2M12 11.6v9.4"/></symbol>
+<symbol id="i-vault" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><circle cx="12" cy="12" r="3.4"/><path d="M12 8.6V5.6M12 18.4v-3M8.6 12H5.6M18.4 12h-3"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4.5v15h16"/><path d="M7.5 15.5V11M11.5 15.5V7.5M15.5 15.5v-6M19 15.5V6"/></symbol>
+<symbol id="i-approve" viewBox="0 0 24 24"><path d="M4.5 6.2 12 3.4l7.5 2.8v5.4c0 4.2-3 7.8-7.5 9.2-4.5-1.4-7.5-5-7.5-9.2Z"/><path d="m9.2 11.8 2.1 2.1 4-4.3"/></symbol>
+<symbol id="i-project" viewBox="0 0 24 24"><path d="M3.5 7.2a2 2 0 0 1 2-2h3.1l2 2.4h7.9a2 2 0 0 1 2 2v8.7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/><path d="M8 13.5h8M8 16.5h5"/></symbol>
+<symbol id="i-model" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="4.6" r="1.8"/><circle cx="12" cy="19.4" r="1.8"/><circle cx="5.2" cy="8.2" r="1.8"/><circle cx="18.8" cy="15.8" r="1.8"/><path d="M12 6.4v3.2M12 14.4v3.2M6.8 9.1l3 1.7M14.2 13.2l3 1.7"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14.2 3.5H7.4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8Z"/><path d="M14.2 3.5V8h4.4"/><path d="M8.6 12.5h6.8M8.6 16h4.2"/></symbol>
 <symbol id="i-magna" viewBox="0 0 640 440"><path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 <linearGradient id="mgA" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/></linearGradient>
 <linearGradient id="mgB" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient>
@@ -936,6 +1005,9 @@ function ico(id,cls){ return '<svg class="ico '+(cls||"")+'"><use href="#'+id+'"
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 /* menu-bar height comes from CSS (it grows on mobile for 44px targets), so the
    window maths must read it rather than assume the desktop value */
+/* setPointerCapture throws NotFoundError if the pointer is already gone, which
+   would abort the rest of the handler — never let it break a gesture */
+function grab(node, id){ try{ if(node.setPointerCapture) node.setPointerCapture(id); }catch(e){} }
 function barH(){
   var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--menubar-h"),10);
   return isNaN(v) ? 34 : v;
@@ -1056,12 +1128,79 @@ function renderSpaces(){
     var sp = el("div","space");
     sp.id = "space-" + s.id;
     sp.setAttribute("data-space", s.id);
-    sp.innerHTML = '<div class="icon-layer" data-icons="'+s.id+'"></div><div class="win-layer" data-winlayer="'+s.id+'"></div>';
+    sp.innerHTML = '<div class="icon-layer" data-icons="'+s.id+'"></div>'+
+                   '<div class="widget-layer" data-widgets="'+s.id+'"></div>'+
+                   '<div class="win-layer" data-winlayer="'+s.id+'"></div>';
     host.appendChild(sp);
   });
   layoutSpaces(true);
   renderIcons();
+  renderWidgets();
 }
+
+/* --- desktop widgets -------------------------------------------------------
+   Each space shows the widgets that match what that space is for, so the
+   desktop reports the state of your work instead of just holding icons. */
+var WIDGETS = {
+  0: ["sovereignty","exposure","approvals"],
+  1: ["servers","sovereignty","usage"],
+  2: ["brain","sovereignty","usage"],
+  3: ["agents","automation","approvals"]
+};
+function widgetHTML(kind){
+  if(kind === "sovereignty")
+    return '<div class="wg pv" data-wg="sov"><div class="wh">'+ico("i-shield")+'Sovereignty<span class="sp"></span>'+
+      '<span class="live" style="width:6px;height:6px;border-radius:99px;background:var(--private);display:block"></span></div>'+
+      '<div class="big">Private</div><div class="sm">magna-riyadh-dc1 · 8×H200<br>Egress today: <b style="color:var(--tx)">0 bytes</b></div></div>';
+  if(kind === "exposure")
+    return '<div class="wg pb" data-wg="chat"><div class="wh">'+ico("i-warn")+'Package C2 exposure</div>'+
+      '<div class="big">SAR 5.32M</div><div class="sm">at 45 days · LD cap binds past day 67<br>Board pack due Thursday 09:00</div>'+
+      '<div class="meter"><i style="width:67%;background:var(--public)"></i></div></div>';
+  if(kind === "approvals")
+    return '<div class="wg sg" data-wg="approvals"><div class="wh">'+ico("i-approve")+'Waiting on you</div>'+
+      '<div class="big">5</div><div class="sm">approvals pending — one production deploy, one database delete</div></div>';
+  if(kind === "agents")
+    return '<div class="wg" data-wg="agents"><div class="wh">'+ico("i-agent")+'Agents<span class="sp"></span>'+
+      '<span style="font-family:var(--mono);font-size:10px;color:var(--private)">2 running</span></div>'+
+      '<div class="row"><span class="d live" style="background:var(--private)"></span>'+
+      '<span class="nm">PO Slippage Watch</span><span class="v">2h cycle</span></div>'+
+      '<div class="row"><span class="d live" style="background:var(--private)"></span>'+
+      '<span class="nm">Risk Research Agent</span><span class="v">GC-8 8.4</span></div>'+
+      '<div class="row"><span class="d" style="background:var(--tx-4)"></span>'+
+      '<span class="nm">Board Pack Drafter</span><span class="v">idle</span></div></div>';
+  if(kind === "automation")
+    return '<div class="wg pb" data-wg="autos"><div class="wh">'+ico("i-bolt")+'Next automation</div>'+
+      '<div class="big">09:00</div><div class="sm">Board pack scheduler · in 41 min<br>Runs Board Pack Drafter, saves to drafts</div></div>';
+  if(kind === "servers")
+    return '<div class="wg" data-wg="tasks"><div class="wh">'+ico("i-term")+'Dev servers</div>'+
+      '<div class="row"><span class="d live" style="background:var(--private)"></span>'+
+      '<span class="nm">frontend · vite</span><span class="v">:5173</span></div>'+
+      '<div class="row"><span class="d live" style="background:var(--private)"></span>'+
+      '<span class="nm">api · spring boot</span><span class="v">:8080</span></div>'+
+      '<div class="row"><span class="d" style="background:var(--public)"></span>'+
+      '<span class="nm">postgres</span><span class="v">:5432</span></div></div>';
+  if(kind === "brain")
+    return '<div class="wg pv" data-wg="brain"><div class="wh">'+ico("i-brain")+'Brain index</div>'+
+      '<div class="big">8,412</div><div class="sm">documents · 1.94M vectors · 1,024-dim<br>Last incremental: 4 min ago</div></div>';
+  return '<div class="wg" data-wg="usage"><div class="wh">'+ico("i-chart")+'AI usage today</div>'+
+    '<div class="big">184k</div><div class="sm">tokens · SAR 12.40 of a SAR 200 daily budget</div>'+
+    '<div class="meter"><i style="width:6%;background:var(--signal)"></i></div></div>';
+}
+function renderWidgets(){
+  SPACES.forEach(function(s){
+    var host = $('[data-widgets="'+s.id+'"]'); if(!host) return;
+    host.innerHTML = (WIDGETS[s.id] || []).map(widgetHTML).join("");
+  });
+}
+/* a widget is a shortcut into whichever app owns the number it shows */
+var WG_TARGET = { sov:"settings", chat:"chat", approvals:"approvals", agents:"agents",
+                  autos:"autos", tasks:"tasks", brain:"brain", usage:"tasks" };
+document.addEventListener("click", function(e){
+  var g = e.target.closest("[data-wg]"); if(!g) return;
+  var t = WG_TARGET[g.getAttribute("data-wg")];
+  if(t && APPS[t]) openApp(t);
+});
+
 function layoutSpaces(instant){
   SPACES.forEach(function(s){
     var sp = $("#space-" + s.id);
@@ -1108,48 +1247,153 @@ function renderIcons(){
   var STEP_Y = 96, STEP_X = 100, TOP = 14, LEFT = 14;
   var avail = Math.max(200, window.innerHeight - barH() - 96);
   var perCol = Math.max(1, Math.floor(avail / STEP_Y));
+  var hid = desktopHidden();
   SPACES.forEach(function(s){
     var layer = $('[data-icons="'+s.id+'"]'); if(!layer) return;
-    layer.innerHTML = DESKTOP_ORDER.map(function(id, i){
-      var a = APPS[id], key = s.id + ":" + id;
-      var col = Math.floor(i / perCol), row = i % perCol;
-      var xy = pos[key] || [LEFT + col * STEP_X, TOP + row * STEP_Y];
-      var badge = BADGES[id] ? '<span class="badge">'+BADGES[id]+'</span>' : "";
-      return '<button class="dicon" data-open="'+id+'" data-app="'+id+'" '+
-             'style="left:'+xy[0]+'px;top:'+xy[1]+'px" aria-label="Open '+esc(a.name)+'">'+
-             '<span class="tile '+a.tile+'">'+ico(a.icon)+badge+'</span>'+
-             '<span class="lbl">'+esc(a.name)+'</span></button>';
-    }).join("");
+    var i = -1;
+    layer.innerHTML = DESKTOP_ORDER.filter(function(id){ return !hid[s.id + ":" + id]; })
+      .map(function(id){
+        i++;
+        var a = APPS[id], key = s.id + ":" + id;
+        var col = Math.floor(i / perCol), row = i % perCol;
+        var xy = pos[key] || [LEFT + col * STEP_X, TOP + row * STEP_Y];
+        var badge = BADGES[id] ? '<span class="badge">'+BADGES[id]+'</span>' : "";
+        return '<button class="dicon" data-open="'+id+'" data-app="'+id+'" '+
+               'style="left:'+xy[0]+'px;top:'+xy[1]+'px" aria-label="Open '+esc(a.name)+'">'+
+               '<span class="tile '+a.tile+'">'+ico(a.icon)+badge+'</span>'+
+               '<span class="lbl">'+esc(a.name)+'</span></button>';
+      }).join("");
   });
 }
 
-/* icon drag-to-reposition (desktop only; mobile uses a fixed springboard grid) */
+/* ---------------------------------------------------------------------------
+   Icon dragging, macOS-style: reposition on the desktop, drag a desktop icon
+   ONTO the dock to pin it, and drag a dock icon OFF to drop it on the desktop.
+   One gesture handler serves both surfaces — a floating proxy follows the
+   pointer so the icon can visually leave its own container.
+   --------------------------------------------------------------------------- */
+function dockPinned(){
+  try{ var v = JSON.parse(store.get("mv7.dock","")); if(v && v.length) return v; }catch(e){}
+  return DOCK_PINNED.slice();
+}
+function saveDock(list){ store.set("mv7.dock", JSON.stringify(list)); }
+function desktopHidden(){
+  try{ var v = JSON.parse(store.get("mv7.deskHide","")); if(v) return v; }catch(e){}
+  return {};
+}
+function saveDesktopHidden(map){ store.set("mv7.deskHide", JSON.stringify(map)); }
+
 var iconDrag = null;
 document.addEventListener("pointerdown", function(e){
-  var ic = e.target.closest(".dicon"); if(!ic || isMobile()) return;
-  var layer = ic.parentElement;
-  iconDrag = { node:ic, id:ic.getAttribute("data-app"), space:+layer.getAttribute("data-icons"),
-               sx:e.clientX, sy:e.clientY, ox:ic.offsetLeft, oy:ic.offsetTop, moved:false };
-  ic.setPointerCapture && ic.setPointerCapture(e.pointerId);
+  if(isMobile()) return;
+  var ic = e.target.closest(".dicon"), dk = e.target.closest(".dk");
+  var node = ic || dk; if(!node) return;
+  var from = ic ? "desktop" : "dock";
+  var id = node.getAttribute("data-app") || node.getAttribute("data-open");
+  if(!id || !APPS[id]) return;
+  var r = node.getBoundingClientRect();
+  iconDrag = {
+    node:node, from:from, id:id, moved:false,
+    space: from === "desktop" ? +node.parentElement.getAttribute("data-icons") : curSpace,
+    sx:e.clientX, sy:e.clientY,
+    ox: from === "desktop" ? node.offsetLeft : 0,
+    oy: from === "desktop" ? node.offsetTop  : 0,
+    gx: e.clientX - r.left, gy: e.clientY - r.top,
+    proxy:null
+  };
+  grab(node, e.pointerId);
 });
 document.addEventListener("pointermove", function(e){
   if(!iconDrag) return;
-  var dx = e.clientX - iconDrag.sx, dy = e.clientY - iconDrag.sy;
-  if(!iconDrag.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
-  iconDrag.moved = true;
-  iconDrag.node.classList.add("dragging");
-  var lay = iconDrag.node.parentElement;
-  iconDrag.node.style.left = clamp(iconDrag.ox + dx, 0, lay.clientWidth  - iconDrag.node.offsetWidth) + "px";
-  iconDrag.node.style.top  = clamp(iconDrag.oy + dy, 0, lay.clientHeight - iconDrag.node.offsetHeight) + "px";
+  var d = iconDrag, dx = e.clientX - d.sx, dy = e.clientY - d.sy;
+  if(!d.moved && Math.abs(dx) + Math.abs(dy) < 6) return;
+  if(!d.moved){
+    d.moved = true;
+    d.node.classList.add("dragging");
+    /* a fixed-position proxy, so the icon can be dragged outside its layer */
+    var a = APPS[d.id];
+    d.proxy = el("div","icon-proxy",
+      '<span class="tile '+a.tile+'">'+ico(a.icon)+'</span><span class="lbl">'+esc(a.name)+'</span>');
+    document.body.appendChild(d.proxy);
+  }
+  d.proxy.style.left = (e.clientX - d.gx) + "px";
+  d.proxy.style.top  = (e.clientY - d.gy) + "px";
+  var overDock = !!document.getElementById("dock").matches(":hover") ||
+                 pointerOverDock(e.clientX, e.clientY);
+  document.getElementById("dock").classList.toggle("drop-target", overDock);
 });
-document.addEventListener("pointerup", function(){
+function pointerOverDock(x, y){
+  var r = document.getElementById("dock").getBoundingClientRect();
+  return x >= r.left - 24 && x <= r.right + 24 && y >= r.top - 24 && y <= r.bottom + 24;
+}
+document.addEventListener("pointerup", function(e){
   if(!iconDrag) return;
   var d = iconDrag; iconDrag = null;
+  var dock = document.getElementById("dock");
+  dock.classList.remove("drop-target");
   d.node.classList.remove("dragging");
-  if(d.moved){ saveIconPos(d.id, d.space, parseInt(d.node.style.left,10), parseInt(d.node.style.top,10)); }
+  if(d.proxy) d.proxy.remove();
+  if(!d.moved) return;                        /* a plain click, handled elsewhere */
+
+  var onDock = pointerOverDock(e.clientX, e.clientY);
+  var pinned = dockPinned();
+
+  if(d.from === "desktop" && onDock){
+    if(pinned.indexOf(d.id) < 0){ pinned.push(d.id); saveDock(pinned); }
+    var hid = desktopHidden(); hid[d.space + ":" + d.id] = 1; saveDesktopHidden(hid);
+    renderIcons(); renderDock();
+    toast(APPS[d.id].name + " pinned to the dock.", 2200);
+    return;
+  }
+  if(d.from === "dock" && !onDock){
+    /* dropped on the desktop: place it where it landed and unpin */
+    var lay = $('[data-icons="'+curSpace+'"]');
+    if(lay){
+      var lr = lay.getBoundingClientRect();
+      var x = clamp(e.clientX - lr.left - 44, 0, Math.max(0, lay.clientWidth - 88));
+      var y = clamp(e.clientY - lr.top  - 34, 0, Math.max(0, lay.clientHeight - 92));
+      saveIconPos(d.id, curSpace, Math.round(x), Math.round(y));
+      var hid2 = desktopHidden(); delete hid2[curSpace + ":" + d.id]; saveDesktopHidden(hid2);
+    }
+    var i = pinned.indexOf(d.id);
+    if(i > -1 && pinned.length > 1){ pinned.splice(i,1); saveDock(pinned); }
+    renderIcons(); renderDock();
+    toast(APPS[d.id].name + " moved to the desktop.", 2200);
+    return;
+  }
+  if(d.from === "desktop"){
+    /* plain reposition within the desktop */
+    var lay2 = d.node.parentElement, lr2 = lay2.getBoundingClientRect();
+    var nx = clamp(e.clientX - lr2.left - d.gx, 0, Math.max(0, lay2.clientWidth  - d.node.offsetWidth));
+    var ny = clamp(e.clientY - lr2.top  - d.gy, 0, Math.max(0, lay2.clientHeight - d.node.offsetHeight));
+    d.node.style.left = Math.round(nx) + "px";
+    d.node.style.top  = Math.round(ny) + "px";
+    saveIconPos(d.id, d.space, Math.round(nx), Math.round(ny));
+    return;
+  }
+  /* dock -> dock: reorder by drop position */
+  if(d.from === "dock" && onDock){
+    var slots = $$(".dk", dock).filter(function(n){ return n !== d.node; });
+    var target = pinned.length;
+    for(var k=0;k<slots.length;k++){
+      var sr = slots[k].getBoundingClientRect();
+      if(e.clientX < sr.left + sr.width/2){
+        var sid = slots[k].getAttribute("data-open");
+        var si = pinned.indexOf(sid);
+        if(si > -1){ target = si; break; }
+      }
+    }
+    var cur = pinned.indexOf(d.id);
+    if(cur > -1){
+      pinned.splice(cur,1);
+      if(target > cur) target--;
+      pinned.splice(clamp(target,0,pinned.length), 0, d.id);
+      saveDock(pinned); renderDock();
+    }
+  }
 });
 
-/* open on click — but never when the pointer-up was a reposition drag */
+/* open on click — but never when the pointer-up was a drag */
 document.addEventListener("click", function(e){
   var b = e.target.closest("[data-open]");
   if(b && !b.classList.contains("dragging")){ openApp(b.getAttribute("data-open")); }
@@ -1297,7 +1541,7 @@ document.addEventListener("pointerdown", function(e){
   if(!w || w.max) return;
   drag = { w:w, sx:e.clientX, sy:e.clientY, ox:w.x, oy:w.y, snap:null };
   document.body.classList.add("dragging");
-  bar.setPointerCapture && bar.setPointerCapture(e.pointerId);
+  grab(bar, e.pointerId);
 });
 document.addEventListener("pointermove", function(e){
   if(!drag) return;
@@ -1319,19 +1563,41 @@ document.addEventListener("pointerup", function(){
   if(snap) applySnap(w, snap);
   drag = null;
 });
+/* Snap zones. Edges give halves; corners give quadrants; the very top maximises.
+   Corners are checked first, because a corner is also inside two edges. */
 function detectSnap(cx, cy){
-  var W = window.innerWidth, T = barH(), E = 26;
+  var W = window.innerWidth, H = window.innerHeight, T = barH(), E = 28, C = 130;
+  var nearL = cx <= E, nearR = cx >= W - E, nearT = cy <= T + 8, nearB = cy >= H - 34;
+  var inL = cx <= C, inR = cx >= W - C, inT = cy <= T + C, inB = cy >= H - C;
   var s = null;
-  if(cx <= E) s = "left"; else if(cx >= W - E) s = "right"; else if(cy <= T + 6) s = "max";
+  /* a pointer in an edge band AND within the corner box snaps to a quadrant */
+  if(nearL && inT) s = "tl";
+  else if(nearL && inB) s = "bl";
+  else if(nearR && inT) s = "tr";
+  else if(nearR && inB) s = "br";
+  else if(nearT && inL) s = "tl";
+  else if(nearT && inR) s = "tr";
+  else if(nearL) s = "left";
+  else if(nearR) s = "right";
+  else if(nearT) s = "max";
   drag.snap = s;
   if(s) showGhost(s); else hideGhost();
 }
 function ghostRect(kind){
-  var W = window.innerWidth, T = barH(), H = window.innerHeight - T, pad = 8, dock = isMobile()?8:74;
-  if(kind === "left")  return {left:pad, top:T+pad, width:W/2 - pad*1.5, height:H - pad - dock};
-  if(kind === "right") return {left:W/2 + pad/2, top:T+pad, width:W/2 - pad*1.5, height:H - pad - dock};
+  var W = window.innerWidth, T = barH(), H = window.innerHeight - T,
+      pad = 8, dock = isMobile() ? 8 : 74;
+  var availH = H - pad - dock, halfW = W/2 - pad*1.5, halfH = availH/2 - pad/2;
+  var midX = W/2 + pad/2, midY = T + pad + halfH + pad;
+  if(kind === "left")  return {left:pad,  top:T+pad, width:halfW, height:availH};
+  if(kind === "right") return {left:midX, top:T+pad, width:halfW, height:availH};
+  if(kind === "tl")    return {left:pad,  top:T+pad, width:halfW, height:halfH};
+  if(kind === "tr")    return {left:midX, top:T+pad, width:halfW, height:halfH};
+  if(kind === "bl")    return {left:pad,  top:midY,  width:halfW, height:halfH};
+  if(kind === "br")    return {left:midX, top:midY,  width:halfW, height:halfH};
   return {left:0, top:T, width:W, height:H};
 }
+var SNAP_LABEL = { left:"left half", right:"right half", tl:"top left", tr:"top right",
+                   bl:"bottom left", br:"bottom right", max:"full screen" };
 function showGhost(kind){
   var g = $("#snapGhost"), r = ghostRect(kind);
   g.classList.add("on");
@@ -1344,7 +1610,7 @@ function applySnap(w, kind){
   w.prevRect = {x:w.x,y:w.y,w:w.w,h:w.h};
   w.x=r.left; w.y=r.top - barH(); w.w=r.width; w.h=r.height;
   applyRect(w);
-  toast("Snapped " + kind, 1400);
+  toast("Snapped " + (SNAP_LABEL[kind] || kind), 1400);
 }
 
 /* --- resize --- */
@@ -1356,7 +1622,7 @@ document.addEventListener("pointerdown", function(e){
   rez = { w:w, dir:h.getAttribute("data-rz"), sx:e.clientX, sy:e.clientY,
           ox:w.x, oy:w.y, ow:w.w, oh:w.h };
   document.body.classList.add("dragging");
-  h.setPointerCapture && h.setPointerCapture(e.pointerId);
+  grab(h, e.pointerId);
   e.preventDefault();
 });
 document.addEventListener("pointermove", function(e){
@@ -1397,13 +1663,18 @@ function dockBtn(id, running){
          '<span class="run"></span><span class="dk-tip">'+esc(a.name)+'</span></button>';
 }
 function renderDock(){
-  var run = runningIds(), ctx = contextualIds();
-  var html = DOCK_PINNED.map(function(id){ return dockBtn(id, run[id]); }).join("");
-  html += '<span class="dk-sep"></span>';
-  html += '<span class="dk-ctx">' + ctx.map(function(id){ return dockBtn(id, run[id]); }).join("") + '</span>';
-  html += '<span class="dk-sep"></span>';
-  html += DOCK_REST.filter(function(id){ return ctx.indexOf(id) < 0; })
-                   .map(function(id){ return dockBtn(id, run[id]); }).join("");
+  var run = runningIds(), ctx = contextualIds(), pinned = dockPinned();
+  var html = pinned.map(function(id){ return dockBtn(id, run[id]); }).join("");
+  var extra = ctx.filter(function(id){ return pinned.indexOf(id) < 0; });
+  if(extra.length){
+    html += '<span class="dk-sep"></span>';
+    html += '<span class="dk-ctx">' + extra.map(function(id){ return dockBtn(id, run[id]); }).join("") + '</span>';
+  }
+  var rest = DOCK_REST.filter(function(id){ return pinned.indexOf(id) < 0 && extra.indexOf(id) < 0; });
+  if(rest.length){
+    html += '<span class="dk-sep"></span>';
+    html += rest.map(function(id){ return dockBtn(id, run[id]); }).join("");
+  }
   $("#dock").innerHTML = html;
 }
 function renderMobileBar(){
@@ -1640,7 +1911,61 @@ var BRAIN_NODES = [
   {id:"n16",kind:"email",    label:"Variation notice draft",  src:"Outlook",            x:.38, y:.92,
    note:"Draft to Al-Rajhi citing GC-8 8.4. Commercial figure still blank — waiting on you."},
   {id:"n17",kind:"decision", label:"Keep C3 float untouched", src:"Decision log",       x:.90, y:.68,
-   note:"You declined to borrow float from package C3 on 11 Aug, to protect its own tunnel handover."}
+   note:"You declined to borrow float from package C3 on 11 Aug, to protect its own tunnel handover."},
+
+  /* --- commercial cluster --------------------------------------------------- */
+  {id:"n18",kind:"doc",      label:"Variation VN-C2-0114",    src:"Company Knowledge",  x:.30, y:1.06,
+   note:"The variation notice as issued. Assessed sum still blank pending your figure."},
+  {id:"n19",kind:"doc",      label:"Rate card 2026 Q3",       src:"SAP S/4HANA",        x:.06, y:.56,
+   note:"Crew standby SAR 94,000/day. This is the number the exposure model is most sensitive to."},
+  {id:"n20",kind:"person",   label:"Faisal Al-Harbi",         src:"Directory",          x:.16, y:1.02,
+   note:"Quantity surveyor. Owns the measured works and the variation valuations."},
+  {id:"n21",kind:"doc",      label:"Al-Rajhi prequalification",src:"Company Knowledge", x:.02, y:.80,
+   note:"Category A steel supplier, renewed Feb 2026. Single-source risk flagged at renewal."},
+  {id:"n22",kind:"decision", label:"Dual-source unit rate +1.8%", src:"Decision log",   x:.52, y:1.14,
+   note:"Pending Thursday. Accepting the premium buys back 14 days on the rebar chain."},
+  {id:"n23",kind:"system",   label:"zatca-einvoice",          src:"MCP server",         x:.14, y:1.22,
+   note:"ZATCA Fatoora clearance. Every variation invoice must clear before payment."},
+
+  /* --- schedule cluster ---------------------------------------------------- */
+  {id:"n24",kind:"doc",      label:"Baseline r6 (superseded)", src:"Primavera P6",      x:.86, y:.18,
+   note:"The previous baseline. Kept because two claims still reference its dates."},
+  {id:"n25",kind:"doc",      label:"C3 tunnel handover plan",  src:"Confluence",        x:1.02, y:.60,
+   note:"The handover this project protected by declining to borrow C3 float."},
+  {id:"n26",kind:"project",  label:"RYD-M3 Package C3",        src:"Primavera P6",      x:1.06, y:.44,
+   note:"Downstream package. On baseline, and the reason C2 could not simply absorb the slip."},
+  {id:"n27",kind:"doc",      label:"Rebar fixing method stmt", src:"Company Knowledge", x:.78, y:.10,
+   note:"Governs crew size and therefore the standby rate in the exposure model."},
+  {id:"n28",kind:"person",   label:"Omar Siddiqui",            src:"Directory",         x:1.10, y:.26,
+   note:"Planner. Owns Baseline r7 and runs the nightly P6 snapshot."},
+  {id:"n29",kind:"decision", label:"Re-sequence deck pours",   src:"Decision log",      x:.94, y:.06,
+   note:"Taken 08 Aug. Bought 4 days by pouring D-deck before C-deck."},
+
+  /* --- HSE and governance cluster ------------------------------------------ */
+  {id:"n30",kind:"doc",      label:"LTI report — deck fall",   src:"Company Knowledge", x:.92, y:.94,
+   note:"One of two lost-time incidents on the C2 deck in week 33. Under investigation."},
+  {id:"n31",kind:"person",   label:"Sara Bin Zayed",           src:"Directory",         x:1.04, y:1.08,
+   note:"HSE lead. Escalates anything that touches the critical path crew."},
+  {id:"n32",kind:"doc",      label:"NCA ECC-1 control map",    src:"Confluence",        x:.68, y:1.26,
+   note:"Which controls apply to the platform. Cited whenever a tier change is proposed."},
+  {id:"n33",kind:"decision", label:"Keep C2 threads Private",  src:"Governance",        x:.44, y:1.30,
+   note:"Standing decision: nothing touching GC-8 or PO data may run on the Public tier."},
+  {id:"n34",kind:"system",   label:"hse-digest",               src:"Skill",             x:1.14, y:.86,
+   note:"Weekly incident summary with your reporting thresholds already applied."},
+
+  /* --- delivery and comms cluster ------------------------------------------ */
+  {id:"n35",kind:"email",    label:"Thursday agenda",          src:"Outlook",           x:.86, y:1.20,
+   note:"Nouf circulated the running order. C2 exposure is item 3."},
+  {id:"n36",kind:"email",    label:"Re: dual-source premium",  src:"Outlook",           x:.62, y:1.02,
+   note:"Procurement pushing back on the 1.8%. Unanswered."},
+  {id:"n37",kind:"person",   label:"Procurement desk",         src:"Directory",         x:.44, y:.92,
+   note:"Owns vendor onboarding. The second supplier cannot start until they clear it."},
+  {id:"n38",kind:"doc",      label:"Second supplier shortlist", src:"Company Knowledge",x:.66, y:.86,
+   note:"Three candidates. Only one can deliver 498 t before 20 Sep."},
+  {id:"n39",kind:"system",   label:"p6-slip-report",           src:"Skill",             x:1.10, y:.68,
+   note:"Baseline-versus-live variance at any WBS level, with float and criticality."},
+  {id:"n40",kind:"doc",      label:"Board pack — Aug r3",      src:"Company Knowledge", x:.74, y:1.10,
+   note:"Last week's pack. The exposure figure moved from SAR 4.10M to SAR 5.32M."}
 ];
 /* edges carry a cosine-style similarity so the graph doubles as a
    picture of what the retriever would actually pull back */
@@ -1649,7 +1974,23 @@ var BRAIN_EDGES = [
   ["n2","n3",.72],["n2","n16",.86],["n3","n6",.79],["n3","n8",.91],["n3","n13",.55],
   ["n4","n14",.92],["n4","n5",.74],["n5","n10",.69],["n5","n17",.77],
   ["n6","n7",.94],["n7","n16",.83],["n10","n12",.80],["n11","n12",.90],["n1","n10",.61],
-  ["n9","n11",.48],["n4","n17",.66],["n12","n5",.58]
+  ["n9","n11",.48],["n4","n17",.66],["n12","n5",.58],
+
+  /* commercial */
+  ["n16","n18",.96],["n18","n20",.84],["n18","n23",.71],["n2","n18",.88],
+  ["n19","n3",.74],["n19","n1",.68],["n21","n6",.82],["n21","n3",.63],
+  ["n22","n5",.91],["n22","n36",.87],["n22","n38",.79],["n20","n19",.66],
+  /* schedule */
+  ["n24","n4",.89],["n4","n27",.72],["n27","n19",.64],["n26","n17",.93],
+  ["n26","n25",.86],["n28","n4",.90],["n28","n14",.85],["n29","n4",.77],
+  ["n29","n1",.69],["n39","n14",.88],["n39","n4",.81],
+  /* HSE + governance */
+  ["n30","n9",.92],["n30","n31",.88],["n31","n9",.79],["n34","n9",.86],
+  ["n32","n33",.90],["n33","n10",.74],["n33","n2",.61],
+  /* delivery + comms */
+  ["n35","n11",.89],["n35","n12",.84],["n36","n37",.86],["n37","n38",.83],
+  ["n38","n5",.80],["n40","n12",.78],["n40","n1",.70],["n35","n40",.66],
+  ["n7","n6",.94],["n36","n6",.58],["n30","n27",.57]
 ];
 function nodeById(id){ return BRAIN_NODES.filter(function(n){ return n.id===id; })[0]; }
 function neighbours(id){
@@ -1957,10 +2298,11 @@ MOUNT.brain = function(body, w){
     var t = w.state.tab;
     if(t === "graph"){
       host.innerHTML = '<div class="br-graph">' + graphSVG(w.state.sel) +
-        '<div class="br-hint">click a node · edges are cosine similarity</div>'+
+        '<div class="br-hint">scroll to zoom · drag to pan · click a node</div>'+
         '<div class="br-legend">' + Object.keys(KIND_COLOR).map(function(k){
           return '<span><i style="background:'+KIND_COLOR[k]+'"></i>'+KIND_LABEL[k]+'</span>'; }).join("") +
         '</div></div>';
+      wireGraph(w);
     } else if(t === "emails"){
       host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Email, as part of the graph</h4>'+
         '<p class="sub">Console reads your mail to place it in the Brain — who wrote it, which document or PO it '+
@@ -2046,25 +2388,123 @@ MOUNT.brain = function(body, w){
   });
   drawTab(); drawDetail();
 };
+/* ---------------------------------------------------------------------------
+   The Brain canvas. Node coordinates are stored normalised and projected into
+   a fixed world, then the whole world is moved by ONE transform on a <g>, so
+   pan and zoom cost nothing per node — the same trick n8n uses.
+   --------------------------------------------------------------------------- */
+var WORLD_W = 1320, WORLD_H = 1200;
 function graphSVG(sel){
   var nb = {}; neighbours(sel).forEach(function(s){ nb[s.node.id] = s.score; });
+
   var edges = BRAIN_EDGES.map(function(e){
     var a = nodeById(e[0]), b = nodeById(e[1]);
-    var hot = (e[0]===sel || e[1]===sel);
-    return '<line class="br-edge'+(hot?" hot":"")+'" x1="'+(a.x*100)+'%" y1="'+(a.y*100)+'%" '+
-           'x2="'+(b.x*100)+'%" y2="'+(b.y*100)+'%" stroke-width="'+(hot?2:(e[2]*1.6).toFixed(1))+'" '+
-           'opacity="'+(hot?.85:(e[2]*0.4).toFixed(2))+'"/>';
+    if(!a || !b) return "";
+    var hot = (e[0] === sel || e[1] === sel);
+    var x1 = a.x*WORLD_W, y1 = a.y*WORLD_H, x2 = b.x*WORLD_W, y2 = b.y*WORLD_H;
+    /* a gentle curve, bowed perpendicular to the run — reads as a wiring
+       diagram rather than a spider web */
+    var mx = (x1+x2)/2, my = (y1+y2)/2;
+    var dx = x2-x1, dy = y2-y1, len = Math.sqrt(dx*dx+dy*dy) || 1;
+    var bow = Math.min(48, len*0.13);
+    var cx = mx - (dy/len)*bow, cy = my + (dx/len)*bow;
+    var d = "M"+x1.toFixed(1)+" "+y1.toFixed(1)+" Q"+cx.toFixed(1)+" "+cy.toFixed(1)+
+            " "+x2.toFixed(1)+" "+y2.toFixed(1);
+    return '<path class="br-edge'+(hot?" hot":"")+'" d="'+d+'" '+
+           'stroke-width="'+(hot ? 2.2 : (0.7 + e[2]*1.3).toFixed(2))+'" '+
+           'opacity="'+(hot ? .95 : (0.10 + e[2]*0.26).toFixed(2))+'"/>' +
+           /* only the selected node's edges carry a travelling pulse, so the
+              animation says something instead of just moving */
+           (hot ? '<circle class="br-flow" r="2.6" fill="'+KIND_COLOR[a.kind]+'">'+
+                  '<animateMotion dur="'+(1.6 + (1-e[2])*1.4).toFixed(2)+'s" repeatCount="indefinite" '+
+                  'path="'+d+'"/></circle>' : "");
   }).join("");
+
   var nodes = BRAIN_NODES.map(function(n){
-    var r = n.id === sel ? 15 : (n.hot ? 12 : (nb[n.id] ? 10 : 8));
-    return '<g class="br-node'+(n.id===sel?" sel":"")+(n.hot?" pulse":"")+'" data-brnode="'+n.id+'" '+
-           'transform="translate(0,0)" style="--x:0">'+
-           '<circle cx="'+(n.x*100)+'%" cy="'+(n.y*100)+'%" r="'+r+'" fill="'+KIND_COLOR[n.kind]+'" '+
-           'opacity="'+(n.id===sel||nb[n.id]||n.hot?1:.55)+'"/>'+
-           '<text x="'+(n.x*100)+'%" y="'+(n.y*100)+'%" dy="'+(r+13)+'">'+esc(n.label.slice(0,22))+'</text></g>';
+    var isSel = n.id === sel, near = !!nb[n.id];
+    var r = isSel ? 17 : (n.hot ? 13 : (near ? 11 : 8.5));
+    var x = (n.x*WORLD_W).toFixed(1), y = (n.y*WORLD_H).toFixed(1);
+    var op = isSel || near || n.hot ? 1 : .48;
+    return '<g class="br-node'+(isSel?" sel":"")+(n.hot?" pulse":"")+'" data-brnode="'+n.id+'">'+
+      (isSel ? '<circle class="br-halo" cx="'+x+'" cy="'+y+'" r="'+(r+9)+'" fill="none" '+
+               'stroke="'+KIND_COLOR[n.kind]+'" stroke-width="1.5" opacity=".45"/>' : "")+
+      '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+KIND_COLOR[n.kind]+'" opacity="'+op+'"/>'+
+      /* a small inner tick so nodes read as instrumented, not just dots */
+      '<circle cx="'+x+'" cy="'+y+'" r="'+(r*0.38).toFixed(1)+'" fill="#05070C" opacity="'+(op*0.55)+'"/>'+
+      '<text x="'+x+'" y="'+y+'" dy="'+(r+14)+'" opacity="'+(isSel||near||n.hot?1:.6)+'">'+
+        esc(n.label.length > 26 ? n.label.slice(0,25)+"…" : n.label)+'</text></g>';
   }).join("");
-  return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0">'+
-         '</svg><svg style="position:absolute;inset:0">'+edges+nodes+'</svg>';
+
+  return '<svg class="br-canvas" data-brcanvas viewBox="0 0 '+WORLD_W+' '+WORLD_H+'">'+
+           '<defs><pattern id="brGrid" width="34" height="34" patternUnits="userSpaceOnUse">'+
+             '<path d="M34 0H0V34" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/>'+
+           '</pattern></defs>'+
+           '<g data-brview>'+
+             '<rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#brGrid)"/>'+
+             '<g class="br-edges">'+edges+'</g><g class="br-nodes">'+nodes+'</g>'+
+           '</g>'+
+         '</svg>'+
+         '<div class="br-zoom">'+
+           '<button data-brzoom="in"  aria-label="Zoom in">'+ico("i-plus","xs")+'</button>'+
+           '<button data-brzoom="out" aria-label="Zoom out"><svg class="ico xs"><use href="#i-x"/></svg></button>'+
+           '<button data-brzoom="fit" aria-label="Fit to view">'+ico("i-grid","xs")+'</button>'+
+           '<span data-brzoomtx>100%</span>'+
+         '</div>';
+}
+
+/* pan/zoom controller — one transform on the view group, nothing per node */
+function wireGraph(w){
+  var host = w.body.querySelector(".br-graph"); if(!host) return;
+  var svg  = host.querySelector("[data-brcanvas]");
+  var view = host.querySelector("[data-brview]");
+  var tx   = host.querySelector("[data-brzoomtx]");
+  if(!svg || !view) return;
+  var st = w.state.view || (w.state.view = { k:1, x:0, y:0 });
+  function apply(){
+    view.setAttribute("transform","translate("+st.x.toFixed(1)+","+st.y.toFixed(1)+") scale("+st.k.toFixed(3)+")");
+    if(tx) tx.textContent = Math.round(st.k*100) + "%";
+  }
+  /* zoom about the pointer, so the thing under the cursor stays put */
+  function zoomAt(px, py, factor){
+    var k2 = clamp(st.k * factor, 0.35, 3);
+    if(k2 === st.k) return;
+    var pt = svg.createSVGPoint(); pt.x = px; pt.y = py;
+    var loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    st.x = loc.x - (loc.x - st.x) * (k2 / st.k);
+    st.y = loc.y - (loc.y - st.y) * (k2 / st.k);
+    st.k = k2; apply();
+  }
+  host.addEventListener("wheel", function(e){
+    e.preventDefault(); e.stopPropagation();
+    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1/1.12);
+  }, {passive:false});
+  /* drag the empty canvas to pan; dragging a node still selects it */
+  var pan = null;
+  host.addEventListener("pointerdown", function(e){
+    if(e.target.closest("[data-brnode]") || e.target.closest(".br-zoom")) return;
+    pan = { sx:e.clientX, sy:e.clientY, ox:st.x, oy:st.y };
+    host.classList.add("panning");
+    grab(host, e.pointerId);
+  });
+  host.addEventListener("pointermove", function(e){
+    if(!pan) return;
+    var ctm = svg.getScreenCTM();
+    st.x = pan.ox + (e.clientX - pan.sx) / (ctm.a || 1) ;
+    st.y = pan.oy + (e.clientY - pan.sy) / (ctm.d || 1);
+    apply();
+  });
+  host.addEventListener("pointerup", function(){ pan = null; host.classList.remove("panning"); });
+  host.addEventListener("pointercancel", function(){ pan = null; host.classList.remove("panning"); });
+  host.addEventListener("click", function(e){
+    var z = e.target.closest("[data-brzoom]"); if(!z) return;
+    e.stopPropagation();
+    var kind = z.getAttribute("data-brzoom");
+    var r = host.getBoundingClientRect();
+    if(kind === "in")  zoomAt(r.left + r.width/2, r.top + r.height/2, 1.25);
+    if(kind === "out") zoomAt(r.left + r.width/2, r.top + r.height/2, 1/1.25);
+    if(kind === "fit"){ st.k = 1; st.x = 0; st.y = 0; apply(); }
+  });
+  apply();
 }
 function brainSelect(w, id){
   if(!w || w.appId !== "brain") return;
