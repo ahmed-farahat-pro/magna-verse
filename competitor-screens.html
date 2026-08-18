@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Console — Competitor screens (schematic)</title>
+<meta name="description" content="Nine AI-OS and agent products, each drawn as an original interface-pattern wireframe, mapped against Magna Console. No screenshots.">
+<meta name="color-scheme" content="dark light">
+<script>
+/* theme before first paint — no flash */
+(function(){
+  try{
+    var t = localStorage.getItem("mv.theme");
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+/* ============================================================
+   Magna Console — competitive landscape, schematic edition.
+   House tokens (Riyadh Glass). Dark is home; light is a real
+   frosted variant, not an afterthought.
+   ============================================================ */
+:root{
+  --wall-1:#0A0F1C; --wall-2:#04060C; --bg:#05070C;
+  --glass:rgba(19,23,33,.68); --glass-2:rgba(26,31,43,.74); --glass-3:rgba(34,40,54,.8);
+  --glass-line:rgba(255,255,255,.10); --glass-line-2:rgba(255,255,255,.18);
+  --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#787E8D; --tx-4:#4C5262;
+  --accent:#D71920; --accent-2:#FF4A50; --accent-dim:rgba(215,25,32,.16);
+  --signal:#5B4FE0; --signal-dim:rgba(91,79,224,.16);
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+  --cyan:#0EA5B7; --blue:#3B7BFF; --violet:#8B5CF6;
+  --r:10px; --r-lg:16px; --r-xl:22px; --r-pill:99px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+
+  /* readable-on-dark variants of the brand colours, for prose + wireframes */
+  --accent-t:#FF5A60; --signal-t:#8B82FF;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow:0 18px 44px rgba(0,0,0,.5);
+
+  /* schematic wireframe palette */
+  --sch-bg:#0B0F18;
+  --sch-panel:rgba(255,255,255,.045);
+  --sch-panel-2:rgba(255,255,255,.085);
+  --sch-line:rgba(255,255,255,.16);
+  --sch-line-2:rgba(255,255,255,.30);
+  --sch-ghost:rgba(255,255,255,.13);
+  --sch-ink:#E9EBF0; --sch-ink-2:#A2A9B8; --sch-ink-3:#6C7383;
+  --sch-shadow:rgba(0,0,0,.45);
+  --sch-acc:#FF5A60; --sch-priv:#3FCF95; --sch-pub:#E0A33C; --sch-sig:#8B82FF;
+  --sch-cy:#29C4D6; --sch-bl:#5C93FF; --sch-vi:#A78BFA;
+}
+:root[data-theme="light"]{
+  --wall-1:#EEF1F7; --wall-2:#DFE4EE; --bg:#F4F6FA;
+  --glass:rgba(255,255,255,.78); --glass-2:rgba(255,255,255,.9); --glass-3:rgba(244,246,250,.94);
+  --glass-line:rgba(12,16,26,.11); --glass-line-2:rgba(12,16,26,.2);
+  --tx:#0D1018; --tx-2:#3D434F; --tx-3:#666D7B; --tx-4:#9AA0AC;
+  --accent-dim:rgba(215,25,32,.09);
+  --signal-dim:rgba(91,79,224,.10);
+  --private:#0F7A52; --private-dim:rgba(15,122,82,.11);
+  --public:#96620F;  --public-dim:rgba(150,98,15,.11);
+  --cyan:#0A7E8C; --blue:#2A62E0; --violet:#6D3FD6;
+  --accent-t:#C2151C; --signal-t:#4B3FD0;
+  --shadow-sm:0 1px 2px rgba(20,26,40,.08);
+  --shadow:0 18px 44px rgba(20,26,40,.12);
+  --sch-bg:#F8F9FC;
+  --sch-panel:rgba(12,16,26,.035);
+  --sch-panel-2:rgba(12,16,26,.075);
+  --sch-line:rgba(12,16,26,.18);
+  --sch-line-2:rgba(12,16,26,.34);
+  --sch-ghost:rgba(12,16,26,.12);
+  --sch-ink:#141821; --sch-ink-2:#565D6B; --sch-ink-3:#7C8492;
+  --sch-shadow:rgba(20,26,40,.14);
+  --sch-acc:#C2151C; --sch-priv:#0F7A52; --sch-pub:#96620F; --sch-sig:#4B3FD0;
+  --sch-cy:#0A7E8C; --sch-bl:#2A62E0; --sch-vi:#6D3FD6;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --wall-1:#EEF1F7; --wall-2:#DFE4EE; --bg:#F4F6FA;
+    --glass:rgba(255,255,255,.78); --glass-2:rgba(255,255,255,.9); --glass-3:rgba(244,246,250,.94);
+    --glass-line:rgba(12,16,26,.11); --glass-line-2:rgba(12,16,26,.2);
+    --tx:#0D1018; --tx-2:#3D434F; --tx-3:#666D7B; --tx-4:#9AA0AC;
+    --accent-dim:rgba(215,25,32,.09);
+    --signal-dim:rgba(91,79,224,.10);
+    --private:#0F7A52; --private-dim:rgba(15,122,82,.11);
+    --public:#96620F;  --public-dim:rgba(150,98,15,.11);
+    --cyan:#0A7E8C; --blue:#2A62E0; --violet:#6D3FD6;
+    --accent-t:#C2151C; --signal-t:#4B3FD0;
+    --shadow-sm:0 1px 2px rgba(20,26,40,.08);
+    --shadow:0 18px 44px rgba(20,26,40,.12);
+    --sch-bg:#F8F9FC;
+    --sch-panel:rgba(12,16,26,.035);
+    --sch-panel-2:rgba(12,16,26,.075);
+    --sch-line:rgba(12,16,26,.18);
+    --sch-line-2:rgba(12,16,26,.34);
+    --sch-ghost:rgba(12,16,26,.12);
+    --sch-ink:#141821; --sch-ink-2:#565D6B; --sch-ink-3:#7C8492;
+    --sch-shadow:rgba(20,26,40,.14);
+    --sch-acc:#C2151C; --sch-priv:#0F7A52; --sch-pub:#96620F; --sch-sig:#4B3FD0;
+    --sch-cy:#0A7E8C; --sch-bl:#2A62E0; --sch-vi:#6D3FD6;
+  }
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0}
+body{
+  background:
+    radial-gradient(1100px 620px at 82% -8%, var(--signal-dim), transparent 62%),
+    radial-gradient(900px 520px at 6% 2%, var(--accent-dim), transparent 60%),
+    linear-gradient(180deg, var(--wall-1), var(--bg) 34%, var(--bg));
+  background-attachment:fixed;
+  color:var(--tx); font-family:var(--sans); font-size:16px; line-height:1.65;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+a{color:var(--accent-t); text-decoration:none}
+a:hover{text-decoration:underline; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent-2); outline-offset:3px; border-radius:6px}
+code,kbd{font-family:var(--mono); font-size:.88em}
+h1,h2,h3,h4{letter-spacing:-.02em; line-height:1.18; margin:0}
+p{margin:0}
+.wrap{max-width:1180px; margin:0 auto; padding:0 clamp(20px,4vw,44px)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono)}
+hr.rule{border:0; border-top:1px solid var(--glass-line); margin:0}
+
+/* ---------------------------------------------- top bar */
+.top{position:sticky; top:0; z-index:40; background:var(--glass);
+  -webkit-backdrop-filter:saturate(1.6) blur(20px); backdrop-filter:saturate(1.6) blur(20px);
+  border-bottom:1px solid var(--glass-line)}
+.top .wrap{display:flex; align-items:center; gap:14px; height:60px}
+.brand{display:flex; align-items:center; gap:11px; min-width:0; color:var(--tx); text-decoration:none}
+.brand:hover{text-decoration:none}
+.brand svg{width:24px; height:auto; flex:none}
+.brand .wm{font-weight:700; font-size:15px; letter-spacing:-.01em}
+.brand .sep{width:1px; height:18px; background:var(--glass-line-2); flex:none}
+.brand .sub{font-family:var(--mono); font-size:11.5px; color:var(--tx-3); letter-spacing:.04em;
+  text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.top nav{margin-left:auto; display:flex; align-items:center; gap:20px}
+.top nav a{font-size:13px; color:var(--tx-2)}
+.top nav a:hover{color:var(--tx); text-decoration:none}
+@media (max-width:900px){ .top nav a{display:none} .brand .sub{display:none} .brand .sep{display:none} }
+
+.themeseg{display:flex; gap:2px; background:var(--glass-2); border:1px solid var(--glass-line);
+  border-radius:var(--r-pill); padding:3px}
+.themeseg button{width:32px; height:28px; border:0; background:transparent; border-radius:var(--r-pill);
+  color:var(--tx-3); display:grid; place-items:center; cursor:pointer; transition:background .16s, color .16s}
+.themeseg button:hover{color:var(--tx)}
+.themeseg button[aria-pressed="true"]{background:var(--glass-3); color:var(--tx); box-shadow:var(--shadow-sm)}
+.themeseg svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.7;
+  stroke-linecap:round; stroke-linejoin:round}
+
+/* ---------------------------------------------- hero */
+.hero{padding:clamp(48px,7vw,88px) 0 8px}
+.eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px;
+  font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--signal-t);
+  background:var(--signal-dim); border:1px solid var(--glass-line); padding:7px 14px;
+  border-radius:var(--r-pill)}
+.eyebrow .dot{width:5px; height:5px; border-radius:50%; background:var(--signal-t)}
+.hero h1{font-size:clamp(32px,5.1vw,54px); font-weight:750; margin:22px 0 0; max-width:23ch;
+  letter-spacing:-.035em}
+.hero .lede{font-size:clamp(16.5px,1.45vw,19px); color:var(--tx-2); max-width:70ch; margin:22px 0 0}
+.hero .lede b{color:var(--tx); font-weight:600}
+.hero-cols{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:clamp(24px,4vw,56px);
+  align-items:start; margin-top:34px}
+@media (max-width:900px){ .hero-cols{grid-template-columns:minmax(0,1fr)} }
+
+.honesty{border:1px solid var(--glass-line-2); border-left:3px solid var(--accent);
+  background:var(--glass); border-radius:0 var(--r-lg) var(--r-lg) 0; padding:20px 22px}
+.honesty .h{display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--accent-t); font-weight:600; margin-bottom:10px}
+.honesty p{font-size:14px; color:var(--tx-2); line-height:1.7}
+.honesty p + p{margin-top:10px}
+.honesty b{color:var(--tx); font-weight:600}
+
+.metastrip{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px}
+.chip{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px;
+  letter-spacing:.03em; color:var(--tx-2); background:var(--glass); border:1px solid var(--glass-line);
+  padding:7px 12px; border-radius:var(--r-pill)}
+.chip .k{color:var(--tx-3)}
+.chip .sq{width:7px; height:7px; border-radius:2px; background:var(--tx-4)}
+.chip .sq.g{background:var(--private)} .chip .sq.a{background:var(--public)}
+.chip .sq.s{background:var(--signal-t)} .chip .sq.r{background:var(--accent)}
+
+/* ---------------------------------------------- toc */
+.toc{margin-top:clamp(40px,6vw,68px)}
+.toc h2{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--tx-3); font-weight:600; margin-bottom:16px}
+.toc-grid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+@media (max-width:1080px){ .toc-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:640px){ .toc-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.toc a{display:block; border:1px solid var(--glass-line); background:var(--glass);
+  border-radius:var(--r); padding:13px 14px; color:var(--tx); font-size:13px; font-weight:600;
+  letter-spacing:-.01em; transition:border-color .16s, transform .16s, background .16s}
+.toc a:hover{border-color:var(--glass-line-2); background:var(--glass-2); transform:translateY(-1px);
+  text-decoration:none}
+.toc a .n{display:block; font-family:var(--mono); font-size:10.5px; color:var(--tx-3);
+  font-weight:500; margin-bottom:5px; letter-spacing:.06em}
+
+/* ---------------------------------------------- sections */
+section{padding:clamp(52px,7vw,92px) 0}
+.section-head{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:8px}
+.kicker{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--tx-3); font-weight:600}
+h2.big{font-size:clamp(24px,3.1vw,34px); font-weight:730; letter-spacing:-.03em}
+.section-lede{color:var(--tx-2); font-size:16px; max-width:78ch; margin-top:14px}
+
+/* ---------------------------------------------- map table */
+.tablewrap{margin-top:30px; border:1px solid var(--glass-line); border-radius:var(--r-lg);
+  background:var(--glass); overflow-x:auto; -webkit-overflow-scrolling:touch}
+table.map{border-collapse:collapse; width:100%; min-width:1120px; font-size:13.2px; line-height:1.55}
+table.map caption{text-align:left; padding:16px 18px 0; font-family:var(--mono); font-size:11px;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--tx-3)}
+table.map th, table.map td{padding:13px 16px; vertical-align:top; text-align:left;
+  border-bottom:1px solid var(--glass-line)}
+table.map thead th{position:sticky; top:0; background:var(--glass-3);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--tx-3); font-weight:600; border-bottom:1px solid var(--glass-line-2); white-space:nowrap}
+table.map tbody tr:last-child th, table.map tbody tr:last-child td{border-bottom:0}
+table.map tbody tr:hover{background:var(--glass-2)}
+table.map th[scope="row"]{font-weight:650; color:var(--tx); font-size:13.6px; white-space:nowrap}
+table.map th[scope="row"] .n{display:block; font-family:var(--mono); font-size:10px; color:var(--tx-3);
+  font-weight:500; letter-spacing:.06em}
+table.map td{color:var(--tx-2)}
+table.map .shell{font-family:var(--mono); font-size:11.5px; color:var(--tx-2)}
+table.map .app{color:var(--tx); font-weight:600}
+table.map .app span{display:block; font-weight:400; color:var(--tx-3); font-size:12px;
+  font-family:var(--mono); margin-top:3px}
+table.map .col-them{background:var(--public-dim); box-shadow:inset 3px 0 0 var(--public)}
+table.map .col-us{background:var(--private-dim); box-shadow:inset 3px 0 0 var(--private)}
+table.map thead .col-them{background:var(--public-dim); color:var(--public)}
+table.map thead .col-us{background:var(--private-dim); color:var(--private)}
+.scrollnote{font-family:var(--mono); font-size:11px; color:var(--tx-4); margin-top:10px}
+
+/* ---------------------------------------------- product blocks */
+.product{border-top:1px solid var(--glass-line)}
+.prod-head{display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap}
+.prod-head .idx{font-family:var(--mono); font-size:clamp(28px,3.4vw,40px); font-weight:600;
+  color:var(--tx-4); letter-spacing:-.04em; line-height:1}
+.prod-head h2{font-size:clamp(24px,3.1vw,34px); font-weight:730; letter-spacing:-.03em}
+.prod-head .url{margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--tx-3);
+  display:inline-flex; align-items:center; gap:7px; border:1px solid var(--glass-line);
+  background:var(--glass); padding:7px 13px; border-radius:var(--r-pill)}
+.prod-head .url:hover{border-color:var(--glass-line-2); color:var(--accent-t); text-decoration:none}
+.prod-head .url svg{width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:1.8;
+  stroke-linecap:round; stroke-linejoin:round}
+.positioning{font-size:17.5px; color:var(--tx); max-width:74ch; margin-top:14px; font-weight:450;
+  letter-spacing:-.012em}
+.positioning em{color:var(--tx-2); font-style:normal}
+
+.prod-grid{display:grid; grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);
+  gap:clamp(22px,2.6vw,34px); align-items:start; margin-top:30px}
+@media (max-width:900px){ .prod-grid{grid-template-columns:minmax(0,1fr)} }
+
+figure.shot{margin:0; border:1px solid var(--glass-line); border-radius:var(--r-lg);
+  background:var(--glass); padding:12px; box-shadow:var(--shadow)}
+figure.shot .shot-bar{display:flex; align-items:center; gap:10px; padding:2px 6px 11px; min-width:0}
+figure.shot .badge{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--signal-t); background:var(--signal-dim); border:1px solid var(--glass-line);
+  padding:4px 9px; border-radius:var(--r-pill)}
+figure.shot .what{font-family:var(--mono); font-size:11px; color:var(--tx-3); letter-spacing:.02em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1 1 auto}
+figure.shot figcaption{font-size:12.4px; color:var(--tx-3); line-height:1.55; padding:12px 6px 3px;
+  border-top:1px solid var(--glass-line); margin-top:11px}
+figure.shot figcaption b{color:var(--tx-2); font-weight:600}
+svg.wf{display:block; width:100%; height:auto; max-width:100%; border-radius:11px}
+
+.facts{border:1px solid var(--glass-line); border-radius:var(--r-lg); background:var(--glass);
+  padding:20px 22px}
+.facts h3{font-family:var(--mono); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--tx-3); font-weight:600; margin-bottom:14px}
+.facts ul{margin:0; padding:0; list-style:none}
+.facts li{position:relative; padding-left:18px; font-size:14px; color:var(--tx-2); line-height:1.62}
+.facts li + li{margin-top:11px; padding-top:11px; border-top:1px solid var(--glass-line)}
+.facts li::before{content:""; position:absolute; left:0; top:.62em; width:6px; height:6px;
+  border-radius:2px; background:var(--tx-4)}
+.facts li b{color:var(--tx); font-weight:600}
+.facts li .num{font-family:var(--mono); color:var(--tx)}
+
+.counterpart{margin-top:22px; border:1px solid var(--glass-line-2); border-radius:var(--r-lg);
+  background:linear-gradient(180deg, var(--glass-2), var(--glass)); padding:20px 22px}
+.counterpart .cp-top{display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding-bottom:14px; border-bottom:1px solid var(--glass-line)}
+.counterpart .cp-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--tx-3); font-weight:600}
+.counterpart .cp-app{display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:650;
+  color:var(--tx); background:var(--glass-3); border:1px solid var(--glass-line-2);
+  padding:6px 13px; border-radius:var(--r-pill)}
+.counterpart .cp-app .m{width:7px; height:7px; border-radius:2px; background:var(--accent)}
+.counterpart .cp-file{font-family:var(--mono); font-size:11px; color:var(--tx-3); margin-left:auto}
+.verdict{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; margin-top:16px}
+@media (max-width:760px){ .verdict{grid-template-columns:minmax(0,1fr)} }
+.verdict > div{font-size:13.6px; color:var(--tx-2); line-height:1.62}
+.verdict .vh{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.09em; text-transform:uppercase; font-weight:600; margin-bottom:8px}
+.verdict .parity .vh{color:var(--private)}
+.verdict .gap .vh{color:var(--public)}
+.verdict .vh .d{width:7px; height:7px; border-radius:50%; background:currentColor}
+.verdict b{color:var(--tx); font-weight:600}
+
+/* ---------------------------------------------- closing */
+.close-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(20px,2.6vw,32px); margin-top:34px}
+@media (max-width:900px){ .close-grid{grid-template-columns:minmax(0,1fr)} }
+.panel{border:1px solid var(--glass-line); border-radius:var(--r-lg); background:var(--glass);
+  padding:24px 26px}
+.panel.ahead{border-left:3px solid var(--private)}
+.panel.behind{border-left:3px solid var(--public)}
+.panel h3{font-size:19px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px}
+.panel .ph{font-family:var(--mono); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase;
+  font-weight:600; margin-bottom:12px}
+.panel.ahead .ph{color:var(--private)}
+.panel.behind .ph{color:var(--public)}
+.panel .pnote{font-size:13.6px; color:var(--tx-3); margin-bottom:18px}
+.panel ol{margin:0; padding:0; list-style:none; counter-reset:pl}
+.panel li{counter-increment:pl; position:relative; padding-left:32px; font-size:14px; color:var(--tx-2);
+  line-height:1.62}
+.panel li + li{margin-top:14px; padding-top:14px; border-top:1px solid var(--glass-line)}
+.panel li::before{content:counter(pl,decimal-leading-zero); position:absolute; left:0; top:.1em;
+  font-family:var(--mono); font-size:11px; color:var(--tx-4); font-weight:600}
+.panel li b{color:var(--tx); font-weight:650; display:block; margin-bottom:3px; letter-spacing:-.01em}
+.panel li + li::before{top:calc(14px + .1em)}
+
+.verdict-line{margin-top:34px; border:1px solid var(--glass-line-2); border-radius:var(--r-lg);
+  background:var(--glass-2); padding:24px 26px}
+.verdict-line p{font-size:16px; color:var(--tx-2); max-width:88ch}
+.verdict-line p + p{margin-top:12px}
+.verdict-line b{color:var(--tx); font-weight:650}
+
+footer{border-top:1px solid var(--glass-line); padding:36px 0 64px; margin-top:20px}
+footer .wrap{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+footer svg.mark{width:20px; height:auto}
+footer .f-tx{font-family:var(--mono); font-size:11.5px; color:var(--tx-3); letter-spacing:.02em}
+footer .f-tx b{color:var(--tx-2); font-weight:600}
+footer .f-right{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--tx-4)}
+
+/* ---------------------------------------------- wireframe primitives */
+svg.wf text{font-family:var(--sans); font-size:10px; fill:var(--sch-ink-2)}
+svg.wf .t-strong{fill:var(--sch-ink); font-weight:640; font-size:10.5px}
+svg.wf .t-mono{font-family:var(--mono); font-size:8.6px; letter-spacing:.02em}
+svg.wf .t-dim{fill:var(--sch-ink-3)}
+svg.wf .bg{fill:var(--sch-bg); stroke:var(--sch-line)}
+svg.wf .p{fill:var(--sch-panel); stroke:var(--sch-line)}
+svg.wf .p2{fill:var(--sch-panel-2); stroke:var(--sch-line)}
+svg.wf .pn{fill:var(--sch-panel); stroke:none}
+svg.wf .ln{fill:none; stroke:var(--sch-line)}
+svg.wf .ln2{fill:none; stroke:var(--sch-line-2)}
+svg.wf .bar{fill:var(--sch-ghost)}
+svg.wf .bar-s{fill:var(--sch-line-2)}
+svg.wf .dash{stroke-dasharray:4 4}
+svg.wf .dash-s{stroke-dasharray:2 3}
+svg.wf .shadow{fill:var(--sch-shadow)}
+svg.wf .fa{fill:var(--sch-acc)}  svg.wf .fg{fill:var(--sch-priv)}
+svg.wf .fy{fill:var(--sch-pub)}  svg.wf .fs{fill:var(--sch-sig)}
+svg.wf .fc{fill:var(--sch-cy)}   svg.wf .fb{fill:var(--sch-bl)}
+svg.wf .fv{fill:var(--sch-vi)}
+svg.wf .s-acc{stroke:var(--sch-acc)}  svg.wf .s-priv{stroke:var(--sch-priv)}
+svg.wf .s-pub{stroke:var(--sch-pub)}  svg.wf .s-sig{stroke:var(--sch-sig)}
+svg.wf .s-line2{stroke:var(--sch-line-2)}
+svg.wf [class]{stroke-width:1}
+svg.wf .ln2, svg.wf .w15{stroke-width:1.3}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{transition:none !important} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Magna Console — competitive landscape">
+      <svg viewBox="0 0 640 440" aria-hidden="true">
+        <defs>
+          <linearGradient id="mkA1" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".5" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mkB1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mkA1)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mkB1)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wm">Console</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="sub">Competitive landscape</span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#map">The map</a>
+      <a href="#p1">Nine products</a>
+      <a href="#closing">Where we stand</a>
+    </nav>
+    <div class="themeseg" id="themeseg" role="group" aria-label="Colour theme">
+      <button type="button" data-t="light" aria-pressed="false" title="Light theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.8v2.4M12 18.8v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <span class="sr">Light</span>
+      </button>
+      <button type="button" data-t="dark" aria-pressed="false" title="Dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.6A8.6 8.6 0 1 1 9.4 3.8a7 7 0 0 0 10.8 10.8Z"/></svg>
+        <span class="sr">Dark</span>
+      </button>
+      <button type="button" data-t="system" aria-pressed="true" title="Match the system">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12.5" rx="2.2"/><path d="M8.5 20.6h7M12 17v3.6"/></svg>
+        <span class="sr">System</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<div class="wrap hero">
+  <span class="eyebrow"><span class="dot"></span>Competitive research &middot; 9 products &middot; August 2026</span>
+  <h1>Nine competitors, drawn honestly.</h1>
+  <div class="hero-cols">
+    <div>
+      <p class="lede">Every product in this document claims some version of "an AI that runs your work". None of them is a desktop operating environment. They are background life-managers, teammates inside somebody else's chat app, agent APIs, orchestration runtimes, sidebars bolted to a browser, and self-hosted chat shells. <b>Magna Console</b> takes the opposite bet: a real windowed OS with Spaces, one sovereignty posture in permanent chrome, and one approval gate for every write in the system.</p>
+      <p class="lede" style="margin-top:16px">That bet is not free. Six of the nine ship things Console cannot do at all today &mdash; live models, real integrations, local model routing, meeting attendance, passive screen capture, multi-user RBAC. This page states both sides for each product, and the closing section names where we are behind.</p>
+      <div class="metastrip">
+        <span class="chip"><span class="sq r"></span>9 schematics, 0 screenshots</span>
+        <span class="chip"><span class="k">source</span>each vendor's own site &amp; docs</span>
+        <span class="chip"><span class="sq s"></span>mapped to <span class="k">apps/app-7-console.html</span></span>
+        <span class="chip"><span class="sq g"></span>parity</span>
+        <span class="chip"><span class="sq a"></span>gap</span>
+      </div>
+    </div>
+    <aside class="honesty">
+      <div class="h"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 3l18 18M10.6 5.3A9 9 0 0 1 12 5c5 0 9 4.5 9 7 0 .9-.5 2-1.4 3.1M6.3 7.4C4 9 3 11 3 12c0 2.5 4 7 9 7 1.3 0 2.5-.3 3.6-.8"/></svg>No screenshots &mdash; deliberately</div>
+      <p><b>This page contains no captures of third-party products.</b> Screenshots of other companies' interfaces are their material, and redistributing page captures inside this repository is not something we are going to do &mdash; not for a client-facing document, and not for a file that will sit in version control indefinitely.</p>
+      <p>What you get instead is an <b>original schematic wireframe</b> of each product's interface pattern, drawn from scratch in this file as inline SVG using our own design tokens. Each one is labelled as a schematic. They are accurate about <em>structure</em> &mdash; where the rails, panels, approvals and agents sit &mdash; and deliberately not about pixels, wording or branding.</p>
+      <p>Every section links to the live product so you can open the real thing in a new tab and check us.</p>
+    </aside>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <h2>Contents</h2>
+    <div class="toc-grid">
+      <a href="#map"><span class="n">MAP</span>The comparison table</a>
+      <a href="#p1"><span class="n">01</span>Cohere OS</a>
+      <a href="#p2"><span class="n">02</span>Lindy</a>
+      <a href="#p3"><span class="n">03</span>MultiOn</a>
+      <a href="#p4"><span class="n">04</span>CrewAI</a>
+      <a href="#p5"><span class="n">05</span>Zapier Central</a>
+      <a href="#p6"><span class="n">06</span>Perplexity Comet</a>
+      <a href="#p7"><span class="n">07</span>Littlebird</a>
+      <a href="#p8"><span class="n">08</span>BrowserOS</a>
+      <a href="#p9"><span class="n">09</span>Open WebUI</a>
+      <a href="#closing"><span class="n">END</span>Ahead, and behind</a>
+    </div>
+  </nav>
+</div>
+
+<section id="map" class="wrap">
+  <div class="section-head">
+    <span class="kicker">The map</span>
+    <h2 class="big">Nine products against one console</h2>
+  </div>
+  <p class="section-lede">Read the two right-hand columns as a pair. The amber column is written against us on purpose &mdash; if a competitor genuinely ships something Console only simulates, it says so in plain language. The green column is only allowed to claim things that are actually implemented in <code>apps/app-7-console.html</code> today.</p>
+
+  <div class="tablewrap">
+    <table class="map">
+      <caption>Competitor map &middot; researched from vendor sites and docs, August 2026</caption>
+      <thead>
+        <tr>
+          <th scope="col">Product</th>
+          <th scope="col">What it really is</th>
+          <th scope="col">Its UI shell</th>
+          <th scope="col">Magna counterpart app</th>
+          <th scope="col" class="col-them">Where it beats us</th>
+          <th scope="col" class="col-us">Where we beat it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row"><span class="n">01</span>Cohere OS</th>
+          <td>A background life-management service that happens to be called an OS. Connects mail, calendar, Slack and finance apps and works on a clock.</td>
+          <td class="shell">None. Voice note, text or phone call, plus scheduled push at 06:00 / 09:00 / 12:00 / 15:00 / 18:00.</td>
+          <td class="app">Companion + Automations<span>floating companion, dock zone</span></td>
+          <td class="col-them">It is genuinely proactive against a live backend and reaches you with nothing open. Console only ever speaks when the desktop is already in front of you, and its schedule is decorative.</td>
+          <td class="col-us">Everything is inspectable: the reasoning trail, the memory graph, the residency of each action. Cohere OS is an opaque service you either trust or do not.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">02</span>Lindy</th>
+          <td>An AI teammate that lives inside Slack, with 1,000+ integrations plus MCP, 40+ prebuilt skills and an editable memory file.</td>
+          <td class="shell">Somebody else's chat app. Inline approval cards; no shell of its own.</td>
+          <td class="app">Agents + the OS-wide approval gate<span>same bar in all fifteen apps</span></td>
+          <td class="col-them">Its approvals gate <em>real</em> writes to real systems. It joins Meet / Zoom / Teams as a participant, meters credits per workspace with per-person caps, and carries SOC 2 Type II, HIPAA and GDPR. Our gate guards simulated actions.</td>
+          <td class="col-us">Approval is OS chrome, not a per-workflow prompt: the identical confirmation bar grows inside Mail, Code, Browser, Agents and Automations, so the rule is learned once. And we own the surface.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">03</span>MultiOn</th>
+          <td>An agent API &mdash; the self-described "motor cortex" layer &mdash; turning natural language into real browser actions in remote sessions.</td>
+          <td class="shell">No end-user UI. HTTP API, remote session viewport, Chrome extension for handoff.</td>
+          <td class="app">Browser &mdash; agent mode<span>tabbed, real iframe</span></td>
+          <td class="col-them">It actually drives browsers, uses native proxy support to survive bot detection, extracts full-page structured data, and runs many sessions in parallel. Our Browser cannot even frame most sites and says so.</td>
+          <td class="col-us">A human-visible surface a non-developer can drive, where the handoff moment is part of the interface rather than an SDK call.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">04</span>CrewAI</th>
+          <td>Enterprise multi-agent orchestration: crews of role-specialised agents that collaborate under central governance.</td>
+          <td class="shell">Crew composition graph plus a governance dashboard; cloud platform or open-source install.</td>
+          <td class="app">Agents<span>roster, runs, traces</span></td>
+          <td class="col-them">A real runtime at scale &mdash; it claims 450M+ agentic workflows a month and 65% of the Fortune 500, with named clients (PepsiCo, DocuSign, Experian) &mdash; and one build-and-run surface serving both business teams and engineers.</td>
+          <td class="col-us">Agents live inside the same environment as the user's mail, files, browser and knowledge graph, so a run is visible next to the work it touches instead of in a separate console.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">05</span>Zapier Central</th>
+          <td>An experimental bot workspace: add data, teach behaviour in plain language, then chat to run. Bots run with or without you present.</td>
+          <td class="shell">Chat is the entire control surface. No separate builder, no node canvas.</td>
+          <td class="app">Spotlight sentence-to-automation + Automations<span>Cmd-K drafts a rule</span></td>
+          <td class="col-them">6,000+ live app connections behind it, and bots that genuinely run unattended. Our automations are drafted objects that never fire.</td>
+          <td class="col-us">A drafted automation is an inspectable object in an app &mdash; trigger, steps, residency, approval &mdash; not a paragraph buried in a chat log you have to scroll back to.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">06</span>Perplexity Comet</th>
+          <td>A Chromium browser with the assistant native in the sidebar, aware of the current tab, plus an autonomous agent mode.</td>
+          <td class="shell">Browser chrome, persistent right sidebar, cross-tab context, separate agent mode.</td>
+          <td class="app">Companion + Browser<span>reads every window on the space</span></td>
+          <td class="col-them">There is a real engine underneath, so cross-tab context is real and the agent can act on live pages &mdash; matching flights to your calendar, filling forms, cancelling subscriptions. Free on four platforms, no account needed.</td>
+          <td class="col-us">Our companion reads every open <em>window</em> on the space &mdash; mail, code, the knowledge graph, a chat, a browser tab &mdash; because the shell is an OS, not a browser. Comet's context stops at the tab strip.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">07</span>Littlebird</th>
+          <td>A desktop and mobile second brain that passively watches your active window and listens in meetings, then renders memory as cards.</td>
+          <td class="shell">"Hummingbird" floating pill summonable from any app, plus a magazine-style card dashboard.</td>
+          <td class="app">Companion + Brain<span>40 typed nodes, weighted edges</span></td>
+          <td class="col-them">Capture costs the user nothing &mdash; no pasting, no uploading &mdash; because it observes the screen and meeting audio. Roughly 100+ integrations, drafts in your learned voice, SOC 2, no training on your data.</td>
+          <td class="col-us">Memory is a typed, cosine-weighted graph you can open, traverse and interrogate, with an embedding preview and nearest-neighbour list &mdash; not a curated feed of cards you cannot audit.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">08</span>BrowserOS</th>
+          <td>An open-source Chromium fork positioning itself as the privacy-first alternative to ChatGPT Atlas and Comet. Agents run locally.</td>
+          <td class="shell">Browser-as-OS, with a local model picker and bring-your-own-keys routing.</td>
+          <td class="app">Browser + Settings model routing<span>Private / Public sovereignty pill</span></td>
+          <td class="col-them">Local execution is architecture, not a claim: 11+ providers including Ollama and LM Studio, history on device, your own keys, automations off the corporate cloud, Chrome extensions still working. Our pill is a design promise.</td>
+          <td class="col-us">Sovereignty is scoped per action and per window with a named destination (on-prem Riyadh DC-1) rather than one global posture &mdash; and it sits in OS chrome above a fifteen-app desktop, not inside one browser.</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="n">09</span>Open WebUI</th>
+          <td>A self-hosted, extensible chat shell that runs fully offline against Ollama or any OpenAI-compatible API, with native RAG and a plugin framework.</td>
+          <td class="shell">ChatGPT-like shell where model switching, RAG documents and pipelines are first-class controls.</td>
+          <td class="app">Chat + Brain + Connections<span>artifacts, graph, connectors</span></td>
+          <td class="col-them">It does for real nearly everything we mock: offline operation, native RAG with source citations over PDFs and Word and web pages, selectable vector DBs, web search from 15+ providers, mid-conversation model switching, voice and video chat, image generation, a Pipelines plugin server, and multi-user RBAC.</td>
+          <td class="col-us">It is one chat window. There is no desktop, no windows, no Spaces, no cross-window context, no unified approval gate and no residency posture in the chrome.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="scrollnote">The table scrolls sideways on narrow screens; the page itself never does.</p>
+</section>
+
+<section id="p1" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">01</span>
+    <h2>Cohere OS</h2>
+    <a class="url" href="https://cohere-os.com" target="_blank" rel="noopener">cohere-os.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">An "AI life operating system" with no operating system in it &mdash; <em>no desktop, no windows, no icons.</em> It is a background service that reaches you on a schedule through voice notes, texts and phone calls.</p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: conversation thread + scheduled push. No GUI shell.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of Cohere OS: on the left a phone showing a message thread of briefings, voice notes and a check-in call; on the right a vertical timeline with five scheduled briefings at 06:00, 09:00, 12:00, 15:00 and 18:00, each pushing into the thread.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <text class="t-mono t-dim" x="24" y="30">NO GUI SHELL &#183; CONVERSATION IN, SCHEDULED PUSH OUT</text>
+
+        <!-- phone -->
+        <rect class="p" x="30" y="48" width="180" height="304" rx="26"/>
+        <rect class="bar" x="102" y="58" width="36" height="5" rx="2.5"/>
+        <rect class="pn" x="42" y="74" width="156" height="212" rx="10"/>
+
+        <rect class="p2" x="50" y="84" width="126" height="34" rx="10"/>
+        <text class="t-mono fs" x="58" y="97">06:00 brief</text>
+        <rect class="bar" x="58" y="102" width="104" height="4" rx="2"/>
+        <rect class="bar" x="58" y="110" width="72" height="4" rx="2"/>
+
+        <rect class="p2 s-acc" x="76" y="126" width="112" height="26" rx="10"/>
+        <circle class="fa" cx="88" cy="139" r="4.5"/>
+        <rect class="fa" x="100" y="136" width="2.5" height="6" rx="1.2"/>
+        <rect class="fa" x="106" y="133" width="2.5" height="12" rx="1.2"/>
+        <rect class="fa" x="112" y="135" width="2.5" height="8" rx="1.2"/>
+        <rect class="fa" x="118" y="132" width="2.5" height="14" rx="1.2"/>
+        <rect class="fa" x="124" y="134" width="2.5" height="10" rx="1.2"/>
+        <rect class="fa" x="130" y="136" width="2.5" height="6" rx="1.2"/>
+        <rect class="fa" x="136" y="133" width="2.5" height="12" rx="1.2"/>
+        <rect class="fa" x="142" y="135" width="2.5" height="8" rx="1.2"/>
+        <text class="t-mono t-dim" x="152" y="142">0:07</text>
+
+        <rect class="p2" x="50" y="160" width="134" height="42" rx="10"/>
+        <rect class="bar" x="58" y="170" width="112" height="4" rx="2"/>
+        <rect class="bar" x="58" y="178" width="96" height="4" rx="2"/>
+        <rect class="bar" x="58" y="186" width="64" height="4" rx="2"/>
+
+        <rect class="p2 s-acc" x="92" y="210" width="96" height="24" rx="10"/>
+        <text x="100" y="225">yes, book it</text>
+
+        <rect class="p2" x="50" y="242" width="138" height="32" rx="8"/>
+        <path class="ln2" d="M62 254c0 8 6 14 14 14" fill="none"/>
+        <circle class="fg" cx="62" cy="252" r="3"/>
+        <text class="t-strong" x="80" y="256">12:00 check-in</text>
+        <text class="t-mono t-dim" x="80" y="268">incoming call</text>
+
+        <rect class="p" x="44" y="296" width="48" height="22" rx="11"/>
+        <text class="t-mono" x="55" y="310">voice</text>
+        <rect class="p" x="98" y="296" width="44" height="22" rx="11"/>
+        <text class="t-mono" x="110" y="310">text</text>
+        <rect class="p" x="148" y="296" width="44" height="22" rx="11"/>
+        <text class="t-mono" x="160" y="310">call</text>
+        <rect class="bar" x="90" y="332" width="60" height="4" rx="2"/>
+
+        <!-- push arrows into the thread -->
+        <path class="ln dash" d="M314 96C266 96 236 92 202 100" fill="none"/>
+        <path class="ln dash" d="M314 188C270 188 232 196 202 190" fill="none"/>
+
+        <!-- timeline -->
+        <text class="t-mono t-dim" x="236" y="62">SCHEDULED BRIEFINGS &#183; PUSH, NOT PULL</text>
+        <path class="ln" d="M300 78V320" fill="none"/>
+
+        <text class="t-mono" x="292" y="99" text-anchor="end">06:00</text>
+        <circle class="fa" cx="300" cy="96" r="5"/>
+        <rect class="p" x="314" y="79" width="292" height="34" rx="8"/>
+        <text class="t-strong" x="326" y="93">Morning brief</text>
+        <text class="t-mono t-dim" x="326" y="106">overnight mail, calendar, spend</text>
+
+        <text class="t-mono" x="292" y="145" text-anchor="end">09:00</text>
+        <circle class="fs" cx="300" cy="142" r="5"/>
+        <rect class="p" x="314" y="125" width="292" height="34" rx="8"/>
+        <text class="t-strong" x="326" y="139">Meeting prep</text>
+        <text class="t-mono t-dim" x="326" y="152">attendees, last thread, the ask</text>
+
+        <text class="t-mono" x="292" y="191" text-anchor="end">12:00</text>
+        <circle class="fs" cx="300" cy="188" r="5"/>
+        <rect class="p" x="314" y="171" width="292" height="34" rx="8"/>
+        <text class="t-strong" x="326" y="185">Midday triage</text>
+        <text class="t-mono t-dim" x="326" y="198">what changed since 09:00</text>
+
+        <text class="t-mono" x="292" y="237" text-anchor="end">15:00</text>
+        <circle class="fs" cx="300" cy="234" r="5"/>
+        <rect class="p" x="314" y="217" width="292" height="34" rx="8"/>
+        <text class="t-strong" x="326" y="231">Spend and follow-ups</text>
+        <text class="t-mono t-dim" x="326" y="244">invoices, cards, renewals</text>
+
+        <text class="t-mono" x="292" y="283" text-anchor="end">18:00</text>
+        <circle class="fs" cx="300" cy="280" r="5"/>
+        <rect class="p" x="314" y="263" width="292" height="34" rx="8"/>
+        <text class="t-strong" x="326" y="277">Day wrap</text>
+        <text class="t-mono t-dim" x="326" y="290">what slipped, what is next</text>
+
+        <rect class="p2" x="314" y="306" width="292" height="46" rx="8"/>
+        <text class="t-strong" x="326" y="324">Memory and decision history</text>
+        <text class="t-mono t-dim" x="326" y="340">hybrid RAG &#183; reasoning trails &#183; 24/7 &#183; sub-5-min</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> Drawn to show structure only: a message thread as the sole input surface, and five fixed briefing slots pushing into it.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li>Three-step onboarding: <b>connect your tools</b>, teach it who you are, then live your life. There is no interface to learn afterwards.</li>
+        <li>Proactive briefings on a fixed clock &mdash; <span class="num">06:00</span>, <span class="num">09:00</span>, <span class="num">12:00</span>, <span class="num">15:00</span>, <span class="num">18:00</span> &mdash; rather than waiting to be asked.</li>
+        <li>Interaction is by <b>voice note, text message or phone call</b>. No app to open, no window to arrange, no icons.</li>
+        <li>Persistent memory built on hybrid RAG, plus a <b>decision history with reasoning trails</b> so past choices can be explained.</li>
+        <li>Integrates Gmail, Google Calendar, Slack and finance apps; claims 24/7 operation with sub-five-minute latency.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Floating companion + Automations</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console has the memory half convincingly: the Brain exposes a reasoning-trail tab and a behaviour tab, so a decision can be traced the way Cohere OS describes. The companion is genuinely ambient within a Space &mdash; it reads every open window, not just one thread.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>We are not proactive and we are not a service.</b> Console cannot reach a user who is not looking at it: there is no scheduler, no phone number, no notification that survives the tab closing. Cohere OS's entire value &mdash; unprompted arrival &mdash; is exactly the thing a static prototype cannot fake.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p2" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">02</span>
+    <h2>Lindy</h2>
+    <a class="url" href="https://www.lindy.ai" target="_blank" rel="noopener">lindy.ai<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">"Your next hire is AI" &mdash; a teammate that lives in Slack, holds 1,000+ integrations, and <em>asks before it alters anything.</em></p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: chat inside a host app, with an inline approval card.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of Lindy: a Slack-like channel rail on the left, a message thread in the middle containing an inline approval card with Approve and Deny buttons, and a right panel showing an editable plain-text memory file and saved skills.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+        <circle class="bar" cx="34" cy="31" r="3.5"/><circle class="bar" cx="46" cy="31" r="3.5"/><circle class="bar" cx="58" cy="31" r="3.5"/>
+        <text class="t-mono t-dim" x="74" y="35">host chat app &#183; Acme workspace &#183; Lindy has no shell of its own</text>
+        <path class="ln" d="M16 46H624" fill="none"/>
+
+        <!-- channel rail -->
+        <rect class="p2" x="28" y="58" width="132" height="294" rx="8"/>
+        <text class="t-mono t-dim" x="40" y="76">WORKSPACE</text>
+        <rect class="p" x="36" y="84" width="116" height="26" rx="6"/>
+        <rect class="fv" x="44" y="91" width="12" height="12" rx="3"/>
+        <text x="62" y="101">Acme Corp</text>
+        <text class="t-mono t-dim" x="40" y="130">CHANNELS</text>
+        <rect class="p2 s-line2" x="34" y="138" width="120" height="22" rx="6"/>
+        <text x="44" y="153">#&#8202;procurement</text>
+        <text class="t-dim" x="44" y="177">#&#8202;ops</text>
+        <text class="t-dim" x="44" y="199">#&#8202;eng-platform</text>
+        <text class="t-mono t-dim" x="40" y="228">APPS</text>
+        <circle class="fs" cx="48" cy="242" r="7"/>
+        <text class="t-strong" x="62" y="246">Lindy</text>
+        <rect class="p2" x="36" y="256" width="112" height="18" rx="9"/>
+        <circle class="fg" cx="46" cy="265" r="3"/>
+        <text class="t-mono" x="54" y="268">AI teammate</text>
+        <text class="t-mono t-dim" x="40" y="300">1,000+ integrations</text>
+        <text class="t-mono t-dim" x="40" y="314">+ MCP support</text>
+        <text class="t-mono t-dim" x="40" y="338">SOC 2 &#183; HIPAA</text>
+
+        <!-- thread -->
+        <text class="t-strong" x="176" y="76">#&#8202;procurement</text>
+        <path class="ln" d="M170 86H448" fill="none"/>
+        <circle class="bar" cx="182" cy="104" r="8"/>
+        <text class="t-strong" x="198" y="102">Dana</text>
+        <text class="t-mono t-dim" x="232" y="102">10:02</text>
+        <rect class="bar" x="198" y="110" width="226" height="4" rx="2"/>
+        <rect class="bar" x="198" y="118" width="170" height="4" rx="2"/>
+
+        <circle class="fs" cx="182" cy="142" r="8"/>
+        <text class="t-strong" x="198" y="140">Lindy</text>
+        <rect class="p2" x="230" y="132" width="24" height="12" rx="6"/>
+        <text class="t-mono t-dim" x="235" y="141">AI</text>
+        <rect class="bar" x="198" y="148" width="204" height="4" rx="2"/>
+
+        <rect class="p2 s-pub" x="196" y="160" width="246" height="94" rx="10"/>
+        <circle class="fy" cx="210" cy="178" r="4"/>
+        <text class="t-strong fy" x="222" y="182">Approval required</text>
+        <text class="t-mono" x="210" y="202">CRM &#183; Acme &#8594; Stage: Won</text>
+        <text class="t-mono" x="210" y="216">Email &#8594; dana@acme.com</text>
+        <rect class="p2 s-priv" x="210" y="224" width="66" height="22" rx="6"/>
+        <text class="fg" x="221" y="239">Approve</text>
+        <rect class="p" x="284" y="224" width="52" height="22" rx="6"/>
+        <text class="t-dim" x="297" y="239">Deny</text>
+        <text class="t-mono t-dim" x="346" y="239">writes only</text>
+
+        <circle class="fs" cx="182" cy="276" r="8"/>
+        <rect class="bar" x="198" y="270" width="180" height="4" rx="2"/>
+        <rect class="bar" x="198" y="278" width="120" height="4" rx="2"/>
+        <text class="t-mono t-dim" x="198" y="298">read-only lookups ran without asking</text>
+
+        <rect class="p" x="170" y="320" width="278" height="26" rx="8"/>
+        <text class="t-dim" x="182" y="337">Message Lindy&#8230;</text>
+        <circle class="fa" cx="432" cy="333" r="6"/>
+
+        <!-- memory + skills -->
+        <rect class="p2" x="458" y="58" width="154" height="294" rx="8"/>
+        <text class="t-strong" x="470" y="76">memory.txt</text>
+        <path class="ln2" d="M592 74l-8 4 1-6z" fill="none"/>
+        <text class="t-mono" x="470" y="96">- Dana owns POs</text>
+        <text class="t-mono" x="470" y="110">- never email</text>
+        <text class="t-mono" x="470" y="122">  vendors direct</text>
+        <text class="t-mono" x="470" y="136">- Fri: no meetings</text>
+        <text class="t-mono" x="470" y="150">- tone: brief</text>
+        <rect class="fa" x="470" y="156" width="1.6" height="10"/>
+        <rect class="p2 s-priv" x="466" y="172" width="138" height="18" rx="9"/>
+        <text class="t-mono" x="474" y="184">the team can edit this</text>
+        <path class="ln" d="M458 204H612" fill="none"/>
+        <text class="t-mono t-dim" x="470" y="222">SKILLS (40+)</text>
+        <rect class="p" x="466" y="230" width="138" height="20" rx="6"/>
+        <text x="474" y="244">Lead enrichment</text>
+        <rect class="p" x="466" y="256" width="138" height="20" rx="6"/>
+        <text x="474" y="270">Meeting notes</text>
+        <rect class="p s-acc" x="466" y="282" width="138" height="20" rx="6"/>
+        <text class="fa" x="474" y="296">+ save this once</text>
+        <text class="t-mono t-dim" x="470" y="322">joins Meet &#183; Zoom</text>
+        <text class="t-mono t-dim" x="470" y="338">records, transcribes</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> The point of the drawing is where the approval sits: inside the conversation, blocking one write, in a chat app Lindy does not own.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li><b>Mandatory approval before any write.</b> Read-only lookups run free; anything that alters a system stops for a human yes.</li>
+        <li>Lives in Slack as a named teammate and <b>joins video calls</b> on Meet, Zoom and Teams &mdash; recording, transcribing and making the meeting queryable afterwards.</li>
+        <li>1,000+ app integrations plus MCP support; 40+ prebuilt skills, and "do something once, save it as a skill" shared across the whole workspace.</li>
+        <li>An <b>editable plain-text memory file</b> the team can read and correct &mdash; memory as a document, not a black box.</li>
+        <li>Credit-based pricing at <span class="num">$29.99 / $99.99 / $199.99</span> per user per month, with a workspace credit pool and per-person spend caps.</li>
+        <li>SOC 2 Type II, GDPR, HIPAA and PIPEDA.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Agents + the OS-wide approval gate</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        This is the one place Console is arguably ahead in design: our approval gate is not per-workflow, it is <b>OS-level</b>. The same inline confirmation bar grows in Mail, Code, Browser, Automations and Connections, so a user learns the rule once and trusts it everywhere. Lindy re-earns that trust prompt by prompt.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>Our gate protects nothing real yet.</b> Lindy's approvals sit in front of live CRM writes and outbound email under SOC 2 and HIPAA; ours sit in front of dummy data. We also have no meeting attendance, no credit metering, no spend caps, and no editable memory file the client's own team can correct.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p3" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">03</span>
+    <h2>MultiOn</h2>
+    <a class="url" href="https://docs.multion.ai" target="_blank" rel="noopener">docs.multion.ai<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">The self-described <em>"motor cortex layer for AI"</em> &mdash; an API that turns a sentence into real clicks in a real browser, in parallel, behind proxies.</p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: API call on the left driving a remote browser on the right.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of MultiOn: an API request panel on the left with a 200 OK extraction response, driving a remote browser viewport on the right that has four parallel session tabs, a proxied URL bar, a dashed extraction bracket, an agent cursor path to a Confirm button, and a human takeover strip.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+        <circle class="bar" cx="34" cy="31" r="3.5"/><circle class="bar" cx="46" cy="31" r="3.5"/><circle class="bar" cx="58" cy="31" r="3.5"/>
+        <text class="t-mono t-dim" x="74" y="35">developer product &#183; the API is the interface</text>
+        <path class="ln" d="M16 46H624" fill="none"/>
+
+        <!-- api panel -->
+        <rect class="p2" x="28" y="58" width="248" height="294" rx="8"/>
+        <text class="t-mono t-strong" x="40" y="78">POST /v1/sessions</text>
+        <path class="ln" d="M28 88H276" fill="none"/>
+        <text class="t-mono" x="40" y="108">{</text>
+        <text class="t-mono" x="40" y="122">  "cmd": <tspan class="fa">"book the 9am</tspan></text>
+        <text class="t-mono fa" x="40" y="134">           demo slot"</text>
+        <text class="t-mono" x="40" y="148">  "url": <tspan class="fa">"acme.com/&#8230;"</tspan></text>
+        <text class="t-mono" x="40" y="162">  "proxy": <tspan class="fg">"native"</tspan></text>
+        <text class="t-mono" x="40" y="176">  "parallel": <tspan class="fs">4</tspan></text>
+        <text class="t-mono" x="40" y="190">}</text>
+
+        <rect class="p" x="40" y="206" width="224" height="64" rx="6"/>
+        <circle class="fg" cx="54" cy="222" r="4"/>
+        <text class="t-mono" x="66" y="226">200 OK</text>
+        <text class="t-mono t-dim" x="120" y="226">s_1 &#183; 1.2s</text>
+        <text class="t-mono" x="54" y="244">extracted: 18 rows</text>
+        <text class="t-mono t-dim" x="54" y="258">schema: title, price</text>
+
+        <text class="t-mono t-dim" x="40" y="300">NO END-USER SHELL.</text>
+        <text class="t-mono t-dim" x="40" y="314">NO SETTINGS SCREEN.</text>
+        <text class="t-mono t-dim" x="40" y="328">JUST HTTP + AN</text>
+        <text class="t-mono t-dim" x="40" y="342">EXTENSION.</text>
+
+        <path class="ln2" d="M276 180h10" fill="none"/>
+        <path class="bar-s" d="M286 176l8 4-8 4z"/>
+
+        <!-- remote browser -->
+        <rect class="p" x="292" y="58" width="320" height="294" rx="8"/>
+        <rect class="p2 s-sig" x="300" y="66" width="70" height="20" rx="5"/>
+        <text class="t-mono fs" x="312" y="80">s_1</text>
+        <rect class="p" x="374" y="66" width="52" height="20" rx="5"/>
+        <text class="t-mono t-dim" x="386" y="80">s_2</text>
+        <rect class="p" x="430" y="66" width="52" height="20" rx="5"/>
+        <text class="t-mono t-dim" x="442" y="80">s_3</text>
+        <rect class="p" x="486" y="66" width="52" height="20" rx="5"/>
+        <text class="t-mono t-dim" x="498" y="80">s_4</text>
+        <text class="t-mono t-dim" x="546" y="80">parallel</text>
+
+        <rect class="p2" x="300" y="94" width="304" height="22" rx="6"/>
+        <rect class="ln" x="310" y="102" width="8" height="7" rx="1.5"/>
+        <path class="ln" d="M311.6 102v-2a2.4 2.4 0 0 1 4.8 0v2" fill="none"/>
+        <text class="t-mono" x="326" y="109">remote.multion.run/s_1</text>
+        <rect class="p s-priv" x="512" y="97" width="84" height="16" rx="8"/>
+        <text class="t-mono fg" x="520" y="109">proxy: native</text>
+
+        <rect class="p2" x="300" y="126" width="304" height="176" rx="6"/>
+        <rect class="bar-s" x="312" y="138" width="140" height="8" rx="4"/>
+        <rect class="bar" x="312" y="152" width="200" height="4" rx="2"/>
+        <rect class="bar" x="312" y="162" width="170" height="4" rx="2"/>
+        <rect class="ln dash s-sig" x="306" y="170" width="292" height="56" rx="6" fill="none"/>
+        <rect class="p" x="312" y="176" width="88" height="44" rx="4"/>
+        <rect class="bar" x="320" y="186" width="60" height="4" rx="2"/>
+        <rect class="bar" x="320" y="196" width="44" height="4" rx="2"/>
+        <rect class="p" x="408" y="176" width="88" height="44" rx="4"/>
+        <rect class="bar" x="416" y="186" width="60" height="4" rx="2"/>
+        <rect class="bar" x="416" y="196" width="44" height="4" rx="2"/>
+        <rect class="p" x="504" y="176" width="88" height="44" rx="4"/>
+        <rect class="bar" x="512" y="186" width="60" height="4" rx="2"/>
+        <rect class="bar" x="512" y="196" width="44" height="4" rx="2"/>
+        <text class="t-mono fs" x="312" y="238">full-page structured extract &#8594; JSON</text>
+
+        <rect class="p" x="312" y="250" width="160" height="20" rx="5"/>
+        <text class="t-dim" x="320" y="264">9:00 AM</text>
+        <rect class="p s-acc" x="484" y="250" width="100" height="20" rx="5"/>
+        <text class="fa" x="502" y="264">Confirm</text>
+        <circle class="fa" cx="340" cy="292" r="3.5"/>
+        <path class="dash s-acc" d="M340 292c60 0 130-6 188-26" fill="none"/>
+        <path class="fa" d="M528 262l-10 6 1-7z"/>
+
+        <rect class="p" x="300" y="312" width="304" height="32" rx="6"/>
+        <circle class="bar" cx="318" cy="323" r="4.5"/>
+        <path class="ln2" d="M311 336c0-5 3-8 7-8s7 3 7 8" fill="none"/>
+        <text class="t-strong" x="334" y="324">Human takeover</text>
+        <text class="t-mono t-dim" x="334" y="337">Chrome extension &#183; local handoff</text>
+        <path class="ln2" d="M556 328h32" fill="none"/>
+        <path class="bar-s" d="M556 324l-8 4 8 4zM588 324l8 4-8 4z"/>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> MultiOn has no product screen to depict; what is drawn is the shape of the system &mdash; request in, remote session out, human takeover at the bottom.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li>An <b>agent API</b>: natural language in, real browser actions out &mdash; clicks, typing, navigation, form submission.</li>
+        <li>Secure <b>remote browser sessions with native proxy support</b>, specifically so sessions survive bot detection.</li>
+        <li>Full-page structured data extraction, LLM-driven, returned as JSON against a schema you ask for.</li>
+        <li>A Chrome extension for the <b>local human-agent handoff</b> &mdash; the agent works until it needs a person, then gives the tab back.</li>
+        <li><b>Parallel agent execution</b> across many sessions at once, which is the part a UI-only product cannot imitate.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Browser &mdash; agent mode</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console's Browser app takes the transferable idea &mdash; the <b>handoff moment</b> &mdash; and makes it visible: agent mode narrates its steps in the same window a person is looking at, and every write pauses at the OS approval gate before it would touch anything.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>Not close.</b> Our Browser renders a real iframe and then honestly tells the user that most sites refuse to be framed; MultiOn drives actual remote Chrome behind proxies, in parallel, with structured extraction. Agent mode in Console is scripted. This is the single widest capability gap on the page.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p4" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">04</span>
+    <h2>CrewAI</h2>
+    <a class="url" href="https://www.crewai.com" target="_blank" rel="noopener">crewai.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">Enterprise multi-agent orchestration: <em>crews</em> of role-specialised agents that collaborate, built and run on one centrally governed platform.</p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: crew composition graph plus a governance sidebar.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of CrewAI: a supervisor agent node delegating down to three role nodes (Researcher, Analyst, Writer) each carrying tool chips, with dashed hand-off arcs between roles, a run statistics strip, deployment pills, and a governance sidebar of policy toggles on the right.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+        <text class="t-mono t-dim" x="32" y="35">CREW COMPOSITION &#183; ONE RUNTIME, CENTRALLY GOVERNED</text>
+        <path class="ln" d="M16 46H624" fill="none"/>
+
+        <rect class="p2 s-sig" x="158" y="64" width="148" height="48" rx="10"/>
+        <circle class="fs" cx="172" cy="80" r="4"/>
+        <text class="t-strong" x="184" y="84">Supervisor agent</text>
+        <text class="t-mono t-dim" x="170" y="102">plans &#183; delegates</text>
+
+        <path class="ln2" d="M232 112c0 34-144 30-144 64" fill="none"/>
+        <path class="ln2" d="M232 112v64" fill="none"/>
+        <path class="ln2" d="M232 112c0 34 140 30 140 64" fill="none"/>
+        <path class="bar-s" d="M84 176l4 6 4-6zM228 176l4 6 4-6zM368 176l4 6 4-6z"/>
+
+        <rect class="p2" x="32" y="176" width="112" height="58" rx="10"/>
+        <text class="t-strong" x="44" y="196">Researcher</text>
+        <text class="t-mono t-dim" x="44" y="208">role + goal</text>
+        <rect class="p" x="44" y="214" width="32" height="14" rx="7"/>
+        <text class="t-mono t-dim" x="50" y="224">web</text>
+        <rect class="p" x="80" y="214" width="32" height="14" rx="7"/>
+        <text class="t-mono t-dim" x="86" y="224">rag</text>
+
+        <rect class="p2" x="176" y="176" width="112" height="58" rx="10"/>
+        <text class="t-strong" x="188" y="196">Analyst</text>
+        <text class="t-mono t-dim" x="188" y="208">role + goal</text>
+        <rect class="p" x="188" y="214" width="32" height="14" rx="7"/>
+        <text class="t-mono t-dim" x="194" y="224">sql</text>
+        <rect class="p" x="224" y="214" width="32" height="14" rx="7"/>
+        <text class="t-mono t-dim" x="230" y="224">py</text>
+
+        <rect class="p2" x="316" y="176" width="112" height="58" rx="10"/>
+        <text class="t-strong" x="328" y="196">Writer</text>
+        <text class="t-mono t-dim" x="328" y="208">role + goal</text>
+        <rect class="p" x="328" y="214" width="34" height="14" rx="7"/>
+        <text class="t-mono t-dim" x="334" y="224">docs</text>
+        <rect class="p" x="366" y="214" width="32" height="14" rx="7"/>
+        <text class="t-mono t-dim" x="372" y="224">crm</text>
+
+        <path class="ln dash" d="M88 234c0 22 144 22 144 0" fill="none"/>
+        <path class="ln dash" d="M232 244c0 20 140 20 140-10" fill="none"/>
+        <text class="t-mono t-dim" x="126" y="262">hand-off</text>
+        <text class="t-mono t-dim" x="296" y="262">hand-off</text>
+
+        <rect class="p2" x="28" y="278" width="402" height="38" rx="8"/>
+        <text class="t-mono t-strong" x="44" y="296">450M+</text>
+        <text class="t-mono t-dim" x="44" y="309">agentic runs / month</text>
+        <text class="t-mono t-strong" x="176" y="296">65%</text>
+        <text class="t-mono t-dim" x="176" y="309">of the Fortune 500</text>
+        <text class="t-mono t-strong" x="308" y="296">75&#8211;96%</text>
+        <text class="t-mono t-dim" x="308" y="309">efficiency claims</text>
+
+        <rect class="p s-sig" x="28" y="326" width="110" height="22" rx="11"/>
+        <text class="t-mono fs" x="42" y="341">Cloud platform</text>
+        <rect class="p" x="146" y="326" width="124" height="22" rx="11"/>
+        <text class="t-mono t-dim" x="158" y="341">Open-source install</text>
+        <text class="t-mono t-dim" x="284" y="341">business users + engineers</text>
+
+        <rect class="p2" x="442" y="58" width="170" height="294" rx="8"/>
+        <text class="t-mono t-dim" x="454" y="76">GOVERNANCE</text>
+        <path class="ln" d="M442 86H612" fill="none"/>
+
+        <text x="454" y="108">Tool allow-list</text>
+        <rect class="p2 s-priv" x="568" y="99" width="30" height="14" rx="7"/>
+        <circle class="fg" cx="590" cy="106" r="4.6"/>
+        <text x="454" y="136">Data residency</text>
+        <rect class="p2 s-priv" x="568" y="127" width="30" height="14" rx="7"/>
+        <circle class="fg" cx="590" cy="134" r="4.6"/>
+        <text x="454" y="164">Audit every run</text>
+        <rect class="p2 s-priv" x="568" y="155" width="30" height="14" rx="7"/>
+        <circle class="fg" cx="590" cy="162" r="4.6"/>
+        <text x="454" y="192">Cost ceiling</text>
+        <rect class="p2 s-priv" x="568" y="183" width="30" height="14" rx="7"/>
+        <circle class="fg" cx="590" cy="190" r="4.6"/>
+        <text class="t-dim" x="454" y="220">Human approval</text>
+        <rect class="p" x="568" y="211" width="30" height="14" rx="7"/>
+        <circle class="bar-s" cx="576" cy="218" r="4.6"/>
+        <text class="t-mono t-dim" x="454" y="236">optional, per crew</text>
+
+        <path class="ln" d="M442 250H612" fill="none"/>
+        <text class="t-mono t-dim" x="454" y="270">CLIENTS CITED</text>
+        <text x="454" y="290">PepsiCo</text>
+        <text x="454" y="308">DocuSign</text>
+        <text x="454" y="326">Experian</text>
+        <text class="t-mono t-dim" x="454" y="344">lead-gen &#183; support &#183; QA</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> Drawn to show the two halves CrewAI insists on together: composition of roles, and the governance rail that constrains them.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li><b>Crews</b>: agents with a declared role and goal that collaborate and hand work to each other under a supervisor.</li>
+        <li>A unified build-and-runtime for <b>both business teams and engineers</b>, centrally governed rather than scattered across scripts.</li>
+        <li>Claims <span class="num">450M+</span> agentic workflows per month and adoption by <span class="num">65%</span> of the Fortune 500; cites PepsiCo, DocuSign and Experian.</li>
+        <li>Use cases published as templates: lead enrichment, curriculum design, customer support, QA automation, with 75&ndash;96% efficiency claims.</li>
+        <li>Two deployment paths &mdash; a managed cloud platform, or the open-source install.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Agents</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console's Agents app carries the same primitives &mdash; named roles, a run history, a trace you can open &mdash; and adds two things CrewAI does not: the run sits <b>beside the work</b> in a windowed desktop, and human approval is not an optional governance toggle but a hard OS rule.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>They have a runtime and customers; we have a roster.</b> No orchestration engine, no scheduling, no retries, no cost accounting, no allow-list enforcement &mdash; our governance rail is drawn, not enforced. At CrewAI's claimed volume, the operational problems they have solved are ones we have not yet met.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p5" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">05</span>
+    <h2>Zapier Central</h2>
+    <a class="url" href="https://zapier.com/blog/introducing-zapier-central-ai-bots" target="_blank" rel="noopener">zapier.com/blog<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">An experimental AI bot workspace where bots "work more like teammates than programs" &mdash; <em>and where the chat window is the entire builder.</em></p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: data sources, a bot chat, and behaviour taught in plain language.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of Zapier Central: a left column listing connected data sources, a centre bot chat pane showing a run trace of three steps and a badge saying it runs whether or not you are present, and a right column of numbered plain-language behaviour instructions.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+        <circle class="bar" cx="34" cy="31" r="3.5"/><circle class="bar" cx="46" cy="31" r="3.5"/><circle class="bar" cx="58" cy="31" r="3.5"/>
+        <text class="t-mono t-dim" x="74" y="35">Central &#183; experimental bot workspace &#183; no builder canvas</text>
+        <path class="ln" d="M16 46H624" fill="none"/>
+
+        <!-- data -->
+        <rect class="p2" x="28" y="58" width="150" height="294" rx="8"/>
+        <text class="t-mono t-dim" x="40" y="76">DATA THE BOT KNOWS</text>
+        <path class="ln" d="M28 86H178" fill="none"/>
+        <rect class="p" x="36" y="94" width="134" height="32" rx="6"/>
+        <rect class="fg" x="44" y="103" width="12" height="12" rx="3"/>
+        <text x="62" y="108">Google Sheets</text>
+        <text class="t-mono t-dim" x="62" y="120">pipeline.xlsx</text>
+        <rect class="p" x="36" y="134" width="134" height="32" rx="6"/>
+        <rect class="fb" x="44" y="143" width="12" height="12" rx="3"/>
+        <text x="62" y="148">Google Docs</text>
+        <text class="t-mono t-dim" x="62" y="160">playbook</text>
+        <rect class="p" x="36" y="174" width="134" height="32" rx="6"/>
+        <rect class="fv" x="44" y="183" width="12" height="12" rx="3"/>
+        <text x="62" y="188">Notion</text>
+        <text class="t-mono t-dim" x="62" y="200">accounts db</text>
+        <rect class="p dash" x="36" y="214" width="134" height="24" rx="6"/>
+        <text class="t-dim" x="52" y="230">+ add data</text>
+        <path class="ln" d="M28 254H178" fill="none"/>
+        <text class="t-mono t-dim" x="40" y="272">CONNECTIVITY</text>
+        <text class="t-strong" x="40" y="292">6,000+ apps</text>
+        <text class="t-mono t-dim" x="40" y="306">via Zapier</text>
+        <text class="t-mono t-dim" x="40" y="332">no nodes to wire</text>
+
+        <!-- bot chat -->
+        <rect class="p" x="190" y="58" width="228" height="294" rx="8"/>
+        <circle class="fs" cx="206" cy="76" r="9"/>
+        <circle class="bar" cx="228" cy="76" r="9"/>
+        <circle class="bar" cx="250" cy="76" r="9"/>
+        <text class="t-mono t-dim" x="268" y="80">3 bots</text>
+        <text class="t-strong" x="202" y="102">Ops Assistant</text>
+        <circle class="fg" cx="292" cy="98" r="4"/>
+        <text class="t-mono t-dim" x="302" y="102">running</text>
+        <path class="ln" d="M190 112H418" fill="none"/>
+
+        <rect class="p2 s-acc" x="246" y="122" width="160" height="26" rx="8"/>
+        <text x="256" y="139">chase the open POs</text>
+
+        <text class="t-mono t-dim" x="202" y="168">Ops Assistant</text>
+        <rect class="bar" x="202" y="174" width="180" height="4" rx="2"/>
+        <rect class="bar" x="202" y="182" width="140" height="4" rx="2"/>
+
+        <rect class="p2" x="202" y="194" width="204" height="76" rx="8"/>
+        <text class="t-mono t-dim" x="214" y="210">RUN &#183; 3 STEPS</text>
+        <path class="ln" d="M220 226v34" fill="none"/>
+        <circle class="fg" cx="220" cy="226" r="4"/>
+        <text class="t-mono" x="232" y="230">read sheet &#183; 42 rows</text>
+        <circle class="fg" cx="220" cy="244" r="4"/>
+        <text class="t-mono" x="232" y="248">update Notion &#183; 6</text>
+        <circle class="fs" cx="220" cy="262" r="4"/>
+        <text class="t-mono" x="232" y="266">post to #&#8202;sales</text>
+
+        <rect class="p s-priv" x="202" y="282" width="204" height="22" rx="11"/>
+        <text class="t-mono fg" x="214" y="297">runs whether or not you are here</text>
+        <rect class="p" x="202" y="318" width="204" height="26" rx="8"/>
+        <text class="t-dim" x="214" y="335">Chat to run&#8230;</text>
+        <circle class="fa" cx="392" cy="331" r="6"/>
+
+        <!-- behaviour -->
+        <rect class="p2" x="430" y="58" width="182" height="294" rx="8"/>
+        <text class="t-mono t-dim" x="442" y="76">BEHAVIOUR &#183; PLAIN ENGLISH</text>
+        <path class="ln" d="M430 86H612" fill="none"/>
+        <circle class="p" cx="452" cy="106" r="9"/>
+        <text class="t-mono" x="449" y="109">1</text>
+        <text x="470" y="102">When a new row</text>
+        <text class="t-dim" x="470" y="114">appears in Sheets</text>
+        <circle class="p" cx="452" cy="150" r="9"/>
+        <text class="t-mono" x="449" y="153">2</text>
+        <text x="470" y="146">check the account</text>
+        <text class="t-dim" x="470" y="158">owner in Notion</text>
+        <circle class="p" cx="452" cy="194" r="9"/>
+        <text class="t-mono" x="449" y="197">3</text>
+        <text x="470" y="190">draft a follow-up</text>
+        <text class="t-dim" x="470" y="202">in my own tone</text>
+        <circle class="p" cx="452" cy="238" r="9"/>
+        <text class="t-mono" x="449" y="241">4</text>
+        <text x="470" y="234">post it to #&#8202;sales</text>
+        <text class="t-dim" x="470" y="246">for a human look</text>
+        <rect class="p s-acc" x="440" y="272" width="162" height="22" rx="11"/>
+        <text class="t-mono fa" x="452" y="287">teach by typing, not wiring</text>
+        <text class="t-mono t-dim" x="442" y="318">chat is the builder</text>
+        <text class="t-mono t-dim" x="442" y="334">and the control room</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> The structural claim being drawn: there is no separate canvas &mdash; behaviour is prose, and the chat pane is where a bot is both built and run.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li>Three steps: <b>add data</b> (Google Sheets, Docs, Notion), <b>teach behaviour in plain language</b>, then chat to run it.</li>
+        <li>Bots run <b>with or without the user present</b> &mdash; the chat is a control room, not a requirement.</li>
+        <li><span class="num">6,000+</span> app connectivity inherited from Zapier's existing integration estate.</li>
+        <li>Multiple specialised bots per user, each with its own data and instructions, rather than one general assistant.</li>
+        <li>No separate builder: the same chat window is where you instruct, correct and trigger. Framing is explicitly experimental.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Spotlight sentence-to-automation + Automations</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console already does the interesting half: press <kbd>Cmd-K</kbd>, type a sentence, and get a <b>drafted automation as a real object</b> &mdash; trigger, steps, residency, approval requirement &mdash; opened in the Automations app where it can be edited, not a paragraph you have to scroll back up a chat log to find.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>Ours never fires.</b> Central's bots execute unattended against 6,000+ real connections; our drafts sit in a list. We also have no per-bot data scoping, and nothing equivalent to teaching a persistent behaviour that survives the page reload.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p6" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">06</span>
+    <h2>Perplexity Comet</h2>
+    <a class="url" href="https://www.perplexity.ai/comet" target="_blank" rel="noopener">perplexity.ai/comet<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">A Chromium browser where the assistant is not an extension but a resident of the chrome &mdash; <em>it knows which tab you are on, and it can read across all of them.</em></p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: browser chrome + persistent sidebar reading across tabs.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of Perplexity Comet: browser chrome with five tabs, a page area, and a persistent right sidebar assistant whose dashed attention lines reach every tab; the sidebar lists the five tabs it is reading and carries a separate autonomous agent mode block.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+
+        <rect class="p2 s-line2" x="28" y="28" width="88" height="26" rx="6"/>
+        <circle class="fc" cx="42" cy="41" r="4.5"/>
+        <rect class="bar-s" x="54" y="38" width="44" height="5" rx="2.5"/>
+        <rect class="p" x="120" y="28" width="88" height="26" rx="6"/>
+        <circle class="fb" cx="134" cy="41" r="4.5"/>
+        <rect class="bar" x="146" y="38" width="44" height="5" rx="2.5"/>
+        <rect class="p" x="212" y="28" width="88" height="26" rx="6"/>
+        <circle class="fv" cx="226" cy="41" r="4.5"/>
+        <rect class="bar" x="238" y="38" width="44" height="5" rx="2.5"/>
+        <rect class="p" x="304" y="28" width="88" height="26" rx="6"/>
+        <circle class="fy" cx="318" cy="41" r="4.5"/>
+        <rect class="bar" x="330" y="38" width="44" height="5" rx="2.5"/>
+        <rect class="p" x="396" y="28" width="88" height="26" rx="6"/>
+        <circle class="fs" cx="410" cy="41" r="4.5"/>
+        <rect class="bar" x="422" y="38" width="44" height="5" rx="2.5"/>
+        <circle class="p" cx="500" cy="41" r="9"/>
+        <path class="ln2" d="M495 41h10M500 36v10" fill="none"/>
+
+        <rect class="p2" x="28" y="64" width="430" height="24" rx="7"/>
+        <rect class="ln" x="40" y="72" width="8" height="7" rx="1.5"/>
+        <path class="ln" d="M41.6 72v-2a2.4 2.4 0 0 1 4.8 0v2" fill="none"/>
+        <text class="t-mono" x="56" y="80">perplexity.ai/comet</text>
+        <circle class="bar" cx="428" cy="76" r="4"/>
+        <circle class="bar" cx="442" cy="76" r="4"/>
+
+        <rect class="p2" x="28" y="98" width="430" height="254" rx="8"/>
+        <rect class="bar-s" x="44" y="114" width="220" height="10" rx="5"/>
+        <rect class="bar" x="44" y="136" width="380" height="4" rx="2"/>
+        <rect class="bar" x="44" y="148" width="340" height="4" rx="2"/>
+        <rect class="bar" x="44" y="160" width="300" height="4" rx="2"/>
+        <rect class="p" x="44" y="178" width="170" height="100" rx="6"/>
+        <path class="ln" d="M44 278l170-100M44 178l170 100" fill="none"/>
+        <rect class="bar" x="232" y="178" width="190" height="4" rx="2"/>
+        <rect class="bar" x="232" y="190" width="170" height="4" rx="2"/>
+        <rect class="bar" x="232" y="202" width="190" height="4" rx="2"/>
+        <rect class="bar" x="232" y="214" width="120" height="4" rx="2"/>
+        <rect class="p" x="232" y="236" width="190" height="42" rx="4"/>
+        <path class="ln" d="M232 250h190M232 264h190M295 236v42M358 236v42" fill="none"/>
+        <rect class="bar" x="44" y="296" width="380" height="4" rx="2"/>
+        <rect class="bar" x="44" y="308" width="300" height="4" rx="2"/>
+        <rect class="bar" x="44" y="320" width="340" height="4" rx="2"/>
+
+        <!-- cross-tab attention -->
+        <path class="dash s-sig" d="M466 104C380 104 260 80 74 56" fill="none" opacity=".62"/>
+        <path class="dash s-sig" d="M466 104C400 104 300 80 166 56" fill="none" opacity=".62"/>
+        <path class="dash s-sig" d="M466 104C420 104 340 80 258 56" fill="none" opacity=".62"/>
+        <path class="dash s-sig" d="M466 104C440 104 400 78 350 56" fill="none" opacity=".62"/>
+        <path class="dash s-sig" d="M466 104C460 100 448 76 442 56" fill="none" opacity=".62"/>
+
+        <rect class="p s-sig" x="466" y="64" width="146" height="288" rx="8"/>
+        <circle class="fs" cx="480" cy="80" r="6"/>
+        <text class="t-strong" x="494" y="84">Comet</text>
+        <path class="ln" d="M466 96H612" fill="none"/>
+        <rect class="p2" x="474" y="106" width="130" height="42" rx="8"/>
+        <text x="482" y="122">What do all these</text>
+        <text x="482" y="134">tabs have in common?</text>
+        <rect class="bar" x="482" y="160" width="112" height="4" rx="2"/>
+        <rect class="bar" x="482" y="170" width="96" height="4" rx="2"/>
+        <rect class="bar" x="482" y="180" width="104" height="4" rx="2"/>
+        <rect class="bar" x="482" y="190" width="70" height="4" rx="2"/>
+        <text class="t-mono fs" x="482" y="212">READING 5 TABS</text>
+        <circle class="fc" cx="486" cy="224" r="3.5"/>
+        <text class="t-mono" x="496" y="228">vendor A pricing</text>
+        <circle class="fb" cx="486" cy="238" r="3.5"/>
+        <text class="t-mono" x="496" y="242">vendor B pricing</text>
+        <circle class="fv" cx="486" cy="252" r="3.5"/>
+        <text class="t-mono" x="496" y="256">our RFP draft</text>
+        <circle class="fy" cx="486" cy="266" r="3.5"/>
+        <text class="t-mono" x="496" y="270">calendar &#183; Sept</text>
+        <circle class="fs" cx="486" cy="280" r="3.5"/>
+        <text class="t-mono" x="496" y="284">inbox thread</text>
+        <rect class="p2 s-pub" x="474" y="298" width="130" height="46" rx="8"/>
+        <text class="t-mono fy" x="482" y="314">AGENT MODE</text>
+        <text class="t-mono t-dim" x="482" y="328">books &#183; fills forms</text>
+        <text class="t-mono t-dim" x="482" y="340">acts without you</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> The dashed lines are an annotation, not a UI element: they mark the sidebar's cross-tab attention, which is the structural difference from a bolted-on extension.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li>A Chromium browser with the AI agent <b>native in the sidebar</b>, not an extension &mdash; it knows the active tab and keeps context across the session.</li>
+        <li><b>Cross-tab context:</b> "what do all these tabs have in common?" is a legitimate question with a real answer.</li>
+        <li>A separate <b>Comet Agent mode</b> acts autonomously &mdash; finding flights that match your calendar, scheduling meetings, filling forms, managing subscriptions.</li>
+        <li>Free on macOS, Windows, Android and iOS as of April 2026, with no account required for core features.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Floating companion + Browser</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console generalises Comet's best idea. Our companion reads <b>every open window on the Space</b> &mdash; a mail thread, a code preview, a knowledge-graph selection, a chat and a browser tab at once &mdash; because the container is an OS. Comet's cross-surface context necessarily ends at the tab strip.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>Their context is real; ours is a prototype's.</b> Comet ships an engine, so the sidebar genuinely reads live pages and the agent genuinely acts on them, on four platforms, for free. Console's cross-window reading works over data we authored ourselves.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p7" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">07</span>
+    <h2>Littlebird</h2>
+    <a class="url" href="https://littlebird.ai" target="_blank" rel="noopener">littlebird.ai<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">A desktop and mobile second brain that <em>watches your active window and listens in your meetings</em>, then renders what it learned as a dashboard of cards rather than a chat log.</p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: floating companion over a blurred host app + card memory.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of Littlebird: a blurred host application behind, an observation badge stating it watches the active window and listens in meetings, a floating Hummingbird pill summonable from any app, and below it a magazine-style grid of five memory cards for tasks, emails, reminders, preferences and current focus.">
+        <defs>
+          <filter id="lbBlur7" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1.7"/>
+          </filter>
+        </defs>
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+
+        <g filter="url(#lbBlur7)" opacity=".55">
+          <rect class="p2" x="28" y="30" width="584" height="192" rx="8"/>
+          <rect class="p" x="36" y="38" width="100" height="176" rx="6"/>
+          <rect class="bar" x="46" y="52" width="76" height="6" rx="3"/>
+          <rect class="bar" x="46" y="70" width="60" height="6" rx="3"/>
+          <rect class="bar" x="46" y="88" width="70" height="6" rx="3"/>
+          <rect class="bar" x="46" y="106" width="52" height="6" rx="3"/>
+          <rect class="p" x="144" y="38" width="180" height="176" rx="6"/>
+          <rect class="bar" x="154" y="50" width="140" height="5" rx="2.5"/>
+          <rect class="bar" x="154" y="60" width="100" height="4" rx="2"/>
+          <rect class="bar" x="154" y="84" width="140" height="5" rx="2.5"/>
+          <rect class="bar" x="154" y="94" width="112" height="4" rx="2"/>
+          <rect class="bar" x="154" y="118" width="140" height="5" rx="2.5"/>
+          <rect class="bar" x="154" y="128" width="90" height="4" rx="2"/>
+          <rect class="bar" x="154" y="152" width="140" height="5" rx="2.5"/>
+          <rect class="bar" x="154" y="162" width="104" height="4" rx="2"/>
+          <rect class="bar" x="154" y="186" width="140" height="5" rx="2.5"/>
+          <rect class="bar" x="154" y="196" width="76" height="4" rx="2"/>
+          <rect class="p" x="332" y="38" width="272" height="176" rx="6"/>
+          <rect class="bar-s" x="344" y="50" width="160" height="8" rx="4"/>
+          <rect class="bar" x="344" y="72" width="240" height="4" rx="2"/>
+          <rect class="bar" x="344" y="84" width="210" height="4" rx="2"/>
+          <rect class="bar" x="344" y="96" width="230" height="4" rx="2"/>
+          <rect class="bar" x="344" y="108" width="150" height="4" rx="2"/>
+          <rect class="p2" x="344" y="126" width="240" height="40" rx="4"/>
+          <rect class="bar" x="354" y="138" width="200" height="4" rx="2"/>
+          <rect class="bar" x="354" y="150" width="160" height="4" rx="2"/>
+          <rect class="bar" x="344" y="180" width="200" height="4" rx="2"/>
+          <rect class="bar" x="344" y="192" width="160" height="4" rx="2"/>
+        </g>
+
+        <rect class="p2 s-sig" x="372" y="40" width="228" height="24" rx="12"/>
+        <ellipse class="ln2" cx="388" cy="52" rx="7" ry="4.6" fill="none"/>
+        <circle class="fs" cx="388" cy="52" r="2"/>
+        <text class="t-mono" x="402" y="56">observing window &#183; hearing calls</text>
+
+        <text class="t-mono t-dim" x="28" y="20">HOST APP &#183; NOT SWITCHED AWAY FROM</text>
+
+        <rect class="shadow" x="180" y="192" width="288" height="48" rx="24"/>
+        <rect class="p2 s-line2" x="176" y="186" width="288" height="48" rx="24"/>
+        <circle class="fa" cx="202" cy="210" r="11" opacity=".22"/>
+        <circle class="fa" cx="202" cy="210" r="4"/>
+        <text class="t-strong" x="222" y="206">Ask from any app</text>
+        <text class="t-mono t-dim" x="222" y="220">no window switching</text>
+        <rect class="p" x="352" y="200" width="66" height="20" rx="6"/>
+        <text class="t-mono" x="360" y="214">Opt+Space</text>
+        <circle class="p" cx="438" cy="210" r="9"/>
+        <rect class="bar-s" x="436" y="205" width="4" height="7" rx="2"/>
+        <path class="ln2" d="M433 213a5 5 0 0 0 10 0" fill="none"/>
+
+        <text class="t-mono t-dim" x="28" y="256">MEMORY AS A CARD DASHBOARD &#8212; NOT A CHAT LOG</text>
+
+        <rect class="p" x="28" y="264" width="104" height="88" rx="8"/>
+        <text class="t-mono fs" x="38" y="282">TASKS</text>
+        <path class="ln" d="M28 288h104" fill="none"/>
+        <rect class="ln" x="38" y="298" width="9" height="9" rx="2"/>
+        <rect class="bar" x="52" y="301" width="64" height="4" rx="2"/>
+        <rect class="p2 s-priv" x="38" y="314" width="9" height="9" rx="2"/>
+        <path class="s-priv" d="M40 318.5l2.4 2.4 4-4.6" fill="none"/>
+        <rect class="bar" x="52" y="317" width="48" height="4" rx="2"/>
+        <rect class="ln" x="38" y="330" width="9" height="9" rx="2"/>
+        <rect class="bar" x="52" y="333" width="56" height="4" rx="2"/>
+
+        <rect class="p" x="140" y="264" width="120" height="80" rx="8"/>
+        <text class="t-mono fs" x="150" y="282">EMAILS</text>
+        <rect class="p2" x="228" y="272" width="22" height="14" rx="7"/>
+        <text class="t-mono" x="235" y="282">7</text>
+        <path class="ln" d="M140 288h120" fill="none"/>
+        <circle class="fa" cx="152" cy="302" r="3"/>
+        <rect class="bar" x="162" y="300" width="82" height="4" rx="2"/>
+        <circle class="bar" cx="152" cy="318" r="3"/>
+        <rect class="bar" x="162" y="316" width="66" height="4" rx="2"/>
+        <circle class="bar" cx="152" cy="334" r="3"/>
+        <rect class="bar" x="162" y="332" width="74" height="4" rx="2"/>
+
+        <rect class="p" x="268" y="264" width="132" height="88" rx="8"/>
+        <text class="t-mono fs" x="278" y="282">REMINDERS</text>
+        <path class="ln" d="M268 288h132" fill="none"/>
+        <text class="t-mono" x="278" y="304">09:00</text>
+        <rect class="bar" x="314" y="300" width="74" height="4" rx="2"/>
+        <text class="t-mono" x="278" y="322">14:30</text>
+        <rect class="bar" x="314" y="318" width="58" height="4" rx="2"/>
+        <text class="t-mono t-dim" x="278" y="340">routines &#183; scheduled</text>
+
+        <rect class="p" x="408" y="264" width="100" height="76" rx="8"/>
+        <text class="t-mono fs" x="418" y="282">VOICE</text>
+        <path class="ln" d="M408 288h100" fill="none"/>
+        <rect class="bar" x="418" y="298" width="78" height="4" rx="2"/>
+        <rect class="bar" x="418" y="308" width="60" height="4" rx="2"/>
+        <rect class="p2 s-priv" x="418" y="318" width="76" height="14" rx="7"/>
+        <text class="t-mono fg" x="424" y="329">learned</text>
+
+        <rect class="p s-acc" x="516" y="264" width="96" height="88" rx="8"/>
+        <text class="t-mono fa" x="526" y="282">FOCUS</text>
+        <path class="ln" d="M516 288h96" fill="none"/>
+        <text class="t-strong" x="526" y="306">Q3 renewals</text>
+        <rect class="fa" x="526" y="314" width="46" height="4" rx="2"/>
+        <rect class="bar" x="576" y="314" width="24" height="4" rx="2"/>
+        <text class="t-mono t-dim" x="526" y="334">since 09:12</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> The blur is a drawing device for "some other app you did not leave"; the two real claims being illustrated are passive observation and memory rendered as cards.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li><b>Passive observation:</b> it watches the active window and listens in meetings, so there is no manual pasting-in of context.</li>
+        <li><b>"Hummingbird"</b> is a floating sidebar summonable from any app without switching windows.</li>
+        <li>Memory is rendered as a <b>magazine-style dashboard of cards</b> &mdash; tasks, emails, reminders, preferences, current focus &mdash; instead of a linear transcript.</li>
+        <li>Drafts in your voice, from learned writing patterns.</li>
+        <li>Roughly <span class="num">100+</span> integrations including Notion, Linear, Gmail, Google Calendar, Intercom and Klaviyo; "routines" are scheduled briefings.</li>
+        <li>SOC 2, and no training on your data.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Floating companion + Brain</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        The companion pattern is already ours, and arguably stronger: it is summonable anywhere on the desktop and reads whatever windows are open on the Space. On memory we go further &mdash; the Brain is a <b>live graph of 40 typed nodes with cosine-weighted edges</b>, an embedding preview and a nearest-neighbour list, so a user can audit why something was recalled.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>We have no passive capture at all.</b> Everything the Brain knows was authored by us; Littlebird's memory fills itself from the screen and from meeting audio at zero user cost, then writes in the user's learned voice. Nothing in a browser-based prototype can observe another application.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p8" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">08</span>
+    <h2>BrowserOS</h2>
+    <a class="url" href="https://www.browseros.com" target="_blank" rel="noopener">browseros.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">An open-source Chromium fork that calls itself <em>a privacy-first alternative to ChatGPT Atlas and Perplexity</em> &mdash; agents run on your machine, against your keys.</p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: browser-as-OS with a local model picker and a device boundary.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of BrowserOS: browser chrome with an agent card running locally, a model routing panel listing local providers Ollama and LM Studio above remote bring-your-own-key providers, and a dashed device boundary strip stating history, keys and automations never leave the machine, with the corporate cloud struck out.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+
+        <rect class="p2 s-line2" x="28" y="28" width="88" height="26" rx="6"/>
+        <circle class="fg" cx="42" cy="41" r="4.5"/>
+        <rect class="bar-s" x="54" y="38" width="44" height="5" rx="2.5"/>
+        <rect class="p" x="120" y="28" width="88" height="26" rx="6"/>
+        <circle class="bar" cx="134" cy="41" r="4.5"/>
+        <rect class="bar" x="146" y="38" width="44" height="5" rx="2.5"/>
+        <rect class="p" x="212" y="28" width="88" height="26" rx="6"/>
+        <circle class="bar" cx="226" cy="41" r="4.5"/>
+        <rect class="bar" x="238" y="38" width="44" height="5" rx="2.5"/>
+        <circle class="p" cx="318" cy="41" r="9"/>
+        <path class="ln2" d="M313 41h10M318 36v10" fill="none"/>
+        <rect class="p s-priv" x="400" y="30" width="100" height="20" rx="10"/>
+        <text class="t-mono fg" x="410" y="44">open source</text>
+        <rect class="p2 s-priv" x="508" y="30" width="104" height="20" rx="10"/>
+        <text class="t-mono fg" x="518" y="44">no telemetry</text>
+
+        <rect class="p2" x="28" y="64" width="352" height="24" rx="7"/>
+        <rect class="ln" x="40" y="72" width="8" height="7" rx="1.5"/>
+        <path class="ln" d="M41.6 72v-2a2.4 2.4 0 0 1 4.8 0v2" fill="none"/>
+        <text class="t-mono" x="56" y="80">browseros.com</text>
+        <rect class="p" x="298" y="68" width="72" height="16" rx="8"/>
+        <text class="t-mono t-dim" x="304" y="80">extensions</text>
+
+        <rect class="p2" x="28" y="98" width="352" height="196" rx="8"/>
+        <rect class="bar-s" x="44" y="114" width="200" height="8" rx="4"/>
+        <rect class="bar" x="44" y="136" width="310" height="4" rx="2"/>
+        <rect class="bar" x="44" y="148" width="270" height="4" rx="2"/>
+        <rect class="bar" x="44" y="160" width="290" height="4" rx="2"/>
+        <rect class="shadow" x="64" y="184" width="280" height="96" rx="8"/>
+        <rect class="p s-sig" x="60" y="180" width="280" height="96" rx="8"/>
+        <circle class="fs" cx="76" cy="198" r="5"/>
+        <text class="t-strong" x="90" y="202">Agent &#183; running locally</text>
+        <path class="ln" d="M78 222v32" fill="none"/>
+        <circle class="fg" cx="78" cy="222" r="3.5"/>
+        <text class="t-mono" x="90" y="226">read 3 open tabs</text>
+        <circle class="fg" cx="78" cy="238" r="3.5"/>
+        <text class="t-mono" x="90" y="242">fill the vendor form</text>
+        <circle class="fy" cx="78" cy="254" r="3.5"/>
+        <text class="t-mono" x="90" y="258">wait for your OK</text>
+        <text class="t-mono t-dim" x="78" y="272">no round trip to a vendor cloud</text>
+
+        <rect class="p2" x="392" y="64" width="220" height="230" rx="8"/>
+        <text class="t-mono t-dim" x="404" y="82">MODEL ROUTING</text>
+        <path class="ln" d="M392 92H612" fill="none"/>
+        <text class="t-mono fg" x="404" y="108">LOCAL</text>
+        <rect class="p s-priv" x="400" y="116" width="204" height="24" rx="6"/>
+        <circle class="s-priv" cx="414" cy="128" r="5" fill="none"/>
+        <circle class="fg" cx="414" cy="128" r="2.6"/>
+        <text x="428" y="132">Ollama</text>
+        <rect class="p2" x="552" y="120" width="44" height="16" rx="8"/>
+        <text class="t-mono" x="558" y="132">70b</text>
+        <rect class="p" x="400" y="146" width="204" height="22" rx="6"/>
+        <circle class="ln" cx="414" cy="157" r="5" fill="none"/>
+        <text class="t-dim" x="428" y="161">LM Studio &#183; qwen2.5</text>
+        <rect class="p" x="400" y="174" width="204" height="22" rx="6"/>
+        <circle class="ln" cx="414" cy="185" r="5" fill="none"/>
+        <text class="t-dim" x="428" y="189">fully offline</text>
+        <text class="t-mono t-dim" x="404" y="216">REMOTE &#183; YOUR KEYS</text>
+        <rect class="p" x="400" y="224" width="204" height="20" rx="6"/>
+        <circle class="ln" cx="414" cy="234" r="5" fill="none"/>
+        <text class="t-dim" x="428" y="238">Anthropic Claude</text>
+        <rect class="ln" x="580" y="230" width="7" height="7" rx="1.5"/>
+        <path class="ln" d="M587 233h7" fill="none"/>
+        <rect class="p" x="400" y="248" width="204" height="20" rx="6"/>
+        <circle class="ln" cx="414" cy="258" r="5" fill="none"/>
+        <text class="t-dim" x="428" y="262">Gemini &#183; OpenAI &#183; Kimi</text>
+        <rect class="ln" x="580" y="254" width="7" height="7" rx="1.5"/>
+        <path class="ln" d="M587 257h7" fill="none"/>
+        <rect class="p" x="400" y="272" width="204" height="20" rx="6"/>
+        <circle class="ln" cx="414" cy="282" r="5" fill="none"/>
+        <text class="t-dim" x="428" y="286">OpenRouter &#183; 500+</text>
+        <rect class="ln" x="580" y="278" width="7" height="7" rx="1.5"/>
+        <path class="ln" d="M587 281h7" fill="none"/>
+
+        <rect class="ln dash" x="28" y="306" width="584" height="46" rx="8" fill="none"/>
+        <rect class="p2 s-priv" x="40" y="324" width="14" height="11" rx="2"/>
+        <path class="s-priv" d="M43 324v-3a4 4 0 0 1 8 0v3" fill="none"/>
+        <text class="t-strong" x="64" y="326">This device is the boundary</text>
+        <text class="t-mono t-dim" x="64" y="340">history &#183; keys &#183; automations never leave the machine</text>
+        <path class="ln2" d="M500 330c-4-8 4-13 9-9 2-8 13-8 15 1 7-1 10 8 3 10h-25c-4 0-5-2-2-2z" fill="none"/>
+        <path class="s-acc" d="M494 340l40-24" fill="none"/>
+        <text class="t-mono t-dim" x="546" y="336">corporate</text>
+        <text class="t-mono t-dim" x="546" y="347">cloud</text>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> The boundary strip is the whole product thesis drawn as structure: routing choices above it, and nothing crossing below it.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li>An open-source Chromium fork, positioned explicitly as <b>a privacy-first alternative to ChatGPT Atlas and Perplexity</b>.</li>
+        <li><b>Agents run locally.</b> Browsing history stays on device, you supply your own API keys, and automations run on the machine rather than in a vendor cloud.</li>
+        <li><span class="num">11+</span> model providers &mdash; Moonshot Kimi, Anthropic Claude, Google Gemini, OpenAI, OpenRouter with 500+ models &mdash; and <b>fully local via Ollama or LM Studio</b>.</li>
+        <li>Chrome extensions still work; macOS, Windows and Linux; free.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Browser + Settings model routing, under the sovereignty pill</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console's sovereignty model is more granular in design: Private means <b>on-prem Riyadh DC-1</b> and Public means the request leaves the network, the posture is stated in permanent OS chrome, and it is scoped per action and per window rather than being one global browser setting. Green and amber are reserved for that meaning and never reused decoratively.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>Their local-first story is architecture; ours is a claim in a pill.</b> BrowserOS actually routes to Ollama and LM Studio, keeps history on disk and holds the user's own keys. Console has no local-model routing, no keys, no engine &mdash; on the specific axis of "the inference never leaves this machine", BrowserOS beats us outright.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p9" class="product wrap">
+  <div class="prod-head">
+    <span class="idx">09</span>
+    <h2>Open WebUI</h2>
+    <a class="url" href="https://openwebui.com" target="_blank" rel="noopener">openwebui.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+  </div>
+  <p class="positioning">A self-hosted chat shell that runs fully offline &mdash; and the most complete of the nine, because <em>model choice, retrieval and plugins are all first-class controls</em> rather than settings buried in a menu.</p>
+
+  <div class="prod-grid">
+    <figure class="shot">
+      <div class="shot-bar">
+        <span class="badge">Schematic</span>
+        <span class="what">Interface pattern: chat shell + mid-conversation model switch + RAG rail + pipelines.</span>
+      </div>
+      <svg class="wf" viewBox="0 0 640 380" role="img" aria-label="Wireframe of Open WebUI: a conversation rail on the left ending in a multi-user RBAC row, a centre chat where the model is switched mid-conversation and answers carry numbered citations, a right rail of RAG documents with citation indices and vector database and web search rows, and a pipelines panel of toggled plugins below it.">
+        <rect class="bg" x="0" y="0" width="640" height="380" rx="14"/>
+        <rect class="p" x="16" y="16" width="608" height="348" rx="14"/>
+        <circle class="bar" cx="34" cy="31" r="3.5"/><circle class="bar" cx="46" cy="31" r="3.5"/><circle class="bar" cx="58" cy="31" r="3.5"/>
+        <text class="t-mono t-dim" x="74" y="35">self-hosted &#183; one private deployment, shared by a team</text>
+        <rect class="p s-priv" x="496" y="24" width="116" height="18" rx="9"/>
+        <text class="t-mono fg" x="506" y="37">runs fully offline</text>
+        <path class="ln" d="M16 50H624" fill="none"/>
+
+        <rect class="p2" x="28" y="60" width="124" height="292" rx="8"/>
+        <rect class="p s-acc" x="36" y="68" width="108" height="22" rx="6"/>
+        <text class="fa" x="48" y="83">+ New chat</text>
+        <rect class="p2 s-line2" x="36" y="98" width="108" height="22" rx="6"/>
+        <text x="46" y="113">Contract review</text>
+        <text class="t-dim" x="46" y="137">RFP answers</text>
+        <text class="t-dim" x="46" y="159">Site diary</text>
+        <text class="t-dim" x="46" y="181">Cost model</text>
+        <path class="ln" d="M28 200H152" fill="none"/>
+        <text class="t-mono t-dim" x="40" y="218">WORKSPACE</text>
+        <text class="t-dim" x="46" y="240">Models</text>
+        <text class="t-dim" x="46" y="260">Knowledge</text>
+        <text class="t-dim" x="46" y="280">Prompts</text>
+        <text class="t-dim" x="46" y="300">Tools</text>
+        <circle class="bar" cx="46" cy="322" r="7"/>
+        <circle class="bar" cx="60" cy="322" r="7"/>
+        <circle class="bar" cx="74" cy="322" r="7"/>
+        <text class="t-mono fg" x="44" y="344">12 users &#183; RBAC</text>
+
+        <rect class="p" x="164" y="60" width="270" height="292" rx="8"/>
+        <rect class="p2 s-sig" x="174" y="68" width="170" height="24" rx="12"/>
+        <circle class="fs" cx="188" cy="80" r="4"/>
+        <text class="t-mono" x="200" y="84">llama3.1:70b &#183; local</text>
+        <path class="ln2" d="M330 77l4 5 4-5" fill="none"/>
+        <path class="ln" d="M164 102H434" fill="none"/>
+
+        <rect class="p2 s-acc" x="234" y="112" width="188" height="30" rx="8"/>
+        <text x="244" y="131">summarise clause 8.4</text>
+        <rect class="bar" x="176" y="158" width="232" height="4" rx="2"/>
+        <rect class="bar" x="176" y="168" width="200" height="4" rx="2"/>
+        <text class="t-mono" x="176" y="186">LD cap binds past day 67</text>
+        <rect class="p2 s-sig" x="300" y="176" width="18" height="13" rx="4"/>
+        <text class="t-mono fs" x="306" y="186">1</text>
+        <rect class="p2 s-sig" x="322" y="176" width="18" height="13" rx="4"/>
+        <text class="t-mono fs" x="328" y="186">2</text>
+
+        <path class="ln dash" d="M176 208h246" fill="none"/>
+        <text class="t-mono t-dim" x="212" y="224">model switched mid-conversation</text>
+        <rect class="p2 s-sig" x="176" y="232" width="150" height="20" rx="10"/>
+        <circle class="fv" cx="188" cy="242" r="4"/>
+        <text class="t-mono" x="198" y="246">claude &#183; sonnet</text>
+        <rect class="bar" x="176" y="268" width="220" height="4" rx="2"/>
+        <rect class="bar" x="176" y="278" width="180" height="4" rx="2"/>
+        <rect class="bar" x="176" y="288" width="200" height="4" rx="2"/>
+        <rect class="p2" x="174" y="314" width="250" height="30" rx="10"/>
+        <text class="t-dim" x="186" y="333">Ask anything&#8230;</text>
+        <circle class="p" cx="356" cy="329" r="8"/>
+        <rect class="bar-s" x="354" y="324" width="4" height="7" rx="2"/>
+        <rect class="p" x="372" y="322" width="16" height="14" rx="3"/>
+        <path class="ln" d="M376 322v-2h8v2" fill="none"/>
+        <rect class="p" x="396" y="322" width="16" height="14" rx="3"/>
+        <path class="ln" d="M396 333l5-5 4 4 3-3 4 4" fill="none"/>
+
+        <rect class="p2" x="446" y="60" width="166" height="190" rx="8"/>
+        <text class="t-mono t-dim" x="458" y="78">DOCUMENTS &#183; RAG</text>
+        <path class="ln" d="M446 88H612" fill="none"/>
+        <rect class="p" x="454" y="94" width="150" height="22" rx="6"/>
+        <rect class="bar-s" x="462" y="98" width="10" height="14" rx="2"/>
+        <text x="478" y="109">Subcontract.pdf</text>
+        <rect class="p2 s-sig" x="578" y="98" width="18" height="14" rx="4"/>
+        <text class="t-mono fs" x="584" y="109">1</text>
+        <rect class="p" x="454" y="120" width="150" height="22" rx="6"/>
+        <rect class="bar-s" x="462" y="124" width="10" height="14" rx="2"/>
+        <text x="478" y="135">PO-4500219871</text>
+        <rect class="p2 s-sig" x="578" y="124" width="18" height="14" rx="4"/>
+        <text class="t-mono fs" x="584" y="135">2</text>
+        <rect class="p" x="454" y="146" width="150" height="22" rx="6"/>
+        <rect class="bar-s" x="462" y="150" width="10" height="14" rx="2"/>
+        <text x="478" y="161">vendors.csv</text>
+        <rect class="p2" x="578" y="150" width="18" height="14" rx="4"/>
+        <text class="t-mono t-dim" x="584" y="161">3</text>
+        <rect class="p" x="454" y="172" width="150" height="22" rx="6"/>
+        <path class="ln" d="M462 183h10M467 176a9 9 0 0 0 0 14M467 176a9 9 0 0 1 0 14" fill="none"/>
+        <text x="478" y="187">web: standard</text>
+        <rect class="p2" x="578" y="176" width="18" height="14" rx="4"/>
+        <text class="t-mono t-dim" x="584" y="187">4</text>
+        <text class="t-mono t-dim" x="458" y="212">vector db &#183; pgvector</text>
+        <text class="t-mono t-dim" x="458" y="226">extractor &#183; selectable</text>
+        <text class="t-mono t-dim" x="458" y="240">search &#183; SearXNG +14</text>
+
+        <rect class="p2" x="446" y="262" width="166" height="90" rx="8"/>
+        <text class="t-mono t-dim" x="458" y="280">PIPELINES</text>
+        <path class="ln" d="M446 288H612" fill="none"/>
+        <text x="458" y="306">rate limiting</text>
+        <rect class="p2 s-priv" x="568" y="297" width="30" height="13" rx="7"/>
+        <circle class="fg" cx="590" cy="303" r="4.4"/>
+        <text x="458" y="326">Langfuse usage</text>
+        <rect class="p2 s-priv" x="568" y="317" width="30" height="13" rx="7"/>
+        <circle class="fg" cx="590" cy="323" r="4.4"/>
+        <text x="458" y="346">custom python</text>
+        <rect class="p2 s-priv" x="568" y="337" width="30" height="13" rx="7"/>
+        <circle class="fg" cx="590" cy="343" r="4.4"/>
+      </svg>
+      <figcaption><b>Schematic &mdash; an original wireframe of the interface pattern, not a screenshot.</b> Three structural facts are being drawn: the model can change inside one conversation, retrieval is a visible rail with citation indices, and plugins are a panel, not a config file.</figcaption>
+    </figure>
+
+    <div class="facts">
+      <h3>What it does</h3>
+      <ul>
+        <li>Self-hosted, extensible, and <b>runs fully offline</b> against Ollama or any OpenAI-compatible API.</li>
+        <li><b>Native RAG with no add-ons:</b> upload PDFs, Word files or web pages; it splits, indexes and answers <b>with source citations</b>. Multiple vector DBs and extraction engines are selectable.</li>
+        <li>Web search for retrieval from <span class="num">15+</span> providers &mdash; SearXNG, Brave, Google PSE, Kagi, Tavily, Perplexity, Bing, DuckDuckGo.</li>
+        <li>A <b>Pipelines plugin framework</b>: a separate server for function calling, rate limiting, usage monitoring via Langfuse, translation via LibreTranslate, content filtering and custom Python, surfaced in the UI.</li>
+        <li>Switch models mid-conversation; voice and video chat with local Whisper or cloud STT plus TTS; image generation via DALL-E, Gemini, ComfyUI or AUTOMATIC1111.</li>
+        <li><b>Multi-user RBAC</b>, so a team shares one private deployment.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="counterpart">
+    <div class="cp-top">
+      <span class="cp-label">Magna counterpart</span>
+      <span class="cp-app"><span class="m"></span>Chat + Brain + Connections</span>
+      <span class="cp-file">apps/app-7-console.html</span>
+    </div>
+    <div class="verdict">
+      <div class="parity">
+        <div class="vh"><span class="d"></span>Parity</div>
+        Console's Chat produces real artifacts &mdash; a slide deck, a letter, a CSV &mdash; as objects rather than text blobs, and the Brain shows retrieval as a graph with an embedding preview instead of a flat citation list. Neither exists in Open WebUI, and neither does a windowed desktop.
+      </div>
+      <div class="gap">
+        <div class="vh"><span class="d"></span>Gap</div>
+        <b>This is the product that most exposes us.</b> Everything we simulate, it runs: offline inference, genuine RAG with citations, provider-selectable web search, mid-conversation model switching, plugins as a deployable server, and <b>multi-user RBAC</b> &mdash; which Console has no concept of at all. It is also free, installable today, and maintained by a community we do not have.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="closing" class="product wrap">
+  <div class="section-head">
+    <span class="kicker">Where we stand</span>
+    <h2 class="big">Where Console is genuinely differentiated &mdash; and where it is not</h2>
+  </div>
+  <p class="section-lede">The honest summary of nine products: Console wins on <em>shell</em> and loses on <em>substrate</em>. Nobody in this set has built an operating environment; almost everybody in this set has built something that actually runs. Both halves below are meant to be read by the same client, in the same sitting.</p>
+
+  <div class="close-grid">
+    <div class="panel ahead">
+      <div class="ph">Genuinely ahead</div>
+      <h3>Five things none of the nine has</h3>
+      <p class="pnote">Checked product by product against the research above, not against a positioning deck.</p>
+      <ol>
+        <li><b>Sovereignty as permanent OS chrome</b>Every one of the nine treats data residency as a setting, a compliance badge, or in BrowserOS's case a global local-first posture. Console puts a Private / Public pill in the menu bar with a named destination &mdash; on-prem Riyadh DC-1 &mdash; scoped per action and per window, and reserves green and amber for nothing else.</li>
+        <li><b>A real windowed desktop with Spaces</b>Drag, eight-handle resize, z-order, minimise, maximise, snapping to halves <em>and</em> quadrants with a ghost preview, four virtual desktops with pips, Mission Control, Ctrl-arrow switching and two-finger swipe. Not one of the nine products has a window manager. Comet and BrowserOS have tab strips; Open WebUI has one pane; Lindy borrows Slack's.</li>
+        <li><b>Cross-window context</b>The companion reads every open window on the current Space &mdash; a mail thread, a code preview, a graph selection and a browser tab together. Comet's version stops at tabs, Littlebird's at the single foreground window.</li>
+        <li><b>One OS-wide approval gate</b>The same inline confirmation bar grows in front of every write in all fifteen apps. Lindy is the only competitor with mandatory approval and it is per-workflow inside a chat; CrewAI makes human approval an optional governance toggle.</li>
+        <li><b>The Brain as a visible graph</b>Forty typed nodes across six kinds &mdash; project, document, decision, person, email, system &mdash; with cosine-weighted edges, animated flow pulses, an embedding preview, nearest neighbours, plus email-graph, behaviour and reasoning-trail views. Littlebird renders memory as cards you cannot audit; Lindy as a text file; Open WebUI as a citation list.</li>
+      </ol>
+    </div>
+
+    <div class="panel behind">
+      <div class="ph">Genuinely behind</div>
+      <h3>Six things competitors ship and we do not</h3>
+      <p class="pnote">Named with the product that beats us, so this can be argued with rather than nodded at.</p>
+      <ol>
+        <li><b>No local-model routing &mdash; BrowserOS and Open WebUI beat us</b>They route to Ollama and LM Studio on the user's own machine with the user's own keys, fully offline. Console has no model at all: no inference, no keys, no provider list. Our Private pill promises what their architecture delivers.</li>
+        <li><b>No multi-user RBAC &mdash; Open WebUI beats us</b>A team can share one private Open WebUI deployment with roles and permissions. Console has no concept of a second user, let alone a role. For an enterprise buyer this is a procurement blocker, not a nice-to-have.</li>
+        <li><b>No live model, backend or real integrations</b>Console is a single static HTML file with no build step and no libraries, running internally-consistent dummy data. Lindy has 1,000+ integrations, Zapier Central 6,000+, Littlebird about 100. We have connector branding.</li>
+        <li><b>No meeting attendance &mdash; Lindy beats us</b>Lindy joins Meet, Zoom and Teams as a named participant, records, transcribes and makes the meeting queryable. Console cannot attend anything.</li>
+        <li><b>No passive observation &mdash; Littlebird beats us</b>Littlebird watches the active window and listens in meetings, so its memory fills itself. Everything in our Brain was authored by us, by hand.</li>
+        <li><b>No marketplace or ecosystem</b>Open WebUI has Pipelines and a community, CrewAI has templates and an open-source install, Lindy has 40+ shareable skills, BrowserOS has the whole Chrome extension estate. Console has a Marketplace app that declares an extension's permissions before install &mdash; which is the right interaction &mdash; but nothing installs, nothing can be published, and all fifteen apps were written by us.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="verdict-line">
+    <p><b>The defensible reading.</b> Console is not competing with these products feature for feature and would lose if it tried. What it demonstrates is a thesis none of them has tested: that once an organisation runs more than one AI surface, the missing layer is not a better assistant &mdash; it is an <b>operating environment</b> where sovereignty, approval and memory are properties of the system rather than options inside each tool.</p>
+    <p><b>The risk to state plainly.</b> That thesis is currently expressed as a prototype. The six gaps above are not stylistic; three of them &mdash; local inference, real integrations and multi-user access control &mdash; are the difference between a convincing demonstration and something a client can deploy. Any roadmap built from this document should start there, not with a tenth app.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <svg class="mark" viewBox="0 0 640 440" aria-hidden="true">
+      <defs>
+        <linearGradient id="mkA2" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".5" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+        </linearGradient>
+        <linearGradient id="mkB2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+        </linearGradient>
+      </defs>
+      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mkA2)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mkB2)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="f-tx"><b>Magna Console</b> &mdash; competitive landscape, schematic edition &middot; nine original wireframes, zero screenshots</span>
+    <span class="f-right">researched Aug 2026 &middot; apps/app-7-console.html</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var KEY = "mv.theme";
+  var seg = document.getElementById("themeseg");
+  if(!seg) return;
+
+  function stored(){
+    try{ return localStorage.getItem(KEY) || "system"; }catch(e){ return "system"; }
+  }
+  function apply(t){
+    if(t === "light" || t === "dark"){ root.setAttribute("data-theme", t); }
+    else { root.removeAttribute("data-theme"); }
+    var btns = seg.querySelectorAll("button[data-t]");
+    for(var i = 0; i < btns.length; i++){
+      btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-t") === t ? "true" : "false");
+    }
+  }
+  seg.addEventListener("click", function(ev){
+    var el = ev.target;
+    while(el && el !== seg && !el.getAttribute("data-t")){ el = el.parentNode; }
+    if(!el || el === seg) return;
+    var t = el.getAttribute("data-t");
+    try{ localStorage.setItem(KEY, t); }catch(e){}
+    apply(t);
+  });
+  apply(stored());
+})();
+</script>
+
+</body>
+</html>

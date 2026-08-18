@@ -198,6 +198,18 @@ body:not([data-stage="os"]) #os{display:none}
 .g-conn{background:linear-gradient(150deg,#9AA0AE,#4A4F5C)}
 .g-mail{background:linear-gradient(150deg,#F077B6,#8E2A63)}
 .g-set{background:linear-gradient(150deg,#6E7482,#33373F)}
+.g-terminal{background:linear-gradient(150deg,#3DDC97,#0D5C42)}
+.g-api{background:linear-gradient(150deg,#FF8A4C,#9B3B10)}
+.g-db{background:linear-gradient(150deg,#4FC3F7,#0B5A82)}
+.g-market{background:linear-gradient(150deg,#FFC24B,#A05A08)}
+.g-task{background:linear-gradient(150deg,#8E9BFF,#39428F)}
+.g-vault{background:linear-gradient(150deg,#C77DFF,#5B2A85)}
+.g-devices{background:linear-gradient(150deg,#5FE3C0,#12695A)}
+.g-monitor{background:linear-gradient(150deg,#7DD3FC,#0C4A6E)}
+.g-project{background:linear-gradient(150deg,#A78BFA,#4C2889)}
+.g-docs{background:linear-gradient(150deg,#94A3B8,#3F4A5A)}
+.g-skill{background:linear-gradient(150deg,#FDBA74,#9A4A10)}
+.g-mcp{background:linear-gradient(150deg,#67E8F9,#0E5C6B)}
 
 /* ============================ DESKTOP WIDGETS ============================
    Live cards sitting on the wallpaper. The desktop should tell you the state
@@ -1094,13 +1106,20 @@ var APPS = {
   browser: { name:"Browser",     icon:"i-globe",  tile:"g-browser", w:900, h:620, minW:420, minH:360, multi:true  },
   agents:  { name:"Agents",      icon:"i-agent",  tile:"g-agents",  w:800, h:600, minW:460, minH:380, multi:false },
   autos:   { name:"Automations", icon:"i-bolt",   tile:"g-auto",    w:760, h:560, minW:440, minH:360, multi:false },
-  conn:    { name:"Connections", icon:"i-plug",   tile:"g-conn",    w:820, h:600, minW:460, minH:380, multi:false },
+  conn:    { name:"Connections", icon:"i-plug",   tile:"g-conn",    w:900, h:640, minW:460, minH:380, multi:false },
   mail:    { name:"Mail",        icon:"i-mail",   tile:"g-mail",    w:860, h:600, minW:460, minH:380, multi:false },
-  settings:{ name:"Settings",    icon:"i-gear",   tile:"g-set",     w:780, h:580, minW:480, minH:380, multi:false }
+  settings:{ name:"Settings",    icon:"i-gear",   tile:"g-set",     w:780, h:580, minW:480, minH:380, multi:false },
+  terminal:{ name:"Terminal",    icon:"i-term",   tile:"g-terminal",w:860, h:520, minW:460, minH:280, multi:true  },
+  api:     { name:"API Studio",  icon:"i-api",    tile:"g-api",     w:980, h:660, minW:600, minH:420, multi:true  },
+  db:      { name:"Database",    icon:"i-db",     tile:"g-db",      w:1000,h:660, minW:600, minH:420, multi:true  },
+  market:  { name:"Marketplace", icon:"i-market", tile:"g-market",  w:960, h:660, minW:520, minH:400, multi:false },
+  tasks:   { name:"Task Manager",icon:"i-task",   tile:"g-task",    w:900, h:600, minW:520, minH:380, multi:false },
+  approvals:{name:"Approvals",   icon:"i-approve",tile:"g-vault",   w:840, h:620, minW:480, minH:380, multi:false }
 };
-var DOCK_PINNED = ["chat","brain","code","browser"];
-var DOCK_REST   = ["agents","autos","conn","mail","settings"];
-var DESKTOP_ORDER = ["chat","brain","code","browser","agents","autos","conn","mail","settings"];
+var DOCK_PINNED = ["chat","brain","code","browser","terminal"];
+var DOCK_REST   = ["api","db","agents","autos","market","tasks","approvals","conn","mail","settings"];
+var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","api","db","agents","autos",
+                     "market","tasks","approvals","conn","mail","settings"];
 
 /* badges that make the desktop informative rather than decorative */
 var BADGES = { mail:3, agents:2, autos:1 };
@@ -3233,6 +3252,629 @@ MOUNT.settings = function(body, w){
     if(f){ var name = f.getAttribute("data-forget");
            for(var i=0;i<BEHAVIOUR.length;i++){ if(BEHAVIOUR[i].t === name){ BEHAVIOUR.splice(i,1); break; } }
            draw(); toast("Forgotten. The Brain will not use that pattern again."); return; }
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- TERMINAL */
+var TERM_SESSIONS = [
+  { id:"t1", nm:"bash — magna-riyadh-dc1", cwd:"~/ryd-m3" },
+  { id:"t2", nm:"node — frontend", cwd:"~/ryd-m3/web" },
+  { id:"t3", nm:"psql — magna-prod", cwd:"magna_prod" }
+];
+var TERM_DANGER = /\brm\s+-rf|\bdrop\s+(table|database)|kubectl\s+delete|git\s+push\s+--force|truncate\b/i;
+MOUNT.terminal = function(body, w){
+  w.state.sess = "t1";
+  w.state.lines = {
+    t1:[["p","Magna Console shell · magna-riyadh-dc1 · 8×H200"],
+        ["d","Simulated shell. No real host is attached — type help."]],
+    t2:[["p","node v22.4.0"]], t3:[["p","psql (16.3) · magna_prod · read-only role"]]
+  };
+  body.innerHTML = '<div class="cd">'+
+    '<div class="side"><div class="side-h">Sessions</div>'+
+      TERM_SESSIONS.map(function(s){
+        return '<button class="side-i" data-tsess="'+s.id+'" aria-current="'+(s.id==="t1")+'">'+
+               ico("i-term","sm")+'<span style="min-width:0;overflow:hidden;text-overflow:ellipsis">'+
+               esc(s.nm)+'</span></button>'; }).join("")+
+      '<div class="side-h" style="margin-top:8px">Assist</div>'+
+      '<button class="side-i" data-tai="why">'+ico("i-spark","sm")+'Why did that fail?</button>'+
+      '<button class="side-i" data-tai="deps">'+ico("i-spark","sm")+'Install dependencies</button>'+
+    '</div>'+
+    '<div class="cd-main">'+
+      '<div class="cd-term" data-tout style="flex:1;height:auto"></div>'+
+      '<div style="flex:none;display:flex;align-items:center;gap:8px;padding:9px 12px;'+
+        'border-top:1px solid var(--glass-line);background:rgba(0,0,0,.24)">'+
+        '<span style="font-family:var(--mono);font-size:12px;color:var(--private)" data-tps>~/ryd-m3 $</span>'+
+        '<input data-tin class="bw-url" style="flex:1;border-radius:8px" spellcheck="false" '+
+        'placeholder="type a command — try help">'+
+      '</div>'+
+    '</div></div>';
+  var out = body.querySelector("[data-tout]"), inp = body.querySelector("[data-tin]");
+  function draw(){
+    out.innerHTML = w.state.lines[w.state.sess].map(function(l){
+      var cls = l[0] === "p" ? "p" : l[0] === "w" ? "w" : l[0] === "e" ? "e" : "";
+      return '<div'+(cls?' class="'+cls+'"':'')+'>'+esc(l[1])+'</div>';
+    }).join("");
+    out.scrollTop = out.scrollHeight;
+    var s = TERM_SESSIONS.filter(function(x){ return x.id === w.state.sess; })[0];
+    body.querySelector("[data-tps]").textContent = (s ? s.cwd : "~") + " $";
+    setWinTitle(w, "Terminal", s ? s.nm : "");
+  }
+  function push(kind, text){ w.state.lines[w.state.sess].push([kind, text]); }
+  var CMDS = {
+    help:["Available: help, ls, pwd, whoami, git status, npm run dev, docker ps,",
+          "kubectl get pods, psql, clear. Anything else reports not found."],
+    ls:["build/  node_modules/  src/  package.json  README.md  docker-compose.yml"],
+    pwd:["/home/ahmad/ryd-m3"],
+    whoami:["ahmad.farahat · Delivery seat · Magna KSA Production"],
+    "git status":["On branch feat/c2-exposure","Changes not staged for commit:",
+                  "  modified:   src/ExposureModel.java","  modified:   web/status.html",
+                  "no changes added to commit"],
+    "npm run dev":["> ryd-m3-web@1.4.2 dev","> vite",
+                   "VITE v5.3.1  ready in 412 ms","Local:   http://localhost:5173/",
+                   "watching for file changes…"],
+    "docker ps":["CONTAINER   IMAGE                 STATUS         PORTS",
+                 "a1f3c9e2    postgres:16           Up 4 hours     5432/tcp",
+                 "7bd41c08    redis:7-alpine        Up 4 hours     6379/tcp",
+                 "e93a55d1    ryd-m3-api:1.4.2      Up 22 minutes  8080/tcp"],
+    "kubectl get pods":["NAME                        READY   STATUS    RESTARTS   AGE",
+                        "ryd-api-7c9d4f8b6-2xkqp     1/1     Running   0          22m",
+                        "ryd-web-5f8c7d9a4-lm4rt     1/1     Running   0          22m",
+                        "pgbouncer-6b8f9c7d5-w8zqn   1/1     Running   1          4h"],
+    psql:["psql (16.3) · connected to magna_prod as readonly",
+          "Type \\dt to list tables. Writes are blocked on this role."]
+  };
+  function run(raw){
+    var cmd = (raw||"").trim(); if(!cmd) return;
+    push("p", (TERM_SESSIONS.filter(function(x){return x.id===w.state.sess;})[0]||{cwd:"~"}).cwd + " $ " + cmd);
+    if(cmd === "clear"){ w.state.lines[w.state.sess] = []; draw(); return; }
+    if(TERM_DANGER.test(cmd)){
+      push("e", "blocked — this command destroys data and needs approval first");
+      draw();
+      requestApproval(w, {
+        title:"Run a destructive command?",
+        detail:"“" + cmd + "” cannot be undone. It targets the production cluster in Riyadh DC-1.",
+        confirm:"Run it",
+        okToast:"Executed (simulated).",
+        onApprove:function(){ push("w","approved by ahmad.farahat · executed"); push("d","(simulated — nothing was really deleted)"); draw(); },
+        onCancel:function(){ push("d","cancelled — nothing ran"); draw(); }
+      });
+      return;
+    }
+    var hit = CMDS[cmd];
+    if(hit) hit.forEach(function(l){ push("", l); });
+    else push("e", "console: " + cmd.split(" ")[0] + ": command not found");
+    draw();
+  }
+  inp.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ run(inp.value); inp.value = ""; }
+  });
+  body.addEventListener("click", function(e){
+    var s = e.target.closest("[data-tsess]");
+    if(s){ w.state.sess = s.getAttribute("data-tsess");
+           $$("[data-tsess]", body).forEach(function(x){ x.setAttribute("aria-current", String(x===s)); });
+           draw(); return; }
+    var a = e.target.closest("[data-tai]");
+    if(a){
+      if(a.getAttribute("data-tai") === "why"){
+        push("", "› assist: the last non-zero exit was npm ERR! ELIFECYCLE.");
+        push("", "  Cause: PORT 5173 already bound by an earlier vite process.");
+        push("", "  Fix:   kill the stale process, or run with --port 5174.");
+      } else {
+        push("", "› assist: package.json needs 3 packages not in node_modules.");
+        push("", "  Run: npm install (safe — no postinstall scripts in this tree).");
+      }
+      draw();
+    }
+  });
+  draw();
+  setTimeout(function(){ inp.focus(); }, 60);
+};
+
+/* ---------------------------------------------------------- API STUDIO */
+var API_COLLECTIONS = [
+  { nm:"Magna Internal", reqs:[
+    { id:"r1", m:"GET",  u:"/api/po/4500219871",  d:"PO header and lines" },
+    { id:"r2", m:"GET",  u:"/api/exposure/C2?days=45", d:"Exposure model output" },
+    { id:"r3", m:"POST", u:"/api/variation",      d:"Raise a variation notice" }
+  ]},
+  { nm:"SAP Bridge", reqs:[
+    { id:"r4", m:"GET",  u:"/sap/vendors?dup=true", d:"Duplicate vendor candidates" },
+    { id:"r5", m:"PATCH",u:"/sap/po/4500219871/line/40", d:"Amend a PO line" }
+  ]},
+  { nm:"P6 Bridge", reqs:[
+    { id:"r6", m:"GET",  u:"/p6/baseline/r7/slip", d:"Activities past 5 days slip" }
+  ]}
+];
+var API_RESPONSES = {
+  r1:{ s:200, t:"142 ms", sz:"1.9 KB", b:{ po:"4500219871", vendor:"Al-Rajhi Steel Co.",
+      currency:"SAR", promised:"2026-08-03", lines:[
+      {line:10,material:"B500B 16mm",qty_t:320,received_t:320,status:"complete"},
+      {line:20,material:"B500B 20mm",qty_t:280,received_t:280,status:"complete"},
+      {line:30,material:"B500B 25mm",qty_t:240,received_t:142,status:"partial"},
+      {line:40,material:"B500B 32mm",qty_t:180,received_t:0,status:"awaiting"},
+      {line:50,material:"B500B 12mm",qty_t:140,received_t:0,status:"awaiting"},
+      {line:60,material:"couplers",qty_t:80,received_t:0,status:"awaiting"}]}},
+  r2:{ s:200, t:"318 ms", sz:"412 B", b:{ package:"C2", days:45,
+      liquidated_damages_sar:2821500, standby_sar:4230000, escalation_sar:878000,
+      total_sar:5320000, ld_cap_binds_at_day:67, dominant_term:"standby" }},
+  r3:{ s:202, t:"96 ms", sz:"180 B", b:{ accepted:true, ref:"VN-C2-0114", assessed_sum:null,
+      note:"Draft created. Assessed sum left blank for human entry." }},
+  r4:{ s:200, t:"1.2 s", sz:"8.4 KB", b:{ scanned:18420, candidates:41,
+      top:[{a:"ALRAJHI STEEL CO",b:"Al-Rajhi Steel Co.",score:.97},
+           {a:"AL RAJHI STEEL",b:"Al-Rajhi Steel Co.",score:.94}] }},
+  r5:{ s:200, t:"240 ms", sz:"210 B", b:{ updated:true, line:40, new_promised:"2026-09-19" }},
+  r6:{ s:200, t:"602 ms", sz:"3.1 KB", b:{ baseline:"r7", threshold_days:5, slipping:3,
+      activities:[{id:"C2-RB-1180",name:"Rebar fix L2 deck",slip_days:11,critical:true},
+                  {id:"C2-RB-1210",name:"Rebar fix L3 deck",slip_days:8,critical:true},
+                  {id:"C2-CN-0440",name:"Coupler install",slip_days:6,critical:false}] }}
+};
+MOUNT.api = function(body, w){
+  w.state.req = "r1"; w.state.tab = "params";
+  body.innerHTML = '<div class="cd">'+
+    '<div class="side">'+
+      API_COLLECTIONS.map(function(c){
+        return '<div class="side-h">'+esc(c.nm)+'</div>'+ c.reqs.map(function(r){
+          return '<button class="side-i" data-areq="'+r.id+'" aria-current="'+(r.id==="r1")+'">'+
+            '<span class="tag" style="min-width:44px;justify-content:center">'+r.m+'</span>'+
+            '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11.5px">'+
+            esc(r.u.split("?")[0])+'</span></button>'; }).join("");
+      }).join("")+
+    '</div><div class="cd-main" data-abody></div></div>';
+  function reqById(id){
+    for(var i=0;i<API_COLLECTIONS.length;i++){
+      var f = API_COLLECTIONS[i].reqs.filter(function(r){ return r.id===id; })[0];
+      if(f) return f;
+    } return null;
+  }
+  function draw(){
+    var r = reqById(w.state.req), resp = API_RESPONSES[w.state.req];
+    setWinTitle(w, "API Studio", r.m + " " + r.u);
+    var mCol = r.m === "GET" ? "var(--private)" : r.m === "DELETE" ? "var(--accent-2)" : "var(--public)";
+    body.querySelector("[data-abody]").innerHTML =
+      '<div style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;'+
+        'border-bottom:1px solid var(--glass-line)">'+
+        '<span class="tag" style="color:'+mCol+';border-color:'+mCol+'66;font-weight:700">'+r.m+'</span>'+
+        '<input class="bw-url" value="'+esc(r.u)+'" spellcheck="false" style="flex:1">'+
+        '<button class="btn primary sm" data-asend>'+ico("i-play","xs")+'Send</button></div>'+
+      '<div class="tabs">'+ ["params","headers","auth","body","tests"].map(function(t){
+          return '<button class="tab" data-atab="'+t+'" aria-selected="'+(t===w.state.tab)+'">'+
+                 t.charAt(0).toUpperCase()+t.slice(1)+'</button>'; }).join("") +'</div>'+
+      '<div style="flex:none;max-height:150px;overflow:auto;padding:12px 14px;'+
+        'border-bottom:1px solid var(--glass-line)">'+ tabBody(r) +'</div>'+
+      '<div style="flex:1;min-height:0;display:flex;flex-direction:column">'+
+        '<div style="flex:none;display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:11.5px;'+
+          'border-bottom:1px solid var(--glass-line)">'+
+          '<span class="tag pv">'+resp.s+' OK</span>'+
+          '<span style="color:var(--tx-3);font-family:var(--mono)">'+resp.t+' · '+resp.sz+'</span>'+
+          '<span class="sp" style="flex:1"></span>'+
+          '<span style="color:var(--tx-4)">response</span></div>'+
+        '<div class="cd-editor" style="flex:1"><pre>'+
+          esc(JSON.stringify(resp.b, null, 2))+'</pre></div>'+
+      '</div>';
+  }
+  function tabBody(r){
+    var t = w.state.tab;
+    if(t === "headers") return '<div class="kv"><span class="k">Content-Type</span><span class="v">application/json</span></div>'+
+      '<div class="kv"><span class="k">X-Magna-Tier</span><span class="v">private</span></div>'+
+      '<div class="kv"><span class="k">X-Request-Id</span><span class="v">rq_8f2a41c9</span></div>';
+    if(t === "auth") return '<div class="kv"><span class="k">Scheme</span><span class="v">Bearer (workspace token)</span></div>'+
+      '<div class="kv"><span class="k">Source</span><span class="v">Secret vault · never shown</span></div>'+
+      '<div class="kv"><span class="k">Scope</span><span class="v">po:read exposure:read</span></div>';
+    if(t === "body") return r.m === "GET"
+      ? '<p class="sub" style="margin:0">No body on a GET.</p>'
+      : '<pre style="margin:0;font-family:var(--mono);font-size:11.5px;color:var(--tx-2)">'+
+        esc('{\n  "package": "C2",\n  "clause": "GC-8 8.4",\n  "assessed_sum": null\n}')+'</pre>';
+    if(t === "tests") return '<div class="kv"><span class="k">status is 2xx</span><span class="v" style="color:var(--private)">pass</span></div>'+
+      '<div class="kv"><span class="k">total_sar &gt; 0</span><span class="v" style="color:var(--private)">pass</span></div>'+
+      '<div class="kv"><span class="k">response &lt; 2s</span><span class="v" style="color:var(--private)">pass</span></div>';
+    return '<div class="kv"><span class="k">days</span><span class="v">45</span></div>'+
+      '<div class="kv"><span class="k">tier</span><span class="v">private</span></div>'+
+      '<p class="sub" style="margin:8px 0 0;font-size:11.5px">'+esc(r.d)+'</p>';
+  }
+  body.addEventListener("click", function(e){
+    var q = e.target.closest("[data-areq]");
+    if(q){ w.state.req = q.getAttribute("data-areq");
+           $$("[data-areq]", body).forEach(function(x){ x.setAttribute("aria-current", String(x===q)); });
+           draw(); return; }
+    var t = e.target.closest("[data-atab]");
+    if(t){ w.state.tab = t.getAttribute("data-atab"); draw(); return; }
+    if(e.target.closest("[data-asend]")){
+      var r = reqById(w.state.req);
+      if(r.m === "GET"){ toast("200 OK · " + API_RESPONSES[r.id].t); return; }
+      requestApproval(w, {
+        title:"Send a " + r.m + " request?",
+        detail:r.m + " " + r.u + " changes data in a production system. This is a write.",
+        confirm:"Send " + r.m,
+        okToast:"Sent · " + API_RESPONSES[r.id].s
+      });
+    }
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- DATABASE STUDIO */
+var DB_CONNS = [
+  { id:"d1", nm:"PostgreSQL · magna-prod", tag:"read-only", tables:[
+      "purchase_order_lines","schedule_activities","vendors","hse_incidents","variations"] },
+  { id:"d2", nm:"Redis · cache", tag:"6379", tables:["sessions","rate_limits"] },
+  { id:"d3", nm:"Qdrant · brain-vectors", tag:"1024-dim", tables:["documents","emails","decisions"] }
+];
+var DB_TABLES = {
+  purchase_order_lines:{ cols:["line","material","qty_t","received_t","promised","status"], rows:[
+    [10,"B500B 16mm",320,320,"2026-08-03","complete"],[20,"B500B 20mm",280,280,"2026-08-03","complete"],
+    [30,"B500B 25mm",240,142,"2026-08-03","partial"],[40,"B500B 32mm",180,0,"2026-08-03","awaiting"],
+    [50,"B500B 12mm",140,0,"2026-08-10","awaiting"],[60,"couplers",80,0,"2026-08-10","awaiting"]] },
+  schedule_activities:{ cols:["activity_id","name","slip_days","float_days","critical"], rows:[
+    ["C2-RB-1180","Rebar fix L2 deck",11,0,"true"],["C2-RB-1210","Rebar fix L3 deck",8,0,"true"],
+    ["C2-CN-0440","Coupler install",6,3,"false"],["C3-TN-0210","Tunnel handover",0,14,"false"]] },
+  vendors:{ cols:["vendor_id","name","category","prequal","dup_score"], rows:[
+    ["V-10442","Al-Rajhi Steel Co.","steel","A","—"],["V-18877","ALRAJHI STEEL CO","steel","—","0.97"],
+    ["V-20913","Gulf Rebar Trading","steel","B","—"],["V-11205","Najd Fabricators","steel","A","—"]] },
+  hse_incidents:{ cols:["ref","date","type","lost_time","deck"], rows:[
+    ["HSE-2026-0331","2026-08-12","fall","true","C2-L2"],["HSE-2026-0334","2026-08-14","strain","true","C2-L2"]] },
+  variations:{ cols:["ref","package","clause","assessed_sar","status"], rows:[
+    ["VN-C2-0114","C2","GC-8 8.4",null,"draft"]] },
+  sessions:{ cols:["key","ttl_s"], rows:[["sess:ahmad",3540],["sess:nouf",1220]] },
+  rate_limits:{ cols:["key","hits"], rows:[["ai:ahmad",184],["api:sap",22]] },
+  documents:{ cols:["id","label","dim","cluster"], rows:[
+    ["n2","Subcontract GC-8",1024,"commercial"],["n4","Baseline r7.xer",1024,"schedule"]] },
+  emails:{ cols:["id","from","dim"], rows:[["n7","Khalid Al-Rashid",1024],["n12","Nouf Al-Otaibi",1024]] },
+  decisions:{ cols:["id","label","dim"], rows:[["n5","Split rebar to 2 vendors",1024]] }
+};
+MOUNT.db = function(body, w){
+  w.state.conn = "d1"; w.state.tbl = "purchase_order_lines"; w.state.tab = "table";
+  w.state.sql = "select line, material, qty_t, received_t\nfrom purchase_order_lines\nwhere status <> 'complete';";
+  body.innerHTML = '<div class="cd"><div class="side" data-dside></div>'+
+    '<div class="cd-main"><div class="tabs">'+
+      ['table','sql','schema'].map(function(t){
+        return '<button class="tab" data-dtab="'+t+'" aria-selected="'+(t==="table")+'">'+
+               (t==="sql"?"SQL":t.charAt(0).toUpperCase()+t.slice(1))+'</button>'; }).join("")+
+    '</div><div data-dbody style="flex:1;min-height:0;display:flex;flex-direction:column"></div>'+
+    '</div></div>';
+  function drawSide(){
+    body.querySelector("[data-dside]").innerHTML = DB_CONNS.map(function(c){
+      var on = c.id === w.state.conn;
+      return '<button class="side-i" data-dconn="'+c.id+'" aria-current="'+on+'">'+ico("i-db","sm")+
+        '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis">'+esc(c.nm)+'</span>'+
+        '<span class="cnt">'+esc(c.tag)+'</span></button>'+
+        (on ? c.tables.map(function(t){
+          return '<button class="side-i" data-dtbl="'+t+'" aria-current="'+(t===w.state.tbl)+'" '+
+            'style="padding-left:24px;font-size:11.5px">'+ico("i-grid","sm")+esc(t)+'</button>'; }).join("") : "");
+    }).join("");
+  }
+  function grid(t){
+    var d = DB_TABLES[t]; if(!d) return '<div class="empty-msg">No such table.</div>';
+    return '<div style="flex:1;min-height:0;overflow:auto"><table style="width:100%;border-collapse:collapse;'+
+      'font-family:var(--mono);font-size:11.5px">'+
+      '<thead><tr>'+d.cols.map(function(c){
+        return '<th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--glass-line-2);'+
+          'color:var(--tx-3);font-weight:600;position:sticky;top:0;background:var(--glass-2)">'+esc(c)+'</th>'; }).join("")+
+      '</tr></thead><tbody>'+ d.rows.map(function(r){
+        return '<tr>'+r.map(function(v){
+          return '<td style="padding:7px 12px;border-bottom:1px solid var(--glass-line);color:'+
+            (v===null?"var(--tx-4)":"var(--tx-2)")+'">'+esc(v===null?"NULL":v)+'</td>'; }).join("")+'</tr>';
+      }).join("")+'</tbody></table></div>'+
+      '<div style="flex:none;padding:8px 12px;border-top:1px solid var(--glass-line);font-size:11px;'+
+      'color:var(--tx-4);font-family:var(--mono)">'+d.rows.length+' rows · read-only role</div>';
+  }
+  function draw(){
+    drawSide();
+    setWinTitle(w, "Database", w.state.tbl);
+    var host = body.querySelector("[data-dbody]");
+    if(w.state.tab === "table"){ host.innerHTML = grid(w.state.tbl); return; }
+    if(w.state.tab === "schema"){
+      var d = DB_TABLES[w.state.tbl];
+      host.innerHTML = '<div class="pane-scroll"><h4 class="sec">'+esc(w.state.tbl)+'</h4>'+
+        '<p class="sub">Columns and inferred types. This connection uses a read-only role, so DDL is '+
+        'unavailable without an approval.</p><div class="card">'+
+        (d ? d.cols.map(function(c,i){
+          var sample = d.rows[0] ? d.rows[0][i] : null;
+          var ty = sample === null ? "numeric (nullable)" : typeof sample === "number" ? "numeric" :
+                   /^\d{4}-\d{2}-\d{2}$/.test(String(sample)) ? "date" :
+                   (sample==="true"||sample==="false") ? "boolean" : "text";
+          return '<div class="kv"><span class="k">'+esc(c)+'</span><span class="v">'+ty+'</span></div>';
+        }).join("") : "")+'</div></div>';
+      return;
+    }
+    host.innerHTML =
+      '<div style="flex:none;padding:10px 12px;border-bottom:1px solid var(--glass-line);display:flex;gap:8px">'+
+        '<button class="btn primary sm" data-drun>'+ico("i-play","xs")+'Run</button>'+
+        '<span style="font-size:11.5px;color:var(--tx-4);align-self:center">⌘↵ runs · only SELECT runs without approval</span>'+
+      '</div>'+
+      '<textarea data-dsql spellcheck="false" style="flex:none;height:110px;background:rgba(0,0,0,.24);'+
+        'border:0;border-bottom:1px solid var(--glass-line);padding:12px 14px;font-family:var(--mono);'+
+        'font-size:12px;color:var(--tx-2);resize:none;outline:none">'+esc(w.state.sql)+'</textarea>'+
+      '<div data-dres style="flex:1;min-height:0;display:flex;flex-direction:column"></div>';
+    var res = host.querySelector("[data-dres]");
+    res.innerHTML = grid("purchase_order_lines");
+    var ta = host.querySelector("[data-dsql]");
+    ta.addEventListener("input", function(){ w.state.sql = ta.value; });
+    ta.addEventListener("keydown", function(e){
+      if((e.metaKey||e.ctrlKey) && e.key === "Enter"){ e.preventDefault(); runSQL(); }
+    });
+  }
+  function runSQL(){
+    var q = (w.state.sql||"").trim();
+    if(!/^select\b/i.test(q)){
+      requestApproval(w, {
+        title:"This statement writes to production",
+        detail:"Only SELECT runs freely on magna-prod. “"+q.split(/\s+/)[0].toUpperCase()+
+               "” changes or removes data and cannot be undone.",
+        confirm:"Run anyway",
+        okToast:"Executed (simulated). 0 rows changed — read-only role.",
+      });
+      return;
+    }
+    toast("6 rows · 41 ms");
+    var res = body.querySelector("[data-dres]");
+    if(res) res.innerHTML = grid("purchase_order_lines");
+  }
+  body.addEventListener("click", function(e){
+    var c = e.target.closest("[data-dconn]");
+    if(c){ w.state.conn = c.getAttribute("data-dconn");
+           var cc = DB_CONNS.filter(function(x){ return x.id===w.state.conn; })[0];
+           w.state.tbl = cc.tables[0]; draw(); return; }
+    var t = e.target.closest("[data-dtbl]");
+    if(t){ w.state.tbl = t.getAttribute("data-dtbl"); if(w.state.tab==="sql") w.state.tab="table"; draw(); return; }
+    var tb = e.target.closest("[data-dtab]");
+    if(tb){ w.state.tab = tb.getAttribute("data-dtab");
+            $$("[data-dtab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===tb)); });
+            draw(); return; }
+    if(e.target.closest("[data-drun]")) runSQL();
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- MARKETPLACE */
+var MARKET_ITEMS = {
+  apps:[
+    {nm:"Primavera Slip Analyser",pub:"Magna Labs",tile:"g-project",icon:"i-clock",r:4.8,i:"1.2k",p:"included",
+     d:"Baseline-vs-live variance at any WBS level, with float and criticality.",perm:["Read P6 snapshots","Read Company Knowledge"],deny:["Write to P6"]},
+    {nm:"ZATCA e-Invoice Validator",pub:"Fatoora Tools",tile:"g-api",icon:"i-check",r:4.6,i:"860",p:"SAR 400/mo",
+     d:"Validates invoice XML against ZATCA Phase 2 before submission.",perm:["Read invoices"],deny:["Submit on your behalf"]},
+    {nm:"Arabic Clause Extractor",pub:"Magna Labs",tile:"g-brain",icon:"i-file",r:4.9,i:"2.1k",p:"included",
+     d:"Pulls governing clauses out of bilingual subcontracts with page citations.",perm:["Read Company Knowledge"],deny:["Network access"]},
+    {nm:"HSE Incident Digest",pub:"Magna Labs",tile:"g-conn",icon:"i-shield",r:4.5,i:"540",p:"included",
+     d:"Weekly register summary with your reporting thresholds applied.",perm:["Read HSE register"],deny:["Notify externally"]},
+    {nm:"SAP PO Reconciler",pub:"Bridgeworks",tile:"g-db",icon:"i-db",r:4.4,i:"1.7k",p:"SAR 900/mo",
+     d:"Matches goods receipts against PO lines and flags every deviation.",perm:["Read SAP PO","Read GRN"],deny:["Amend PO lines"]}
+  ],
+  agents:[
+    {nm:"Commercial Claims Agent",pub:"Magna Labs",tile:"g-agents",icon:"i-agent",r:4.7,i:"410",p:"metered",
+     d:"Builds the commercial position for a delay claim, clause by clause.",perm:["Read contracts","Read schedule"],deny:["Send correspondence"]},
+    {nm:"Procurement Watch",pub:"Bridgeworks",tile:"g-agents",icon:"i-agent",r:4.3,i:"290",p:"metered",
+     d:"Monitors vendor delivery performance and raises early warnings.",perm:["Read SAP","Read email"],deny:["Place orders"]},
+    {nm:"QA Regression Agent",pub:"Magna Labs",tile:"g-task",icon:"i-check",r:4.6,i:"1.1k",p:"metered",
+     d:"Runs a scripted suite across browser and device targets, reports diffs.",perm:["Run browser sessions"],deny:["Deploy"]},
+    {nm:"Tender Reader",pub:"Najd AI",tile:"g-docs",icon:"i-doc",r:4.2,i:"180",p:"SAR 1,200/mo",
+     d:"Reads a tender pack and produces a compliance matrix.",perm:["Read uploads"],deny:["Network access"]},
+    {nm:"Payroll Reconciler",pub:"Mudad Partners",tile:"g-vault",icon:"i-vault",r:4.1,i:"95",p:"SAR 700/mo",
+     d:"Cross-checks payroll against GOSI and Qiwa records.",perm:["Read payroll"],deny:["Pay anyone"]}
+  ],
+  skills:[
+    {nm:"clause-finder",pub:"Magna Labs",tile:"g-skill",icon:"i-skill",r:4.9,i:"3.4k",p:"included",
+     d:"Find and quote the governing clause across a subcontract library.",perm:["Read Company Knowledge"],deny:["Network access"]},
+    {nm:"ar-en-brief",pub:"Magna Labs",tile:"g-skill",icon:"i-skill",r:4.8,i:"2.8k",p:"included",
+     d:"Matched Arabic and English brief from one source document.",perm:["Read uploads"],deny:["Network access"]},
+    {nm:"p6-slip-report",pub:"Magna Labs",tile:"g-skill",icon:"i-skill",r:4.7,i:"2.2k",p:"included",
+     d:"Baseline versus live variance with float and criticality.",perm:["Read P6"],deny:["Write to P6"]},
+    {nm:"vendor-risk-score",pub:"Bridgeworks",tile:"g-skill",icon:"i-skill",r:4.4,i:"760",p:"SAR 300/mo",
+     d:"Scores a vendor on delivery history and prequalification category.",perm:["Read SAP vendor master"],deny:["Write vendor records"]},
+    {nm:"minutes-to-actions",pub:"Najd AI",tile:"g-skill",icon:"i-skill",r:4.5,i:"1.4k",p:"included",
+     d:"Pull owners, dates and actions out of meeting minutes.",perm:["Read uploads"],deny:["Create calendar events"]}
+  ],
+  mcp:[
+    {nm:"sap-po-lookup",pub:"Magna Platform",tile:"g-mcp",icon:"i-mcp",r:4.9,i:"—",p:"internal",
+     d:"Purchase orders, vendor master and goods receipts. Read-only.",perm:["po:read","vendor:read","grn:read"],deny:["po:write"]},
+    {nm:"p6-schedule",pub:"Magna Platform",tile:"g-mcp",icon:"i-mcp",r:4.8,i:"—",p:"internal",
+     d:"Activities, baselines, float and the nightly snapshot.",perm:["activity:read","baseline:read"],deny:["baseline:write"]},
+    {nm:"github-mcp",pub:"Community",tile:"g-mcp",icon:"i-git",r:4.6,i:"18k",p:"free",
+     d:"Read repositories, create issues and open pull requests.",perm:["repo:read","issues:write","pr:write"],deny:["repo:delete","admin"]},
+    {nm:"zatca-einvoice",pub:"Fatoora Tools",tile:"g-mcp",icon:"i-mcp",r:4.3,i:"420",p:"SAR 500/mo",
+     d:"Clearance and reporting against the ZATCA Fatoora platform.",perm:["invoice:validate"],deny:["invoice:submit"]},
+    {nm:"confluence",pub:"Magna Platform",tile:"g-mcp",icon:"i-mcp",r:4.5,i:"—",p:"internal",
+     d:"Search spaces for standards, BEPs and procedures.",perm:["space:read"],deny:["page:write"]}
+  ],
+  workflows:[
+    {nm:"Slip → Claim pack",pub:"Magna Labs",tile:"g-auto",icon:"i-bolt",r:4.7,i:"620",p:"included",
+     d:"On confirmed slip, assemble the clause, the exposure and a draft notice.",perm:["Read P6","Read contracts"],deny:["Send the notice"]},
+    {nm:"Thursday board pack",pub:"Magna Labs",tile:"g-auto",icon:"i-bolt",r:4.8,i:"910",p:"included",
+     d:"Assembles the weekly narrative into your drafts before the meeting.",perm:["Read exposure","Read HSE"],deny:["Send email"]},
+    {nm:"Vendor duplicate sweep",pub:"Bridgeworks",tile:"g-auto",icon:"i-bolt",r:4.2,i:"340",p:"included",
+     d:"Scores the vendor master weekly and proposes safe merges.",perm:["Read SAP vendor master"],deny:["Merge records"]},
+    {nm:"Nightly P6 heartbeat",pub:"Magna Platform",tile:"g-auto",icon:"i-bolt",r:4.9,i:"—",p:"internal",
+     d:"Pulls the P6 snapshot at 06:00 AST and flags threshold breaches.",perm:["Read P6"],deny:["Post externally"]},
+    {nm:"Invoice pre-clearance",pub:"Fatoora Tools",tile:"g-auto",icon:"i-bolt",r:4.1,i:"210",p:"SAR 400/mo",
+     d:"Validates every outgoing invoice before it reaches ZATCA.",perm:["Read invoices"],deny:["Submit invoices"]}
+  ]
+};
+MOUNT.market = function(body, w){
+  w.state.tab = "apps";
+  body.innerHTML = '<div class="pane"><div class="tabs">'+
+    [["apps","Apps"],["agents","Agents"],["skills","Skills"],["mcp","MCP Servers"],["workflows","Workflows"]]
+      .map(function(t){ return '<button class="tab" data-mtab="'+t[0]+'" aria-selected="'+(t[0]==="apps")+'">'+
+        t[1]+'</button>'; }).join("")+
+    '</div><div class="pane-scroll" data-mbody></div></div>';
+  function draw(){
+    var list = MARKET_ITEMS[w.state.tab] || [];
+    setWinTitle(w, "Marketplace", w.state.tab);
+    body.querySelector("[data-mbody]").innerHTML =
+      '<h4 class="sec">'+list.length+' listings</h4>'+
+      '<p class="sub">Everything here declares what it can and cannot do before you install it. '+
+      'Installing is a write, so it goes through the same approval gate as any other change.</p>'+
+      '<div class="grid2">'+ list.map(function(m, i){
+        return '<div class="conn-card"><div class="top">'+
+          '<span class="bt '+m.tile+'" style="border-radius:9px">'+ico(m.icon,"sm")+'</span>'+
+          '<span class="nm">'+esc(m.nm)+'<br><span style="font-weight:400;font-size:10.5px;color:var(--tx-4)">'+
+            esc(m.pub)+'</span></span>'+
+          '<span class="tag">'+esc(m.p)+'</span></div>'+
+          '<p>'+esc(m.d)+'</p>'+
+          '<div style="display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--tx-4);'+
+            'font-family:var(--mono)">★ '+m.r+' · '+esc(m.i)+' installs</div>'+
+          '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+            '<span class="tag pv">'+ico("i-check","xs")+'deps scanned</span>'+
+            '<span class="tag pv">'+ico("i-check","xs")+'no secrets found</span>'+
+            '<span class="tag pv">'+ico("i-check","xs")+'publisher verified</span></div>'+
+          '<button class="btn sm" data-minstall="'+w.state.tab+':'+i+'">Install</button></div>';
+      }).join("") +'</div>';
+  }
+  body.addEventListener("click", function(e){
+    var t = e.target.closest("[data-mtab]");
+    if(t){ w.state.tab = t.getAttribute("data-mtab");
+           $$("[data-mtab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           draw(); return; }
+    var b = e.target.closest("[data-minstall]");
+    if(b){
+      var parts = b.getAttribute("data-minstall").split(":");
+      var m = MARKET_ITEMS[parts[0]][+parts[1]];
+      /* the permissions sheet comes BEFORE the approval, so the user sees what
+         they are agreeing to rather than a bare yes/no */
+      requestApproval(w, {
+        title:"Install " + m.nm + "?",
+        detail:"Grants: " + m.perm.join(", ") + ". Refuses: " + m.deny.join(", ") +
+               ". Published by " + m.pub + ".",
+        confirm:"Grant and install",
+        okToast:m.nm + " installed with the scopes shown — nothing more."
+      });
+    }
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- TASK MANAGER */
+var TASK_ROWS = {
+  apps:{ cols:["Window","Space","Memory","State"], rows:[] },
+  agents:{ cols:["Agent","Status","Current task","Model","Runtime","Tokens","Cost"], rows:[
+    ["PO Slippage Watch","running","reading P6 baseline r7","Kimi K2","2h 14m","48.2k","SAR 3.10"],
+    ["Risk Research Agent","running","quoting GC-8 clause 8.4","Qwen 3","41m","31.6k","SAR 1.90"],
+    ["Board Pack Drafter","idle","—","Kimi K2","—","—","—"],
+    ["HSE Digest","idle","—","Nemotron","—","—","—"]] },
+  servers:{ cols:["Process","Port","CPU","Memory","Uptime","State"], rows:[
+    ["vite · frontend","5173","4%","210 MB","22m","running"],
+    ["spring boot · api","8080","13%","670 MB","22m","running"],
+    ["postgres:16","5432","2%","340 MB","4h","running"],
+    ["redis:7-alpine","6379","1%","28 MB","4h","running"]] },
+  ai:{ cols:["Job","Kind","Model","Started","Tokens","Cost"], rows:[
+    ["C2 exposure maths","chat","Kimi K2","08:16","12.4k","SAR 0.80"],
+    ["Brain incremental index","embedding","bge-m3 (local)","12:19","1.1M","SAR 0.00"],
+    ["Board deck draft","artifact","Kimi K2","08:41","9.7k","SAR 0.62"]] },
+  autos:{ cols:["Automation","Schedule","Last run","Next","State"], rows:[
+    ["P6 slip heartbeat","daily 06:00 AST","today 06:00","tomorrow 06:00","ok"],
+    ["Board pack scheduler","Thu 07:00","last Thu","in 41 min","due"],
+    ["Vendor duplicate sweep","weekly Sun","2 days ago","in 5 days","ok"]] }
+};
+MOUNT.tasks = function(body, w){
+  w.state.tab = "agents";
+  body.innerHTML = '<div class="pane">'+
+    '<div style="flex:none;display:flex;gap:10px;padding:12px 16px 0;flex-wrap:wrap">'+
+      ['CPU 21%','Memory 1.24 GB','GPU 2 of 8 H200','AI spend today SAR 12.40','Egress 0 bytes']
+        .map(function(s){ return '<span class="tag">'+esc(s)+'</span>'; }).join("")+
+    '</div>'+
+    '<div class="tabs">'+ [["apps","Apps"],["agents","Agents"],["servers","Servers"],
+      ["ai","AI Jobs"],["autos","Automations"]].map(function(t){
+      return '<button class="tab" data-ktab="'+t[0]+'" aria-selected="'+(t[0]==="agents")+'">'+t[1]+'</button>';
+    }).join("")+'</div>'+
+    '<div class="pane-scroll" data-kbody></div></div>';
+  function draw(){
+    var d = TASK_ROWS[w.state.tab];
+    if(w.state.tab === "apps"){
+      d = { cols:["Window","Space","App","State"], rows: wins.map(function(x){
+        return [x.title, SPACES[x.spaceId] ? SPACES[x.spaceId].name : "—",
+                APPS[x.appId].name, x.min ? "minimised" : x.max ? "maximised" : "open"]; }) };
+    }
+    setWinTitle(w, "Task Manager", w.state.tab);
+    var host = body.querySelector("[data-kbody]");
+    if(!d.rows.length){ host.innerHTML = '<div class="empty-msg">Nothing running here.</div>'; return; }
+    host.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+      '<thead><tr>'+d.cols.map(function(c){
+        return '<th style="text-align:left;padding:9px 12px;border-bottom:1px solid var(--glass-line-2);'+
+          'color:var(--tx-3);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em">'+
+          esc(c)+'</th>'; }).join("")+'<th></th></tr></thead><tbody>'+
+      d.rows.map(function(r, i){
+        return '<tr>'+r.map(function(v, ci){
+          var col = v === "running" || v === "ok" ? "var(--private)" :
+                    v === "due" ? "var(--public)" : "var(--tx-2)";
+          return '<td style="padding:9px 12px;border-bottom:1px solid var(--glass-line);color:'+col+';'+
+            (ci>1?'font-family:var(--mono);font-size:11px':'')+'">'+esc(v)+'</td>'; }).join("")+
+          '<td style="padding:9px 12px;border-bottom:1px solid var(--glass-line);text-align:right">'+
+          '<button class="btn sm" data-kstop="'+esc(r[0])+'">Stop</button></td></tr>';
+      }).join("")+'</tbody></table>';
+  }
+  body.addEventListener("click", function(e){
+    var t = e.target.closest("[data-ktab]");
+    if(t){ w.state.tab = t.getAttribute("data-ktab");
+           $$("[data-ktab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
+           draw(); return; }
+    var s = e.target.closest("[data-kstop]");
+    if(s){ requestApproval(w, {
+      title:"Stop “"+s.getAttribute("data-kstop")+"”?",
+      detail:"Anything mid-flight is abandoned. Scheduled work will still run at its next slot.",
+      confirm:"Stop it", okToast:"Stopped." }); }
+  });
+  draw();
+};
+
+/* ---------------------------------------------------------- APPROVALS */
+var APPROVALS = [
+  { who:"Risk Research Agent", act:"Send email to Khalid Al-Rashid", tgt:"Outlook · external recipient",
+    risk:"high", when:"4 min ago", why:"Reply confirming the 19 Sep date and citing GC-8 8.4." },
+  { who:"Developer Agent", act:"Commit 3 files to feat/c2-exposure", tgt:"GitHub · magna/exposure-model",
+    risk:"medium", when:"11 min ago", why:"Fixes the LD cap boundary at day 67 and adds two tests." },
+  { who:"Board pack scheduler", act:"Post summary to #ryd-m3-delivery", tgt:"Teams · 42 members",
+    risk:"medium", when:"22 min ago", why:"Weekly narrative including the SAR 5.32M figure." },
+  { who:"DevOps Agent", act:"Deploy api:1.4.2 to production", tgt:"magna-riyadh-dc1 · prod",
+    risk:"high", when:"38 min ago", why:"Contains the exposure endpoint the board pack depends on." },
+  { who:"Vendor duplicate sweep", act:"DELETE 14 duplicate vendor rows", tgt:"PostgreSQL · magna-prod",
+    risk:"high", when:"1 h ago", why:"Merge candidates scoring above 0.95. Irreversible." }
+];
+var APPROVED = [
+  { who:"PO Slippage Watch", act:"Raise Jira issue RYD-2411", when:"today 08:22", by:"you" },
+  { who:"Risk Research Agent", act:"Read Subcontract GC-8", when:"today 08:19", by:"auto · read-only" }
+];
+MOUNT.approvals = function(body, w){
+  body.innerHTML = '<div class="pane"><div class="pane-scroll" data-vbody></div></div>';
+  function draw(){
+    setWinTitle(w, "Approvals", APPROVALS.length + " pending");
+    var riskCol = { high:"var(--accent-2)", medium:"var(--public)", low:"var(--private)" };
+    body.querySelector("[data-vbody]").innerHTML =
+      '<h4 class="sec">'+APPROVALS.length+' waiting on you</h4>'+
+      '<p class="sub">Every write anywhere in Console lands here if you are not watching the window that '+
+      'raised it. Nothing on this list has happened yet.</p>'+
+      (APPROVALS.length ? APPROVALS.map(function(a, i){
+        return '<div class="card" style="border-left:3px solid '+riskCol[a.risk]+'">'+
+          '<h5>'+ico("i-approve","sm")+esc(a.act)+
+            '<span class="tag" style="margin-left:auto;color:'+riskCol[a.risk]+';border-color:'+riskCol[a.risk]+'55">'+
+            a.risk+' risk</span></h5>'+
+          '<div class="kv"><span class="k">Requested by</span><span class="v">'+esc(a.who)+'</span></div>'+
+          '<div class="kv"><span class="k">Target</span><span class="v">'+esc(a.tgt)+'</span></div>'+
+          '<div class="kv"><span class="k">When</span><span class="v">'+esc(a.when)+'</span></div>'+
+          '<p style="margin-top:9px;font-size:12.5px;color:var(--tx-2);line-height:1.6">'+esc(a.why)+'</p>'+
+          '<div style="display:flex;gap:7px;margin-top:11px">'+
+            '<button class="btn primary sm" data-vok="'+i+'">Approve</button>'+
+            '<button class="btn sm" data-vno="'+i+'">Reject</button>'+
+          '</div></div>';
+      }).join("") : '<div class="empty-msg">Nothing is waiting. Every agent is inside its granted scopes.</div>')+
+      '<h4 class="sec" style="margin-top:22px">Recently decided</h4>'+
+      APPROVED.map(function(a){
+        return '<div class="runrow"><span class="dot" style="background:var(--private)"></span>'+
+          '<div class="mid"><div class="nm">'+esc(a.act)+'</div>'+
+          '<div class="sub" style="margin:0;font-size:11px">'+esc(a.who)+' · '+esc(a.when)+' · '+esc(a.by)+'</div>'+
+          '</div>'+ico("i-check","sm")+'</div>';
+      }).join("");
+  }
+  body.addEventListener("click", function(e){
+    var ok = e.target.closest("[data-vok]"), no = e.target.closest("[data-vno]");
+    if(!ok && !no) return;
+    var i = +((ok||no).getAttribute(ok ? "data-vok" : "data-vno"));
+    var a = APPROVALS[i]; if(!a) return;
+    APPROVALS.splice(i,1);
+    APPROVED.unshift({ who:a.who, act:a.act, when:"just now", by: ok ? "you" : "refused by you" });
+    BADGES.approvals = APPROVALS.length || 0;
+    if(!APPROVALS.length) delete BADGES.approvals;
+    renderDock(); renderIcons(); renderWidgets();
+    draw();
+    toast(ok ? "Approved — " + a.act : "Rejected. Nothing was written.");
   });
   draw();
 };
