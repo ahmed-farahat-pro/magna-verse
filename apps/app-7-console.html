@@ -499,7 +499,11 @@ body:not([data-stage="os"]) #os{display:none}
 @media (prefers-reduced-motion: no-preference){ .wg .live{animation:sovPulse 2.2s infinite} }
 
 /* ============================ WINDOWS ============================ */
-.win-layer{position:absolute;inset:0}
+/* the layer box itself must never catch the pointer — only real windows do.
+   Without this it sat invisibly OVER the desktop icons and swallowed every
+   hover/click aimed at them (windows kept working, icons went dead). */
+.win-layer{position:absolute;inset:0;pointer-events:none}
+.win-layer>*{pointer-events:auto}
 .win{position:absolute;display:flex;flex-direction:column;border-radius:var(--r-xl);overflow:hidden;
   background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   border:1px solid var(--glass-line);box-shadow:var(--shadow-win);min-width:0;min-height:0}
