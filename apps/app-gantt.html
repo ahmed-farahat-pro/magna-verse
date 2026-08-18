@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MagnaVERSE Gantt</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@latest/dist/frappe-gantt.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0B0E13;--surface:#131820;--surface-2:#1A202A;
+  --tx:#F2F3F6;--tx-2:#B4B9C6;--tx-3:#787E8D;--tx-4:#4C5262;
+  --accent:#D71920;--cyan:#0EA5B7;--private:#3FCF95;--public:#E0A33C;--signal:#5B4FE0;--r:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,monospace}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:var(--sans)}
+#app{display:flex;flex-direction:column;height:100vh}
+.toolbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--surface);
+  border-bottom:1px solid rgba(255,255,255,.08);flex:none}
+.toolbar h1{font-size:14px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:7px}
+.toolbar h1 svg{width:18px;height:18px;stroke:var(--cyan);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.toolbar .sep{width:1px;height:20px;background:rgba(255,255,255,.1)}
+.toolbar button{padding:5px 12px;border-radius:6px;font-size:12px;color:var(--tx-2);background:transparent;
+  border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .15s}
+.toolbar button:hover{background:rgba(255,255,255,.06);color:var(--tx);border-color:rgba(255,255,255,.15)}
+.toolbar .view-btns{display:flex;gap:2px;background:var(--surface-2);border-radius:6px;padding:2px;
+  border:1px solid rgba(255,255,255,.08)}
+.toolbar .view-btn{padding:4px 10px;border-radius:4px;font-size:11px;color:var(--tx-3);border:none}
+.toolbar .view-btn.active{background:var(--cyan);color:#000;font-weight:600}
+.gantt-wrap{flex:1;min-height:0;overflow:auto;padding:16px}
+#gantt-container{min-width:900px}
+/* Frappe Gantt dark theme overrides */
+.gantt .grid-header{fill:var(--surface)!important}
+.gantt .grid-row{fill:var(--bg)!important}
+.gantt .row-line,.gantt .tick{stroke:rgba(255,255,255,.06)!important}
+.gantt .today-highlight{fill:rgba(14,165,183,.1)!important}
+.gantt .bar{fill:var(--cyan)!important;rx:4;ry:4}
+.gantt .bar-progress{fill:rgba(14,165,183,.6)!important}
+.gantt .bar-label{fill:var(--tx)!important;font-size:11px!important;font-family:var(--sans)!important}
+.gantt .lower-text,.gantt .upper-text{fill:var(--tx-3)!important;font-size:10px!important;font-family:var(--mono)!important}
+.gantt .handle-group{fill:var(--tx)!important}
+.info-panel{padding:16px 20px;background:var(--surface);border-top:1px solid rgba(255,255,255,.08);
+  display:flex;gap:20px;flex-wrap:wrap}
+.info-card{background:var(--surface-2);border-radius:8px;padding:10px 14px;border:1px solid rgba(255,255,255,.06)}
+.info-card .label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4)}
+.info-card .value{font-size:18px;font-weight:750;color:var(--tx);margin-top:2px;font-family:var(--mono);
+  letter-spacing:-.02em}
+.info-card .sub{font-size:11px;color:var(--tx-3);margin-top:1px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="toolbar">
+    <h1>
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="17" height="15" rx="2"/><path d="M7 15l2.4-4 2.3 2.4L14.2 9l2.8 6"/></svg>
+      MagnaVERSE Gantt
+    </h1>
+    <div class="sep"></div>
+    <div class="view-btns">
+      <button class="view-btn" onclick="setView('Day')">Day</button>
+      <button class="view-btn active" onclick="setView('Week')">Week</button>
+      <button class="view-btn" onclick="setView('Month')">Month</button>
+    </div>
+    <div style="flex:1"></div>
+    <span style="font-size:11px;color:var(--tx-3);font-family:var(--mono)">Frappe Gantt · MIT</span>
+  </div>
+  <div class="gantt-wrap"><div id="gantt-container"></div></div>
+  <div class="info-panel">
+    <div class="info-card"><div class="label">Total Tasks</div><div class="value" id="infoTotal">—</div></div>
+    <div class="info-card"><div class="label">Critical Path</div><div class="value" id="infoCritical" style="color:var(--accent)">—</div></div>
+    <div class="info-card"><div class="label">Avg Progress</div><div class="value" id="infoProgress">—</div></div>
+    <div class="info-card"><div class="label">Duration</div><div class="value" id="infoDuration">—</div></div>
+    <div class="info-card"><div class="label">Behind Schedule</div><div class="value" id="infoBehind" style="color:var(--public)">—</div></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@latest/dist/frappe-gantt.umd.js"></script>
+<script>
+var tasks = [
+  {id:"t1",name:"Subcontract award GC-8",start:"2026-06-01",end:"2026-06-15",progress:100,dependencies:"",custom_class:"bar-normal"},
+  {id:"t2",name:"PO 4500219871 — Al-Rajhi Steel",start:"2026-06-10",end:"2026-07-10",progress:100,dependencies:"t1",custom_class:"bar-normal"},
+  {id:"t3",name:"Rebar fabrication",start:"2026-06-20",end:"2026-08-15",progress:60,dependencies:"t2",custom_class:"bar-normal"},
+  {id:"t4",name:"Rebar delivery (1,240 t)",start:"2026-07-01",end:"2026-08-20",progress:60,dependencies:"t3",custom_class:"bar-progress"},
+  {id:"t5",name:"Rebar fixing — C-deck",start:"2026-07-15",end:"2026-09-10",progress:25,dependencies:"t4",custom_class:"bar-critical"},
+  {id:"t6",name:"Rebar fixing — D-deck",start:"2026-07-20",end:"2026-09-15",progress:15,dependencies:"t4",custom_class:"bar-normal"},
+  {id:"t7",name:"Concrete pour — C-deck",start:"2026-08-25",end:"2026-09-20",progress:0,dependencies:"t5",custom_class:"bar-critical"},
+  {id:"t8",name:"Concrete pour — D-deck",start:"2026-09-01",end:"2026-09-25",progress:0,dependencies:"t6",custom_class:"bar-normal"},
+  {id:"t9",name:"C2 handover milestone",start:"2026-09-25",end:"2026-09-30",progress:0,dependencies:"t7,t8",custom_class:"bar-milestone"},
+  {id:"t10",name:"Baseline r7 update",start:"2026-08-10",end:"2026-08-12",progress:100,dependencies:"",custom_class:"bar-normal"},
+  {id:"t11",name:"Vendor split decision",start:"2026-08-14",end:"2026-08-15",progress:100,dependencies:"",custom_class:"bar-normal"},
+  {id:"t12",name:"Dual-source PO release",start:"2026-08-18",end:"2026-08-20",progress:30,dependencies:"t11",custom_class:"bar-progress"}
+];
+var gantt;
+function initGantt(view){
+  document.getElementById("gantt-container").innerHTML = "";
+  gantt = new Gantt("#gantt-container", tasks, {
+    view_mode: view || "Week",
+    date_format: "YYYY-MM-DD",
+    language: "en",
+    on_click: function(task){ console.log("Clicked:", task.name); },
+    on_date_change: function(task,start,end){ console.log("Date changed:", task.name, start, end); },
+    on_progress_change: function(task,progress){ console.log("Progress changed:", task.name, progress); },
+    custom_popup_html: function(task){
+      return '<div style="background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;'+
+        'box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:200px;font-family:var(--sans)">'+
+        '<div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">'+task.name+'</div>'+
+        '<div style="font-size:11px;color:var(--tx-3)">'+task._start.toLocaleDateString()+' → '+task._end.toLocaleDateString()+'</div>'+
+        '<div style="font-size:11px;color:var(--cyan);margin-top:4px">'+task.progress+'% complete</div>'+
+        (task.dependencies ? '<div style="font-size:10px;color:var(--tx-4);margin-top:4px">Depends on: '+task.dependencies+'</div>' : '')+
+        '</div>';
+    }
+  });
+  updateInfo();
+}
+function setView(v){
+  document.querySelectorAll(".view-btn").forEach(function(b){ b.classList.toggle("active", b.textContent===v); });
+  initGantt(v);
+}
+function updateInfo(){
+  document.getElementById("infoTotal").textContent = tasks.length;
+  var crit = tasks.filter(function(t){return t.custom_class==="bar-critical"}).length;
+  document.getElementById("infoCritical").textContent = crit + " tasks";
+  var avgProg = Math.round(tasks.reduce(function(s,t){return s+t.progress},0)/tasks.length);
+  document.getElementById("infoProgress").textContent = avgProg + "%";
+  document.getElementById("infoDuration").textContent = "Jun–Sep 2026";
+  document.getElementById("infoBehind").textContent = "11 days";
+}
+initGantt("Week");
+</script>
+</body>
+</html>

@@ -33,6 +33,7 @@
   --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
   --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
   --cyan:#0EA5B7; --blue:#3B7BFF; --violet:#8B5CF6;
+  --glow-cyan:rgba(14,165,183,.18); --glow-violet:rgba(139,92,246,.18);
   --shadow-win:0 30px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04);
   --shadow-sm:0 2px 8px rgba(0,0,0,.4);
   --shadow-pop:0 20px 50px rgba(0,0,0,.5);
@@ -67,8 +68,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-radius:6px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none;transition:filter .2s ease}
 .ico.sm{width:16px;height:16px}.ico.xs{width:13px;height:13px}.ico.lg{width:26px;height:26px}
+.dk:hover .ico,.mb-btn:hover .ico,.tab:hover .ico{filter:drop-shadow(0 0 6px var(--cyan))}
 /* the sprite must NOT be display:none — a hidden SVG root stops some
    browsers resolving the gradient paint servers defined inside it */
 #sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
@@ -210,6 +212,10 @@ body:not([data-stage="os"]) #os{display:none}
 .g-docs{background:linear-gradient(150deg,#94A3B8,#3F4A5A)}
 .g-skill{background:linear-gradient(150deg,#FDBA74,#9A4A10)}
 .g-mcp{background:linear-gradient(150deg,#67E8F9,#0E5C6B)}
+.g-sheets{background:linear-gradient(150deg,#3FCF95,#0D7A4A)}
+.g-docs2{background:linear-gradient(150deg,#60A5FA,#2563EB)}
+.g-slides{background:linear-gradient(150deg,#F59E0B,#B45309)}
+.g-gantt{background:linear-gradient(150deg,#A78BFA,#6D28D9)}
 
 /* ============================ DESKTOP WIDGETS ============================
    Live cards sitting on the wallpaper. The desktop should tell you the state
@@ -637,6 +643,72 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .tl-i .td{font-size:11.5px;color:var(--tx-3);margin-top:2px;line-height:1.55}
 .tl-i .tm{font-family:var(--mono);font-size:10.5px;color:var(--tx-4);margin-top:3px}
 
+/* ============================ DOCS & KNOWLEDGE TAB ============================ */
+.rag-pipeline{display:flex;flex-direction:column;gap:0;padding:4px 0}
+.rag-step{display:flex;align-items:flex-start;gap:10px;position:relative;padding:0 0 0 8px}
+.rag-dot{width:10px;height:10px;border-radius:99px;background:var(--private);flex:none;margin-top:5px;
+  position:relative;z-index:1;box-shadow:0 0 0 3px var(--bg)}
+.rag-dot.warn{background:var(--public)}.rag-dot.err{background:var(--accent)}
+.rag-line{position:absolute;left:12px;top:15px;bottom:-1px;width:1px;background:var(--glass-line-2)}
+.rag-step:last-child .rag-line{display:none}
+.rag-info{flex:1;min-width:0;padding:0 0 12px}
+.rag-name{font-size:12.5px;font-weight:640;color:var(--tx)}
+.rag-desc{font-size:11px;color:var(--tx-3);margin-top:1px;line-height:1.45}
+.rag-lat{font-family:var(--mono);font-size:10px;color:var(--tx-4);margin-top:2px}
+.src-list{display:flex;flex-direction:column;gap:0}
+.src-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--glass-line)}
+.src-row:last-child{border-bottom:0}
+.src-dot{width:7px;height:7px;border-radius:99px;flex:none}
+.src-info{flex:1;min-width:0}
+.src-name{font-size:12.5px;font-weight:600;color:var(--tx);display:flex;align-items:center;gap:6px}
+.src-meta{font-size:10.5px;color:var(--tx-3);margin-top:1px;font-family:var(--mono)}
+.src-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.src-fresh{display:flex;align-items:center;gap:5px}
+.src-bar{width:48px;height:4px;border-radius:99px;background:var(--glass-line);overflow:hidden}
+.src-fill{height:100%;border-radius:99px;transition:width .6s ease}
+.src-pct{font-family:var(--mono);font-size:10px;color:var(--tx-4)}
+.ingest-feed{display:flex;flex-direction:column;gap:0}
+.ingest-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-line)}
+.ingest-row:last-child{border-bottom:0}
+.ingest-time{font-family:var(--mono);font-size:10px;color:var(--tx-4);flex:none;width:52px;text-align:right;padding-top:2px}
+.ingest-dot{width:6px;height:6px;border-radius:99px;flex:none;margin-top:5px}
+.ingest-body{flex:1;min-width:0}
+.ingest-action{font-size:11px;font-weight:600;color:var(--tx-2)}
+.ingest-item{font-size:12px;color:var(--tx);margin-top:1px}
+.ingest-chunks{font-family:var(--mono);font-size:10px;color:var(--tx-4);margin-top:2px}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.cat-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:var(--r);
+  background:var(--surface-2);border:1px solid transparent;transition:border-color .15s;cursor:default}
+.cat-card:hover{border-color:var(--line-2)}
+.cat-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center}
+.cat-name{font-size:10.5px;color:var(--tx-2);text-align:center;font-weight:600}
+.cat-count{font-family:var(--mono);font-size:10px;color:var(--tx-4)}
+.rag-search-box{position:relative}
+.rag-search-input{width:100%;padding:10px 14px;border-radius:var(--r);border:1px solid var(--glass-line);
+  background:var(--surface-2);color:var(--tx);font-size:13px;outline:none;transition:border-color .15s}
+.rag-search-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--glow-cyan)}
+.rag-search-input::placeholder{color:var(--tx-4)}
+.rag-search-results{margin-top:10px}
+.rag-results-label{font-size:11px;color:var(--tx-3);margin-bottom:8px}
+.rag-hit{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--glass-line)}
+.rag-hit:last-child{border-bottom:0}
+.rag-hit-score{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--private);flex:none;
+  width:36px;text-align:right;padding-top:2px}
+.rag-hit-body{flex:1;min-width:0}
+.rag-hit-doc{font-size:12px;font-weight:600;color:var(--tx);display:flex;align-items:center;gap:6px}
+.rag-hit-chunk{font-size:11.5px;color:var(--tx-3);margin-top:2px;line-height:1.45}
+.rag-hit-node{font-size:10.5px;color:var(--cyan);margin-top:3px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.rag-hit-node:hover{text-decoration:underline}
+.rag-search-hint{font-size:10.5px;color:var(--tx-4);margin-top:8px}
+.brain-links{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.brain-link-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;
+  background:var(--glass-3);border:1px solid var(--glass-line);font-size:10px;color:var(--tx-3);
+  transition:all .15s;cursor:pointer}
+.brain-link-chip:hover{border-color:var(--cyan);color:var(--cyan);background:var(--glow-cyan)}
+.brain-link-chip span{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl-score{font-family:var(--mono);color:var(--private);opacity:.7}
+@media(max-width:900px){ .cat-grid{grid-template-columns:repeat(2,1fr)} }
+
 /* ============================ CODE APP (Finder) ============================ */
 .cd{flex:1;display:flex;min-width:0}
 .cd-main{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -870,58 +942,63 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <body data-stage="boot">
 
 <svg id="sprite" aria-hidden="true"><defs>
-<symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 12a7.7 7.7 0 0 1-8 7.5 9 9 0 0 1-2.6-.35L4.5 20.5l1.4-4.2A7.4 7.4 0 0 1 4.5 12a7.7 7.7 0 0 1 8-7.5 7.7 7.7 0 0 1 8 7.5Z"/></symbol>
-<symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5.2a3.2 3.2 0 0 0-6 1.4c-1.4.5-2.3 1.8-2.3 3.3 0 .9.3 1.7.9 2.3-.4.6-.6 1.3-.6 2 0 2 1.7 3.6 3.8 3.6.7 1.2 2 2 3.5 2h.7Z"/><path d="M12 5.2a3.2 3.2 0 0 1 6 1.4c1.4.5 2.3 1.8 2.3 3.3 0 .9-.3 1.7-.9 2.3.4.6.6 1.3.6 2 0 2-1.7 3.6-3.8 3.6-.7 1.2-2 2-3.5 2H12Z"/><path d="M12 5.2v14.6"/></symbol>
-<symbol id="i-code" viewBox="0 0 24 24"><path d="M9 7.5 4.5 12 9 16.5M15 7.5 19.5 12 15 16.5"/></symbol>
-<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.3 2.4 3.4 5.4 3.4 8.5S14.3 18.1 12 20.5c-2.3-2.4-3.4-5.4-3.4-8.5S9.7 5.9 12 3.5Z"/></symbol>
-<symbol id="i-agent" viewBox="0 0 24 24"><circle cx="12" cy="8.3" r="3.6"/><path d="M4.9 20.2a7.3 7.3 0 0 1 14.2 0"/></symbol>
-<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 3 5.5 13.5h5.6L10.3 21 18 10.4h-5.6Z"/></symbol>
-<symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3.5v5M15 3.5v5"/><path d="M6.5 8.5h11v3.2a5.5 5.5 0 0 1-11 0Z"/><path d="M12 17.2v3.3"/></symbol>
-<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><path d="m3.6 6.8 8.4 5.9 8.4-5.9"/></symbol>
-<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 2.6l1.5 2.1 2.5-.6.5 2.5 2.4.9-1.1 2.3 1.6 2-2 1.6.3 2.6-2.6.2-1.2 2.3-2.4-1.1-2.4 1.1-1.2-2.3-2.6-.2.3-2.6-2-1.6 1.6-2L2.1 7.5l2.4-.9.5-2.5 2.5.6Z"/></symbol>
-<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
-<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/></symbol>
-<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8Z"/><path d="M14 3.5V8h4.5"/></symbol>
-<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.2l2 2.4h7.8a2 2 0 0 1 2 2v8.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/></symbol>
-<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2l7 2.6v5.4c0 4.3-2.9 8-7 9.6-4.1-1.6-7-5.3-7-9.6V5.8Z"/><path d="M9.2 12.2l2 2 3.6-4"/></symbol>
-<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
-<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
-<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
-<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></symbol>
-<symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.2 5.6"/><path d="M20 4.5V11h-6.2"/></symbol>
-<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6h16M4 6v10l4-3h12"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="20" r="1.5"/><path d="M12 7v3M7 11l3 2M17 11l-3 2M9 18l2-1M15 18l-2-1M12 17v2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><circle cx="7" cy="8" r="2"/><circle cx="17" cy="8" r="2"/><circle cx="12" cy="18" r="2"/><path d="M9 9l2 4M15 9l-2 4"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M4 12h16M12 4c-2 2.5-3 5-3 8s1 5.5 3 8M12 4c2 2.5 3 5 3 8s-1 5.5-3 8"/></symbol>
+<symbol id="i-agent" viewBox="0 0 24 24"><circle cx="12" cy="6" r="3"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M12 9v3M7.5 16l3-3M16.5 16l-3-3"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="12" cy="14" r="3"/><circle cx="6" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/><path d="M12 11v-2M9 8l3 3M15 8l-3 3M8 17l4-1M16 17l-4-1"/></symbol>
+<symbol id="i-plug" viewBox="0 0 24 24"><circle cx="9" cy="4" r="2"/><circle cx="15" cy="4" r="2"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="19" r="2"/><path d="M9 6v3M15 6v3M10 14l-1 3M14 14l1 3"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 7l9 6 9-6"/><circle cx="7" cy="15" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="21" r="1.5"/><circle cx="3" cy="12" r="1.5"/><circle cx="21" cy="12" r="1.5"/><circle cx="5.5" cy="5.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="5.5" r="1.5"/><circle cx="5.5" cy="18.5" r="1.5"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/><circle cx="11" cy="11" r="2" fill="currentColor" stroke="none" opacity=".3"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="7" cy="7" r="1.5"/><circle cx="17" cy="17" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><path d="M9 16h6"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7h7l2 2.5h9a1.5 1.5 0 011.5 1.5v8a1.5 1.5 0 01-1.5 1.5H3z"/><circle cx="7" cy="15" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 2.5v5.5c0 4.2-2.8 7.8-7 9.3-4.2-1.5-7-5.1-7-9.3V5.5z"/><circle cx="12" cy="12" r="2.5"/><path d="M10.5 12l1 1 2-2"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/><circle cx="6" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="6" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/><circle cx="14.5" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="8.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="14.5" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/><circle cx="9.5" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9.5" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/><circle cx="6" cy="9.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="9.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.2 5.6"/><path d="M20 4.5V11h-6.2"/><circle cx="20" cy="4.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="6" cy="11" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="11" r="1.5" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></symbol>
-<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3.5 8.5 4.3L12 12 3.5 7.8Z"/><path d="m4 12.2 8 4 8-4"/><path d="m4 16.4 8 4 8-4"/></symbol>
-<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3 1.8"/></symbol>
-<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></symbol>
-<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5Z"/></symbol>
-<symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M7 10l2.6 2.4L7 15M12.5 15h4"/></symbol>
-<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M10.6 5h2.8"/></symbol>
-<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
-<symbol id="i-git" viewBox="0 0 24 24"><circle cx="7" cy="6" r="2.4"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="12" r="2.4"/><path d="M7 8.4v7.2M9.2 16.6 14.9 13"/></symbol>
-<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.8 2.9 19.5h18.2Z"/><path d="M12 10v4M12 17v.6"/></symbol>
-<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
-<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.6"/></symbol>
-<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="M8 10.5l4 4 4-4"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/></symbol>
-<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></symbol>
-<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z"/></symbol>
-<symbol id="i-slides" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M9 20.5h6M12 17v3.5"/></symbol>
-<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0"/></symbol>
-<symbol id="i-market" viewBox="0 0 24 24"><path d="M3.5 8.5h17l-1.2 11a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8Z"/><path d="M8.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5"/><path d="M9.5 12.5h5"/></symbol>
-<symbol id="i-skill" viewBox="0 0 24 24"><path d="M12 3.2l2.4 4.1 4.6.9-3.3 3.4.7 4.7-4.4-2.2-4.4 2.2.7-4.7L5 8.2l4.6-.9Z"/><path d="M12 19v2M9 21h6"/></symbol>
-<symbol id="i-mcp" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="9.5" rx="2"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/><path d="M8.5 13.5h2M13.5 13.5h2"/></symbol>
-<symbol id="i-task" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><path d="M7 15l2.4-4 2.3 2.4L14.2 9l2.8 6"/></symbol>
-<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.6 2H4.9Z"/><path d="M10 20.2a2.2 2.2 0 0 0 4 0"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3.5 8.5 4.3L12 12 3.5 7.8Z"/><path d="m4 12.2 8 4 8-4"/><path d="m4 16.4 8 4 8-4"/><circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none" opacity=".4"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3 1.8"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/><circle cx="12" cy="9" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5Z"/><circle cx="7" cy="4.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="19.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="20" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="7" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M11 10l2.5 2L11 14"/><circle cx="17" cy="14" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.6 5h2.8"/><circle cx="12" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2.5"/><path d="M8.5 20.5h7M12 16.5v4"/><circle cx="12" cy="10.5" r="2" fill="currentColor" stroke="none" opacity=".3"/></symbol>
+<symbol id="i-git" viewBox="0 0 24 24"><circle cx="7" cy="6" r="2.5"/><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="12" r="2.5"/><path d="M7 8.5v7M9.5 16.5 15 13"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.8 2.9 19.5h18.2z"/><circle cx="12" cy="10" r="1" fill="currentColor" stroke="none"/><path d="M12 14v4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/><circle cx="4.5" cy="12.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="19.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="M8 10.5l4 4 4-4"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/><circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/><circle cx="12" cy="2.5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="21.5" r="1" fill="currentColor" stroke="none"/><circle cx="2.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="21.5" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2z"/><circle cx="20" cy="14" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-slides" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12.5" rx="2.5"/><path d="M9 20.5h6M12 17v3.5"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0"/><circle cx="12" cy="8.5" r="1.5" fill="currentColor" stroke="none" opacity=".3"/></symbol>
+<symbol id="i-market" viewBox="0 0 24 24"><path d="M4 8h16l-1.5 10a2 2 0 01-2 1.8H7.5A2 2 0 015.5 18z"/><path d="M9 8V6a3 3 0 016 0v2"/><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-skill" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="12" r="2.5"/><circle cx="12" cy="19" r="2.5"/><path d="M12 7.5v2M7.5 12h2M14.5 12h2M12 14.5v2"/></symbol>
+<symbol id="i-mcp" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="9.5" rx="2.5"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/><circle cx="9.5" cy="13.5" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13.5" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-task" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 15l2.4-4 2.3 2.4L14.2 9l2.8 6"/><circle cx="7" cy="15" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.6 2H4.9z"/><path d="M10 20.2a2.2 2.2 0 0 0 4 0"/><circle cx="12" cy="5.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></symbol>
-<symbol id="i-api" viewBox="0 0 24 24"><path d="M7.5 4.5 4 8l3.5 3.5"/><path d="M16.5 12.5 20 16l-3.5 3.5"/><path d="M13.5 4.5 10 19.5"/></symbol>
-<symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3.2 8 4.2v9.2l-8 4.2-8-4.2V7.4Z"/><path d="m4 7.4 8 4.2 8-4.2M12 11.6v9.4"/></symbol>
-<symbol id="i-vault" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><circle cx="12" cy="12" r="3.4"/><path d="M12 8.6V5.6M12 18.4v-3M8.6 12H5.6M18.4 12h-3"/></symbol>
-<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4.5v15h16"/><path d="M7.5 15.5V11M11.5 15.5V7.5M15.5 15.5v-6M19 15.5V6"/></symbol>
-<symbol id="i-approve" viewBox="0 0 24 24"><path d="M4.5 6.2 12 3.4l7.5 2.8v5.4c0 4.2-3 7.8-7.5 9.2-4.5-1.4-7.5-5-7.5-9.2Z"/><path d="m9.2 11.8 2.1 2.1 4-4.3"/></symbol>
-<symbol id="i-project" viewBox="0 0 24 24"><path d="M3.5 7.2a2 2 0 0 1 2-2h3.1l2 2.4h7.9a2 2 0 0 1 2 2v8.7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/><path d="M8 13.5h8M8 16.5h5"/></symbol>
+<symbol id="i-api" viewBox="0 0 24 24"><circle cx="5" cy="8" r="2.5"/><circle cx="19" cy="8" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7 9l3 5M17 9l-3 5"/><circle cx="12" cy="11" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3.2 8 4.2v9.2l-8 4.2-8-4.2V7.4z"/><path d="m4 7.4 8 4.2 8-4.2M12 11.6v9.4"/><circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" opacity=".4"/></symbol>
+<symbol id="i-vault" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="12" cy="12" r="3.4"/><path d="M12 8.6V5.6M12 18.4v-3M8.6 12H5.6M18.4 12h-3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4.5v15h16"/><path d="M7.5 15.5V11M11.5 15.5V7.5M15.5 15.5v-6M19 15.5V6"/><circle cx="7.5" cy="11" r="1.5" fill="currentColor" stroke="none"/><circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="6" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-approve" viewBox="0 0 24 24"><path d="M4.5 6.2 12 3.4l7.5 2.8v5.4c0 4.2-3 7.8-7.5 9.2-4.5-1.4-7.5-5-7.5-9.2z"/><path d="m9.2 11.8 2.1 2.1 4-4.3"/><circle cx="12" cy="3.4" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-project" viewBox="0 0 24 24"><path d="M3.5 7.2a2 2 0 0 1 2-2h3.1l2 2.4h7.9a2 2 0 0 1 2 2v8.7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M8 13.5h8M8 16.5h5"/></symbol>
 <symbol id="i-model" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="4.6" r="1.8"/><circle cx="12" cy="19.4" r="1.8"/><circle cx="5.2" cy="8.2" r="1.8"/><circle cx="18.8" cy="15.8" r="1.8"/><path d="M12 6.4v3.2M12 14.4v3.2M6.8 9.1l3 1.7M14.2 13.2l3 1.7"/></symbol>
-<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14.2 3.5H7.4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8Z"/><path d="M14.2 3.5V8h4.4"/><path d="M8.6 12.5h6.8M8.6 16h4.2"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></symbol>
+<symbol id="i-knowledge" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/><path d="M12 7v2M7 12l3 1M17 12l-3 1M9.5 18l1.5-1M14.5 18l-1.5-1"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-rag" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="12" cy="12" r="3"/><path d="M8 7l2.5 3M16 7l-2.5 3M8 17l2.5-3M16 17l-2.5-3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-vector" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><circle cx="12" cy="12" r="2"/><path d="M7 6l3.5 4.5M17 6l-3.5 4.5M7 18l3.5-4.5M17 18l-3.5-4.5" stroke-dasharray="2 1.5"/></symbol>
+<symbol id="i-ingest" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="12" cy="19" r="2.5"/><path d="M12 7.5v9"/><circle cx="5" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3"/><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-embed" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="4" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><path d="M12 6v2M12 16v2M6 8.5l4 2.5M18 8.5l-4 2.5M6 15.5l4-2.5M18 15.5l-4-2.5"/></symbol>
 <symbol id="i-magna" viewBox="0 0 640 440"><path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgA)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgB)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 <linearGradient id="mgA" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/></linearGradient>
 <linearGradient id="mgB" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient>
@@ -1128,13 +1205,18 @@ var APPS = {
   approvals:{name:"Approvals",   icon:"i-approve",tile:"g-vault",   w:840, h:620, minW:480, minH:380, multi:false },
   ledger:  { name:"Ledger",      icon:"i-doc",    tile:"g-docs",    w:880, h:640, minW:480, minH:380, multi:false },
   memory:  { name:"Memory",      icon:"i-brain",  tile:"g-project", w:940, h:640, minW:520, minH:400, multi:false },
-  models:  { name:"Models",      icon:"i-model",  tile:"g-monitor", w:900, h:640, minW:520, minH:400, multi:false }
+  models:  { name:"Models",      icon:"i-model",  tile:"g-monitor", w:900, h:640, minW:520, minH:400, multi:false },
+  sheets:  { name:"Sheets",      icon:"i-chart",  tile:"g-sheets",  w:1100,h:700, minW:600, minH:400, multi:true  },
+  docs:    { name:"Docs",        icon:"i-doc",    tile:"g-docs2",   w:900, h:660, minW:500, minH:400, multi:true  },
+  slides:  { name:"Slides",      icon:"i-slides", tile:"g-slides",  w:1100,h:720, minW:600, minH:440, multi:true  },
+  gantt:   { name:"Gantt",       icon:"i-task",   tile:"g-gantt",   w:1100,h:680, minW:600, minH:400, multi:true  }
 };
 var DOCK_PINNED = ["chat","brain","code","browser","terminal"];
-var DOCK_REST   = ["api","db","agents","autos","market","tasks","approvals","ledger","memory",
-                   "models","conn","mail","settings"];
-var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","api","db","agents","autos",
-                     "market","tasks","approvals","ledger","memory","models","conn","mail","settings"];
+var DOCK_REST   = ["sheets","docs","slides","gantt","api","db","agents","autos","market","tasks",
+                   "approvals","ledger","memory","models","conn","mail","settings"];
+var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","sheets","docs","slides","gantt",
+                     "api","db","agents","autos","market","tasks","approvals","ledger","memory",
+                     "models","conn","mail","settings"];
 
 /* badges that make the desktop informative rather than decorative */
 var BADGES = { mail:3, agents:2, autos:1 };
@@ -2116,6 +2198,56 @@ var REASONING = [
    cite:["n7","n6","n16"]}
 ];
 
+var KNOWLEDGE_SOURCES = [
+  {id:"ks1", name:"Company Knowledge", type:"docs", status:"connected", count:8412, lastSync:"today 04:12", chunker:"recursive-512", vectors:"1.94M", embedding:"text-embedding-3-large", freshness:.94, icon:"i-doc"},
+  {id:"ks2", name:"Confluence", type:"docs", status:"connected", count:1247, lastSync:"today 03:48", chunker:"recursive-512", vectors:"287K", embedding:"text-embedding-3-large", freshness:.88, icon:"i-doc"},
+  {id:"ks3", name:"SharePoint", type:"docs", status:"connected", count:3891, lastSync:"yesterday 22:15", chunker:"sentence-256", vectors:"892K", embedding:"text-embedding-3-large", freshness:.82, icon:"i-folder"},
+  {id:"ks4", name:"SAP S/4HANA", type:"system", status:"connected", count:412, lastSync:"today 06:00", chunker:"structured", vectors:"412K", embedding:"text-embedding-3-large", freshness:.97, icon:"i-db"},
+  {id:"ks5", name:"Primavera P6", type:"system", status:"connected", count:1842, lastSync:"today 06:00", chunker:"structured", vectors:"368K", embedding:"text-embedding-3-large", freshness:.96, icon:"i-chart"},
+  {id:"ks6", name:"Jira", type:"system", status:"connected", count:2156, lastSync:"today 05:30", chunker:"recursive-512", vectors:"498K", embedding:"text-embedding-3-large", freshness:.91, icon:"i-task"},
+  {id:"ks7", name:"Outlook Mail", type:"email", status:"connected", count:36180, lastSync:"real-time", chunker:"thread-512", vectors:"8.2M", embedding:"text-embedding-3-large", freshness:.99, icon:"i-mail"},
+  {id:"ks8", name:"Decision Log", type:"docs", status:"connected", count:89, lastSync:"today 08:14", chunker:"paragraph-256", vectors:"18K", embedding:"text-embedding-3-large", freshness:.95, icon:"i-shield"},
+  {id:"ks9", name:"HR System", type:"system", status:"partial", count:312, lastSync:"3 days ago", chunker:"structured", vectors:"64K", embedding:"text-embedding-3-large", freshness:.61, icon:"i-user"},
+  {id:"ks10",name:"Site IoT Feed", type:"system", status:"missing", count:0, lastSync:"never", chunker:"—", vectors:"0", embedding:"—", freshness:0, icon:"i-bolt"}
+];
+
+var RAG_PIPELINE = [
+  {step:"Query intake", desc:"User question or implicit context from active thread", lat:"<1ms", status:"ok"},
+  {step:"Query rewriting", desc:"Expand abbreviations, resolve pronouns, add project context", lat:"120ms", status:"ok"},
+  {step:"Embedding", desc:"text-embedding-3-large · 1,024 dimensions · Magna GPU cluster", lat:"38ms", status:"ok"},
+  {step:"Vector retrieval", desc:"HNSW index · top-50 candidates · cosine similarity", lat:"12ms", status:"ok"},
+  {step:"Reranking", desc:"Cross-encoder on top-50 → top-12 · magna-rerank-v1", lat:"85ms", status:"ok"},
+  {step:"Keyword fallback", desc:"BM25 fallback if vector recall < 0.45 threshold", lat:"8ms", status:"idle"},
+  {step:"Chunk dedup", desc:"Remove near-duplicate passages (Jaccard > 0.82)", lat:"4ms", status:"ok"},
+  {step:"Context assembly", desc:"Pack top-8 chunks into context window with source labels", lat:"2ms", status:"ok"},
+  {step:"Answer generation", desc:"Kimi K2 Instruct · Private tier · Riyadh DC-1", lat:"2.4s", status:"ok"},
+  {step:"Citation binding", desc:"Attach Brain node ids behind every claim", lat:"6ms", status:"ok"}
+];
+
+var INGESTION_FEED = [
+  {time:"08:14", source:"Outlook", action:"indexed", item:"Re: C2 rebar slip — revised dates", chunks:3, status:"ok"},
+  {time:"08:12", source:"Outlook", action:"indexed", item:"Board pack — need the C2 figure by Thu 09:00", chunks:2, status:"ok"},
+  {time:"08:00", source:"P6", action:"snapshot", item:"Baseline r7 — 3 activities updated", chunks:3, status:"ok"},
+  {time:"07:48", source:"Confluence", action:"indexed", item:"RYD-M3 BEP v4 — appendix C updated", chunks:8, status:"ok"},
+  {time:"06:00", source:"P6", action:"ingested", item:"Slip alert — 3 activities past 5 days", chunks:1, status:"ok"},
+  {time:"05:30", source:"Jira", action:"synced", item:"4 issues updated in C2 sprint", chunks:4, status:"ok"},
+  {time:"04:12", source:"Company Knowledge", action:"rebuilt", item:"Full index rebuild — 8,412 docs", chunks:8412, status:"ok"},
+  {time:"03:48", source:"Confluence", action:"incremental", item:"12 pages changed since last sync", chunks:24, status:"ok"},
+  {time:"yesterday", source:"HR System", action:"partial", item:"Org chart export — 312 records (API timeout at 312/408)", chunks:312, status:"warn"},
+  {time:"—", source:"Site IoT", action:"failed", item:"Connection refused — feed endpoint not configured", chunks:0, status:"error"}
+];
+
+var DOC_CATEGORIES = [
+  {name:"Contracts & POs", count:1247, icon:"i-shield", color:"#3FCF95"},
+  {name:"Schedules & Plans", count:2156, icon:"i-chart", color:"#5B94FF"},
+  {name:"HSE Reports", count:489, icon:"i-warn", color:"#F0B44E"},
+  {name:"Correspondence", count:36180, icon:"i-mail", color:"#F077B6"},
+  {name:"Drawings & BIM", count:891, icon:"i-file", color:"#8B5CF6"},
+  {name:"Meeting Minutes", count:234, icon:"i-user", color:"#0EA5B7"},
+  {name:"Variations & Claims", count:67, icon:"i-doc", color:"#FF8A4C"},
+  {name:"Governance", count:89, icon:"i-approve", color:"#C77DFF"}
+];
+
 var PROJECTS = [
   { id:"p1", name:"c2-status", desc:"Package C2 status page", files:[
     { n:"index.html", t:"html", code:'<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <title>Package C2 — Status</title>\n  <style>\n    body{font:15px -apple-system,system-ui,sans-serif;margin:0;padding:28px;background:#0c0c0e;color:#f2f3f6}\n    h1{font-size:20px;margin:0 0 4px}\n    .sub{color:#9a9aa2;font-size:13px;margin-bottom:20px}\n    .n{font-size:34px;font-weight:800;color:#ff4a50;letter-spacing:-.02em}\n    table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}\n    th,td{border-bottom:1px solid #26262b;padding:9px 6px;text-align:left}\n    th{color:#9a9aa2;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}\n    .ok{color:#3fcf95}.bad{color:#e0a33c}\n  </style>\n</head>\n<body>\n  <h1>Package C2 — rebar</h1>\n  <div class="sub">RYD-M3 · updated from SAP + P6</div>\n  <div class="n">SAR 5.32M</div>\n  <div class="sub">exposure at 45 days</div>\n  <table>\n    <tr><th>Metric</th><th>Value</th></tr>\n    <tr><td>Ordered</td><td>1,240 t</td></tr>\n    <tr><td>Delivered</td><td class="bad">742 t</td></tr>\n    <tr><td>Promised</td><td>03 Aug 2026</td></tr>\n    <tr><td>Schedule slip</td><td class="bad">11 days</td></tr>\n    <tr><td>Critical path</td><td class="bad">yes</td></tr>\n    <tr><td>Residency</td><td class="ok">Riyadh DC-1</td></tr>\n  </table>\n</body>\n</html>' },
@@ -2366,6 +2498,7 @@ MOUNT.brain = function(body, w){
       '<div class="br-main">'+
         '<div class="tabs" role="tablist">'+
           '<button class="tab" data-brtab="graph"   aria-selected="true">Graph</button>'+
+          '<button class="tab" data-brtab="docs"    aria-selected="false">Documents &amp; Knowledge</button>'+
           '<button class="tab" data-brtab="emails"  aria-selected="false">Email graph</button>'+
           '<button class="tab" data-brtab="behave"  aria-selected="false">Behaviour</button>'+
           '<button class="tab" data-brtab="why"     aria-selected="false">Reasoning</button>'+
@@ -2393,6 +2526,88 @@ MOUNT.brain = function(body, w){
           return '<span><i style="background:'+KIND_COLOR[k]+'"></i>'+KIND_LABEL[k]+'</span>'; }).join("") +
         '</div></div>';
       wireGraph(w);
+    } else if(t === "docs"){
+      var totalDocs = KNOWLEDGE_SOURCES.reduce(function(s,x){return s+x.count},0);
+      var totalVecs = "4.2M";
+      var connectedCount = KNOWLEDGE_SOURCES.filter(function(s){return s.status==="connected"}).length;
+      host.innerHTML = '<div class="pane-scroll" style="padding:0">'+
+        '<div style="padding:16px 20px 0"><h4 class="sec" style="margin:0 0 4px">'+ico("i-knowledge","sm")+' Documents &amp; Knowledge</h4>'+
+        '<p class="sub" style="margin:0 0 14px">The RAG system behind every answer. Every document, email, schedule, and decision is chunked, embedded, and indexed on Magna GPUs — vectors never leave Riyadh DC-1.</p></div>'+
+        /* Pipeline Visualizer */
+        '<div style="padding:0 20px 14px"><div class="card" style="margin:0"><h5 style="display:flex;align-items:center;gap:7px">'+ico("i-rag","sm")+'RAG Pipeline</h5>'+
+        '<p class="sub" style="margin:4px 0 10px;font-size:11.5px">How a query travels from your question to a grounded answer</p>'+
+        '<div class="rag-pipeline">'+RAG_PIPELINE.map(function(p,i){
+          return '<div class="rag-step" style="--step-delay:'+(i*60)+'ms">'+
+            '<div class="rag-dot'+(p.status==="ok"?" ok":p.status==="warn"?" warn":p.status==="error"?" err":"")+'"></div>'+
+            '<div class="rag-line"></div>'+
+            '<div class="rag-info"><div class="rag-name">'+esc(p.step)+'</div>'+
+            '<div class="rag-desc">'+esc(p.desc)+'</div>'+
+            '<div class="rag-lat">'+esc(p.lat)+'</div></div></div>';
+        }).join("")+'</div></div></div>'+
+        /* Source Health */
+        '<div style="padding:0 20px 14px"><div class="card" style="margin:0"><h5 style="display:flex;align-items:center;gap:7px">'+ico("i-plug","sm")+'Connected Sources ('+connectedCount+'/'+KNOWLEDGE_SOURCES.length+')</h5>'+
+        '<div class="src-list">'+KNOWLEDGE_SOURCES.map(function(s){
+          var statusColor = s.status==="connected"?"var(--private)":s.status==="partial"?"var(--public)":"var(--accent)";
+          var statusLabel = s.status==="connected"?"Connected":s.status==="partial"?"Partial":"Missing";
+          return '<div class="src-row">'+
+            '<div class="src-dot" style="background:'+statusColor+'"></div>'+
+            '<div class="src-info"><div class="src-name">'+ico(s.icon,"xs")+' '+esc(s.name)+'</div>'+
+            '<div class="src-meta">'+esc(s.count.toLocaleString())+' items · '+esc(s.vectors)+' vectors · '+esc(s.chunker)+'</div></div>'+
+            '<div class="src-right"><span class="tag'+(s.status==="connected"?" pv":"")+'">'+statusLabel+'</span>'+
+            '<div class="src-fresh"><div class="src-bar"><div class="src-fill" style="width:'+Math.round(s.freshness*100)+'%;background:'+statusColor+'"></div></div>'+
+            '<span class="src-pct">'+Math.round(s.freshness*100)+'%</span></div></div></div>';
+        }).join("")+'</div></div></div>'+
+        /* Ingestion Feed */
+        '<div style="padding:0 20px 14px"><div class="card" style="margin:0"><h5 style="display:flex;align-items:center;gap:7px">'+ico("i-ingest","sm")+'Live Ingestion Feed</h5>'+
+        '<p class="sub" style="margin:4px 0 10px;font-size:11.5px">Every document, email, and system event entering the Brain in real-time</p>'+
+        '<div class="ingest-feed">'+INGESTION_FEED.map(function(f){
+          var stColor = f.status==="ok"?"var(--private)":f.status==="warn"?"var(--public)":"var(--accent)";
+          return '<div class="ingest-row">'+
+            '<div class="ingest-time">'+esc(f.time)+'</div>'+
+            '<div class="ingest-dot" style="background:'+stColor+'"></div>'+
+            '<div class="ingest-body"><div class="ingest-action">'+esc(f.source)+' · '+esc(f.action)+'</div>'+
+            '<div class="ingest-item">'+esc(f.item)+'</div>'+
+            (f.chunks ? '<div class="ingest-chunks">'+esc(f.chunks.toLocaleString())+' chunks</div>' : '')+'</div></div>';
+        }).join("")+'</div></div></div>'+
+        /* Document Categories */
+        '<div style="padding:0 20px 14px"><div class="card" style="margin:0"><h5 style="display:flex;align-items:center;gap:7px">'+ico("i-folder","sm")+'Knowledge by Category</h5>'+
+        '<div class="cat-grid">'+DOC_CATEGORIES.map(function(c){
+          return '<div class="cat-card"><div class="cat-icon" style="background:'+c.color+'22;color:'+c.color+'">'+ico(c.icon,"sm")+'</div>'+
+            '<div class="cat-name">'+esc(c.name)+'</div>'+
+            '<div class="cat-count">'+esc(c.count.toLocaleString())+'</div></div>';
+        }).join("")+'</div></div></div>'+
+        /* Search Preview */
+        '<div style="padding:0 20px 16px"><div class="card" style="margin:0"><h5 style="display:flex;align-items:center;gap:7px">'+ico("i-search","sm")+'Search Preview</h5>'+
+        '<p class="sub" style="margin:4px 0 10px;font-size:11.5px">Type a query to see what the RAG would retrieve before asking AI</p>'+
+        '<div class="rag-search-box"><input type="text" class="rag-search-input" placeholder="e.g. What is the rebar delivery status for PO 4500219871?" />'+
+        '<div class="rag-search-results" id="ragSearchResults"></div></div>'+
+        '<div class="rag-search-hint">Results show chunk score, source document, and which Brain node it connects to</div></div></div>'+
+        '</div>';
+      /* Wire search preview */
+      var searchInput = host.querySelector(".rag-search-input");
+      var searchResults = host.querySelector("#ragSearchResults");
+      if(searchInput && searchResults){
+        searchInput.addEventListener("input", function(){
+          var q = searchInput.value.trim().toLowerCase();
+          if(q.length < 3){ searchResults.innerHTML = ""; return; }
+          var hits = [
+            {doc:"PO 4500219871", chunk:"Al-Rajhi Steel · 1,240 t grade B500B rebar. 4 of 6 lines awaiting goods receipt.", score:.94, node:"n3", source:"SAP S/4HANA"},
+            {doc:"Subcontract GC-8", chunk:"Clause 8.4 sets liquidated damages at 0.15% of package value per day, capped at 10%.", score:.91, node:"n2", source:"Company Knowledge"},
+            {doc:"Variation VN-C2-0114", chunk:"The variation notice as issued. Assessed sum still blank pending your figure.", score:.87, node:"n18", source:"Company Knowledge"},
+            {doc:"Re: C2 rebar slip", chunk:"Khalid confirms 03 Aug promised date will not hold; proposes 19 Sep.", score:.82, node:"n7", source:"Outlook"},
+            {doc:"Rate card 2026 Q3", chunk:"Crew standby SAR 94,000/day. This is the number the exposure model is most sensitive to.", score:.78, node:"n19", source:"SAP S/4HANA"}
+          ];
+          searchResults.innerHTML = '<div class="rag-results-label">Top 5 chunks for "'+esc(searchInput.value)+'"</div>'+
+            hits.map(function(h){
+              var n = nodeById(h.node);
+              return '<div class="rag-hit">'+
+                '<div class="rag-hit-score">'+h.score.toFixed(2)+'</div>'+
+                '<div class="rag-hit-body"><div class="rag-hit-doc">'+esc(h.doc)+' <span class="tag">'+esc(h.source)+'</span></div>'+
+                '<div class="rag-hit-chunk">'+esc(h.chunk)+'</div>'+
+                (n ? '<div class="rag-hit-node" data-brnode="'+h.node+'">'+ico("i-brain","xs")+' '+esc(n.label)+'</div>' : '')+
+                '</div></div>';
+            }).join("");
+      }
     } else if(t === "emails"){
       host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Email, as part of the graph</h4>'+
         '<p class="sub">Console reads your mail to place it in the Brain — who wrote it, which document or PO it '+
@@ -3333,17 +3548,25 @@ MOUNT.mail = function(body, w){
         '<button class="side-i">'+ico("i-send","sm")+'Sent</button>'+
         '<div class="side-h" style="margin-top:8px">Brain</div>'+
         '<button class="side-i" data-openbrain>'+ico("i-brain","sm")+'Email graph</button>'+
+        '<button class="side-i" data-openbrain-docs>'+ico("i-knowledge","sm")+'Documents &amp; Knowledge</button>'+
       '</div>'+
       '<div class="cd-main"><div class="pane-scroll">'+
         '<h4 class="sec">Inbox</h4>'+
-        '<p class="sub">Console reads mail to place it in the Brain — it never replies on its own. The line under '+
-        'each message is why it thinks the message matters today.</p>'+
+        '<p class="sub">Console reads mail to place it in the Brain — it never replies on its own. Each message shows '+
+        'which Brain nodes it connects to and why it matters today.</p>'+
         EMAILS.map(function(m){
+          var node = nodeById(m.node);
+          var brainLinks = node ? neighbours(node.id).slice(0,3) : [];
           return '<div class="erow"><div class="av">'+esc(m.from.split(" ").map(function(p){return p[0];}).join("").slice(0,2))+'</div>'+
           '<div class="mid"><div class="fr">'+esc(m.from)+
-          (m.read?"":' <span class="tag ac">unread</span>')+'</div>'+
+          (m.read?"":' <span class="tag ac">unread</span>')+'<span class="tag">'+esc(m.org)+'</span></div>'+
           '<div class="sj">'+esc(m.subj)+'</div>'+
-          '<div class="ex">'+ico("i-brain","xs")+' '+esc(m.why)+'</div></div>'+
+          '<div class="ex">'+ico("i-brain","xs")+' '+esc(m.why)+'</div>'+
+          (brainLinks.length ? '<div class="brain-links">'+brainLinks.map(function(l){
+            return '<button class="brain-link-chip" data-brnode="'+l.node.id+'">'+ico("i-brain","xs")+
+              '<span>'+esc(l.node.label)+'</span><span class="bl-score">'+l.score.toFixed(2)+'</span></button>';
+          }).join("")+'</div>' : '')+
+          '</div>'+
           '<span class="rt">'+esc(m.when)+'</span></div>';
         }).join("")+
       '</div></div>'+
@@ -3355,6 +3578,14 @@ MOUNT.mail = function(body, w){
              $$(".tab", b.body).forEach(function(x){ x.setAttribute("aria-selected", String(x.getAttribute("data-brtab")==="emails")); });
              b.state.drawTab(); }
     }
+    if(e.target.closest("[data-openbrain-docs]")){
+      var b = openApp("brain");
+      if(b){ b.state.tab = "docs";
+             $$(".tab", b.body).forEach(function(x){ x.setAttribute("aria-selected", String(x.getAttribute("data-brtab")==="docs")); });
+             b.state.drawTab(); }
+    }
+    var chip = e.target.closest(".brain-link-chip");
+    if(chip){ brainSelect(openApp("brain"), chip.getAttribute("data-brnode")); }
   });
 };
 
@@ -4415,6 +4646,30 @@ MOUNT.models = function(body, w){
     }
   });
   draw();
+};
+
+/* ---------------------------------------------------------- SHEETS (Luckysheet) */
+MOUNT.sheets = function(body, w){
+  body.innerHTML = '<iframe src="app-sheets.html" style="width:100%;height:100%;border:none;background:var(--bg)" allowfullscreen></iframe>';
+  setWinTitle(w, "Sheets");
+};
+
+/* ---------------------------------------------------------- DOCS (Editor.js) */
+MOUNT.docs = function(body, w){
+  body.innerHTML = '<iframe src="app-docs.html" style="width:100%;height:100%;border:none;background:var(--bg)" allowfullscreen></iframe>';
+  setWinTitle(w, "Docs");
+};
+
+/* ---------------------------------------------------------- SLIDES (PptxGenJS) */
+MOUNT.slides = function(body, w){
+  body.innerHTML = '<iframe src="app-slides.html" style="width:100%;height:100%;border:none;background:var(--bg)" allowfullscreen></iframe>';
+  setWinTitle(w, "Slides");
+};
+
+/* ---------------------------------------------------------- GANTT (Frappe Gantt) */
+MOUNT.gantt = function(body, w){
+  body.innerHTML = '<iframe src="app-gantt.html" style="width:100%;height:100%;border:none;background:var(--bg)" allowfullscreen></iframe>';
+  setWinTitle(w, "Gantt");
 };
 
 /* ============================================================
