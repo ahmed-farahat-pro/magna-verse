@@ -510,6 +510,95 @@ body:not([data-stage="os"]) #os{display:none}
 body.dreaming #dock,body.dreaming #menubar,body.dreaming #quickAI,body.dreaming #companion,
 body.dreaming .wg,body.dreaming #thoughtStream{filter:saturate(.4) brightness(.5);transition:filter 1.8s ease}
 body.dreaming #neural{opacity:.95 !important;transition:opacity 2s ease}
+
+/* =============== BRAIN SEARCH BAR =============== */
+.br-search-wrap{padding:0 16px 10px;display:flex;flex-direction:column;gap:4px}
+.br-search{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:var(--r-md);
+  background:var(--glass-2);border:1px solid var(--glass-line);transition:border-color .15s,box-shadow .15s}
+.br-search:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(14,165,183,.15)}
+.br-search .ico{stroke:var(--tx-4);flex:none;width:15px;height:15px}
+.br-search-input{flex:1;background:none;border:none;outline:none;font-size:13px;color:var(--tx);font-family:var(--sans)}
+.br-search-input::placeholder{color:var(--tx-4)}
+.br-search-hint{font-size:10.5px;color:var(--tx-4);padding-left:2px}
+/* graph highlight mode */
+.br-canvas.searching .br-node{transition:opacity .2s ease}
+.br-canvas.searching .br-node.dim{opacity:.1 !important}
+.br-canvas.searching .br-node.dim circle{fill:var(--tx-4) !important;opacity:.12 !important}
+.br-canvas.searching .br-node.dim text{opacity:.1 !important}
+.br-canvas.searching .br-node.hit circle:first-child{filter:url(#brGlow);stroke:var(--cyan);stroke-width:2.5}
+.br-canvas.searching .br-node.hit text{fill:var(--cyan);font-weight:700}
+.br-canvas.searching .br-edge{transition:opacity .2s ease}
+.br-canvas.searching .br-edge.dim{opacity:.03 !important}
+.br-canvas.searching .br-edge.hit{stroke:var(--cyan) !important;opacity:.85 !important;stroke-width:2 !important}
+.br-search-results{display:none;position:absolute;top:100%;left:0;right:0;z-index:10;
+  max-height:40vh;overflow-y:auto;border-radius:0 0 var(--r-md) var(--r-md);
+  background:var(--glass-2);border:1px solid var(--glass-line);border-top:none;box-shadow:var(--shadow-pop)}
+.br-search-results.on{display:block}
+.br-sr{padding:9px 12px;border-bottom:1px solid var(--glass-line);cursor:pointer;transition:background .1s}
+.br-sr:last-child{border-bottom:0}
+.br-sr:hover{background:rgba(14,165,183,.08)}
+.br-sr .sr-score{font-family:var(--mono);font-size:10px;color:var(--cyan);margin-right:6px}
+.br-sr .sr-kind{font-size:9.5px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.06);color:var(--tx-3);margin-left:4px}
+.br-sr .sr-label{font-size:12.5px;color:var(--tx);font-weight:600}
+.br-sr .sr-note{font-size:11px;color:var(--tx-2);margin-top:2px;line-height:1.45}
+
+/* =============== RAG WINDOW STYLES =============== */
+.rag-hd{padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--glass-line)}
+.rag-hd h4{margin:0;font-size:14px;font-weight:700;color:var(--tx);flex:1}
+.rag-body{flex:1;min-height:0;overflow-y:auto;padding:18px}
+.rag-score-big{font-family:var(--mono);font-size:42px;font-weight:800;line-height:1;
+  background:linear-gradient(135deg,var(--cyan),var(--private));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.rag-score-label{font-size:11px;color:var(--tx-3);margin-top:2px}
+.rag-card{border:1px solid var(--glass-line);border-radius:var(--r-md);background:var(--glass-2);padding:14px 16px;margin-bottom:10px}
+.rag-card h5{margin:0 0 6px;font-size:12.5px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:6px}
+.rag-card p{margin:0;font-size:12px;color:var(--tx-2);line-height:1.6}
+.rag-card .rag-cite{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--cyan);
+  padding:2px 7px;border-radius:4px;background:rgba(14,165,183,.1);cursor:pointer;margin-top:6px;
+  transition:background .1s}
+.rag-card .rag-cite:hover{background:rgba(14,165,183,.2)}
+/* duel layout */
+.duel-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.duel-col{border:1px solid var(--glass-line);border-radius:var(--r-md);background:var(--glass-2);padding:14px}
+.duel-col h5{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:6px}
+.duel-col .winner{border-color:var(--private);box-shadow:0 0 0 2px rgba(63,207,149,.18)}
+.duel-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:7px 0;border-bottom:1px solid var(--glass-line);font-size:12px}
+.duel-row:last-child{border-bottom:0}
+.duel-row .dr-label{color:var(--tx-2)}
+.duel-row .dr-val{font-family:var(--mono);color:var(--tx);text-align:right}
+.duel-row .dr-diff{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;text-align:right}
+.duel-row .dr-diff.up{background:rgba(240,53,60,.12);color:var(--accent-2)}
+.duel-row .dr-diff.down{background:rgba(63,207,149,.12);color:var(--private)}
+/* tree (PO deep dive) */
+.rag-tree{margin-top:10px}
+.rag-tree-node{display:flex;align-items:flex-start;gap:10px;padding:8px 0 8px 0;position:relative}
+.rag-tree-node::before{content:"";position:absolute;left:14px;top:28px;bottom:0;width:1px;background:var(--glass-line)}
+.rag-tree-node:last-child::before{display:none}
+.rag-tree-dot{width:10px;height:10px;border-radius:99px;flex:none;margin-top:4px;border:2px solid var(--glass-line)}
+.rag-tree-dot.chain{background:var(--accent);border-color:var(--accent)}
+.rag-tree-dot.rag{background:var(--cyan);border-color:var(--cyan)}
+.rag-tree-dot.source{background:var(--private);border-color:var(--private)}
+.rag-tree-dot.decision{background:var(--accent);border-color:var(--accent)}
+.rag-tree-body{flex:1;min-width:0}
+.rag-tree-label{font-size:12px;font-weight:650;color:var(--tx)}
+.rag-tree-note{font-size:11px;color:var(--tx-3);margin-top:1px;line-height:1.5}
+/* checklist */
+.audit-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.audit-ring{width:64px;height:64px;border-radius:99px;border:4px solid var(--glass-line);position:relative;flex:none;
+  display:grid;place-items:center}
+.audit-ring svg{width:64px;height:64px;position:absolute;inset:0;transform:rotate(-90deg)}
+.audit-ring circle{fill:none;stroke-width:4;stroke-linecap:round}
+.audit-ring .bg{stroke:var(--glass-line)}
+.audit-ring .fg{stroke:var(--cyan);transition:stroke-dashoffset .8s ease}
+.audit-pct{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--tx)}
+.audit-check{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--glass-line);font-size:12px}
+.audit-check:last-child{border-bottom:0}
+.audit-check .ac-dot{width:8px;height:8px;border-radius:99px;flex:none}
+.audit-check .ac-dot.done{background:var(--private)}
+.audit-check .ac-dot.missing{background:var(--accent)}
+.audit-check .ac-dot.partial{background:#F0B44E}
+.audit-check .ac-label{flex:1;color:var(--tx-2)}
+.audit-check .ac-source{font-size:10px;color:var(--tx-4);font-family:var(--mono)}
 /* per-app tile colours — transparent glass, colour only as accent */
 .g-chat{--tile:#F0353C;background:rgba(240,53,60,.12);border:1px solid rgba(240,53,60,.25)}
 .g-brain{--tile:#43E0A6;background:rgba(67,224,166,.12);border:1px solid rgba(67,224,166,.25)}
@@ -1970,6 +2059,11 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     <button class="ctx-item" data-ctx="dockside"><svg class="ico xs"><use href="#i-grid"/></svg><span data-docklbl>Dock to Left</span></button>
     <button class="ctx-item" data-ctx="widgets"><svg class="ico xs"><use href="#i-grid"/></svg>Edit Widgets</button>
     <button class="ctx-item" data-ctx="clap"><svg class="ico xs"><use href="#i-spark"/></svg><span data-claplbl>Clap Detection: Off</span></button>
+    <button class="ctx-sep"></button>
+    <button class="ctx-item" data-ctx="open-duel"><svg class="ico xs"><use href="#i-chart"/></svg>Vendor Quote Duel</button>
+    <button class="ctx-item" data-ctx="open-board"><svg class="ico xs"><use href="#i-doc"/></svg>Board Pack Narrative</button>
+    <button class="ctx-item" data-ctx="open-prep"><svg class="ico xs"><use href="#i-chat"/></svg>Meeting Prep Card</button>
+    <button class="ctx-item" data-ctx="open-audit"><svg class="ico xs"><use href="#i-shield"/></svg>Audit Readiness</button>
   </div>
 
   <!-- ===== WALLPAPER PICKER ===== -->
@@ -2578,17 +2672,21 @@ var APPS = {
   files:   { name:"Files",       icon:"i-folder", tile:"g-files",   w:960, h:640, minW:480, minH:380, multi:true  },
   word:    { name:"Word",        icon:"i-doc",    tile:"g-word",    w:900, h:660, minW:500, minH:400, multi:true  },
   ppt:     { name:"Slides",      icon:"i-slides", tile:"g-ppt",     w:1000,h:700, minW:560, minH:420, multi:true  },
-  trash:   { name:"Trash",       icon:"i-x",      tile:"g-trash",   w:700, h:520, minW:400, minH:340, multi:false }
+  trash:   { name:"Trash",       icon:"i-x",      tile:"g-trash",   w:700, h:520, minW:400, minH:340, multi:false },
+  duel:    { name:"Quote Duel",   icon:"i-chart",  tile:"g-sheets",  w:960, h:640, minW:520, minH:400, multi:true  },
+  board:   { name:"Board Pack",   icon:"i-doc",    tile:"g-docs2",   w:900, h:640, minW:480, minH:380, multi:false },
+  prep:    { name:"Meeting Prep", icon:"i-chat",   tile:"g-chat",    w:860, h:620, minW:480, minH:380, multi:false },
+  audit:   { name:"Audit Score",  icon:"i-shield", tile:"g-agents",  w:880, h:640, minW:480, minH:380, multi:false }
 };
 /* Dock shows the 7 core apps. Running/contextual apps are appended with a
    separator, and renderDock shrinks --dk so the bar never overflows —
    everything else stays on the desktop and in Spotlight. */
 var DOCK_PINNED = ["chat","brain","mail","files","agents","settings","trash"];
 var DOCK_REST   = ["files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","market","tasks",
-                   "approvals","ledger","memory","models","conn","mail","settings","trash"];
+                   "approvals","ledger","memory","models","conn","mail","settings","trash","duel","board","prep","audit"];
 var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","word","ppt","sheets","docs","slides","gantt",
                       "api","db","agents","autos","market","tasks","approvals","ledger","memory",
-                      "models","conn","mail","settings","trash"];
+                      "models","conn","mail","settings","trash","duel","board","prep","audit"];
 
 /* badges that make the desktop informative rather than decorative */
 var BADGES = { mail:3, agents:2, autos:1 };
@@ -4750,6 +4848,10 @@ document.addEventListener("click", function(e){
   else if(act === "dockside"){ setDockPos(document.body.classList.contains("dock-left") ? "bottom" : "left"); }
   else if(act === "widgets"){ weditOpen(); }
   else if(act === "clap"){ clapToggle(); }
+  else if(act === "open-duel"){ openApp("duel"); }
+  else if(act === "open-board"){ openApp("board"); }
+  else if(act === "open-prep"){ openApp("prep"); }
+  else if(act === "open-audit"){ openApp("audit"); }
 });
 
 /* ---- WALLPAPER PICKER ---- */
@@ -5712,6 +5814,27 @@ function quickAIRun(mode, q){
     toast("New document created on the desktop.", 2200);
     return;
   }
+  /* RAG features — route directly to the right window */
+  if((mode === "smart") && /(compare|duel|vendor|quote)/i.test(q)){
+    openApp("duel");
+    toast("Vendor quote duel open — RAG-extracted comparison with agent verdict.", 2600);
+    return;
+  }
+  if((mode === "smart") && /(board|pack|brief|narrative)/i.test(q)){
+    openApp("board");
+    toast("Board pack narrative open — synthesised from the Brain.", 2600);
+    return;
+  }
+  if((mode === "smart") && /(meeting|prep|before.*meeting|review meeting)/i.test(q)){
+    openApp("prep");
+    toast("Meeting prep card open — context, decisions, escalations.", 2600);
+    return;
+  }
+  if((mode === "smart") && /(audit|compliance|hse.*check)/i.test(q)){
+    openApp("audit");
+    toast("Audit readiness score open — 86% with 3 action items.", 2600);
+    return;
+  }
   if(mode === "agent" || mode === "smart"){
     openApp("agents");
     toast(q ? "Routed to Agents — “"+q+"” queued for the closest match." : "Agents open — pick one to run.", 2600);
@@ -5897,7 +6020,11 @@ var APP_ALIASES = {
   database:"db", db:"db", data:"db", market:"market", marketplace:"market",
   tasks:"tasks", task:"tasks", todo:"tasks", memory:"memory", models:"models", model:"models",
   connections:"conn", connectors:"conn", settings:"settings", preferences:"settings",
-  trash:"trash", bin:"trash", recycle:"trash"
+  trash:"trash", bin:"trash", recycle:"trash",
+  duel:"duel", "quote duel":"duel", vendor:"duel", comparison:"duel", quotes:"duel",
+  board:"board", "board pack":"board", "board narrative":"board", briefing:"board",
+  prep:"prep", "meeting prep":"prep", "meeting card":"prep", "before meeting":"prep",
+  audit:"audit", "audit score":"audit", "hse audit":"audit", compliance:"audit"
 };
 function findAppByName(s){
   s = (s||"").toLowerCase().trim();
@@ -5979,6 +6106,27 @@ function voiceHandle(text){
   if(/\b(run|call|invoke|start)\b.{0,12}\bagent/.test(lq)){
     openApp("agents");
     say("Agents open. Two are running — PO slippage watch and risk research. Name one to trigger it.");
+    return;
+  }
+  /* RAG features */
+  if(/(compare|duel|vendor|quote)/.test(lq)){
+    openApp("duel");
+    say("Vendor quote duel is open. Al-Rajhi versus Fabricator Direct — the dual-source recommendation stands.");
+    return;
+  }
+  if(/(board|pack|brief|narrative)/.test(lq)){
+    openApp("board");
+    say("Board pack narrative is open. Five sections — exposure, schedule, vendor, risk, and decisions needed. All sourced from the Brain.");
+    return;
+  }
+  if(/(meeting|prep|before|review meeting)/.test(lq)){
+    openApp("prep");
+    say("Meeting prep card is open. Context, decisions, escalations, and documents — all synthesised from the Brain.");
+    return;
+  }
+  if(/(audit|compliance|hse.*check)/.test(lq)){
+    openApp("audit");
+    say("Audit readiness score is open. 86 percent — two action items flagged: LTI reports and PPE sign-offs.");
     return;
   }
 
@@ -6295,6 +6443,9 @@ MOUNT.chat = function(body, w){
           '<button class="chip" aria-pressed="true" data-kb>'+ico("i-db","xs")+'Company Knowledge</button>'+
           '<button class="chip" data-ask="Build me a board deck for Thursday">'+ico("i-slides","xs")+'Slides</button>'+
           '<button class="chip" data-ask="Draft the official variation letter to Al-Rajhi">'+ico("i-file","xs")+'Letter</button>'+
+          '<button class="chip" data-ask="Compare the two vendor quotes for rebar">'+ico("i-chart","xs")+'Duel</button>'+
+          '<button class="chip" data-ask="What should I know before the C2 meeting?">'+ico("i-chat","xs")+'Prep</button>'+
+          '<button class="chip" data-ask="How ready are we for the HSE audit?">'+ico("i-shield","xs")+'Audit</button>'+
           '<button class="ch-send" data-send disabled aria-label="Send">'+ico("i-send","sm")+'</button>'+
         '</div>'+
       '</div>'+
@@ -6407,7 +6558,177 @@ MOUNT.chat = function(body, w){
   if(w.params.q) setTimeout(function(){ fire(w.params.q); }, 200);
 };
 
-/* ---------------------------------------------------------- BRAIN */
+/* ---------------------------------------------------------- VENDOR QUOTE DUEL (RAG-extracted) */
+MOUNT.duel = function(body, w){
+  setWinTitle(w, "Vendor Quote Duel");
+  var Q = {
+    a:{name:"Al-Rajhi Steel Co.", items:[
+      {item:"B500B 16mm rebar", qty:"320 t", unit:"SAR 3,850/t", total:"SAR 1,232,000", delivery:"19 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 20mm rebar", qty:"280 t", unit:"SAR 3,790/t", total:"SAR 1,061,200", delivery:"19 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 25mm rebar", qty:"240 t", unit:"SAR 3,740/t", total:"SAR 897,600",  delivery:"19 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 32mm rebar", qty:"180 t", unit:"SAR 3,920/t", total:"SAR 705,600",  delivery:"26 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 12mm rebar", qty:"140 t", unit:"SAR 4,010/t", total:"SAR 561,400",  delivery:"03 Oct 2026", tax:"15% VAT incl."},
+      {item:"Couplers (BS 8597)", qty:"80 ea", unit:"SAR 215/ea", total:"SAR 17,200",   delivery:"03 Oct 2026", tax:"15% VAT incl."}
+    ], total:"SAR 4,475,000", lead:"19 Sep", notes:"Existing vendor · already cleared for site access · 4 lines still outstanding on current PO"},
+    b:{name:"Fabricator Direct (NEW)", items:[
+      {item:"B500B 16mm rebar", qty:"320 t", unit:"SAR 3,920/t", total:"SAR 1,254,400", delivery:"12 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 20mm rebar", qty:"280 t", unit:"SAR 3,860/t", total:"SAR 1,080,800", delivery:"12 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 25mm rebar", qty:"240 t", unit:"SAR 3,810/t", total:"SAR 914,400",  delivery:"12 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 32mm rebar", qty:"180 t", unit:"SAR 3,990/t", total:"SAR 718,200",  delivery:"19 Sep 2026", tax:"15% VAT incl."},
+      {item:"B500B 12mm rebar", qty:"140 t", unit:"SAR 4,080/t", total:"SAR 571,200",  delivery:"26 Sep 2026", tax:"15% VAT incl."},
+      {item:"Couplers (BS 8597)", qty:"80 ea", unit:"SAR 235/ea", total:"SAR 18,800",   delivery:"26 Sep 2026", tax:"15% VAT incl."}
+    ], total:"SAR 4,557,800", lead:"12 Sep", notes:"New vendor · +1.8% unit rate but 7-day earlier delivery on critical lines · requires onboarding clearance"}
+  };
+  var diff = ((4557800-4475000)/4475000*100).toFixed(1);
+  var items = Q.a.items.map(function(a,i){
+    var b = Q.b.items[i];
+    var aN = parseFloat(a.total.replace(/[^0-9.]/g,""));
+    var bN = parseFloat(b.total.replace(/[^0-9.]/g,""));
+    var d = ((bN-aN)/aN*100).toFixed(1);
+    return '<div class="duel-row"><span class="dr-label">'+esc(a.item)+'</span>'+
+      '<span class="dr-val">'+esc(a.total)+'</span><span class="dr-val">'+esc(b.total)+'</span></div>';
+  }).join("");
+  body.innerHTML = '<div class="rag-hd">'+ico("i-chart","sm")+'<h4>Vendor Quote Duel</h4>'+
+    '<span class="tag" style="color:var(--cyan)">RAG-extracted</span></div>'+
+    '<div class="rag-body">'+
+    '<div class="rag-card"><h5>'+ico("i-spark","sm")+'Agent verdict</h5>'+
+    '<p><b>+1.8% on unit cost buys 7 days of schedule relief.</b> At standby SAR 94,000/day, the cost of 7 crew idle days (SAR 658,000) far exceeds the SAR 82,800 premium on the Fabricator quote. The dual-source recommendation stands: accept Fabricator Direct for the 4 outstanding lines and retain Al-Rajhi for future pours.</p>'+
+    '<div class="rag-cite" data-cite="n19">'+ico("i-brain","xs")+'Source: Rate card 2026 Q3 · Exposure model · GC-8 clause 8.4</div></div>'+
+    '<div class="duel-split">'+
+    '<div class="duel-col"><h5>'+ico("i-chart","xs")+' '+esc(Q.a.name)+'</h5>'+
+    '<div class="duel-row"><span class="dr-label"><b>Total</b></span><span class="dr-val" style="font-weight:700">'+esc(Q.a.total)+'</span><span></span></div>'+
+    '<div class="duel-row"><span class="dr-label">Earliest delivery</span><span class="dr-val">'+esc(Q.a.lead)+'</span><span></span></div>'+
+    '<div class="duel-row"><span class="dr-label">Vendor status</span><span class="dr-val" style="color:var(--private)">Existing</span><span></span></div>'+
+    '<div class="duel-row"><span class="dr-label">Onboarding</span><span class="dr-val" style="color:var(--private)">Cleared</span><span></span></div>'+
+    '<div style="border-top:1px solid var(--glass-line);margin-top:8px;padding-top:8px;font-size:11px;color:var(--tx-3)">'+esc(Q.a.notes)+'</div></div>'+
+    '<div class="duel-col winner"><h5>'+ico("i-chart","xs")+' '+esc(Q.b.name)+'</h5>'+
+    '<div class="duel-row"><span class="dr-label"><b>Total</b></span><span class="dr-val" style="font-weight:700">'+esc(Q.b.total)+'</span><span class="dr-diff up">+'+diff+'%</span></div>'+
+    '<div class="duel-row"><span class="dr-label">Earliest delivery</span><span class="dr-val" style="color:var(--private)">'+esc(Q.b.lead)+'</span><span class="dr-diff down">7d faster</span></div>'+
+    '<div class="duel-row"><span class="dr-label">Vendor status</span><span class="dr-val" style="color:var(--accent-2)">New</span><span></span></div>'+
+    '<div class="duel-row"><span class="dr-label">Onboarding</span><span class="dr-val" style="color:#F0B44E">Pending</span><span></span></div>'+
+    '<div style="border-top:1px solid var(--glass-line);margin-top:8px;padding-top:8px;font-size:11px;color:var(--tx-3)">'+esc(Q.b.notes)+'</div></div></div>'+
+    '<div class="rag-card" style="margin-top:14px"><h5>'+ico("i-doc","sm")+'Line-by-line comparison</h5>'+items+'</div></div>';
+  body.addEventListener("click", function(e){
+    var c = e.target.closest("[data-cite]");
+    if(c){ openApp("brain"); }
+  });
+};
+
+/* ---------------------------------------------------------- BOARD PACK NARRATIVE */
+MOUNT.board = function(body, w){
+  setWinTitle(w, "Board Pack Narrative");
+  var PARAGRAPHS = [
+    {heading:"Financial Exposure", text:"Package C2 exposure stands at SAR 5.32M at 45 days. The standby crew rate of SAR 94,000/day is the single largest sensitivity — a 10% increase would add SAR 423,000 to the total. The LD cap under GC-8 8.4 binds at day 67 (10% of package value), but the standby cost curve overtakes it before that threshold.", cite:"n2", citeLabel:"Exposure model"},
+    {heading:"Schedule Status", text:"P6 baseline r7 shows 11 days behind on the rebar-fixing sequence, all traceable to PO 4500219871 delivery delays. 4 of 6 order lines remain outstanding against a promised date of 03 August. The critical path is the C2 deck pour — each day of rebar delay translates one-for-one to the pour sequence.", cite:"n4", citeLabel:"P6 schedule snapshot"},
+    {heading:"Vendor Action", text:"Al-Rajhi Steel proposed 19 September for the remaining 498 tonnes — 47 days late. A dual-source option from Fabricator Direct offers the same volume by 12 September at +1.8% unit premium. At the current standby rate, the 7-day saving is worth SAR 658,000 versus the SAR 82,800 price premium. Recommendation: accept the dual-source and issue VN-C2-0114.", cite:"n18", citeLabel:"Variation notice draft"},
+    {heading:"Risk Highlights", text:"Two LTIs on the C2 deck under HSE investigation — Sara Bin Zayed has escalated the crew-safety briefing to this week. Vendor onboarding for Fabricator Direct is pending Procurement clearance — expected by Wednesday. The variation notice assessed sum remains blank and requires your figure before Thursday 09:00.", cite:"n9", citeLabel:"HSE register"},
+    {heading:"Decisions Needed", text:"1. Approve dual-source rate (SAR 4,557,800 vs SAR 4,475,000 single-source). 2. Sign off the VN-C2-0114 assessed sum. 3. Confirm the board exposure figure of SAR 5.32M for Thursday's pack.", cite:"n1", citeLabel:"Approval queue"}
+  ];
+  var html = '<div class="rag-hd">'+ico("i-doc","sm")+'<h4>Board Pack Narrative</h4>'+
+    '<span class="tag" style="color:var(--cyan)">AI-generated from Brain</span></div>'+
+    '<div class="rag-body">'+
+    '<div class="rag-card"><h5>'+ico("i-spark","sm")+'What the board should know this week</h5>'+
+    '<p style="font-size:11.5px;color:var(--tx-3)">Synthesised from '+PARAGRAPHS.length+' Brain clusters: exposure model, P6 schedule, vendor quotes, HSE register, and your approval queue. Each paragraph cites its primary source node.</p></div>';
+  PARAGRAPHS.forEach(function(p){
+    html += '<div class="rag-card"><h5>'+esc(p.heading)+'</h5><p>'+esc(p.text)+'</p>'+
+      '<div class="rag-cite" data-cite="'+p.cite+'">'+ico("i-brain","xs")+' '+esc(p.citeLabel)+'</div></div>';
+  });
+  html += '<div class="rag-card" style="background:rgba(14,165,183,.06);border-color:rgba(14,165,183,.2)">'+
+    '<h5>'+ico("i-check","sm")+'Ready for Thursday 09:00</h5>'+
+    '<p>All figures cited are sourced from the Brain knowledge graph. The narrative was generated by the board drafter agent using the latest VFS data. Export as PDF from the Docs editor, or say "draft the board deck" to generate slides.</p></div></div>';
+  body.innerHTML = html;
+  body.addEventListener("click", function(e){
+    var c = e.target.closest("[data-cite]");
+    if(c){
+      var bw = openApp("brain");
+      if(bw) brainSelect(bw, c.getAttribute("data-cite"));
+    }
+  });
+};
+
+/* ---------------------------------------------------------- MEETING PREP CARD */
+MOUNT.prep = function(body, w){
+  setWinTitle(w, "Meeting Prep — C2 Commercial Review");
+  body.innerHTML = '<div class="rag-hd">'+ico("i-chat","sm")+'<h4>Meeting Prep Card</h4>'+
+    '<span class="tag" style="color:var(--cyan)">Auto-synthesised</span></div>'+
+    '<div class="rag-body">'+
+    '<div class="rag-card"><h5>'+ico("i-calendar","sm")+'C2 Commercial Review — Thu 09:00</h5>'+
+    '<p style="font-size:11.5px;color:var(--tx-3)">Synthesised from: 7 email threads, 4 Brain documents, 3 pending approvals, and P6 schedule data. Last updated just now.</p></div>'+
+    '<div class="rag-card"><h5>'+ico("i-brain","sm")+'Context (what you need to know)</h5>'+
+    '<p><b>Exposure:</b> SAR 5.32M at 45 days. Standby rate SAR 94k/day is the dominant cost driver. LD cap under GC-8 8.4 binds at day 67 but is overtaken by standby costs before that.</p>'+
+    '<p style="margin-top:6px"><b>Vendor:</b> Al-Rajhi 498t outstanding, promised 19 Sep. Fabricator Direct can deliver by 12 Sep at +1.8% premium. Dual-source saves 7 crew days at current standby rate.</p>'+
+    '<p style="margin-top:6px"><b>Schedule:</b> 11 days behind baseline r7 on rebar-fixing. All delay traceable to PO 4500219871. Critical path: C2 deck pour.</p>'+
+    '<div class="rag-cite" data-cite="n2">'+ico("i-brain","xs")+' Exposure model · n2</div></div>'+
+    '<div class="rag-card"><h5>'+ico("i-approve","sm")+'Decisions (what you need to decide)</h5>'+
+    '<p><b>1. Dual-source rate</b> — Accept Fabricator Direct at SAR 4,557,800 (vs SAR 4,475,000 single-source). The 7-day saving is worth SAR 658k vs SAR 83k premium.</p>'+
+    '<p style="margin-top:6px"><b>2. VN-C2-0114 assessed sum</b> — Blank. Your figure needed before Thursday.</p>'+
+    '<p style="margin-top:6px"><b>3. Board exposure figure</b> — SAR 5.32M to be confirmed for Thursday pack.</p></div>'+
+    '<div class="rag-card"><h5>'+ico("i-x","sm")+'Escalations (what needs your attention)</h5>'+
+    '<p><b>HSE:</b> Two LTIs on C2 deck under investigation. Sara wants crew-safety briefing this week.</p>'+
+    '<p style="margin-top:6px"><b>Procurement:</b> Fabricator Direct onboarding pending clearance — expected Wed. If delayed, dual-source option closes.</p></div>'+
+    '<div class="rag-card"><h5>'+ico("i-file","sm")+'Documents (what to read beforehand)</h5>'+
+    '<p style="font-size:12px;color:var(--tx-2)">1. Variation Notice VN-C2-0114 (draft) — <span class="rag-cite" data-cite="n18" style="display:inline">open in Brain</span></p>'+
+    '<p style="font-size:12px;color:var(--tx-2)">2. PO 4500219871 line status — <span class="rag-cite" data-cite="n3" style="display:inline">open in Brain</span></p>'+
+    '<p style="font-size:12px;color:var(--tx-2)">3. Rate card 2026 Q3 — <span class="rag-cite" data-cite="n19" style="display:inline">open in Brain</span></p>'+
+    '<p style="font-size:12px;color:var(--tx-2)">4. GC-8 clause 8.4 (LD provisions) — <span class="rag-cite" data-cite="n2" style="display:inline">open in Brain</span></p></div></div>';
+  body.addEventListener("click", function(e){
+    var c = e.target.closest("[data-cite]");
+    if(c){ openApp("brain"); }
+  });
+};
+
+/* ---------------------------------------------------------- AUDIT READINESS SCORE */
+MOUNT.audit = function(body, w){
+  setWinTitle(w, "Audit Readiness — HSE");
+  var CHECKS = [
+    {label:"Method statement for deck pour", status:"done", source:"Confluence", doc:"MS-C2-DP-003"},
+    {label:"Crew competency matrix", status:"done", source:"SharePoint", doc:"COMP-C2-Q3.xlsx"},
+    {label:"Toolbox talk records (last 4 weeks)", status:"done", source:"SharePoint", doc:"TBT-C2-W32-W35"},
+    {label:"Risk assessment — rebar fixing", status:"done", source:"Confluence", doc:"RA-C2-RF-001"},
+    {label:"Lifting plan for rebar bundles", status:"done", source:"SharePoint", doc:"LP-C2-012"},
+    {label:"PPE compliance records", status:"partial", source:"SharePoint", doc:"PPE-C2-Aug (missing 3 sign-offs)"},
+    {label:"Equipment calibration certificates", status:"done", source:"Network share", doc:"CAL-2026-Q3"},
+    {label:"Incident register (last 90 days)", status:"done", source:"SharePoint", doc:"INC-C2-Q3"},
+    {label:"LTI investigation reports", status:"missing", source:"—", doc:"2 open investigations, reports not filed"},
+    {label:"Emergency response plan", status:"done", source:"Confluence", doc:"ERP-C2-2026"},
+    {label:"Subcontractor insurance certificates", status:"done", source:"SharePoint", doc:"INS-GC8-2026"},
+    {label:"Material test certificates (rebar)", status:"done", source:"SAP S/4HANA", doc:"MTC-PO4500219871"},
+    {label:"Concrete mix design approvals", status:"done", source:"Confluence", doc:"MIX-C2-DP-003"},
+    {label:"Environmental monitoring logs", status:"partial", source:"SharePoint", doc:"ENV-C2-Aug (Week 3 pending)"}
+  ];
+  var done = CHECKS.filter(function(c){ return c.status === "done"; }).length;
+  var partial = CHECKS.filter(function(c){ return c.status === "partial"; }).length;
+  var missing = CHECKS.filter(function(c){ return c.status === "missing"; }).length;
+  var score = Math.round(((done + partial * 0.5) / CHECKS.length) * 100);
+  var circ = 2 * Math.PI * 26;  /* r=26 */
+  var offset = circ * (1 - score / 100);
+  body.innerHTML = '<div class="rag-hd">'+ico("i-shield","sm")+'<h4>Audit Readiness — HSE</h4>'+
+    '<span class="tag" style="color:var(--cyan)">RAG-checked</span></div>'+
+    '<div class="rag-body">'+
+    '<div class="rag-card"><h5>'+ico("i-shield","sm")+'Overall readiness</h5>'+
+    '<div class="audit-bar">'+
+    '<div class="audit-ring"><svg viewBox="0 0 56 56"><circle class="bg" cx="28" cy="28" r="26"/>'+
+    '<circle class="fg" cx="28" cy="28" r="26" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'"/></svg>'+
+    '<span class="audit-pct">'+score+'%</span></div>'+
+    '<div><div style="font-size:13px;font-weight:700;color:var(--tx)">'+done+' complete · '+partial+' partial · '+missing+' missing</div>'+
+    '<div style="font-size:11.5px;color:var(--tx-3);margin-top:2px">'+CHECKS.length+' checks across '+new Set(CHECKS.map(function(c){return c.source})).size+' sources. RAG scanned '+
+    'SharePoint, Confluence, SAP and Network share.</div></div></div></div>'+
+    '<div class="rag-card"><h5>'+ico("i-doc","sm")+'Checklist</h5>'+
+    CHECKS.map(function(c){
+      var dotClass = c.status === "done" ? "done" : c.status === "partial" ? "partial" : "missing";
+      var statusLabel = c.status === "done" ? "Complete" : c.status === "partial" ? "Partial" : "Missing";
+      return '<div class="audit-check"><span class="ac-dot '+dotClass+'"></span>'+
+        '<span class="ac-label">'+esc(c.label)+'</span>'+
+        '<span class="ac-source">'+esc(c.doc)+'</span>'+
+        '<span class="tag" style="color:'+(dotClass==="done"?"var(--private)":dotClass==="partial"?"#F0B44E":"var(--accent-2)")+'">'+statusLabel+'</span></div>';
+    }).join("")+'</div>'+
+    '<div class="rag-card" style="background:rgba(240,53,60,.05);border-color:rgba(240,53,60,.2)"><h5>'+ico("i-x","sm")+'Action items</h5>'+
+    '<p><b>1. LTI investigation reports</b> — Two open investigations on the C2 deck. Reports must be filed before audit. Escalate to Sara Bin Zayed.</p>'+
+    '<p style="margin-top:6px"><b>2. PPE compliance</b> — Three sign-offs missing from Week 32. Crew leads to complete by Wednesday.</p>'+
+    '<p style="margin-top:6px"><b>3. Environmental monitoring</b> — Week 3 data pending from site lab. Expected Monday.</p></div></div>';
+};
+
+/* ---------------------------------------------------------- BRAIN (Knowledge Graph) */
 MOUNT.brain = function(body, w){
   w.state.tab = "graph"; w.state.sel = "n1";
   w.state.views = {};   /* per-tab pan/zoom state          */
@@ -6422,6 +6743,12 @@ MOUNT.brain = function(body, w){
           '<button class="tab" data-brtab="behave"  aria-selected="false">Behaviour</button>'+
           '<button class="tab" data-brtab="why"     aria-selected="false">Reasoning</button>'+
           '<button class="tab" data-brtab="index"   aria-selected="false">Index</button>'+
+        '</div>'+
+        '<div data-brsearch class="br-search-wrap">'+
+          '<div class="br-search">'+ico("i-search","xs")+
+          '<input type="text" class="br-search-input" data-brsearchinp placeholder="Semantic search — type anything…">'+
+          '<button class="btn sm" data-brsearchclear style="display:none">Clear</button></div>'+
+          '<div class="br-search-hint" data-brsearchhint>Searches every document, email, PO, clause and decision in the Brain. Results highlight matching nodes and dim the rest.</div>'+
         '</div>'+
         '<div data-brbody style="flex:1;min-height:0;display:flex;flex-direction:column"></div>'+
       '</div>'+
@@ -6609,13 +6936,106 @@ MOUNT.brain = function(body, w){
         ? "You have touched this in three separate threads today, and two open windows depend on it."
         : "It sits within two hops of what you are working on right now.")+'</p>'+
       '<button class="btn sm" style="margin-top:12px;width:100%" data-askbrain="'+esc(n.label)+'">'+
-        ico("i-chat","xs")+'Ask Chat about this</button>';
+        ico("i-chat","xs")+'Ask Chat about this</button>'+
+      (n.label.indexOf("PO") === 0 || n.label.indexOf("INV") === 0 || n.label.indexOf("VN") === 0 || n.label.indexOf("rate") > -1 ?
+        '<button class="btn sm" style="margin-top:6px;width:100%;border-color:rgba(14,165,183,.3)" data-ragdeep="'+esc(n.label)+'">'+
+        ico("i-search","xs")+'View RAG chain</button>' : '');
   }
   body.addEventListener("click", function(e){
     var a = e.target.closest("[data-askbrain]");
     if(a) openApp("chat", { q:"Tell me about " + a.getAttribute("data-askbrain") + " and why it matters for C2." });
+    var rd = e.target.closest("[data-ragdeep]");
+    if(rd){
+      var lbl = rd.getAttribute("data-ragdeep");
+      if(lbl.indexOf("PO") === 0) openApp("duel");
+      else if(lbl.indexOf("VN") === 0) openApp("board");
+      else openApp("prep");
+    }
   });
   drawTab(); drawDetail();
+
+  /* ---- Brain semantic search: highlight matching nodes, dim the rest ---- */
+  var searchInp = body.querySelector("[data-brsearchinp]");
+  var searchClear = body.querySelector("[data-brsearchclear]");
+  var searchHint = body.querySelector("[data-brsearchhint]");
+  var SEARCH_INDEX = [];   /* built once on first search */
+  function buildSearchIndex(){
+    if(SEARCH_INDEX.length) return;
+    BRAIN_NODES.forEach(function(n){
+      SEARCH_INDEX.push({id:n.id, label:n.label, note:n.note||"", kind:n.kind, src:n.src||""});
+    });
+  }
+  function brainSearch(query){
+    buildSearchIndex();
+    var q = query.toLowerCase().trim();
+    if(!q){
+      $$(".br-node", body).forEach(function(n){ n.classList.remove("dim","hit"); });
+      $$(".br-edge", body).forEach(function(e){ e.classList.remove("dim","hit"); });
+      var svg = body.querySelector(".br-canvas"); if(svg) svg.classList.remove("searching");
+      if(searchHint) searchHint.textContent = "Searches every document, email, PO, clause and decision in the Brain. Results highlight matching nodes and dim the rest.";
+      return;
+    }
+    /* score each node */
+    var scored = SEARCH_INDEX.map(function(n){
+      var score = 0;
+      if(n.label.toLowerCase().indexOf(q) > -1) score += 10;
+      if(n.note.toLowerCase().indexOf(q) > -1) score += 6;
+      if(n.src.toLowerCase().indexOf(q) > -1) score += 3;
+      /* partial word matches */
+      var words = q.split(/\s+/);
+      words.forEach(function(w){
+        if(w.length < 2) return;
+        if(n.label.toLowerCase().indexOf(w) > -1) score += 3;
+        if(n.note.toLowerCase().indexOf(w) > -1) score += 1.5;
+      });
+      return {id:n.id, score:score, label:n.label, kind:n.kind, src:n.src};
+    }).filter(function(x){ return x.score > 0; }).sort(function(a,b){ return b.score - a.score; });
+    var hitIds = {};
+    scored.slice(0,20).forEach(function(x){ hitIds[x.id] = true; });
+    /* find edges between hits */
+    var hitEdges = {};
+    BRAIN_EDGES.forEach(function(e){
+      if(hitIds[e[0]] || hitIds[e[1]]) hitEdges[e[0]+","+e[1]] = true;
+    });
+    /* apply classes */
+    var svg = body.querySelector(".br-canvas"); if(svg) svg.classList.add("searching");
+    $$(".br-node", body).forEach(function(n){
+      var nid = n.getAttribute("data-brnode");
+      if(hitIds[nid]) n.classList.add("hit"), n.classList.remove("dim");
+      else n.classList.add("dim"), n.classList.remove("hit");
+    });
+    $$(".br-edge", body).forEach(function(e){
+      /* edges don't have data attrs in main graph; dim is handled via CSS opacity on .searching */
+      var d = e.getAttribute("d");
+      if(!d) return;
+      /* approximate: hot edges stay bright, rest dim */
+    });
+    if(searchHint) searchHint.innerHTML = '<b style="color:var(--cyan)">'+scored.length+' nodes match</b> · '+
+      scored.slice(0,5).map(function(x){ return '<span style="color:'+KIND_COLOR[x.kind]+'">'+esc(x.label)+'</span>'; }).join(", ")+
+      (scored.length > 5 ? " + "+(scored.length-5)+" more" : "");
+    /* also update the detail panel to show top result */
+    if(scored.length && w.state.tab === "graph"){
+      w.state.sel = scored[0].id;
+      w.state.drawDetail();
+    }
+    /* show clear button */
+    if(searchClear) searchClear.style.display = "";
+  }
+  if(searchInp){
+    searchInp.addEventListener("input", function(){
+      var q = searchInp.value.trim();
+      if(searchClear) searchClear.style.display = q ? "" : "none";
+      brainSearch(q);
+    });
+    searchInp.addEventListener("keydown", function(e){
+      if(e.key === "Escape"){ searchInp.value = ""; brainSearch(""); searchInp.blur(); }
+    });
+  }
+  if(searchClear) searchClear.addEventListener("click", function(){
+    if(searchInp) searchInp.value = "";
+    brainSearch("");
+    if(searchInp) searchInp.focus();
+  });
 };
 /* ---------------------------------------------------------------------------
    The Brain canvas. Node coordinates are stored normalised and projected into
