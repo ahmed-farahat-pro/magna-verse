@@ -190,6 +190,89 @@ body:not([data-stage="os"]) #os{display:none}
 .dicon .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:99px;
   background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;
   box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}
+.dicon-file{transition:transform .15s ease}
+.dicon-file:hover{transform:translateY(-3px)}
+.dicon-file .tile{transition:box-shadow .15s ease}
+.dicon-file:hover .tile{box-shadow:0 0 12px rgba(255,255,255,.08)}
+.dicon-file.sel,.dicon.sel{background:rgba(14,165,183,.12);border-radius:14px}
+.dicon-file.sel .tile,.dicon.sel .tile{box-shadow:0 0 0 2px var(--cyan),0 0 10px rgba(14,165,183,.3)}
+.sel-rect{position:absolute;border:1.5px dashed rgba(14,165,183,.6);background:rgba(14,165,183,.06);
+  border-radius:4px;pointer-events:none;z-index:50}
+
+/* =============== FILE MANAGER =============== */
+.fm-wrap{display:flex;flex-direction:column;height:100%}
+.fm-toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--glass-line);flex-wrap:wrap}
+.fm-bread{display:flex;align-items:center;gap:2px;font-size:12.5px;color:var(--tx-2);flex:1;min-width:0;overflow:hidden}
+.fm-crumb{background:none;border:none;color:var(--tx-2);font-size:12.5px;cursor:pointer;padding:3px 6px;border-radius:5px;white-space:nowrap}
+.fm-crumb:hover{background:var(--glass-2);color:var(--tx)}
+.fm-sep{color:var(--tx-4);margin:0 2px;font-size:11px}
+.fm-actions{display:flex;gap:6px;flex-shrink:0}
+.fm-body{flex:1;overflow-y:auto;padding:14px}
+.fm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.fm-list{display:flex;flex-direction:column;gap:4px}
+.fm-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:10px;
+  cursor:pointer;transition:background .12s;text-align:center;position:relative}
+.fm-item:hover{background:var(--glass-2)}
+.fm-list .fm-item{flex-direction:row;text-align:left;padding:8px 12px;border-radius:8px}
+.fm-ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+.fm-list .fm-ico{width:32px;height:32px;border-radius:8px}
+.fm-list .fm-ico .ico{width:18px;height:18px}
+.fm-name{font-size:12px;color:var(--tx);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-meta{font-size:10px;color:var(--tx-4);font-family:var(--mono)}
+.fm-date{font-size:10px;color:var(--tx-4)}
+.fm-list .fm-date{margin-left:auto}
+.fm-list .fm-meta{display:none}
+.fm-actions-row{display:none;gap:4px;margin-top:4px}
+.fm-item:hover .fm-actions-row{display:flex}
+.fm-list .fm-actions-row{display:none;gap:4px}
+.fm-list .fm-item:hover .fm-actions-row{display:flex}
+.fm-clip{padding:8px 14px;background:rgba(14,165,183,.08);border:1px solid rgba(14,165,183,.2);
+  border-radius:8px;margin-bottom:12px;font-size:12px;color:var(--cyan);display:flex;align-items:center;gap:8px}
+
+/* =============== WORD EDITOR =============== */
+.word-toolbar{display:flex;align-items:center;gap:4px;padding:8px 14px;border-bottom:1px solid var(--glass-line);flex-wrap:wrap}
+.word-toolbar .btn.xs{min-width:28px;height:28px;font-size:11px;padding:0 6px}
+.word-fname{font-size:12px;color:var(--tx-3);font-family:var(--mono);margin:0 8px}
+.word-editor{flex:1;overflow-y:auto;padding:28px 40px;max-width:860px;margin:0 auto;width:100%;
+  font:16px/1.7 -apple-system,system-ui,sans-serif;color:var(--tx)}
+.word-editor:focus{outline:none}
+.word-editor h1{font-size:28px;font-weight:700;margin:0 0 12px;color:var(--tx)}
+.word-editor h2{font-size:22px;font-weight:600;margin:0 0 10px;color:var(--tx)}
+.word-editor h3{font-size:18px;font-weight:600;margin:0 0 8px;color:var(--tx)}
+.word-editor p{margin:0 0 10px}
+.word-editor ul,.word-editor ol{margin:0 0 10px;padding-left:24px}
+.word-editor li{margin-bottom:4px}
+.word-statusbar{display:flex;align-items:center;gap:12px;padding:6px 14px;border-top:1px solid var(--glass-line);
+  font-size:11px;color:var(--tx-4);font-family:var(--mono)}
+
+/* =============== PPT EDITOR =============== */
+.ppt-toolbar{display:flex;align-items:center;gap:6px;padding:8px 14px;border-bottom:1px solid var(--glass-line);flex-wrap:wrap}
+.ppt-counter{font-size:12px;color:var(--tx-3);font-family:var(--mono);padding:0 8px}
+.ppt-layout{display:flex;flex:1;min-height:0}
+.ppt-sidebar{width:180px;border-right:1px solid var(--glass-line);overflow-y:auto;padding:10px;flex-shrink:0;
+  display:flex;flex-direction:column;gap:8px}
+.ppt-thumb{padding:10px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .12s}
+.ppt-thumb:hover{background:var(--glass-2)}
+.ppt-thumb.active{border-color:var(--cyan);background:rgba(14,165,183,.08)}
+.ppt-thumb-num{font-size:10px;color:var(--tx-4);font-family:var(--mono)}
+.ppt-thumb-title{font-size:11.5px;color:var(--tx);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ppt-main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.ppt-slide{width:100%;max-width:640px;aspect-ratio:16/9;background:rgba(0,0,0,.25);border:1px solid var(--glass-line);
+  border-radius:12px;padding:36px 44px;display:flex;flex-direction:column;justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.ppt-slide-title{font-size:28px;font-weight:700;color:var(--tx);margin-bottom:20px;outline:none;
+  border-bottom:2px solid transparent;padding-bottom:8px;transition:border-color .15s}
+.ppt-slide-title:focus{border-color:var(--cyan)}
+.ppt-slide-bullets{flex:1}
+.ppt-bullet-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+.ppt-bullet-dot{color:var(--cyan);font-size:14px;flex-shrink:0}
+.ppt-bullet-text{flex:1;font-size:16px;color:var(--tx-2);outline:none;min-height:24px}
+.ppt-bullet-text:focus{color:var(--tx)}
+.ppt-bullet-del{opacity:0;transition:opacity .12s}
+.ppt-bullet-row:hover .ppt-bullet-del{opacity:1}
+.ppt-add-bullet{margin-top:8px;align-self:flex-start}
+
+/* =============== TRASH =============== */
 /* per-app tile colours — transparent glass, colour only as accent */
 .g-chat{--tile:#F0353C;background:rgba(240,53,60,.12);border:1px solid rgba(240,53,60,.25)}
 .g-brain{--tile:#43E0A6;background:rgba(67,224,166,.12);border:1px solid rgba(67,224,166,.25)}
@@ -216,6 +299,10 @@ body:not([data-stage="os"]) #os{display:none}
 .g-docs2{--tile:#60A5FA;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25)}
 .g-slides{--tile:#F59E0B;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25)}
 .g-gantt{--tile:#A78BFA;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25)}
+.g-files{--tile:#5B94FF;background:rgba(91,148,255,.12);border:1px solid rgba(91,148,255,.25)}
+.g-word{--tile:#60A5FA;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25)}
+.g-ppt{--tile:#F59E0B;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25)}
+.g-trash{--tile:#EF4444;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25)}
 
 /* ============================ DESKTOP WIDGETS ============================
    Live cards sitting on the wallpaper. The desktop should tell you the state
@@ -1269,14 +1356,18 @@ var APPS = {
   sheets:  { name:"Sheets",      icon:"i-chart",  tile:"g-sheets",  w:1100,h:700, minW:600, minH:400, multi:true  },
   docs:    { name:"Docs",        icon:"i-doc",    tile:"g-docs2",   w:900, h:660, minW:500, minH:400, multi:true  },
   slides:  { name:"Slides",      icon:"i-slides", tile:"g-slides",  w:1100,h:720, minW:600, minH:440, multi:true  },
-  gantt:   { name:"Gantt",       icon:"i-task",   tile:"g-gantt",   w:1100,h:680, minW:600, minH:400, multi:true  }
+  gantt:   { name:"Gantt",       icon:"i-task",   tile:"g-gantt",   w:1100,h:680, minW:600, minH:400, multi:true  },
+  files:   { name:"Files",       icon:"i-folder", tile:"g-files",   w:960, h:640, minW:480, minH:380, multi:true  },
+  word:    { name:"Word",        icon:"i-doc",    tile:"g-word",    w:900, h:660, minW:500, minH:400, multi:true  },
+  ppt:     { name:"Slides",      icon:"i-slides", tile:"g-ppt",     w:1000,h:700, minW:560, minH:420, multi:true  },
+  trash:   { name:"Trash",       icon:"i-x",      tile:"g-trash",   w:700, h:520, minW:400, minH:340, multi:false }
 };
 var DOCK_PINNED = ["chat","brain","code","browser","terminal"];
-var DOCK_REST   = ["sheets","docs","slides","gantt","api","db","agents","autos","market","tasks",
-                   "approvals","ledger","memory","models","conn","mail","settings"];
-var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","sheets","docs","slides","gantt",
-                     "api","db","agents","autos","market","tasks","approvals","ledger","memory",
-                     "models","conn","mail","settings"];
+var DOCK_REST   = ["files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","market","tasks",
+                   "approvals","ledger","memory","models","conn","mail","settings","trash"];
+var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","word","ppt","sheets","docs","slides","gantt",
+                      "api","db","agents","autos","market","tasks","approvals","ledger","memory",
+                      "models","conn","mail","settings","trash"];
 
 /* badges that make the desktop informative rather than decorative */
 var BADGES = { mail:3, agents:2, autos:1 };
@@ -1445,6 +1536,7 @@ function renderIcons(){
                '<span class="lbl">'+esc(a.name)+'</span></button>';
       }).join("");
   });
+  renderDesktopFiles();
 }
 
 /* ---------------------------------------------------------------------------
@@ -2406,6 +2498,290 @@ function requestApproval(w, opts){
 /* ============================================================
    8 · MOUNT — each app fills its own window body, once
    ============================================================ */
+
+/* ============================================================
+   7b · VIRTUAL FILE SYSTEM (VFS)
+   A lightweight in-browser file system persisted in localStorage.
+   Every file and folder has a unique id, a parent id (null = root),
+   a name, type, content, timestamps, and a deleted flag for the
+   recycle bin.  Desktop files are those with parentId matching a
+   special "desktop" folder.
+   ============================================================ */
+var VFS_KEY = "mv7.vfs";
+var VFS_VERSION = 1;
+var _vfsCache = null;
+function _vfsLoad(){
+  if(_vfsCache) return _vfsCache;
+  try{ var raw = store.get(VFS_KEY,""); if(raw){ _vfsCache = JSON.parse(raw); return _vfsCache; } }catch(e){}
+  _vfsCache = { v:VFS_VERSION, files:{} };
+  _vfsSeed(_vfsCache);
+  _vfsSave(_vfsCache);
+  return _vfsCache;
+}
+function _vfsSave(db){ store.set(VFS_KEY, JSON.stringify(db)); }
+function _vfsId(){ return "f_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7); }
+
+function _vfsSeed(db){
+  var now = Date.now();
+  var folders = [
+    {id:"desktop", name:"Desktop", parentId:null, type:"folder", created:now, modified:now, deleted:false, onDesktop:true},
+    {id:"docs-folder", name:"Documents", parentId:null, type:"folder", created:now, modified:now, deleted:false, onDesktop:true},
+    {id:"projects-folder", name:"Projects", parentId:null, type:"folder", created:now, modified:now, deleted:false, onDesktop:false},
+    {id:"downloads-folder", name:"Downloads", parentId:null, type:"folder", created:now, modified:now, deleted:false, onDesktop:false}
+  ];
+  folders.forEach(function(f){ db.files[f.id] = f; });
+  /* seed some sample docs */
+  var sampleDoc = {id:_vfsId(), name:"Welcome to MagnaVERSE.docx", parentId:"desktop", type:"file",
+    ext:"docx", content:"<h2>Welcome to MagnaVERSE</h2><p>This is your first document. "+
+    "Use the toolbar to format text, add headings, lists, and more. "+
+    "Your work saves automatically to the virtual file system.</p>",
+    created:now, modified:now, deleted:false, onDesktop:true, size:184};
+  var sampleSheet = {id:_vfsId(), name:"Budget Q3.xlsx", parentId:"desktop", type:"file",
+    ext:"xlsx", content:JSON.stringify({data:[["Item","Cost","Vendor"],["Rebar 1240t","SAR 41.8M","Al-Rajhi"],["Standby crew","SAR 94K/day","Internal"]]}),
+    created:now, modified:now, deleted:false, onDesktop:true, size:312};
+  var sampleSlide = {id:_vfsId(), name:"Board Pack Thursday.pptx", parentId:"desktop", type:"file",
+    ext:"pptx", content:JSON.stringify({slides:[
+      {title:"C2 Commercial Position", bullets:["Exposure at 45 days: SAR 5.32M","LD cap binds past day 67","Standby is the dominant cost"]},
+      {title:"Schedule Status", bullets:["11 days behind Baseline r7","4 of 6 PO lines awaiting goods receipt","On critical path"]}
+    ]}), created:now, modified:now, deleted:false, onDesktop:true, size:520};
+  [sampleDoc, sampleSheet, sampleSlide].forEach(function(f){ db.files[f.id] = f; });
+}
+
+/* VFS API */
+var VFS = {
+  list: function(parentId, opts){
+    var db = _vfsLoad();
+    var items = [];
+    Object.keys(db.files).forEach(function(k){
+      var f = db.files[k];
+      if(f.deleted) return;
+      if(parentId === "desktop"){
+        if(f.onDesktop) items.push(f);
+      } else {
+        if(f.parentId === parentId) items.push(f);
+      }
+    });
+    if(opts && opts.sort !== false){
+      items.sort(function(a,b){
+        if(a.type === "folder" && b.type !== "folder") return -1;
+        if(a.type !== "folder" && b.type === "folder") return 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+    return items;
+  },
+  get: function(id){ return (_vfsLoad().files[id]) || null; },
+  create: function(parentId, name, type, content, ext){
+    var db = _vfsLoad();
+    var id = _vfsId();
+    var now = Date.now();
+    var isDesktop = parentId === "desktop";
+    var f = {id:id, name:name, parentId:isDesktop?"desktop":parentId, type:type,
+      ext:ext||"", content:content||"", created:now, modified:now, deleted:false,
+      onDesktop:isDesktop, size:content ? content.length : 0};
+    db.files[id] = f;
+    _vfsSave(db);
+    return f;
+  },
+  rename: function(id, newName){
+    var db = _vfsLoad(); var f = db.files[id]; if(!f) return null;
+    f.name = newName; f.modified = Date.now();
+    _vfsSave(db); return f;
+  },
+  move: function(id, newParentId){
+    var db = _vfsLoad(); var f = db.files[id]; if(!f) return null;
+    f.parentId = newParentId;
+    f.onDesktop = (newParentId === "desktop");
+    f.modified = Date.now();
+    _vfsSave(db); return f;
+  },
+  write: function(id, content){
+    var db = _vfsLoad(); var f = db.files[id]; if(!f) return null;
+    f.content = content; f.size = content.length; f.modified = Date.now();
+    _vfsSave(db); return f;
+  },
+  del: function(id){
+    var db = _vfsLoad(); var f = db.files[id]; if(!f) return false;
+    f.deleted = true; f.deletedAt = Date.now();
+    _vfsSave(db); return true;
+  },
+  restore: function(id){
+    var db = _vfsLoad(); var f = db.files[id]; if(!f) return false;
+    f.deleted = false; delete f.deletedAt;
+    _vfsSave(db); return true;
+  },
+  trash: function(){
+    var db = _vfsLoad(); var items = [];
+    Object.keys(db.files).forEach(function(k){
+      if(db.files[k].deleted) items.push(db.files[k]);
+    });
+    return items.sort(function(a,b){ return (b.deletedAt||0)-(a.deletedAt||0); });
+  },
+  emptyTrash: function(){
+    var db = _vfsLoad();
+    Object.keys(db.files).forEach(function(k){
+      if(db.files[k].deleted) delete db.files[k];
+    });
+    _vfsSave(db);
+  },
+  search: function(q){
+    var db = _vfsLoad(); var lower = q.toLowerCase(); var results = [];
+    Object.keys(db.files).forEach(function(k){
+      var f = db.files[k];
+      if(f.deleted) return;
+      if(f.name.toLowerCase().indexOf(lower) > -1) results.push(f);
+    });
+    return results;
+  },
+  folderPath: function(id){
+    var parts = []; var cur = id;
+    while(cur){
+      var f = VFS.get(cur);
+      if(f){ parts.unshift(f.name); cur = f.parentId; }
+      else break;
+    }
+    return parts.join("/");
+  },
+  parentId: function(id){ var f = VFS.get(id); return f ? f.parentId : null; }
+};
+
+function fileIcon(ext){
+  var map = {docx:"i-doc",doc:"i-doc",txt:"i-file",md:"i-file",
+    xlsx:"i-chart",xls:"i-chart",csv:"i-chart",
+    pptx:"i-slides",ppt:"i-slides",
+    pdf:"i-doc",html:"i-code",js:"i-code",json:"i-code",
+    jpg:"i-file",png:"i-file",svg:"i-file",mp4:"i-file",zip:"i-folder"};
+  return map[(ext||"").toLowerCase()] || "i-file";
+}
+function fileColor(ext){
+  var map = {docx:"#60A5FA",doc:"#60A5FA",txt:"#94A3B8",md:"#94A3B8",
+    xlsx:"#3FCF95",xls:"#3FCF95",csv:"#3FCF95",
+    pptx:"#F59E0B",ppt:"#F59E0B",
+    pdf:"#F0353C",html:"#FF8A4C",js:"#F0B44E",json:"#4FC3F7"};
+  return map[(ext||"").toLowerCase()] || "#94A3B8";
+}
+function fileExt(name){
+  var dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(dot+1) : "";
+}
+
+/* Desktop file selection state */
+var deskSel = {};  /* {fileId: true} */
+var deskSelBox = null;
+function renderDesktopFiles(){
+  SPACES.forEach(function(s){
+    var layer = $('[data-icons="'+s.id+'"]'); if(!layer) return;
+    /* remove old file icons */
+    $$(".dicon-file", layer).forEach(function(n){ n.remove(); });
+    if(s.id !== 0) return; /* files only on space 0 for now */
+    var files = VFS.list("desktop");
+    var STEP_Y = 96, STEP_X = 100, TOP = 14, LEFT = 14;
+    var avail = Math.max(200, window.innerHeight - barH() - 96);
+    var perCol = Math.max(1, Math.floor(avail / STEP_Y));
+    var appCount = DESKTOP_ORDER.filter(function(id){ return !desktopHidden()[s.id+":"+id]; }).length;
+    files.forEach(function(f, i){
+      var idx = appCount + i;
+      var col = Math.floor(idx / perCol), row = idx % perCol;
+      var isFolder = f.type === "folder";
+      var isSlide = (f.ext || "").toLowerCase() === "pptx";
+      var isDoc = (f.ext || "").toLowerCase() === "docx";
+      var isSheet = (f.ext || "").toLowerCase() === "xlsx";
+      var accent = isFolder ? "#5B94FF" : fileColor(f.ext);
+      var icon = isFolder ? "i-folder" : fileIcon(f.ext);
+      var div = el("button","dicon dicon-file"+(deskSel[f.id]?" selected":""));
+      div.setAttribute("data-file", f.id);
+      div.setAttribute("data-filetype", f.type);
+      div.setAttribute("data-fileext", f.ext||"");
+      div.style.cssText = "left:"+(LEFT+col*STEP_X)+"px;top:"+(TOP+row*STEP_Y)+"px";
+      div.innerHTML = '<span class="tile" style="--tile:'+accent+';background:rgba('+hexToRgb(accent)+',.12);border:1px solid rgba('+hexToRgb(accent)+',.25)">'+
+        '<svg class="ico" style="stroke:'+accent+'"><use href="#'+icon+'"/></svg></span>'+
+        '<span class="lbl">'+esc(f.name.length>16?f.name.slice(0,15)+"…":f.name)+'</span>';
+      layer.appendChild(div);
+    });
+  });
+}
+function hexToRgb(hex){
+  hex = hex.replace("#","");
+  var r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  return r+","+g+","+b;
+}
+
+/* Desktop multi-select: click on empty space starts a selection box */
+document.addEventListener("pointerdown", function(e){
+  if(e.target.closest(".dicon") || e.target.closest(".win") || e.target.closest("#dock") || e.target.closest("#bar")) return;
+  var lay = e.target.closest('[data-icons]');
+  if(!lay) return;
+  var r = lay.getBoundingClientRect();
+  deskSelBox = {sx:e.clientX, sy:e.clientY, ox:e.clientX-r.left, oy:e.clientY-r.top, host:lay, r:r};
+});
+document.addEventListener("pointermove", function(e){
+  if(!deskSelBox) return;
+  var b = deskSelBox;
+  var x1 = Math.min(b.sx, e.clientX), y1 = Math.min(b.sy, e.clientY);
+  var x2 = Math.max(b.sx, e.clientX), y2 = Math.max(b.sy, e.clientY);
+  if(!b.rect){
+    if(Math.abs(x2-x1)+Math.abs(y2-y1)<8) return;
+    b.rect = el("div","sel-rect");
+    b.host.appendChild(b.rect);
+  }
+  b.rect.style.cssText = "left:"+Math.min(b.ox, b.ox+(e.clientX-b.sx))+"px;top:"+Math.min(b.oy, b.oy+(e.clientY-b.sy))+
+    "px;width:"+Math.abs(e.clientX-b.sx)+"px;height:"+Math.abs(e.clientY-b.sy)+"px";
+  /* highlight intersecting icons */
+  deskSel = {};
+  $$(".dicon", b.host).forEach(function(n){
+    var nr = n.getBoundingClientRect();
+    var hit = !(nr.right < x1 || nr.left > x2 || nr.bottom < y1 || nr.top > y2);
+    n.classList.toggle("sel", hit);
+    var fid = n.getAttribute("data-file");
+    if(hit && fid) deskSel[fid] = true;
+  });
+});
+document.addEventListener("pointerup", function(e){
+  if(!deskSelBox) return;
+  var b = deskSelBox; deskSelBox = null;
+  if(b.rect){ b.rect.remove(); b.rect = null; }
+  if(!e.target.closest(".dicon")){
+    /* clicked empty space — clear selection */
+    deskSel = {};
+    $$(".dicon.sel", b.host).forEach(function(n){ n.classList.remove("sel"); });
+  }
+});
+function deselectAll(){ deskSel = {}; $$(".dicon.sel").forEach(function(n){ n.classList.remove("sel"); }); }
+
+/* Open file on double-click */
+document.addEventListener("dblclick", function(e){
+  var ic = e.target.closest(".dicon-file");
+  if(!ic) return;
+  var fid = ic.getAttribute("data-file");
+  var f = VFS.get(fid); if(!f) return;
+  if(f.type === "folder"){
+    openApp("files", {folderId: f.id});
+  } else {
+    var ext = (f.ext||"").toLowerCase();
+    if(ext === "docx" || ext === "doc" || ext === "txt" || ext === "md"){
+      openApp("word", {fileId: f.id});
+    } else if(ext === "pptx" || ext === "ppt"){
+      openApp("ppt", {fileId: f.id});
+    } else if(ext === "xlsx" || ext === "xls" || ext === "csv"){
+      openApp("sheets", {fileId: f.id});
+    } else {
+      openApp("files", {folderId: f.parentId});
+    }
+  }
+});
+
+/* Keyboard delete on desktop */
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Delete" && e.key !== "Backspace") return;
+  if(document.activeElement && (document.activeElement.tagName==="INPUT"||document.activeElement.tagName==="TEXTAREA"||document.activeElement.isContentEditable)) return;
+  var ids = Object.keys(deskSel);
+  if(!ids.length) return;
+  ids.forEach(function(fid){ VFS.del(fid); });
+  deskSel = {};
+  renderDesktopFiles();
+  toast(ids.length + " item"+(ids.length>1?"s":"")+" moved to Trash.", 2000);
+});
+
 var MOUNT = {};
 MOUNT._missing = function(body){ body.innerHTML = '<div class="empty-msg">This app has no content yet.</div>'; };
 
@@ -4796,6 +5172,342 @@ MOUNT.slides = function(body, w){
 MOUNT.gantt = function(body, w){
   body.innerHTML = '<iframe src="app-gantt.html" style="width:100%;height:100%;border:none;background:var(--bg)" allowfullscreen></iframe>';
   setWinTitle(w, "Gantt");
+};
+
+/* ---------------------------------------------------------- FILES */
+MOUNT.files = function(body, w){
+  var folderId = (w.params && w.params.folderId) || "desktop";
+  w.state.folderId = folderId;
+  w.state.view = "grid";
+  w.state.clipboard = null; /* {ids:[], mode:"copy"|"cut"} */
+  body.innerHTML = '<div class="pane"><div class="fm-wrap" data-fmwrap></div></div>';
+  function draw(){
+    var host = body.querySelector("[data-fmwrap]"); if(!host) return;
+    var items = VFS.list(w.state.folderId);
+    var path = w.state.folderId === "desktop" ? ["Desktop"] : VFS.folderPath(w.state.folderId).split("/");
+    setWinTitle(w, "Files — " + path[path.length-1]);
+    host.innerHTML =
+      '<div class="fm-toolbar">'+
+        '<div class="fm-bread">'+
+          '<button class="fm-crumb" data-folder="desktop">'+ico("i-folder","xs")+' Desktop</button>'+
+          path.slice(1).map(function(p,i){
+            return '<span class="fm-sep">/</span><span class="fm-crumb">'+esc(p)+'</span>';
+          }).join("")+'</div>'+
+        '<div class="fm-actions">'+
+          '<button class="btn sm" data-fmnew="folder">'+ico("i-folder","xs")+' New Folder</button>'+
+          '<button class="btn sm" data-fmnew="docx">'+ico("i-doc","xs")+' New Doc</button>'+
+          '<button class="btn sm" data-fmnew="pptx">'+ico("i-slides","xs")+' New Slide</button>'+
+          '<button class="btn sm" data-fmnew="xlsx">'+ico("i-chart","xs")+' New Sheet</button>'+
+          '<button class="btn sm" data-fmview>'+(w.state.view==="grid"?"☰":"⊞")+'</button>'+
+        '</div></div>'+
+      '<div class="fm-body">'+
+        (w.state.clipboard ? '<div class="fm-clip">'+ico("i-file","xs")+' '+w.state.clipboard.ids.length+' item'+(w.state.clipboard.ids.length>1?"s":"")+
+          ' — <button class="btn sm" data-fmpaste>Paste</button> <button class="btn sm" data-fmclipcancel>Cancel</button></div>' : '')+
+        (items.length ? '<div class="fm-'+w.state.view+'">'+
+          items.map(function(f){
+            var isFolder = f.type === "folder";
+            var accent = isFolder ? "#5B94FF" : fileColor(f.ext);
+            var icon = isFolder ? "i-folder" : fileIcon(f.ext);
+            return '<div class="fm-item" data-file="'+f.id+'" data-type="'+f.type+'">'+
+              '<div class="fm-ico" style="--tile:'+accent+';background:rgba('+hexToRgb(accent)+',.12);border:1px solid rgba('+hexToRgb(accent)+',.25)">'+
+                '<svg class="ico" style="stroke:'+accent+';width:22px;height:22px"><use href="#'+icon+'"/></svg></div>'+
+              '<div class="fm-name" data-fmname="'+f.id+'">'+esc(f.name)+'</div>'+
+              '<div class="fm-meta">'+(isFolder?VFS.list(f.id).length+" items":formatSize(f.size))+'</div>'+
+              '<div class="fm-date">'+new Date(f.modified).toLocaleDateString()+'</div>'+
+              '<div class="fm-actions-row">'+
+                (isFolder?'<button class="btn sm" data-fmopen="'+f.id+'">'+ico("i-open","xs")+'</button>':
+                  '<button class="btn sm" data-fmopen="'+f.id+'">'+ico("i-open","xs")+'</button>')+
+                '<button class="btn sm" data-fmcut="'+f.id+'">'+ico("i-x","xs")+'</button>'+
+                '<button class="btn sm" data-fmren="'+f.id+'">'+ico("i-gear","xs")+'</button>'+
+                '<button class="btn sm" data-fmdel="'+f.id+'">'+ico("i-x","xs")+'</button>'+
+              '</div></div>';
+          }).join("")+'</div>'
+        : '<div class="empty-msg" style="padding:40px">'+ico("i-folder","lg")+'<br>This folder is empty.<br>'+
+          'Create a new document, or drag files here.</div>')+'</div>';
+  }
+  body.addEventListener("click", function(e){
+    var t;
+    if(t = e.target.closest("[data-folder]")){ w.state.folderId = t.getAttribute("data-folder"); draw(); return; }
+    if(t = e.target.closest("[data-fmopen]")){ var f = VFS.get(t.getAttribute("data-fmopen"));
+      if(f && f.type==="folder"){ w.state.folderId = f.id; draw(); }
+      else if(f){ openFile(f); } return; }
+    if(t = e.target.closest("[data-fmnew]")){ var kind = t.getAttribute("data-fmnew");
+      var names = {folder:"New Folder",docx:"Untitled.docx",pptx:"Untitled.pptx",xlsx:"Untitled.xlsx"};
+      var exts  = {folder:"",docx:"docx",pptx:"pptx",xlsx:"xlsx"};
+      var nf = VFS.create(w.state.folderId, names[kind], kind==="folder"?"folder":"file", kind==="folder"?"":'{"data":[]}', exts[kind]);
+      draw(); toast(names[kind]+" created."); return; }
+    if(t = e.target.closest("[data-fmren]")){ var rid = t.getAttribute("data-fmren");
+      var rf = VFS.get(rid); if(!rf) return;
+      var nn = prompt("Rename:", rf.name); if(nn && nn.trim()){ VFS.rename(rid, nn.trim()); draw(); } return; }
+    if(t = e.target.closest("[data-fmdel]")){ VFS.del(t.getAttribute("data-fmdel")); draw(); toast("Moved to Trash."); return; }
+    if(t = e.target.closest("[data-fmcut]")){ w.state.clipboard = {ids:[t.getAttribute("data-fmcut")],mode:"cut"}; draw(); return; }
+    if(t = e.target.closest("[data-fmpaste]")){ if(!w.state.clipboard) return;
+      w.state.clipboard.ids.forEach(function(fid){ VFS.move(fid, w.state.folderId); });
+      w.state.clipboard = null; draw(); toast("Moved."); return; }
+    if(t = e.target.closest("[data-fmclipcancel]")){ w.state.clipboard = null; draw(); return; }
+    if(t = e.target.closest("[data-fmview]")){ w.state.view = w.state.view==="grid"?"list":"grid"; draw(); return; }
+  });
+  draw();
+};
+
+/* shared: open a file in the right editor */
+function openFile(f){
+  if(!f) return;
+  var ext = (f.ext||"").toLowerCase();
+  if(ext==="docx"||ext==="doc"||ext==="txt"||ext==="md") openApp("word",{fileId:f.id});
+  else if(ext==="pptx"||ext==="ppt") openApp("ppt",{fileId:f.id});
+  else if(ext==="xlsx"||ext==="xls"||ext==="csv") openApp("sheets",{fileId:f.id});
+  else openApp("files",{folderId:f.parentId});
+}
+function formatSize(bytes){
+  if(!bytes || bytes===0) return "0 B";
+  if(bytes<1024) return bytes+" B";
+  if(bytes<1048576) return (bytes/1024).toFixed(1)+" KB";
+  return (bytes/1048576).toFixed(1)+" MB";
+}
+
+/* ---------------------------------------------------------- WORD (rich text editor) */
+MOUNT.word = function(body, w){
+  var fileId = w.params && w.params.fileId;
+  var file = fileId ? VFS.get(fileId) : null;
+  var content = file ? (file.content || "<p>Start typing…</p>") : "<p>Start typing…</p>";
+  if(!file){
+    file = VFS.create("desktop", "Untitled.docx", "file", content, "docx");
+    w.params.fileId = file.id;
+    renderDesktopFiles();
+  }
+  w.state.fileId = file.id;
+  setWinTitle(w, "Word — " + file.name);
+  body.innerHTML = '<div class="pane" style="display:flex;flex-direction:column">'+
+    '<div class="word-toolbar" data-wtoolbar">'+
+      '<button class="btn xs" data-cmd="bold" title="Bold"><b>B</b></button>'+
+      '<button class="btn xs" data-cmd="italic" title="Italic"><i>I</i></button>'+
+      '<button class="btn xs" data-cmd="underline" title="Underline"><u>U</u></button>'+
+      '<button class="btn xs" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>'+
+      '<span class="fm-sep"></span>'+
+      '<button class="btn xs" data-cmd="formatBlock" data-val="H1" title="Heading 1">H1</button>'+
+      '<button class="btn xs" data-cmd="formatBlock" data-val="H2" title="Heading 2">H2</button>'+
+      '<button class="btn xs" data-cmd="formatBlock" data-val="H3" title="Heading 3">H3</button>'+
+      '<button class="btn xs" data-cmd="formatBlock" data-val="P" title="Paragraph">¶</button>'+
+      '<span class="fm-sep"></span>'+
+      '<button class="btn xs" data-cmd="insertUnorderedList" title="Bullet list">•≡</button>'+
+      '<button class="btn xs" data-cmd="insertOrderedList" title="Numbered list">1.</button>'+
+      '<span class="fm-sep"></span>'+
+      '<button class="btn xs" data-cmd="justifyLeft" title="Align left">⫷</button>'+
+      '<button class="btn xs" data-cmd="justifyCenter" title="Align centre">⫿</button>'+
+      '<button class="btn xs" data-cmd="justifyRight" title="Align right">⫸</button>'+
+      '<span class="fm-sep"></span>'+
+      '<button class="btn xs" data-cmd="removeFormat" title="Clear formatting">✕</button>'+
+      '<span class="sp"></span>'+
+      '<span class="word-fname" data-wfname>'+esc(file.name)+'</span>'+
+      '<button class="btn sm primary" data-wsave>'+ico("i-check","xs")+' Save</button>'+
+      '<button class="btn sm" data-wdownload>'+ico("i-file","xs")+' Download</button>'+
+    '</div>'+
+    '<div class="word-editor" data-weditor contenteditable="true" spellcheck="true">'+content+'</div>'+
+    '<div class="word-statusbar">'+
+      '<span data-wstatus>Ready</span><span class="sp"></span>'+
+      '<span data-wwords>0 words</span><span class="fm-sep"></span>'+
+      '<span data-wchars>0 chars</span>'+
+    '</div></div>';
+  var editor = body.querySelector("[data-weditor]");
+  function updateStats(){
+    var txt = editor.innerText || "";
+    var words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    body.querySelector("[data-wwords]").textContent = words + " word"+(words!==1?"s":"");
+    body.querySelector("[data-wchars]").textContent = txt.length + " char"+(txt.length!==1?"s":"");
+  }
+  editor.addEventListener("input", function(){ updateStats(); });
+  updateStats();
+  body.addEventListener("click", function(e){
+    var t;
+    if(t = e.target.closest("[data-cmd]")){
+      e.preventDefault();
+      var cmd = t.getAttribute("data-cmd"), val = t.getAttribute("data-val")||null;
+      document.execCommand(cmd, false, val);
+      editor.focus();
+      return;
+    }
+    if(t = e.target.closest("[data-wsave]")){
+      var html = editor.innerHTML;
+      VFS.write(w.state.fileId, html);
+      var f = VFS.get(w.state.fileId);
+      body.querySelector("[data-wstatus]").textContent = "Saved — " + new Date().toLocaleTimeString();
+      toast("Document saved.", 2000);
+      renderDesktopFiles();
+      return;
+    }
+    if(t = e.target.closest("[data-wdownload]")){
+      var html = editor.innerHTML;
+      var blob = new Blob(["<!DOCTYPE html><html><head><meta charset='utf-8'><title>"+
+        esc(VFS.get(w.state.fileId).name)+"</title><style>body{font:16px -apple-system,system-ui,sans-serif;"+
+        "max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;color:#222}"+
+        "h1,h2,h3{margin-top:1.2em}table{border-collapse:collapse;width:100%}"+
+        "td,th{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body>"+
+        html+"</body></html>"],{type:"text/html"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a"); a.href = url; a.download = VFS.get(w.state.fileId).name.replace(/\.[^.]+$/,"")+".html";
+      a.click(); URL.revokeObjectURL(url);
+      toast("Downloaded as HTML.", 2000);
+      return;
+    }
+  });
+  /* autosave every 30s */
+  w.state.autosave = setInterval(function(){
+    if(editor){ VFS.write(w.state.fileId, editor.innerHTML); }
+  }, 30000);
+  w._cleanup = function(){ clearInterval(w.state.autosave); };
+};
+
+/* ---------------------------------------------------------- PPT (presentation editor) */
+MOUNT.ppt = function(body, w){
+  var fileId = w.params && w.params.fileId;
+  var file = fileId ? VFS.get(fileId) : null;
+  var slides;
+  if(file && file.content){
+    try{ slides = JSON.parse(file.content).slides; }catch(e){}
+  }
+  if(!slides){
+    slides = [{title:"Click to edit title",bullets:["Add your first point"]}];
+  }
+  if(!file){
+    file = VFS.create("desktop", "Untitled.pptx", "file", JSON.stringify({slides:slides}), "pptx");
+    w.params.fileId = file.id;
+    renderDesktopFiles();
+  }
+  w.state.fileId = file.id;
+  w.state.slides = slides;
+  w.state.cur = 0;
+  setWinTitle(w, "Slides — " + file.name);
+  function draw(){
+    var s = w.state.slides;
+    var cur = w.state.cur;
+    body.innerHTML = '<div class="pane" style="display:flex;flex-direction:column">'+
+      '<div class="ppt-toolbar">'+
+        '<button class="btn sm" data-pptprev'+(cur===0?" disabled":"")+'>'+ico("i-chev-l","xs")+'</button>'+
+        '<span class="ppt-counter">'+(cur+1)+' / '+s.length+'</span>'+
+        '<button class="btn sm" data-pptnext'+(cur===s.length-1?" disabled":"")+'>'+ico("i-chev-r","xs")+'</button>'+
+        '<span class="fm-sep"></span>'+
+        '<button class="btn sm" data-pptadd>'+ico("i-plus","xs")+' Add Slide</button>'+
+        '<button class="btn sm" data-pptdel'+(s.length<=1?" disabled":"")+'> '+ico("i-x","xs")+' Delete</button>'+
+        '<span class="sp"></span>'+
+        '<span class="word-fname">'+esc(file.name)+'</span>'+
+        '<button class="btn sm primary" data-pptsave>'+ico("i-check","xs")+' Save</button>'+
+        '<button class="btn sm" data-pptdownload>'+ico("i-file","xs")+' Download</button>'+
+      '</div>'+
+      '<div class="ppt-layout"><div class="ppt-sidebar">'+
+        s.map(function(sl,i){
+          return '<div class="ppt-thumb'+(i===cur?" active":"")+'" data-pptgoto="'+i+'">'+
+            '<div class="ppt-thumb-num">'+(i+1)+'</div>'+
+            '<div class="ppt-thumb-title">'+esc(sl.title)+'</div></div>';
+        }).join("")+
+      '</div><div class="ppt-main">'+
+        '<div class="ppt-slide">'+
+          '<div class="ppt-slide-title" contenteditable="true" data-ppttitle>'+esc(s[cur].title)+'</div>'+
+          '<div class="ppt-slide-bullets" data-pptbullets>'+
+            s[cur].bullets.map(function(b,i){
+              return '<div class="ppt-bullet-row"><span class="ppt-bullet-dot">▸</span>'+
+                '<div class="ppt-bullet-text" contenteditable="true" data-pptbullet="'+i+'">'+esc(b)+'</div>'+
+                '<button class="btn xs ppt-bullet-del" data-pptbuldel="'+i+'">'+ico("i-x","xs")+'</button></div>';
+            }).join("")+
+          '</div>'+
+          '<button class="btn sm ppt-add-bullet" data-pptbuladd>'+ico("i-plus","xs")+' Add bullet</button>'+
+        '</div>'+
+      '</div></div></div>';
+  }
+  draw();
+  body.addEventListener("click", function(e){
+    var t;
+    if(t = e.target.closest("[data-pptgoto]")){ w.state.cur = +t.getAttribute("data-pptgoto"); draw(); return; }
+    if(t = e.target.closest("[data-pptprev]")){ if(w.state.cur>0){ w.state.cur--; draw(); } return; }
+    if(t = e.target.closest("[data-pptnext]")){ if(w.state.cur<w.state.slides.length-1){ w.state.cur++; draw(); } return; }
+    if(t = e.target.closest("[data-pptadd]")){
+      w.state.slides.splice(w.state.cur+1,0,{title:"New Slide",bullets:["Point"]});
+      w.state.cur++; draw(); return; }
+    if(t = e.target.closest("[data-pptdel]")){
+      if(w.state.slides.length<=1) return;
+      w.state.slides.splice(w.state.cur,1);
+      w.state.cur = Math.min(w.state.cur, w.state.slides.length-1); draw(); return; }
+    if(t = e.target.closest("[data-pptbuladd]")){
+      w.state.slides[w.state.cur].bullets.push("New point"); draw(); return; }
+    if(t = e.target.closest("[data-pptbuldel]")){
+      var bi = +t.getAttribute("data-pptbuldel");
+      w.state.slides[w.state.cur].bullets.splice(bi,1); draw(); return; }
+    if(t = e.target.closest("[data-pptsave]")){
+      syncFromDOM();
+      VFS.write(w.state.fileId, JSON.stringify({slides:w.state.slides}));
+      toast("Presentation saved.", 2000); renderDesktopFiles(); return; }
+    if(t = e.target.closest("[data-pptdownload]")){
+      syncFromDOM();
+      downloadPPT(w.state.slides, VFS.get(w.state.fileId).name);
+      return; }
+  });
+  function syncFromDOM(){
+    var titleEl = body.querySelector("[data-ppttitle]");
+    var bulletEls = body.querySelectorAll("[data-pptbullet]");
+    if(titleEl) w.state.slides[w.state.cur].title = titleEl.innerText;
+    if(bulletEls.length){
+      w.state.slides[w.state.cur].bullets = Array.prototype.map.call(bulletEls, function(el){ return el.innerText; });
+    }
+  }
+  /* autosave */
+  w.state.autosave = setInterval(function(){ syncFromDOM(); VFS.write(w.state.fileId, JSON.stringify({slides:w.state.slides})); }, 30000);
+  w._cleanup = function(){ clearInterval(w.state.autosave); };
+};
+function downloadPPT(slides, name){
+  var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+
+    esc(name)+'</title><style>*{margin:0;padding:0;box-sizing:border-box}'+
+    'body{font:20px -apple-system,system-ui,sans-serif;background:#111;color:#f2f3f6}'+
+    '.slide{min-height:100vh;padding:60px 80px;display:flex;flex-direction:column;justify-content:center}'+
+    '.slide h1{font-size:44px;margin-bottom:28px;color:#fff}'+
+    '.slide ul{list-style:none;padding:0}.slide li{padding:12px 0;font-size:24px;color:#ccc;'+
+    'border-bottom:1px solid rgba(255,255,255,.08)}'+
+    '@media print{.slide{page-break-after:always;min-height:auto;padding:40px}}'+
+    '</style></head><body>'+
+    slides.map(function(s){
+      return '<div class="slide"><h1>'+esc(s.title)+'</h1><ul>'+
+        s.bullets.map(function(b){ return '<li>▸ '+esc(b)+'</li>'; }).join("")+'</ul></div>';
+    }).join("")+'</body></html>';
+  var blob = new Blob([html],{type:"text/html"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a"); a.href = url;
+  a.download = name.replace(/\.[^.]+$/,"")+".html";
+  a.click(); URL.revokeObjectURL(url);
+  toast("Downloaded as HTML.", 2000);
+}
+
+/* ---------------------------------------------------------- TRASH */
+MOUNT.trash = function(body, w){
+  w.state.tab = "trash";
+  body.innerHTML = '<div class="pane"><div class="pane-scroll" data-trashbody></div></div>';
+  function draw(){
+    var items = VFS.trash();
+    var host = body.querySelector("[data-trashbody]");
+    setWinTitle(w, "Trash", items.length + " item" + (items.length!==1?"s":""));
+    host.innerHTML =
+      '<h4 class="sec">Trash</h4>'+
+      '<p class="sub">Items in Trash are deleted after 30 days, or you can empty now. Select items to restore.</p>'+
+      '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+        '<button class="btn sm primary" data-trashempty'+(items.length===0?" disabled":"")+'> Empty Trash</button>'+
+        '<button class="btn sm" data-trashrestore'+(items.length===0?" disabled":"")+'> Restore All</button>'+
+      '</div>'+
+      (items.length ? items.map(function(f){
+        var icon = f.type==="folder"?"i-folder":fileIcon(f.ext);
+        var accent = f.type==="folder"?"#5B94FF":fileColor(f.ext);
+        return '<div class="erow"><div class="av" style="background:rgba('+hexToRgb(accent)+',.15);border:1px solid rgba('+hexToRgb(accent)+',.3)">'+
+          '<svg class="ico" style="stroke:'+accent+';width:18px;height:18px"><use href="#'+icon+'"/></svg></div>'+
+          '<div class="mid"><div class="fr">'+esc(f.name)+
+            (f.deletedAt ? '<span class="tag" style="margin-left:8px;color:var(--tx-4)">deleted '+new Date(f.deletedAt).toLocaleDateString()+'</span>' : '')+
+          '</div><div class="sj">'+esc(VFS.folderPath(f.parentId))+'</div></div>'+
+          '<button class="btn sm" data-trestore="'+f.id+'">Restore</button></div>';
+      }).join("") : '<div class="empty-msg" style="padding:40px">'+ico("i-x","lg")+'<br>Trash is empty.</div>');
+  }
+  draw();
+  body.addEventListener("click", function(e){
+    var t;
+    if(t = e.target.closest("[data-trestore]")){ VFS.restore(t.getAttribute("data-trestore")); draw(); toast("Restored."); renderDesktopFiles(); return; }
+    if(t = e.target.closest("[data-trashrestore]")){ VFS.trash().forEach(function(f){ VFS.restore(f.id); }); draw(); toast("All items restored."); renderDesktopFiles(); return; }
+    if(t = e.target.closest("[data-trashempty]")){ VFS.emptyTrash(); draw(); toast("Trash emptied."); renderDesktopFiles(); return; }
+  });
 };
 
 /* ============================================================
