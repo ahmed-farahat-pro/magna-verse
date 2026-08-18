@@ -208,7 +208,9 @@ body:not([data-stage="os"]) #os{display:none}
 .dicon:active .tile{transform:scale(.96);transition-duration:.08s}
 .dicon .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 46%);pointer-events:none}
-.dicon .tile .ico{width:26px;height:26px;stroke:var(--tile,#fff);stroke-width:1.8;position:relative;z-index:1}
+.dicon .tile .ico{width:26px;height:26px;stroke:var(--tile,#fff);stroke-width:1.8;position:relative;z-index:1;
+  transition:filter .2s ease}
+.dicon:hover .tile .ico{filter:drop-shadow(0 0 8px var(--tile,#fff))}
 .dicon .lbl{font-size:11.5px;color:var(--tx-2);line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,.55);
   transition:color .18s ease}
 .dicon:hover .lbl{color:var(--tx)}
@@ -3526,10 +3528,11 @@ document.addEventListener("pointerup", function(e){
 });
 function deselectAll(){ deskSel = {}; $$(".dicon.sel").forEach(function(n){ n.classList.remove("sel"); }); }
 
-/* Open file on double-click */
+/* Open file on double-click (legacy path — single click already opens;
+   the guard stops a double-open when both events fire) */
 document.addEventListener("dblclick", function(e){
   var ic = e.target.closest(".dicon-file");
-  if(!ic) return;
+  if(!ic || Date.now() - lastFileOpen < 500) return;
   var fid = ic.getAttribute("data-file");
   var f = VFS.get(fid); if(!f) return;
   if(f.type === "folder"){
@@ -4059,7 +4062,7 @@ document.addEventListener("pointerdown", function(e){
   var r = ic.getBoundingClientRect();
   freeDrag = {
     node:ic, fileId:ic.getAttribute("data-file"),
-    sx:e.clientX, sy:e.clientY,
+    sx:e.clientX, sy:e.clientY, t0:Date.now(),
     ox:ic.offsetLeft, oy:ic.offsetTop,
     gx:e.clientX-r.left, gy:e.clientY-r.top,
     moved:false, proxy:null
@@ -4085,19 +4088,30 @@ document.addEventListener("pointermove", function(e){
   d.node.style.left = Math.round(nx) + "px";
   d.node.style.top = Math.round(ny) + "px";
 });
+var lastFileOpen = 0;
 document.addEventListener("pointerup", function(e){
   if(!freeDrag) return;
   var d = freeDrag; freeDrag = null;
   thawLayer(d.node);
   $("#companion").classList.remove("drop-target");
-  /* dropped on the companion orb → smart routing instead of a move */
+  d.node.style.zIndex = "";
+  d.node.style.transition = "";
+  /* tap = open, exactly like app icons — no double-click needed */
+  var tapMove = Math.abs(e.clientX - d.sx) + Math.abs(e.clientY - d.sy);
+  if(!d.moved || (Date.now() - d.t0 < 350 && tapMove < 14)){
+    var f = VFS.get(d.fileId);
+    if(f && Date.now() - lastFileOpen > 420){
+      lastFileOpen = Date.now();
+      if(f.type === "folder") openApp("files", {folderId: f.id});
+      else openFile(f);
+    }
+    return;
+  }
   if(d.moved && overCompanion(e.clientX, e.clientY)){
     renderDesktopFiles();          /* snap the icon back where it was */
     smartRoute(d.fileId);
     return;
   }
-  d.node.style.zIndex = "";
-  d.node.style.transition = "";
   if(d.moved){
     /* save the new position — file icons don't have a saveIconPos, so we store in VFS */
     var pos = JSON.parse(store.get("mv7.filePos","{}"));
@@ -4124,126 +4138,212 @@ document.addEventListener("pointercancel", function(){
   if(dock) dock.classList.remove("drop-target");
 });
 
-/* ---- NEURAL WALLPAPER -----------------------------------------------
-   The wallpaper IS the Brain: a live graph where nodes light up when
-   agents read/write and edges pulse when knowledge is cited. Pure
-   canvas, self-contained, hooks: neuralFlash() neuralCite(). */
-var NEU = { nodes:[], edges:[], raf:0, w:0, h:0, dpr:1, on:true };
+/* ---- NEURAL WALLPAPER — the OS thinking, live ----------------------
+   An n8n-style flow field behind the desktop: a central BRAIN node,
+   AGENT nodes wired to it and to each other with curved connectors.
+   Packets run the wires when real actions happen in the app — chat
+   answers, agents running, artifacts being made.
+   Public hooks (safe anywhere): neuralFlash(n) · neuralCite() */
+var NEU = { nodes:[], wires:[], packets:[], raf:0, w:0, h:0, dpr:1, on:true };
+var NEU_AGENTS = [
+  ["PO","PO Watch"],["RK","Risk"],["MT","Mail Triage"],["BP","Board Pack"],
+  ["SC","Schedule"],["FB","Fabricator"],["AP","Approvals"],["CH","Chat"],["VC","VS Core"]
+];
+function neuRR(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y); c.closePath();
+}
+function neuCtrl(wr){
+  var A = NEU.nodes[wr.a], B = NEU.nodes[wr.b];
+  var mx = (A.x+B.x)/2, my = (A.y+B.y)/2, dx = B.x-A.x, dy = B.y-A.y;
+  var len = Math.hypot(dx,dy) || 1;
+  return [mx - dy/len*wr.bow, my + dx/len*wr.bow];
+}
+function neuPt(wr, t){
+  var A = NEU.nodes[wr.a], B = NEU.nodes[wr.b], C = neuCtrl(wr), u = 1-t;
+  return [u*u*A.x + 2*u*t*C[0] + t*t*B.x, u*u*A.y + 2*u*t*C[1] + t*t*B.y];
+}
+function neuWireIdx(a,b){
+  for(var i = 0; i < NEU.wires.length; i++){
+    var w = NEU.wires[i];
+    if((w.a===a && w.b===b) || (w.a===b && w.b===a)) return i;
+  }
+  return -1;
+}
+function neuPacket(a,b,col,soft,onArrive){
+  var wi = neuWireIdx(a,b);
+  if(wi < 0){ if(onArrive) onArrive(); return; }
+  NEU.packets.push({w:wi, t:0, col:col, soft:!!soft, on:onArrive||null});
+}
 function neuralInit(){
   var cv = $("#neural"); if(!cv) return;
   NEU.w = cv.clientWidth || window.innerWidth;
   NEU.h = cv.clientHeight || window.innerHeight;
   NEU.dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = NEU.w * NEU.dpr; cv.height = NEU.h * NEU.dpr;
-  /* clustered constellation — knowledge lives in neighbourhoods */
-  var count = clamp(Math.round((NEU.w * NEU.h) / 34000), 26, 64);
-  var hubs = [[.22,.28],[.5,.2],[.78,.3],[.3,.66],[.62,.7],[.88,.58],[.12,.52]];
-  NEU.nodes = []; NEU.edges = [];
-  for(var i = 0; i < count; i++){
-    var hub = hubs[i % hubs.length];
-    var a = Math.random() * Math.PI * 2, r = Math.pow(Math.random(),.7);
-    NEU.nodes.push({
-      x:(hub[0] + Math.cos(a) * r * .17) * NEU.w,
-      y:(hub[1] + Math.sin(a) * r * .19) * NEU.h,
-      vx:(Math.random()-.5)*.06, vy:(Math.random()-.5)*.06,
-      r:1.2 + Math.random()*2.2, e:0, ph:Math.random()*Math.PI*2
-    });
-  }
-  /* connect each node to its 2 nearest neighbours */
-  for(var n = 0; n < NEU.nodes.length; n++){
-    var near = NEU.nodes.map(function(m,j){ return [j, Math.hypot(m.x-NEU.nodes[n].x, m.y-NEU.nodes[n].y)]; })
-      .sort(function(a2,b2){ return a2[1]-b2[1]; }).slice(1,3);
-    near.forEach(function(pair){
-      var k = pair[0];
-      if(!NEU.edges.some(function(e2){ return (e2.a===n&&e2.b===k)||(e2.a===k&&e2.b===n); }))
-        NEU.edges.push({ a:n, b:k, p:0 });   /* p = travelling pulse 0..1 */
-    });
+  var cx = NEU.w*0.5, cy = NEU.h*0.44, R = Math.min(NEU.w, NEU.h);
+  NEU.nodes = [{type:"brain", x:cx, y:cy, e:0, ring:0}];
+  var N = NEU_AGENTS.length;
+  NEU_AGENTS.forEach(function(a,i){
+    var ang = (i/N)*Math.PI*2 - Math.PI/2 + 0.18;
+    var rr = R*0.30 + (i%2 ? R*0.06 : 0);
+    NEU.nodes.push({type:"agent", k:a[0], n:a[1],
+      x:cx + Math.cos(ang)*rr, y:cy + Math.sin(ang)*rr*0.66, e:0, ph:Math.random()*6.28});
+  });
+  NEU.wires = []; NEU.packets = [];
+  for(var i = 1; i <= N; i++){
+    NEU.wires.push({a:0, b:i, bow:26 + ((i*13)%3)*10});          /* agent ↔ brain */
+    NEU.wires.push({a:i, b:1 + (i % N), bow:-18 - ((i*7)%3)*8}); /* the agent ring */
+    if(i <= 3) NEU.wires.push({a:i, b:1 + ((i+3) % N), bow:34}); /* cross calls */
   }
   if(!NEU.raf) neuralLoop();
 }
-/* agents reading/writing — ignite a neighbourhood */
+/* agents working — packets flow into the Brain */
 function neuralFlash(howMany){
-  if(!NEU.nodes.length) return;
+  if(!NEU.on || !NEU.nodes.length) return;
+  var N = NEU.nodes.length - 1;
   for(var i = 0; i < (howMany||3); i++){
-    var seed = NEU.nodes[Math.floor(Math.random()*NEU.nodes.length)];
-    seed.e = 1;
-    NEU.edges.forEach(function(e){
-      if(e.a === NEU.nodes.indexOf(seed) || e.b === NEU.nodes.indexOf(seed)) e.p = Math.max(e.p, .001);
-    });
+    var a = 1 + Math.floor(Math.random()*N);
+    neuPacket(a, 0, "63,207,149", false, null);
+    NEU.nodes[a].e = 1;
   }
 }
-/* a citation — a pulse that travels one edge chain */
+/* knowledge cited — the full n8n chain reaction: agent asks the Brain,
+   the Brain returns the answer, the agent calls a colleague */
 function neuralCite(){
-  if(!NEU.edges.length) return;
-  var chain = 3;
-  var e = NEU.edges[Math.floor(Math.random()*NEU.edges.length)];
-  var from = e.a;
-  while(chain-- > 0){
-    e.p = Math.max(e.p, .001);
-    NEU.nodes[e.b].e = Math.max(NEU.nodes[e.b].e, .8);
-    var next = NEU.edges.filter(function(e2){ return e2.a===e.b || e2.b===e.b; });
-    if(!next.length) break;
-    e = next[Math.floor(Math.random()*next.length)];
-  }
-  NEU.nodes[from].e = 1;
+  if(!NEU.on || NEU.nodes.length < 3) return;
+  var N = NEU.nodes.length - 1;
+  var a = 1 + Math.floor(Math.random()*N);
+  NEU.nodes[a].e = 1;
+  neuPacket(a, 0, "63,207,149", false, function(){
+    if(!NEU.on) return;
+    NEU.nodes[0].e = 1; NEU.nodes[0].ring = 1;
+    setTimeout(function(){
+      if(!NEU.on) return;
+      neuPacket(0, a, "14,165,183", false, function(){
+        if(!NEU.on) return;
+        NEU.nodes[a].e = 1;
+        var b = 1 + (a % N);
+        setTimeout(function(){
+          if(!NEU.on) return;
+          neuPacket(a, b, "139,92,246", true, function(){ NEU.nodes[b].e = 1; });
+        }, 420);
+      });
+    }, 260);
+  });
 }
 function neuralLoop(){
   NEU.raf = requestAnimationFrame(neuralLoop);
-  var cv = $("#neural"); if(!cv) return;
+  var cv = $("#neural"); if(!cv || !NEU.on || document.hidden) return;
+  if(!document.body.matches('[data-stage="os"]')) return;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var live = NEU.on && !document.hidden && document.body.matches('[data-stage="os"]');
   var c = cv.getContext("2d");
   c.setTransform(NEU.dpr,0,0,NEU.dpr,0,0);
   c.clearRect(0,0,NEU.w,NEU.h);
   var t = performance.now()/1000;
-  /* drift */
-  if(live && !reduced){
-    NEU.nodes.forEach(function(n){
-      n.x += n.vx; n.y += n.vy;
-      if(n.x < 0 || n.x > NEU.w) n.vx *= -1;
-      if(n.y < 0 || n.y > NEU.h) n.vy *= -1;
-      n.e = Math.max(0, n.e - .008);
-    });
-  }
-  /* edges */
-  NEU.edges.forEach(function(e){
-    var A = NEU.nodes[e.a], B = NEU.nodes[e.b];
+  NEU.nodes.forEach(function(n){ n.e = Math.max(0, n.e - .006); });
+  /* wires — n8n dashed connectors, drifting */
+  c.lineWidth = 1;
+  NEU.wires.forEach(function(wr){
+    var A = NEU.nodes[wr.a], B = NEU.nodes[wr.b];
     var heat = Math.max(A.e, B.e);
-    c.strokeStyle = "rgba(120,150,190," + (.05 + heat*.22) + ")";
-    c.lineWidth = 1;
-    c.beginPath(); c.moveTo(A.x,A.y); c.lineTo(B.x,B.y); c.stroke();
-    /* travelling pulse when cited */
-    if(e.p > 0){
-      e.p = reduced ? 1 : e.p + .012;
-      if(e.p >= 1){ e.p = 0; }
-      else {
-        var px = A.x + (B.x-A.x)*e.p, py = A.y + (B.y-A.y)*e.p;
-        var g = c.createRadialGradient(px,py,0,px,py,7);
-        g.addColorStop(0,"rgba(14,165,183,.9)"); g.addColorStop(1,"rgba(14,165,183,0)");
-        c.fillStyle = g; c.beginPath(); c.arc(px,py,7,0,Math.PI*2); c.fill();
-      }
-    }
+    c.strokeStyle = "rgba(120,150,195," + (.05 + heat*.25) + ")";
+    c.setLineDash([2,7]);
+    c.lineDashOffset = reduced ? 0 : -t*10;
+    var C0 = neuCtrl(wr);
+    c.beginPath(); c.moveTo(A.x,A.y); c.quadraticCurveTo(C0[0],C0[1],B.x,B.y); c.stroke();
+    c.setLineDash([]);
   });
-  /* nodes */
-  NEU.nodes.forEach(function(n){
-    var breathe = reduced ? .5 : (.5 + Math.sin(t*1.4 + n.ph)*.5);
-    var a = .14 + breathe*.12 + n.e*.75;
-    var rad = n.r + n.e*3.5;
-    if(n.e > .1){
-      var g = c.createRadialGradient(n.x,n.y,0,n.x,n.y,rad*4);
-      g.addColorStop(0,"rgba(14,165,183,"+(n.e*.5)+")"); g.addColorStop(1,"rgba(14,165,183,0)");
-      c.fillStyle = g; c.beginPath(); c.arc(n.x,n.y,rad*4,0,Math.PI*2); c.fill();
+  /* packets travelling the wires */
+  for(var pi = NEU.packets.length-1; pi >= 0; pi--){
+    var p = NEU.packets[pi];
+    p.t += reduced ? 1 : .014;
+    if(p.t >= 1){
+      var done = p.on; NEU.packets.splice(pi,1);
+      if(done) done();
+      continue;
     }
-    c.fillStyle = "rgba(190,215,240," + a + ")";
-    c.beginPath(); c.arc(n.x,n.y,rad,0,Math.PI*2); c.fill();
+    var wr2 = NEU.wires[p.w];
+    var pos = neuPt(wr2, p.t), trail = neuPt(wr2, Math.max(0, p.t-.06));
+    var al = p.soft ? .5 : .9;
+    c.strokeStyle = "rgba("+p.col+","+(al*.5)+")";
+    c.lineWidth = 1.4;
+    c.beginPath(); c.moveTo(trail[0],trail[1]); c.lineTo(pos[0],pos[1]); c.stroke();
+    var g = c.createRadialGradient(pos[0],pos[1],0,pos[0],pos[1],9);
+    g.addColorStop(0,"rgba("+p.col+","+al+")"); g.addColorStop(1,"rgba("+p.col+",0)");
+    c.fillStyle = g; c.beginPath(); c.arc(pos[0],pos[1],9,0,6.283); c.fill();
+    c.fillStyle = "rgba(255,255,255,"+al+")";
+    c.beginPath(); c.arc(pos[0],pos[1],1.8,0,6.283); c.fill();
+  }
+  /* the Brain — halo, rotating arcs, expanding answer ring, core cluster */
+  var br = NEU.nodes[0];
+  br.ring = Math.max(0, br.ring - .004);
+  var rr = 24 + br.e*8 + (reduced ? 0 : Math.sin(t*1.2)*1.5);
+  if(br.ring > 0){
+    c.strokeStyle = "rgba(14,165,183,"+(br.ring*.5)+")";
+    c.lineWidth = 1.5;
+    c.beginPath(); c.arc(br.x, br.y, rr + (1-br.ring)*70, 0, 6.283); c.stroke();
+  }
+  var hg = c.createRadialGradient(br.x,br.y,0,br.x,br.y,rr*3);
+  hg.addColorStop(0,"rgba(14,165,183,"+(.10+br.e*.25)+")"); hg.addColorStop(1,"rgba(14,165,183,0)");
+  c.fillStyle = hg; c.beginPath(); c.arc(br.x,br.y,rr*3,0,6.283); c.fill();
+  c.lineWidth = 1.2;
+  for(var s = 0; s < 3; s++){
+    var a0 = t*(.5+s*.22) + s*2.09;
+    c.strokeStyle = "rgba(63,207,149,"+(.35+br.e*.5)+")";
+    c.beginPath(); c.arc(br.x,br.y,rr,a0,a0+1.1); c.stroke();
+  }
+  c.strokeStyle = "rgba(160,190,225,"+(.28+br.e*.4)+")";
+  c.beginPath(); c.arc(br.x,br.y,rr,0,6.283); c.stroke();
+  for(var m = 0; m < 5; m++){
+    var ma = t*.9 + m*1.256;
+    c.fillStyle = "rgba(190,215,240,"+(.5+br.e*.4)+")";
+    c.beginPath(); c.arc(br.x+Math.cos(ma)*rr*.45, br.y+Math.sin(ma)*rr*.45, 1.6, 0, 6.283); c.fill();
+  }
+  c.font = "600 8px ui-monospace,SFMono-Regular,Menlo,monospace";
+  c.textAlign = "center";
+  c.fillStyle = "rgba(150,180,215,"+(.5+br.e*.4)+")";
+  c.fillText("BRAIN", br.x, br.y+rr+13);
+  /* agent nodes — little n8n boxes that breathe and flash on activity */
+  NEU.nodes.forEach(function(n){
+    if(n.type !== "agent") return;
+    var bw = 30, bh = 17, bx = n.x-bw/2, by = n.y-bh/2;
+    var breathe = reduced ? 0 : Math.sin(t*1.3+n.ph)*.5+.5;
+    if(n.e > .05){
+      var g2 = c.createRadialGradient(n.x,n.y,0,n.x,n.y,26);
+      g2.addColorStop(0,"rgba(63,207,149,"+(n.e*.4)+")"); g2.addColorStop(1,"rgba(63,207,149,0)");
+      c.fillStyle = g2; c.beginPath(); c.arc(n.x,n.y,26,0,6.283); c.fill();
+    }
+    c.fillStyle = "rgba(10,16,26,"+(.35+breathe*.1)+")";
+    neuRR(c,bx,by,bw,bh,5); c.fill();
+    c.strokeStyle = "rgba(130,160,200,"+(.22+n.e*.55+breathe*.08)+")";
+    c.lineWidth = 1; neuRR(c,bx,by,bw,bh,5); c.stroke();
+    c.font = "700 7px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillStyle = "rgba(190,215,240,"+(.55+n.e*.4)+")";
+    c.fillText(n.k, n.x, n.y+.5);
+    c.font = "500 7px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.fillStyle = "rgba(130,155,190,"+(.30+breathe*.12+n.e*.3)+")";
+    c.fillText(n.n, n.x, n.y+bh/2+9);
+    c.textBaseline = "alphabetic";
   });
 }
 neuralInit();
 window.addEventListener("resize", function(){ clearTimeout(NEU._rz); NEU._rz = setTimeout(neuralInit, 300); });
-/* ambient life: occasional background thought */
+/* ambient life — idle agents quietly calling each other */
 setInterval(function(){
-  if(NEU.on && !document.hidden && Math.random() < .5) neuralFlash(1);
-}, 4000);
+  if(NEU.on && !document.hidden && document.body.matches('[data-stage="os"]') && Math.random() < .6){
+    var N = NEU.nodes.length - 1;
+    if(N > 2){
+      var a = 1 + Math.floor(Math.random()*N);
+      var b = 1 + ((a + 1 + Math.floor(Math.random()*2)) % N);
+      neuPacket(a, b, "139,92,246", true, function(){ NEU.nodes[b].e = Math.max(NEU.nodes[b].e, .6); });
+    }
+  }
+}, 2600);
 
 /* ---- APPLY SAVED WALLPAPER + THEME + DOCK ON LOAD ---- */
 (function(){
@@ -4557,9 +4657,10 @@ $("#quickPanel [data-qain]").addEventListener("keydown", function(e){
   }
 });
 function qaArtifact(name, ext, content){
-  var id = VFS.create("desktop", name, "file", content, ext);
+  var f = VFS.create("desktop", name, "file", content, ext);
   renderDesktopFiles();
-  return id;
+  neuralCite();          /* the wallpaper sees the artifact being made */
+  return f.id;
 }
 function quickAIRun(mode, q){
   quickAIOpen(false);
@@ -4974,7 +5075,7 @@ function createSpaceFromTemplate(tpl, customName){
   gotoSpace(id, true);
   /* seeded folder */
   if(tpl && tpl.folder){
-    var fid = VFS.create("desktop", tpl.folder.name, "folder", "", "");
+    var fid = VFS.create("desktop", tpl.folder.name, "folder", "", "").id;
     tpl.folder.files.forEach(function(f){
       VFS.create(fid, f.n, "file", f.c || "", (f.n.split(".").pop()||"").toLowerCase());
     });
@@ -5057,7 +5158,7 @@ function smartRoute(fileId){
       VFS.list("desktop").concat(Object.keys(_vfsLoad().files).map(function(k){return _vfsLoad().files[k];})).forEach(function(x){
         if(x.type==="folder" && x.name===c.folder) folder = x;
       });
-      if(!folder) folder = VFS.get(VFS.create("desktop", c.folder, "folder", "", ""));
+      if(!folder) folder = VFS.create("desktop", c.folder, "folder", "", "");
       f.brain = 1; VFS.move(fileId, folder.id);
       renderDesktopFiles();
       toast("Filed into "+c.folder+"/ and linked in Brain — 3 citations.", 3000);
@@ -6322,7 +6423,7 @@ MOUNT.autos = function(body, w){
         title:"Create this automation?",
         detail:"<b>"+esc(B.trig)+"</b> → reads "+esc(B.reads.join(", "))+" → "+esc(B.acts.join(", ")),
         confirm:"Create it", okToast:"Automation created. It will ask before its first write.",
-        onApprove:function(){ B={trig:null,reads:[],acts:[]}; w.state.draw(); } });
+        onApprove:function(){ neuralFlash(4); B={trig:null,reads:[],acts:[]}; w.state.draw(); } });
       return;
     }
     var run = e.target.closest("[data-autorun]");
