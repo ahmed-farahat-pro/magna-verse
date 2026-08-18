@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MagnaVERSE Console — Complete Feature Map</title>
+<style>
+  :root {
+    --bg: #05070c; --bg2: #0a0e18; --surface: #0f1420; --glass: rgba(15,20,32,.82);
+    --border: rgba(255,255,255,.06); --border2: rgba(255,255,255,.1);
+    --cyan: #0ea5b7; --cyan-dim: rgba(14,165,183,.15); --cyan-glow: rgba(14,165,183,.35);
+    --private: #3fcf95; --accent: #f077b6; --accent2: #f0353c; --gold: #f0b44e;
+    --purple: #c77dff; --blue: #5b94ff; --sky: #4fc3f7;
+    --tx: #e8edf5; --tx2: #98a2b8; --tx3: #5e6a82; --tx4: #3a4256;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    --r: 14px; --r-sm: 8px;
+  }
+  @font-face { font-family:'Inter'; font-display:swap; src:url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuBWYAZ9hiJ-Ek-_EeA.woff2') format('woff2'); }
+  @font-face { font-family:'JetBrains Mono'; font-display:swap; src:url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FPP0880C9FRXRuCyiI.woff2') format('woff2'); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body { background: var(--bg); color: var(--tx); font-family: var(--sans); line-height: 1.65; }
+  ::selection { background: rgba(14,165,183,.3); color: #fff; }
+
+  /* ── HERO ── */
+  .hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 24px 60px; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(14,165,183,.08) 0%, transparent 60%), radial-gradient(ellipse at 30% 70%, rgba(63,207,149,.05) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(199,125,255,.04) 0%, transparent 50%); pointer-events: none; }
+  .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; opacity: .5; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 999px; background: var(--cyan-dim); border: 1px solid rgba(14,165,183,.2); font-size: 12px; color: var(--cyan); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 28px; position: relative; z-index: 1; }
+  .hero-badge .dot { width: 6px; height: 6px; border-radius: 99px; background: var(--cyan); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{ opacity:.4; transform:scale(.9); } 50%{ opacity:1; transform:scale(1.1); } }
+  .hero h1 { font-size: clamp(42px, 7vw, 86px); font-weight: 800; line-height: 1.05; letter-spacing: -.035em; position: relative; z-index: 1; max-width: 900px; }
+  .hero h1 .grad { background: linear-gradient(135deg, var(--cyan), var(--private), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero .sub { font-size: clamp(16px, 2.2vw, 22px); color: var(--tx2); max-width: 680px; margin: 20px auto 0; position: relative; z-index: 1; line-height: 1.55; }
+  .hero .stats { display: flex; gap: 40px; margin-top: 40px; position: relative; z-index: 1; flex-wrap: wrap; justify-content: center; }
+  .hero .stat { text-align: center; }
+  .hero .stat .n { font-family: var(--mono); font-size: 32px; font-weight: 800; color: var(--cyan); letter-spacing: -.02em; }
+  .hero .stat .l { font-size: 12px; color: var(--tx3); text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+  .scroll-hint { position: absolute; bottom: 32px; font-size: 12px; color: var(--tx4); letter-spacing: .1em; text-transform: uppercase; animation: bob 2.5s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(6px); } }
+
+  /* ── NAV ── */
+  .toc { position: sticky; top: 0; z-index: 100; background: rgba(5,7,12,.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; white-space: nowrap; }
+  .toc-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 4px; padding: 10px 0; }
+  .toc a { padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--tx3); text-decoration: none; transition: all .15s; flex-shrink: 0; }
+  .toc a:hover { color: var(--tx); background: rgba(255,255,255,.05); }
+  .toc a.active { color: var(--cyan); background: var(--cyan-dim); }
+
+  /* ── SECTION ── */
+  .section { max-width: 1200px; margin: 0 auto; padding: 80px 24px 40px; }
+  .section-hd { margin-bottom: 48px; }
+  .section-hd .label { font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--cyan); margin-bottom: 8px; }
+  .section-hd h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -.03em; line-height: 1.15; }
+  .section-hd .desc { font-size: 16px; color: var(--tx2); max-width: 640px; margin-top: 10px; line-height: 1.6; }
+
+  /* ── FEATURE CARDS ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); padding: 24px; transition: border-color .2s, box-shadow .2s, transform .2s; position: relative; overflow: hidden; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--cyan), transparent); opacity: 0; transition: opacity .2s; }
+  .card:hover { border-color: var(--border2); box-shadow: 0 8px 32px rgba(0,0,0,.3); transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+  .card .icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 14px; font-size: 18px; }
+  .card h3 { font-size: 16px; font-weight: 750; margin-bottom: 6px; letter-spacing: -.01em; }
+  .card p { font-size: 13.5px; color: var(--tx2); line-height: 1.65; }
+  .card .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 10px; text-transform: uppercase; letter-spacing: .06em; }
+  .card .tag.ai { background: var(--cyan-dim); color: var(--cyan); }
+  .card .tag.os { background: rgba(63,207,149,.12); color: var(--private); }
+  .card .tag.ui { background: rgba(199,125,255,.12); color: var(--purple); }
+  .card .tag.rag { background: rgba(240,119,182,.12); color: var(--accent); }
+  .card .tag.sec { background: rgba(240,53,60,.12); color: var(--accent2); }
+  .card .tag.data { background: rgba(240,180,78,.12); color: var(--gold); }
+  .card .tag.comm { background: rgba(91,148,255,.12); color: var(--blue); }
+  .card ul { margin: 8px 0 0 16px; font-size: 12.5px; color: var(--tx2); line-height: 1.8; }
+  .card ul li::marker { color: var(--cyan); }
+
+  /* wide cards */
+  .card.wide { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .card.wide .left, .card.wide .right { display: flex; flex-direction: column; }
+  @media (max-width: 700px) { .card.wide { grid-template-columns: 1fr; } }
+
+  /* accent borders */
+  .card[data-accent="cyan"] { border-left: 3px solid var(--cyan); }
+  .card[data-accent="green"] { border-left: 3px solid var(--private); }
+  .card[data-accent="pink"] { border-left: 3px solid var(--accent); }
+  .card[data-accent="purple"] { border-left: 3px solid var(--purple); }
+  .card[data-accent="gold"] { border-left: 3px solid var(--gold); }
+  .card[data-accent="blue"] { border-left: 3px solid var(--blue); }
+  .card[data-accent="red"] { border-left: 3px solid var(--accent2); }
+  .card[data-accent="sky"] { border-left: 3px solid var(--sky); }
+
+  /* icon colors */
+  .ic-cyan { background: var(--cyan-dim); color: var(--cyan); }
+  .ic-green { background: rgba(63,207,149,.12); color: var(--private); }
+  .ic-pink { background: rgba(240,119,182,.12); color: var(--accent); }
+  .ic-purple { background: rgba(199,125,255,.12); color: var(--purple); }
+  .ic-gold { background: rgba(240,180,78,.12); color: var(--gold); }
+  .ic-blue { background: rgba(91,148,255,.12); color: var(--blue); }
+  .ic-red { background: rgba(240,53,60,.12); color: var(--accent2); }
+  .ic-sky { background: rgba(79,195,247,.12); color: var(--sky); }
+
+  /* ── DIVIDER ── */
+  .divider { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .divider hr { border: none; height: 1px; background: linear-gradient(90deg, transparent, var(--border2), transparent); }
+
+  /* ── FOOTER ── */
+  .footer { text-align: center; padding: 80px 24px 60px; color: var(--tx4); font-size: 13px; }
+  .footer a { color: var(--cyan); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .section { padding: 60px 16px 20px; }
+    .hero .stats { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════ HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge"><span class="dot"></span>Live on Magna's Riyadh DC-1</div>
+  <h1><span class="grad">MagnaVERSE Console</span><br>The Complete Feature Map</h1>
+  <p class="sub">A sovereign AI operating system for construction delivery. Every document, email, schedule, and decision lives in a knowledge graph on Magna's own GPUs. Nothing leaves the building.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">127+</div><div class="l">Features</div></div>
+    <div class="stat"><div class="n">31</div><div class="l">Apps</div></div>
+    <div class="stat"><div class="n">12</div><div class="l">Themes</div></div>
+    <div class="stat"><div class="n">12</div><div class="l">Layouts</div></div>
+    <div class="stat"><div class="n">412+</div><div class="l">K Vectors</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">Bytes Egress</div></div>
+  </div>
+  <div class="scroll-hint">↓ scroll to explore</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ NAV -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#core">Core OS</a>
+    <a href="#windows">Windows</a>
+    <a href="#desktops">Desktops</a>
+    <a href="#apps">Apps</a>
+    <a href="#rag">RAG &amp; AI</a>
+    <a href="#voice">Voice</a>
+    <a href="#visual">Visual</a>
+    <a href="#security">Security</a>
+    <a href="#vfs">VFS &amp; Files</a>
+    <a href="#agents">Agents</a>
+    <a href="#knowledge">Knowledge</a>
+    <a href="#widgets">Widgets</a>
+    <a href="#neural">Neural Layer</a>
+    <a href="#shortcuts">Shortcuts</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════════════════ CORE OS -->
+<section class="section" id="core">
+  <div class="section-hd">
+    <div class="label">01</div>
+    <h2>Core Operating System</h2>
+    <p class="desc">The foundational layer — desktop, windows, dock, menus, and the chrome that makes MagnaVERSE feel like a real operating system in a browser tab.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">🖥</div>
+      <h3>Desktop Environment</h3>
+      <p>A full desktop metaphor inside a single HTML file. Free-positioning icons, a dock bar, a menu bar with clock and status, and a right-click context menu that works anywhere on screen — not just on icons.</p>
+      <ul><li>Desktop icons with drag-to-reposition</li><li>Multi-select with shift-click or lasso</li><li>Keyboard Delete to trash selected files</li><li>Single-click to open any app or file</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">🪟</div>
+      <h3>Window Manager</h3>
+      <p>Every app opens in a draggable, resizable window with traffic-light controls. Snap to screen edges for split view, double-click title bar to maximise, Cmd+M to minimise, Cmd+W to close.</p>
+      <ul><li>Drag to left/right edge → snap 50%</li><li>Drag to top → maximise</li><li>Double-click title bar → toggle maximise</li><li>Native resize handles on all edges</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">⚓</div>
+      <h3>Smart Dock</h3>
+      <p>7 pinned apps by default, with running apps appended. Dock icons shrink to fit and never overflow. Toggle between bottom bar and Windows-style left edge via right-click → Dock to Left.</p>
+      <ul><li>Shrink-to-fit when too many apps open</li><li>Left-edge (Windows) or bottom (macOS) position</li><li>Living Dock: icons breathe with app state</li><li>Drag apps to reorder or pin</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🔍</div>
+      <h3>Spotlight Search</h3>
+      <p>Cmd+K (or ⌘K) opens a universal search bar. Type any app name, file name, or action. Results appear instantly — press Enter to open the top match.</p>
+      <ul><li>Searches all 31 apps by name and alias</li><li>Searches VFS files by name</li><li>Fuzzy matching: "sheets" finds "Sheets", "spreadsheet" finds "Sheets"</li><li>Esc to dismiss, arrow keys to navigate</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">⚡</div>
+      <h3>Quick AI Bar</h3>
+      <p>Press / from anywhere to open the AI bar. Ask a question, generate a deck, draft a letter, compare vendor quotes, prep for a meeting, or check audit readiness — all routed to the right app automatically.</p>
+      <ul><li>"compare vendor quotes" → opens Quote Duel</li><li>"make a board deck" → generates PPTX</li><li>"meeting prep" → opens Meeting Prep Card</li><li>"audit readiness" → opens Audit Score</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">📋</div>
+      <h3>Context Menu</h3>
+      <p>Right-click anywhere on the desktop to access: New File/Folder, Cut/Copy/Paste/Duplicate, Rename, Delete, Properties, Change Wallpaper, Change Theme, Dock to Left, Clap Detection, Edit Widgets, and quick access to all RAG features.</p>
+      <ul><li>Works on empty desktop space — not just icons</li><li>macOS-style inline rename (no prompt() dialogs)</li><li>Smart auto-increment for duplicate names</li><li>RAG features: Quote Duel, Board Pack, Meeting Prep, Audit</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">🔔</div>
+      <h3>Notification Centre</h3>
+      <p>Click the clock in the menu bar to open a right-edge slide-over. Every toast is kept as history. Agent events always land there. Three approval requests sit on top with inline Approve/Reject buttons. Focus mode suppresses popups but everything still logs.</p>
+      <ul><li>Toast history with relative timestamps</li><li>Agent events feed from proactive agents</li><li>Approval requests with inline Approve/Reject</li><li>Unread badge on clock · Focus mode suppresses popups</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">⚙️</div>
+      <h3>Control Centre</h3>
+      <p>Click the gear icon in the menu bar for a macOS-style cluster: appearance toggle (Light/Dark), layout picker, dock position, wallpaper swatches, neural wallpaper intensity slider, focus mode, clap toggle, widget editor, and keyboard shortcuts.</p>
+      <ul><li>Appearance: Light / Dark segmented control</li><li>Icon layout: all 12 layouts as selectable chips</li><li>Dock position: Bottom / Left edge</li><li>Wallpaper: 12 quick swatches</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ DESKTOPS -->
+<section class="section" id="desktops">
+  <div class="section-hd">
+    <div class="label">03</div>
+    <h2>Multi-Desktop Workspaces</h2>
+    <p class="desc">Dynamic desktops you create, rename, and delete on the fly. Each desktop is an independent workspace with its own widgets, apps, and arrangement — all persisted.</p>
+  </div>
+  <div class="grid">
+    <div class="card wide" data-accent="blue">
+      <div class="left">
+        <div class="icon ic-blue">spaces</div>
+        <h3>Dynamic Desktops</h3>
+        <p>Create unlimited desktops, each with a custom name. The "+" pill at the bottom creates a new one; the "×" on any pill removes it. Desktop order is persisted across sessions. Each desktop remembers which apps and windows you had open.</p>
+        <ul><li>Click a pill to switch desktops</li><li>Drag pills to reorder</li><li>Double-click pill to rename</li><li>Each desktop has its own widget set</li></ul>
+      </div>
+      <div class="right">
+        <h3 style="margin-bottom:10px">Pre-built Templates</h3>
+        <p>When creating a new desktop, choose from 5 templates that automatically arrange apps and seed sample data:</p>
+        <ul><li><b>Delivery</b> — Chat, Brain, Files, Sheets, Approvals</li><li><b>Bidding</b> — Chat, Slides, Docs, Sheets, Mail</li><li><b>Research</b> — Brain, Chat, Browser, Code</li><li><b>Operations</b> — Chat, Agents, Mail, Tasks, Gantt</li><li><b>Blank</b> — Empty canvas</li></ul>
+      </div>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">mission</div>
+      <h3>Mission Control</h3>
+      <p>Two-finger swipe up (or Ctrl+↑) shows all open windows scaled down in a grid. Click any window to switch to it. Click "+" to create a new desktop. Click "×" on a desktop to delete it. Snapshots save the current arrangement for later resume.</p>
+      <ul><li>All windows shown at once</li><li>Click to focus, Esc to dismiss</li><li>Create/delete desktops inline</li><li>Resume saved snapshots from here</li></ul>
+      <span class="tag ui">UI</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">memory</div>
+      <h3>Desktop Memory</h3>
+      <p>The OS snapshots your current window arrangement — positions, sizes, minimised state. Later, from Mission Control, you can resume any snapshot to restore the exact layout. Up to 6 snapshots are kept.</p>
+      <ul><li>Snapshot triggered from Mission Control</li><li>Resume restores exact window positions</li><li>Each snapshot tagged with desktop name + timestamp</li><li>Older snapshots auto-pruned beyond 6</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">swipe</div>
+      <h3>Swipe Navigation</h3>
+      <p>Two-finger horizontal swipe switches between desktops. Two-finger vertical swipe opens/closes Mission Control. Natural gesture-based navigation, just like macOS Spaces.</p>
+      <ul><li>Swipe left/right → next/previous desktop</li><li>Swipe up → Mission Control</li><li>Swipe down → close Mission Control</li><li>Works on trackpad and magic mouse</li></ul>
+      <span class="tag ui">UI</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ WINDOWS -->
+<section class="section" id="windows">
+  <div class="section-hd">
+    <div class="label">02</div>
+    <h2>Window Management</h2>
+    <p class="desc">Every app opens in a fully-featured window with native controls, edge snapping, and keyboard shortcuts.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">snap</div>
+      <h3>Edge Snap</h3>
+      <p>Drag a window to the left or right edge of the screen to snap it to 50% width. Drag to the top to maximise. The window animates smoothly into position and stays there until moved.</p>
+      <ul><li>Left edge → left 50%</li><li>Right edge → right 50%</li><li>Top edge → maximise</li><li>Drag away to restore original size</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">traffic</div>
+      <h3>Traffic Lights</h3>
+      <p>Three coloured buttons: red (close), yellow (minimise), green (maximise). Minimise animates to the dock. Maximise fills the screen minus the menu bar. Close removes the window with a fade-out.</p>
+      <ul><li>Red → close with fade-out</li><li>Yellow → minimise to dock</li><li>Green → toggle maximise</li><li>Double-click title bar → toggle maximise</li></ul>
+      <span class="tag ui">UI</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">keyboard</div>
+      <h3>Keyboard Shortcuts</h3>
+      <p>Press ? anywhere to see the full cheat sheet. Cmd+W closes the focused window, Cmd+M minimises, Esc dismisses overlays. Global shortcuts work from any context.</p>
+      <ul><li>⌘W → close window</li><li>⌘M → minimise</li><li>Esc → close overlay / dismiss</li><li>? → full keyboard shortcuts cheat sheet</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">resize</div>
+      <h3>Native Resize</h3>
+      <p>Drag any edge or corner to resize. Minimum size enforced per-app. Resize handles are invisible but active on all four edges and four corners.</p>
+      <ul><li>All 8 resize handles active</li><li>Per-app min-width and min-height</li><li>Smooth resize with no jank</li><li>Position recalculated on resize</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ APPS -->
+<section class="section" id="apps">
+  <div class="section-hd">
+    <div class="label">04</div>
+    <h2>31 Built-in Applications</h2>
+    <p class="desc">Every app runs in-browser with no server, no build step, no frameworks — pure HTML, CSS, and ES5-compatible JavaScript in a single file.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">💬</div>
+      <h3>Chat</h3>
+      <p>The conversational AI interface. Streaming responses, effort modes (High/Normal/Fast), Company Knowledge toggle to ground answers in the Brain. Ask anything — the model retrieves from 8,400+ indexed documents and shows its sources.</p>
+      <ul><li>Streaming token-by-token responses</li><li>3 effort modes: High, Normal, Fast</li><li>Company Knowledge toggle for grounding</li><li>Citations linked to Brain nodes</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">🧠</div>
+      <h3>Brain</h3>
+      <p>The knowledge graph. 6 tabs: main graph, Documents &amp; Knowledge (RAG pipeline), Email graph, Behaviour patterns, Reasoning traces, and Index status. Each tab has a full interactive graph with 100+ nodes. Click any node to see its embedding, nearest neighbours, and why it surfaced.</p>
+      <ul><li>Semantic search bar — filters/highlights graph nodes</li><li>Click PO/VN nodes → "View RAG chain" button</li><li>RAG pipeline visualiser with latency per step</li><li>Connected sources health dashboard</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">💻</div>
+      <h3>Code Editor</h3>
+      <p>A built-in code editor with file tree, syntax highlighting, and live preview. Drag files or folders from your Mac into the editor to read them locally. Supports desktop, iPhone, and Android preview frames.</p>
+      <ul><li>Real drag-and-drop from Mac filesystem</li><li>Live preview with device frames</li><li>GitHub and GitLab repository browser</li><li>File tree with breadcrumbs</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🌐</div>
+      <h3>Browser</h3>
+      <p>An embedded web browser for navigating internal tools and documentation. Supports URL input, back/forward navigation, and a clean address bar.</p>
+      <ul><li>URL input with go button</li><li>Back/forward navigation</li><li>Responsive rendering</li><li>Sandboxed iframe for security</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🤖</div>
+      <h3>Agents</h3>
+      <p>Pre-configured AI agents that run autonomously: PO Slippage Watch, Risk Research, Board Drafter, Mail Triage. Each agent monitors a specific domain and posts events to the Thought Stream and Notification Centre.</p>
+      <ul><li>PO Slippage Watch — monitors delivery delays</li><li>Risk Research — reads GC-8 clauses</li><li>Board Drafter — generates board pack narratives</li><li>Mail Triage — classifies and escalates emails</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">⚡</div>
+      <h3>Automations</h3>
+      <p>Visual trigger→reads→acts builder. Define automations with a visual interface: "When X happens, read Y, then do Z." Pre-built templates: Thursday board pack, PO delivery watch, vendor chase.</p>
+      <ul><li>Visual trigger→reads→acts builder</li><li>Thursday board pack automation</li><li>PO delivery watch automation</li><li>Vendor chase (48h cadence)</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">🔌</div>
+      <h3>Connections</h3>
+      <p>MCP server connections to external systems: SAP S/4HANA, Primavera P6, Outlook, SharePoint, Confluence. Each connection shows status, latency, and last sync time.</p>
+      <ul><li>SAP S/4HANA — POs, vendor master, rate cards</li><li>Primavera P6 — baselines, live progress</li><li>Outlook — 36K+ messages indexed</li><li>SharePoint + Confluence — documents</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="red">
+      <div class="icon ic-red">📧</div>
+      <h3>Mail</h3>
+      <p>Email client with inline previews. Every email is entity-linked on ingest — who wrote it, which PO or document it touches, why it matters right now. Unread count badge on the dock icon.</p>
+      <ul><li>36K+ messages entity-linked</li><li>Unread badge on dock icon</li><li>Brain citations in email context</li><li>Auto-classification by agent</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="sky">
+      <div class="icon ic-sky">📊</div>
+      <h3>Sheets (Native Spreadsheet)</h3>
+      <p>A fully VFS-integrated spreadsheet editor. Create new .xlsx files, add data in cells, add/delete rows and columns, Tab/Enter navigation, autosave every 20 seconds, CSV download. No iframe — runs natively in the console.</p>
+      <ul><li>Contenteditable cell grid with focus ring</li><li>Add/delete rows (up to 60) and columns (up to 16)</li><li>Tab, Enter, Arrow key navigation</li><li>Autosave to VFS + CSV download</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">📝</div>
+      <h3>Docs (Rich Text)</h3>
+      <p>Editor.js-based rich text editor. Create and edit documents with formatted text, headings, lists, and code blocks. Documents are stored in VFS and appear on the desktop.</p>
+      <ul><li>Block-based editing (Editor.js)</li><li>Headings, lists, code, quotes</li><li>VFS-integrated save/load</li><li>Desktop icon on create</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-ppt">📽</div>
+      <h3>Slides (Presentation Builder)</h3>
+      <p>PptxGenJS-powered slide builder. Create presentations with text, images, and shapes. Export as .pptx. Slides are generated from Chat responses or the Board Drafter agent.</p>
+      <ul><li>Generate from Chat ("make a board deck")</li><li>Text, images, shapes per slide</li><li>Export as .pptx</li><li>Board pack template built-in</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">📅</div>
+      <h3>Gantt (Schedule)</h3>
+      <p>Frappe Gantt-powered timeline view. Display project schedules with dependencies, milestones, and progress bars. Reads from P6 data via MCP connection.</p>
+      <ul><li>Interactive Gantt chart</li><li>Dependencies and milestones</li><li>Progress bars from P6</li><li>Zoom and scroll</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">📁</div>
+      <h3>Files (File Manager)</h3>
+      <p>A Finder-style file manager. Grid or list view, breadcrumb navigation, new file/folder creation, inline rename, cut/copy/paste, delete to trash. Every file is a VFS object with metadata.</p>
+      <ul><li>Grid and list view toggle</li><li>Breadcrumb navigation</li><li>Inline rename (no prompt dialogs)</li><li>Cut/copy/paste with clipboard</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">📄</div>
+      <h3>Word (Document Editor)</h3>
+      <p>Rich text document editor for .docx files. Create, edit, and save documents with full formatting. Documents appear on the desktop with their own icon.</p>
+      <ul><li>Create new .docx from desktop or Files</li><li>Rich text formatting</li><li>VFS-integrated save</li><li>Desktop icon on create</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">🗑</div>
+      <h3>Trash (Recycle Bin)</h3>
+      <p>Soft-delete target. Deleted files land here with their original path. Restore or permanently delete from the Trash window.</p>
+      <ul><li>Soft-delete with restore</li><li>Shows original path and deletion time</li><li>Permanent delete option</li><li>Auto-prune old items</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">📋</div>
+      <h3>Approvals</h3>
+      <p>Approval queue for decisions requiring your sign-off. Each approval shows type, amount, source, and status. Approve or reject with one click. The queue is visible in Notification Centre.</p>
+      <ul><li>5 pending approvals on boot</li><li>Inline Approve/Reject buttons</li><li>Visible in Notification Centre</li><li>Agent events when new approvals arrive</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">📊</div>
+      <h3>Ledger</h3>
+      <p>Append-only audit trail. Every action — file create, approval, agent event, email classify — is logged with timestamp, actor, and reasoning. Exportable as flat file for auditors.</p>
+      <ul><li>Append-only, tamper-evident</li><li>Timestamped entries</li><li>Exportable as CSV</li><li>Filterable by actor or action type</li></ul>
+      <span class="tag sec">Security</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🧠</div>
+      <h3>Memory</h3>
+      <p>The AI's episodic memory. Shows what the OS has learned about you: morning review pattern, board pack Thursday routine, vendor chase cadence, approval sweep times, deep-work blocks, evening handover, weekend zero.</p>
+      <ul><li>7 learned behaviour patterns</li><li>Each pattern with confidence score</li><li>Predicted next actions (amber dashed links)</li><li>Editable — you can override what it learned</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">🔧</div>
+      <h3>Models</h3>
+      <p>Model management panel. Shows which AI models are loaded, their VRAM usage, inference latency, and current load. Toggle between model sizes.</p>
+      <ul><li>Model status and VRAM usage</li><li>Inference latency metrics</li><li>Model size toggle</li><li>Load balancing across GPU cluster</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">🏪</div>
+      <h3>Marketplace</h3>
+      <p>Browse and install additional apps, skills, and connectors. Each item shows name, publisher, rating, installs, and pricing tier.</p>
+      <ul><li>App catalog with ratings and reviews</li><li>Skill packs for specific domains</li><li>Connector plugins for external systems</li><li>Free and paid tiers</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">✅</div>
+      <h3>Tasks</h3>
+      <p>Task manager with kanban-style views. Create, assign, and track tasks across your team. Each task links to relevant Brain nodes, emails, or documents.</p>
+      <ul><li>Kanban board view</li><li>Task linking to Brain nodes</li><li>Priority and status tracking</li><li>Due date and assignee fields</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">⚙️</div>
+      <h3>Settings</h3>
+      <p>System preferences: theme, wallpaper, layout, dock position, notification settings, voice preferences, and security options. All changes persist to localStorage.</p>
+      <ul><li>Theme and wallpaper selection</li><li>Dock position (bottom/left)</li><li>Notification preferences</li><li>Voice and accessibility settings</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="red">
+      <div class="icon ic-red">💻</div>
+      <h3>Terminal</h3>
+      <p>A simulated terminal with command history. Run built-in commands: ls, pwd, cat, echo, clear, help. Command history persisted across sessions.</p>
+      <ul><li>Command history with up/down arrows</li><li>Built-in commands: ls, pwd, cat, echo</li><li>Clear, help, and exit commands</li><li>Simulated output with ANSI colors</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🔌</div>
+      <h3>API Studio</h3>
+      <p>API testing and development environment. Build, test, and debug API requests. Environment variables, request history, and response viewer.</p>
+      <ul><li>Request builder with method selector</li><li>Environment variables</li><li>Request history</li><li>Response viewer with syntax highlighting</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🗄</div>
+      <h3>Database</h3>
+      <p>Database management interface. Browse tables, run queries, view schema, and manage data. Supports multiple database types.</p>
+      <ul><li>Table browser with schema viewer</li><li>Query editor with syntax highlighting</li><li>Data grid with inline editing</li><li>Export to CSV</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ RAG -->
+<section class="section" id="rag">
+  <div class="section-hd">
+    <div class="label">05</div>
+    <h2>RAG-Powered Intelligence</h2>
+    <p class="desc">Retrieval-Augmented Generation features that use the Brain knowledge graph to deliver answers grounded in your actual documents, emails, schedules, and decisions.</p>
+  </div>
+  <div class="grid">
+    <div class="card wide" data-accent="cyan">
+      <div class="left">
+        <div class="icon ic-cyan">🔍</div>
+        <h3>Brain Semantic Search</h3>
+        <p>Type in the search bar at the top of any Brain tab. Every node matching your query lights up cyan; everything else dims. The detail panel updates to show the top match with its embedding, nearest neighbours, and source.</p>
+        <ul><li>Searches labels, notes, and source metadata</li><li>Graph nodes highlighted/dimmed in real-time</li><li>Results summary with count and top matches</li><li>Top result auto-selected in detail panel</li></ul>
+      </div>
+      <div class="right">
+        <h3>How it works</h3>
+        <p>The search index is built lazily from BRAIN_NODES on first query. Each node is scored by label match (10 points), note match (6 points), source match (3 points), and partial word matches (3/1.5 points). The top 20 matches are highlighted; the rest dim to 10% opacity.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--tx3)">Try: "rebar delivery", "GC-8", "exposure", "board pack", "standby rate"</p>
+      </div>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">⚔️</div>
+      <h3>Vendor Quote Duel</h3>
+      <p>Side-by-side comparison of two vendor quotes — RAG-extracted from uploaded PDFs. Six line items with qty, unit price, total, delivery, and tax. An agent writes a verdict: "+1.8% premium buys 7 days of schedule relief."</p>
+      <ul><li>Al-Rajhi Steel vs Fabricator Direct</li><li>6 product lines compared</li><li>Agent verdict with Brain citations</li><li>Winner badge on the optimal quote</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">📰</div>
+      <h3>Board Pack Narrative</h3>
+      <p>AI-generated 5-paragraph briefing for Thursday's board meeting. Each paragraph cites its Brain source: exposure model, P6 schedule, vendor action, risk highlights, and 3 decisions needed. Structured, defensible, and ready for the boardroom.</p>
+      <ul><li>Financial exposure: SAR 5.32M at 45 days</li><li>Schedule: 11 days behind baseline r7</li><li>Vendor: dual-source recommended</li><li>3 decisions: rate, VN figure, exposure number</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">📋</div>
+      <h3>Meeting Prep Card</h3>
+      <p>Auto-synthesised from 7 emails, 4 Brain documents, 3 pending approvals, and P6 schedule data. Four sections: Context, Decisions, Escalations, Documents. Every item links back to its Brain source.</p>
+      <ul><li>Context: exposure, vendor, schedule status</li><li>Decisions: dual-source, VN sum, board figure</li><li>Escalations: 2 LTIs, procurement clearance</li><li>Documents: 4 items to read beforehand</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="red">
+      <div class="icon ic-red">🛡</div>
+      <h3>Audit Readiness Score</h3>
+      <p>14-point HSE checklist scored at 86% with an animated ring gauge. Each check shows status (complete/partial/missing) and source document. RAG-scanned across SharePoint, Confluence, SAP, and Network share.</p>
+      <ul><li>14-point checklist with status indicators</li><li>Animated ring gauge (86% on boot)</li><li>3 action items: LTI reports, PPE, env monitoring</li><li>RAG-scanned across 4 source systems</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🔗</div>
+      <h3>PO Deep Dive</h3>
+      <p>Click any PO, invoice, or variation notice node in the Brain graph → the detail panel shows a "View RAG chain" button. Click it to open the relevant window with the full reasoning chain: which documents contributed, which emails discuss it, which risk register it connects to.</p>
+      <ul><li>PO nodes → Vendor Quote Duel</li><li>VN nodes → Board Pack Narrative</li><li>Rate card nodes → Meeting Prep</li><li>Each with full source citations</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ VOICE -->
+<section class="section" id="voice">
+  <div class="section-hd">
+    <div class="label">06</div>
+    <h2>Voice &amp; AI Interaction</h2>
+    <p class="desc">Hands-free operation with voice commands, clap detection, and a conversational AI that actually does things — not just talks about them.</p>
+  </div>
+  <div class="grid">
+    <div class="card wide" data-accent="cyan">
+      <div class="left">
+        <div class="icon ic-cyan">🎤</div>
+        <h3>Voice Conversation</h3>
+        <p>A real conversation loop: the browser listens (Web Speech API), your voice draws a live oscilloscope, and the AI replies aloud (speechSynthesis) with its own animated waveform. While talking, the AI actually opens apps, makes files, switches desktops, and calls agents.</p>
+        <ul><li>Web Speech API for recognition</li><li>SpeechSynthesis for AI replies</li><li>Dual oscilloscopes: user mic + AI speaker</li><li>Live waveform animations during speech</li></ul>
+      </div>
+      <div class="right">
+        <h3>Voice Intents</h3>
+        <p>The AI understands natural language commands and routes them to real actions:</p>
+        <ul><li>"open chat" → opens Chat window</li><li>"close everything" → closes all windows</li><li>"new desktop for bidding" → creates desktop from template</li><li>"make a board deck" → generates PPTX</li><li>"compare vendor quotes" → opens Quote Duel</li><li>"what should I do next?" → proactive briefing</li></ul>
+      </div>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">👏</div>
+      <h3>Clap Detection</h3>
+      <p>Double-clap your hands to activate voice mode — no keyboard needed. Uses Web Audio API with an adaptive baseline that calibrates to your environment. 35ms polling interval for fast response. Auto-resumes on page reload if previously enabled.</p>
+      <ul><li>Adaptive baseline calibration</li><li>35ms setInterval polling</li><li>Auto-resumes on page reload</li><li>Toggle in Control Centre or context menu</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🧠</div>
+      <h3>Thought Stream</h3>
+      <p>A cinematic ticker at the bottom of the screen showing the OS's inner monologue: "PO Watch noticed 4471 slipped again · cross-checking the rate card…". Fades after 9 seconds. Click to open a full panel with the last 24 entries. Fed by real agent events + a rotating script.</p>
+      <ul><li>Real-time agent events logged</li><li>Voice conversations appear in the stream</li><li>Rotating script every 11 seconds</li><li>Click to open deep-dive panel</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">🌙</div>
+      <h3>Dream Mode</h3>
+      <p>Leave the console alone for 90 seconds and it enters dream mode: the screen dims, the Brain wallpaper glows through, agents replay the day, and the OS consolidates what it learned. Move the mouse to wake — a toast tells you what it learned while you were away.</p>
+      <ul><li>Activates after 90 seconds idle</li><li>Neural wallpaper replays agent chains</li><li>7 dream lines cycle every 4.6 seconds</li><li>Instant wake on any input</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">🔔</div>
+      <h3>Living Dock</h3>
+      <p>Dock icons breathe with app state. Chat pulses blue while the model thinks. Mail ripples pink when a message lands. Files shimmer when an agent writes to it. The dock becomes a seismograph of your OS activity.</p>
+      <ul><li>Chat thinking → blue pulse glow</li><li>Mail agent classifies → pink ripple ring</li><li>Files saved → brightness shimmer</li><li>Agents running → gentle wiggle</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🌐</div>
+      <h3>Companion Orb</h3>
+      <p>A floating AI orb that follows your cursor. Click it to open the omnibar: summarise desktop, close windows, move windows, clean icons, new desktop. Drag files to it for smart routing — classify, extract fields, file in VFS, link in Brain.</p>
+      <ul><li>Summarise desktop → opens Chat with summary</li><li>Close all windows → clean desktop</li><li>Drag file → smart classify + file in VFS</li><li>Follows cursor with smooth animation</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ VISUAL -->
+<section class="section" id="visual">
+  <div class="section-hd">
+    <div class="label">07</div>
+    <h2>Visual System</h2>
+    <p class="desc">12 unique themes, 12 icon layouts, 12 wallpapers, and a neural wallpaper that responds to AI activity in real-time.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="purple">
+      <div class="icon ic-paint">🎨</div>
+      <h3>12 Themes with Unique Layouts</h3>
+      <p>Each theme has its own colour palette AND its own icon layout. Switch themes and the icons rearrange into a completely different pattern. Light and dark modes per theme. All CSS variables, no framework.</p>
+      <ul><li>Midnight Abyss, Arctic Frost, Ember Forge, Forest Deep</li><li>Ocean Abyss, Solar Flare, Violet Nebula, Crimson Pulse</li><li>Golden Hour, Matrix Green, Rose Gold, Obsidian Edge</li></ul>
+      <span class="tag ui">Visual</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">📐</div>
+      <h3>12 Icon Layouts</h3>
+      <p>Decoupled from themes — mix any layout with any colour. Each layout positions desktop icons in a unique pattern with smooth transitions.</p>
+      <ul><li>Grid, Rows, Columns, Floating</li><li>Circular, Masonry, Spiral, Wave</li><li>Diagonal, Stacked, Scattered, Orbital</li><li>All bounded by widget rail and dock</li></ul>
+      <span class="tag ui">Visual</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">🖼</div>
+      <h3>12 Wallpapers</h3>
+      <p>Right-click → Change Wallpaper to pick from 12 unique wallpapers. Each is a pure CSS/SVG gradient — no images loaded. Persisted across sessions.</p>
+      <ul><li>12 unique gradient wallpapers</li><li>Pure CSS/SVG — no image files</li><li>Right-click picker or Control Centre</li><li>Persisted in localStorage</li></ul>
+      <span class="tag ui">Visual</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">🧠</div>
+      <h3>Neural Wallpaper</h3>
+      <p>An n8n-style flow field: BRAIN node at centre, 9 agent nodes orbiting, curved dashed connectors, and travelling packets that fire on chat citations, proactive events, and automation creation. The wallpaper is alive — it responds to what the OS is doing.</p>
+      <ul><li>BRAIN hub + 9 agent satellite nodes</li><li>Curved dashed connectors with flow</li><li>Travelling packets on events</li><li>Intensity slider in Control Centre</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">✨</div>
+      <h3>Hover Glow &amp; Animations</h3>
+      <p>Desktop icons glow in their accent colour on hover. Window open/close animations. Smooth transitions between layouts. Reduced-motion support for accessibility.</p>
+      <ul><li>Icon stroke glow on hover</li><li>Window open/close fade animations</li><li>Layout transition animations</li><li>prefers-reduced-motion respected</li></ul>
+      <span class="tag ui">Visual</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">🧊</div>
+      <h3>Glassmorphism Chrome</h3>
+      <p>The entire OS uses glassmorphism: frosted glass panels with backdrop-filter blur, subtle borders, and layered transparency. The chrome is the aesthetic — no images, all CSS.</p>
+      <ul><li>Backdrop-filter blur on all panels</li><li>Layered transparency (glass-1, glass-2, glass-3)</li><li>Consistent border and shadow system</li><li>Works on light and dark modes</li></ul>
+      <span class="tag ui">Visual</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ SECURITY -->
+<section class="section" id="security">
+  <div class="section-hd">
+    <div class="label">08</div>
+    <h2>Security &amp; Sovereignty</h2>
+    <p class="desc">Magna's data stays in Magna's hands. Every feature is designed for a sovereign AI OS running on Riyadh DC-1.</p>
+  </div>
+  <div class="grid">
+    <div class="card wide" data-accent="red">
+      <div class="left">
+        <div class="icon ic-red">🛡</div>
+        <h3>Sovereignty Gauge</h3>
+        <p>A live gauge showing data sovereignty status. Green heartbeat = all data in Riyadh DC-1. Hover for per-app breakdown. The gauge is always visible — a constant reminder that nothing leaves the building.</p>
+        <ul><li>Green pulse = sovereign</li><li>Per-app egress breakdown on hover</li><li>Live egress counter at 0 bytes</li><li>Always visible in widget area</li></ul>
+      </div>
+      <div class="right">
+        <h3>Zero Egress Architecture</h3>
+        <p>Every RAG query, every embedding, every inference runs on Magna's own 8×H200 cluster in Riyadh DC-1. The vector database, the knowledge graph, the model — all local. The only network calls are to Magna's own MCP servers.</p>
+        <ul><li>8×H200 GPU cluster on-premises</li><li>412K+ vectors stored locally</li><li>No external API calls</li><li>SOC-ready audit trail</li></ul>
+      </div>
+      <span class="tag sec">Security</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🔒</div>
+      <h3>Air-Gap Mode</h3>
+      <p>One toggle: "Cut the world off." Every external connector visibly unplugs (animation), the sovereignty ring turns solid gold, and the OS keeps working on local Brain only. The ultimate demo feature for investors.</p>
+      <ul><li>Toggle from Control Centre</li><li>Visual wire-retraction animation</li><li>Sovereignty ring turns gold</li><li>OS continues on local Brain only</li></ul>
+      <span class="tag sec">Security</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">🔒</div>
+      <h3>Focus Mode</h3>
+      <p>Toggle from Control Centre or context menu. Mutes toast popups (except approval and critical notifications). Everything still logs to the Notification Centre — you just don't get interrupted.</p>
+      <ul><li>Mutes non-critical toast popups</li><li>Everything still logs to Notification Centre</li><li>Approval requests always shown</li><li>Toggle from Control Centre or context menu</li></ul>
+      <span class="tag sec">Security</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">📜</div>
+      <h3>Append-Only Ledger</h3>
+      <p>Every action in the OS is logged: file create, approval, agent event, email classify, voice command. Timestamped, actor-tagged, and reasoning-attached. Exportable as flat file for auditors.</p>
+      <ul><li>Append-only — no edits or deletes</li><li>Timestamped with actor and reasoning</li><li>Filterable by action type</li><li>Exportable as CSV for auditors</li></ul>
+      <span class="tag sec">Security</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ VFS -->
+<section class="section" id="vfs">
+  <div class="section-hd">
+    <div class="label">09</div>
+    <h2>Virtual File System</h2>
+    <p class="desc">A complete file system running in the browser. Create, read, update, delete, move, copy — with soft-delete to trash and metadata tracking.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">🗄</div>
+      <h3>VFS Core</h3>
+      <p>Full CRUD operations on files and folders. Each file has id, name, type, content, ext, size, parentId, created, modified, and soft-deleted timestamps. Persisted to localStorage.</p>
+      <ul><li>Create, read, update, delete</li><li>Move and copy between folders</li><li>Soft-delete with restore from Trash</li><li>Persisted to localStorage</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">📄</div>
+      <h3>Desktop Files</h3>
+      <p>Files appear as icons on the desktop with their accent colour. Drag to reposition, multi-select with shift-click, single-click to open in the right editor. Smart file routing via the Companion Orb.</p>
+      <ul><li>Drag to reposition on desktop</li><li>Multi-select with shift-click</li><li>Single-click to open</li><li>Smart routing via Companion Orb</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🧠</div>
+      <h3>Smart File Routing</h3>
+      <p>Drag a file to the Companion Orb → the OS classifies it, extracts fields, files it in the correct VFS folder, and links it in the Brain with 3 citations. One drag, full intelligence.</p>
+      <ul><li>Auto-classify by file type and content</li><li>Extract key fields (PO number, amount, dates)</li><li>File in correct VFS folder</li><li>Link in Brain with 3 citations</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🔄</div>
+      <h3>Desktop Memory</h3>
+      <p>Snapshot your current window arrangement — positions, sizes, minimised state. Resume from Mission Control to restore the exact layout. Up to 6 snapshots per desktop.</p>
+      <ul><li>Snapshot from Mission Control</li><li>Resume restores exact layout</li><li>Tagged with desktop name + timestamp</li><li>Auto-pruned beyond 6 snapshots</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ AGENTS -->
+<section class="section" id="agents">
+  <div class="section-hd">
+    <div class="label">10</div>
+    <h2>AI Agents &amp; Automations</h2>
+    <p class="desc">Pre-configured agents that monitor domains, detect patterns, and act autonomously — with approval gates for critical actions.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">👁</div>
+      <h3>PO Slippage Watch</h3>
+      <p>Monitors all open POs against P6 schedule. When a delivery date slips, the agent fires an event to the Thought Stream, logs to the Notification Centre, and updates the Brain graph. Cross-checks rate cards and LD clauses.</p>
+      <ul><li>Monitors delivery dates against P6</li><li>Fires events on slippage detection</li><li>Cross-checks GC-8 8.4 LD clauses</li><li>Updates Brain graph with new edges</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">⚠️</div>
+      <h3>Risk Research Agent</h3>
+      <p>Reads contract clauses, HSE reports, and commercial documents. When a risk is detected, it links the relevant Brain nodes and drafts a recommendation. Posts to the Thought Stream.</p>
+      <ul><li>Reads GC-8, ISO 19650, NCA ECC-1</li><li>Links risk to contract clauses</li><li>Drafts mitigation recommendations</li><li>Posts to Thought Stream</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">📰</div>
+      <h3>Board Drafter Agent</h3>
+      <p>Turns the week's threads into a one-page board note with a decision box and a risk table. Pulls the latest exposure figures, schedule status, and approval queue. Asks PO Slippage Watch for the current commercial exposure.</p>
+      <ul><li>Pulls exposure, schedule, approvals</li><li>Writes structured board narrative</li><li>Cites every figure to a Brain node</li><li>Generates via "draft the board pack"</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">📬</div>
+      <h3>Mail Triage Agent</h3>
+      <p>Reads incoming emails, classifies them by type (vendor, internal, system), extracts entities (PO numbers, amounts, dates), and routes them to the correct Brain node. Escalates urgent items to Notification Centre.</p>
+      <ul><li>Classifies by type and urgency</li><li>Extracts entities (PO, amount, date)</li><li>Routes to Brain graph nodes</li><li>Escalates urgent items</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🔄</div>
+      <h3>Proactive Agents</h3>
+      <p>Every ~50 seconds, the agent council posts an event. These events appear in the Thought Stream, Notification Centre, and feed the Living Dock animations. Mute from the Control Centre or agent feed widget.</p>
+      <ul><li>Events every ~50 seconds</li><li>Feed Thought Stream + Notification Centre</li><li>Trigger Living Dock animations</li><li>Mute toggle in Control Centre</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">📊</div>
+      <h3>Approval Gates</h3>
+      <p>For critical actions (file delete, external send, large spend), the agent pauses and asks for your approval. Approve or reject with one click. The approval appears in Notification Centre with full context.</p>
+      <ul><li>Pauses on critical actions</li><li>Full context shown in Notification Centre</li><li>Inline Approve/Reject buttons</li><li>Logged in the append-only ledger</li></ul>
+      <span class="tag sec">Security</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ KNOWLEDGE -->
+<section class="section" id="knowledge">
+  <div class="section-hd">
+    <div class="label">11</div>
+    <h2>Knowledge Graph &amp; RAG Pipeline</h2>
+    <p class="desc">The Brain: a living knowledge graph where every document, email, schedule, and decision is chunked, embedded, and indexed — with the full reasoning chain preserved.</p>
+  </div>
+  <div class="grid">
+    <div class="card wide" data-accent="blue">
+      <div class="left">
+        <div class="icon ic-blue">graph</div>
+        <h3>Brain Knowledge Graph</h3>
+        <p>Interactive SVG graph with 100+ nodes per tab. 6 tabs: main graph (19 hub nodes), Documents (112 nodes across 7 source systems), Email (104 nodes), Behaviour (106 nodes with amber predictions), Reasoning (100 nodes), and Index status.</p>
+        <ul><li>Pan and zoom with mouse wheel</li><li>Click nodes to inspect embedding + neighbours</li><li>Colour-coded by kind (email, document, decision, person, system, project)</li><li>Flow particles on hot edges</li></ul>
+      </div>
+      <div class="right">
+        <h3>RAG Pipeline</h3>
+        <p>Every query travels through: Ingest → Chunk → Embed → Store → Retrieve → Rerank → Ground → Answer. Each step is visible in the Brain's Documents tab with latency metrics.</p>
+        <ul><li>Ingest: 8,400+ documents from 7 sources</li><li>Chunk: layout-aware, 412K+ vectors</li><li>Embed: 384-dimensional, local GPU</li><li>Retrieve: HNSW search, 11ms median</li><li>Rerank: cross-encoder, top-50 → top-8</li><li>Ground: GC-8 8.4, rate cards, P6 live</li><li>Answer: every claim carries a citation</li></ul>
+      </div>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">sources</div>
+      <h3>Connected Sources</h3>
+      <p>7 source systems connected via MCP and connectors: SharePoint (1,942 docs), Network share (drawings + subcontracts), Confluence (96 spaces), SAP S/4HANA (POs + vendor master), Primavera P6 (baselines + live), Outlook (36K+ messages), Policies (PDPL, NCA ECC-1, ISO 19650).</p>
+      <ul><li>SharePoint: 1,942 docs, layout-aware chunking</li><li>SAP S/4HANA: POs, vendor master, rate cards</li><li>Outlook: 36K+ messages, entity-linked</li><li>P6: baselines + live progress, slip detection</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">behaviour</div>
+      <h3>Behaviour Learning</h3>
+      <p>The Brain learns from what you do. 7 patterns observed: morning review (07:38–08:10), board pack Thursday, vendor chase (48h cadence), approval sweep (09:1x + 16:2x), deep-work blocks, evening handover, weekend zero. Predicted next actions shown with amber dashed links.</p>
+      <ul><li>7 learned behaviour patterns</li><li>Each with confidence score</li><li>Predicted next actions (amber dashed)</li><li>Editable — override what it learned</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">reasoning</div>
+      <h3>Reasoning Traces</h3>
+      <p>Every answer keeps its working. The Reasoning tab shows the full chain: embed query → retrieve top-50 → rerank → cross-check P6 → read GC-8 8.4 → score groundedness → cite 4 sources → draft answer. Defensible weeks later.</p>
+      <ul><li>Full reasoning chain preserved</li><li>Each step with timestamp and source</li><li>Groundedness score on every claim</li><li>Defensible for audit and board</li></ul>
+      <span class="tag rag">RAG</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ WIDGETS -->
+<section class="section" id="widgets">
+  <div class="section-hd">
+    <div class="label">12</div>
+    <h2>Widgets &amp; Dashboard</h2>
+    <p class="desc">Per-desktop widgets with drag-to-reorder. 9 widget kinds covering sovereignty, exposure, approvals, agents, automations, servers, brain, usage, and agent feed.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">📊</div>
+      <h3>Sovereignty Widget</h3>
+      <p>Live gauge showing data sovereignty status. Green pulse = all data in Riyadh DC-1. Per-app breakdown on hover. Egress counter at 0 bytes.</p>
+      <span class="tag sec">Security</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">💰</div>
+      <h3>C2 Exposure Widget</h3>
+      <p>Live commercial exposure: SAR 5.32M at 45 days. Breakdown by LD, standby, and variation costs. Trend arrow showing direction.</p>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">⏳</div>
+      <h3>Approvals Widget</h3>
+      <p>5 pending approvals with inline Approve/Reject. Count badge. Link to full Approvals app.</p>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">🤖</div>
+      <h3>Agents Widget</h3>
+      <p>Which agents are running, their status, and last event. PO Watch, Risk Research, Board Drafter, Mail Triage.</p>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">⚡</div>
+      <h3>Automations Widget</h3>
+      <p>Next scheduled automation: Thursday board pack at 20:00. Link to full Automations app.</p>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🖥</div>
+      <h3>Servers Widget</h3>
+      <p>Dev server status: ports, uptime, health. Local development server indicators.</p>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="red">
+      <div class="icon ic-red">🧠</div>
+      <h3>Brain Activity Widget</h3>
+      <p>Index health: chunks, vectors, last ingest time. 8,400+ docs, 412K+ vectors. Freshness indicator.</p>
+      <span class="tag rag">RAG</span>
+    </div>
+    <div class="card" data-accent="sky">
+      <div class="icon ic-sky">📈</div>
+      <h3>AI Usage Widget</h3>
+      <p>Tokens consumed, budget remaining, inference count. GPU utilisation across the cluster.</p>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">📰</div>
+      <h3>Agent Feed Widget</h3>
+      <p>Live event stream from all agents. Shows timestamp, agent name, and event headline. Mute toggle. Links to full agent details.</p>
+      <span class="tag ai">AI</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ NEURAL -->
+<section class="section" id="neural">
+  <div class="section-hd">
+    <div class="label">13</div>
+    <h2>Neural Wallpaper Layer</h2>
+    <p class="desc">The wallpaper is alive — an n8n-style flow field that responds to AI activity in real-time with travelling packets, agent pulses, and chain reactions.</p>
+  </div>
+  <div class="grid">
+    <div class="card wide" data-accent="pink">
+      <div class="left">
+        <div class="icon ic-pink">neural</div>
+        <h3>n8n-Style Flow Field</h3>
+        <p>Canvas-based animation with a central BRAIN hub node and 9 agent satellite nodes: PO Watch, Risk Research, Board Drafter, Mail Triage, Fabricator, Approvals, Schedule, C2 Exposure, and Memory. Curved dashed connectors link the hub to each agent.</p>
+        <ul><li>BRAIN hub at centre with magnification pulse</li><li>9 agent satellites with unique positions</li><li>Curved dashed connectors (SVG quadratic)</li><li>Intensity slider in Control Centre (0–100%)</li></ul>
+      </div>
+      <div class="right">
+        <h3>Travelling Packets</h3>
+        <p>Small glowing dots that travel along connectors, triggered by real events:</p>
+        <ul><li><b>cite</b> — fired on chat citations (1–2 packets)</li><li><b>dispatch</b> — fired on agent council events (2–3 packets)</li><li><b>chain</b> — fired on automation creation (2–3 packets)</li><li>Packets glow in the agent's accent colour</li><li>50% chance each packet triggers a return packet</li></ul>
+      </div>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">events</div>
+      <h3>Event-Driven Animation</h3>
+      <p>The wallpaper responds to: chat citations (neuralCite), proactive agent events (neuralFlash), automation creation (neuralChain), and Dream Mode (consolidation replays). Each event type fires different packet patterns.</p>
+      <ul><li>Chat citations → cite packets (blue)</li><li>Agent events → dispatch packets (cyan)</li><li>Automations → chain packets (green)</li><li>Dream Mode → consolidation replays</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ SHORTCUTS -->
+<section class="section" id="shortcuts">
+  <div class="section-hd">
+    <div class="label">14</div>
+    <h2>Keyboard Shortcuts &amp; Gestures</h2>
+    <p class="desc">Press ? anywhere for the full cheat sheet. Every gesture and shortcut documented.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">⌨️</div>
+      <h3>Global Shortcuts</h3>
+      <ul><li><b>⌘K</b> — Spotlight search</li><li><b>/</b> — Quick AI bar</li><li><b>?</b> — Keyboard shortcuts cheat sheet</li><li><b>Esc</b> — Close / dismiss overlay</li></ul>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">🖥</div>
+      <h3>Desktop Shortcuts</h3>
+      <ul><li><b>Ctrl ↑</b> — Mission Control</li><li><b>Ctrl ← →</b> — Switch desktop</li><li><b>Two-finger swipe ↑/↓</b> — Mission Control</li><li><b>Two-finger swipe ←/→</b> — Switch desktop</li></ul>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🎤</div>
+      <h3>Voice &amp; AI</h3>
+      <ul><li><b>Double-clap</b> — Wake voice mode</li><li><b>"open chat"</b> — Open Chat</li><li><b>"make a board deck"</b> — Generate PPTX</li><li><b>"goodbye"</b> — Stop listening</li></ul>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">📁</div>
+      <h3>Icons &amp; Files</h3>
+      <ul><li><b>Single click</b> — Open app / file</li><li><b>Right-click</b> — Context menu</li><li><b>Drag → orb</b> — Smart-route file</li><li><b>Delete</b> — Trash selection</li></ul>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">🪟</div>
+      <h3>Window Shortcuts</h3>
+      <ul><li><b>⌘W</b> — Close window</li><li><b>⌘M</b> — Minimise</li><li><b>Double-click bar</b> — Maximise</li><li><b>Drag to edge</b> — Snap left/right</li></ul>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">🧠</div>
+      <h3>Brain Graph</h3>
+      <ul><li><b>Scroll</b> — Zoom</li><li><b>Drag canvas</b> — Pan</li><li><b>Click node</b> — Inspect</li><li><b>100% button</b> — Fit view</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ FOOTER -->
+<footer class="footer">
+  <p style="font-size:22px;font-weight:700;color:var(--tx);margin-bottom:8px">MagnaVERSE Console</p>
+  <p style="color:var(--tx3);margin-bottom:4px">Sovereign AI OS for Magna · Riyadh DC-1</p>
+  <p>127+ features · 31 apps · 12 themes · 12 layouts · 412K+ vectors · 0 bytes egress</p>
+  <p style="margin-top:16px;font-size:11px;color:var(--tx4)">Built as a single HTML file. No frameworks. No build step. No server. Deployed to Vercel.</p>
+  <p style="margin-top:8px"><a href="apps/app-7-console.html">Open the Console →</a></p>
+</footer>
+
+<script>
+/* sticky nav active state */
+var toc = document.querySelector('.toc');
+var links = toc ? toc.querySelectorAll('a') : [];
+var sections = [];
+links.forEach(function(a){
+  var id = a.getAttribute('href').slice(1);
+  var el = document.getElementById(id);
+  if(el) sections.push({el:el, a:a});
+});
+function updateToc(){
+  var y = window.scrollY + 120;
+  var cur = sections[0];
+  for(var i = 0; i < sections.length; i++){
+    if(sections[i].el.offsetTop <= y) cur = sections[i];
+  }
+  links.forEach(function(a){ a.classList.remove('active'); });
+  if(cur) cur.a.classList.add('active');
+}
+window.addEventListener('scroll', updateToc, {passive:true});
+updateToc();
+</script>
+</body>
+</html>
