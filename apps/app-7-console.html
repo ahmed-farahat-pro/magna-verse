@@ -1727,7 +1727,18 @@ function renderIcons(){
    pointer so the icon can visually leave its own container.
    --------------------------------------------------------------------------- */
 function dockPinned(){
-  try{ var v = JSON.parse(store.get("mv7.dock","")); if(v && v.length) return v; }catch(e){}
+  try{
+    var v = JSON.parse(store.get("mv7.dock",""));
+    if(v && v.length){
+      /* migrate the old 5-app default to the new 7-app default */
+      var OLD_DEFAULT = ["chat","brain","code","browser","terminal"];
+      if(v.length === OLD_DEFAULT.length && v.every(function(x,i){ return x === OLD_DEFAULT[i]; })){
+        saveDock(DOCK_PINNED.slice());
+        return DOCK_PINNED.slice();
+      }
+      return v;
+    }
+  }catch(e){}
   return DOCK_PINNED.slice();
 }
 function saveDock(list){ store.set("mv7.dock", JSON.stringify(list)); }
