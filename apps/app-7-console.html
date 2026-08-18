@@ -3092,6 +3092,316 @@ var BRAIN_EDGES = [
   ["n11","n35",.89],["n13","n8",.55],["n20","n18",.84],["n24","n28",.71],
   ["n25","n26",.86],["n29","n19",.64],["n32","n30",.78],["n34","n31",.65]
 ];
+/* ===== generic knowledge-graph engine =====================================
+   Powers the Documents / Emails / Behaviour / Reasoning tabs with the same
+   visual language as the main graph: curved edges, flow particles, labels
+   on every node, click-to-inspect. Each tab deterministically generates a
+   100+ node world from a seed, so re-renders are stable. */
+function seededRng(str){
+  var x = 2166136261;
+  for(var i=0;i<str.length;i++){ x ^= str.charCodeAt(i); x = (x*16777619) & 0x7fffffff; }
+  return function(){ x = (x*1103515245 + 12345) & 0x7fffffff; return x/0x7fffffff; };
+}
+function genGraph(cfg){
+  var R = seededRng(cfg.seed), nodes = [], edges = [], by = {};
+  var H = cfg.hubs.length;
+  cfg.hubs.forEach(function(h,i){
+    var ang = (i/H)*Math.PI*2 - Math.PI/2;
+    var n = { id:h.id, kind:h.kind, label:h.label, src:h.src, hub:true, hot:true,
+      x:.5+Math.cos(ang)*.37, y:.54+Math.sin(ang)*.33, note:h.note };
+    nodes.push(n); by[n.id] = n;
+  });
+  for(var i=0;i<cfg.count;i++){
+    var hub = nodes[Math.floor(R()*H)];
+    var a = R()*Math.PI*2, r = .05 + Math.pow(R(), .55)*.13;
+    var d = cfg.fill(i, R);
+    var id = cfg.seed+"-"+i;
+    nodes.push({ id:id, kind:d.kind, label:d.label, src:d.src,
+      x:clamp(hub.x+Math.cos(a)*r, .02, .98), y:clamp(hub.y+Math.sin(a)*r, .02, .98),
+      note:d.note, pred:!!d.pred });
+    by[id] = nodes[nodes.length-1];
+    edges.push([hub.id, id, .45+R()*.5, d.pred ? 1 : 0]);
+  }
+  /* related items inside a neighbourhood link to each other */
+  for(var p=0;p<nodes.length;p++){
+    if(nodes[p].hub) continue;
+    for(var q=p+1;q<nodes.length;q++){
+      if(nodes[q].hub) continue;
+      if(Math.abs(nodes[p].x-nodes[q].x)+Math.abs(nodes[p].y-nodes[q].y) < .05 && R() < .34)
+        edges.push([nodes[p].id, nodes[q].id, .28+R()*.35]);
+    }
+  }
+  /* hub ring + cross bridges so the world feels interconnected */
+  for(var b=0;b<H;b++) edges.push([nodes[b].id, nodes[(b+1)%H].id, .5]);
+  for(var c=0;c<H-3;c++) edges.push([nodes[c].id, nodes[c+3].id, .4]);
+  return { nodes:nodes, edges:edges, by:by };
+}
+var MG_DEFS = null;
+function mgDefs(){
+  if(MG_DEFS) return MG_DEFS;
+  MG_DEFS = {
+    docs: {
+      seed:"docs", count:112,
+      kinds:{ source:"#F0B44E", doc:"#4FC3F7", drawing:"#3FCF95", finance:"#F077B6", hse:"#C77DFF" },
+      legend:{ source:"Source system", doc:"Document", drawing:"Drawing", finance:"Commercial", hse:"HSE" },
+      hint:"The RAG corpus as one graph · scroll to zoom · drag to pan · click a node",
+      hubs:[
+        {id:"d-sp", kind:"source", label:"SharePoint",   src:"Connector", note:"1,942 documents · layout-aware chunking, 412k vectors"},
+        {id:"d-ns", kind:"source", label:"Network share",src:"Connector", note:"Drawings + scanned subcontracts · OCR on ingest"},
+        {id:"d-cf", kind:"source", label:"Confluence",   src:"Connector", note:"BEP, method statements, control maps · 96 spaces"},
+        {id:"d-sap",kind:"source", label:"SAP S/4HANA",  src:"MCP",       note:"POs, vendor master, rate cards · nightly delta sync"},
+        {id:"d-p6", kind:"source", label:"Primavera P6", src:"MCP",       note:"Baselines + live progress · drives slip detection"},
+        {id:"d-ol", kind:"source", label:"Outlook",      src:"MCP",       note:"36,180 messages · entity-linked on ingest"},
+        {id:"d-pol",kind:"source", label:"Policies",     src:"Curated",   note:"PDPL, NCA ECC-1, ISO 19650 — versioned and cited"}
+      ],
+      fill:function(i,R){
+        switch(i % 8){
+          case 0: return {kind:"doc",     label:"Contract MCC-C2-"+(100+i), src:"SharePoint",
+            note:"Executed contract · clause map indexed, GC-8 linked"};
+          case 1: return {kind:"drawing", label:"DWG-C2-ST-"+(200+(i%60))+" r"+(i%4), src:"Network share",
+            note:"Rebar shop drawing · title block parsed, revision tracked"};
+          case 2: return {kind:"doc",     label:"Method stmt "+((i%9)+1)+"."+(i%7), src:"Confluence",
+            note:"Crew size clauses feed the standby-rate model"};
+          case 3: return {kind:"finance", label:"PO 45"+(30000000+i*137), src:"SAP S/4HANA",
+            note:"Line items entity-linked to vendor + goods receipts"};
+          case 4: return {kind:"doc",     label:"Baseline r"+(i%8)+".xer", src:"Primavera P6",
+            note:"Schedule snapshot · cited by slip detection nightly"};
+          case 5: return {kind:"finance", label:"INV-2026-"+(4000+i*7), src:"SAP S/4HANA",
+            note:"ZATCA-cleared invoice · payment status live in the graph"};
+          case 6: return {kind:"hse",     label:"HSE wk "+((i%40)+1)+" report", src:"SharePoint",
+            note:"Incident register · week bucket, escalations linked"};
+          default:return {kind:"doc",     label:"MOM C2 #"+(120+i), src:"Outlook",
+            note:"Minutes entity-linked to attendees and action items"};
+        }
+      }
+    },
+    emails: {
+      seed:"emails", count:104,
+      kinds:{ person:"#5B94FF", thread:"#F0353C", attach:"#4FC3F7", meet:"#43E0A6" },
+      legend:{ person:"Person", thread:"Thread", attach:"Attachment", meet:"Meeting" },
+      hint:"Every message placed in the Brain — who, what it touches, why it matters",
+      hubs:[
+        {id:"e-kh", kind:"person", label:"Khalid Al-Rashid", src:"Directory", note:"Al-Rajhi commercial lead · 9 open threads, all delivery dates"},
+        {id:"e-no", kind:"person", label:"Nouf Al-Otaibi",   src:"Directory", note:"Commercial director · owns the Thursday board pack"},
+        {id:"e-fa", kind:"person", label:"Faisal Al-Harbi",  src:"Directory", note:"QS · variation valuations and measured works"},
+        {id:"e-om", kind:"person", label:"Omar Siddiqui",    src:"Directory", note:"Planner · Baseline r7 owner, nightly P6 snapshot"},
+        {id:"e-sa", kind:"person", label:"Sara Bin Zayed",   src:"Directory", note:"HSE lead · escalates anything on the critical-path crew"},
+        {id:"e-pr", kind:"person", label:"Procurement desk", src:"Directory", note:"Vendor onboarding · second supplier blocked on clearance"},
+        {id:"e-fb", kind:"person", label:"Fabricator desk",  src:"Directory", note:"Dual-source candidate · 498 t before 20 Sep"}
+      ],
+      fill:function(i,R){
+        switch(i % 8){
+          case 0: return {kind:"thread", label:"Re: C2 rebar slip ("+(i+3)+")", src:"Outlook",
+            note:"Khalid thread · promised dates not holding, 19 Sep proposed"};
+          case 1: return {kind:"attach", label:"ATT — exposure r"+(i%6)+".xlsx", src:"Outlook",
+            note:"Spreadout shared in-thread · numbers land in the exposure model"};
+          case 2: return {kind:"meet",   label:"Deck pour review "+((i%9)+1), src:"Outlook",
+            note:"Recurring · decisions feed the re-sequence log"};
+          case 3: return {kind:"thread", label:"Fwd: rate card Q3", src:"Outlook",
+            note:"Standby SAR 94k/day · the number the model is most sensitive to"};
+          case 4: return {kind:"attach", label:"ATT — PO 45"+(30000000+i*91), src:"Outlook",
+            note:"PO pdf · OCR'd, matched to the SAP entity on ingest"};
+          case 5: return {kind:"thread", label:"Board pack thread "+((i%4)+1), src:"Outlook",
+            note:"Nouf · exposure figure requested before Thursday 09:00"};
+          case 6: return {kind:"meet",   label:"HSE standup wk "+((i%40)+1), src:"Outlook",
+            note:"Two LTIs on the C2 deck under investigation"};
+          default:return {kind:"thread", label:"Variation VN thread "+((i%6)+1), src:"Outlook",
+            note:"Draft chain · assessed sum still blank, waiting on you"};
+        }
+      }
+    },
+    behave: {
+      seed:"behave", count:106,
+      kinds:{ pattern:"#5B94FF", action:"#4FC3F7", app:"#0EA5B7", time:"#C77DFF", predict:"#FFB020" },
+      legend:{ pattern:"Observed pattern", action:"Your action", app:"App used", time:"Time signal", predict:"Predicted next" },
+      hint:"The Brain learns from what you do — amber dashed links are predicted next actions",
+      hubs:[
+        {id:"b-mo", kind:"pattern", label:"Morning review",    src:"Learned", note:"07:38–08:10 · you open Chat → Exposure → Approvals, in that order, 19 of 21 days"},
+        {id:"b-bp", kind:"pattern", label:"Board pack Thu",    src:"Learned", note:"Wed evening deck generation + Thursday 08:5x final numbers check"},
+        {id:"b-vc", kind:"pattern", label:"Vendor chase",      src:"Learned", note:"48h cadence on unanswered vendor mail, escalating tone each round"},
+        {id:"b-as", kind:"pattern", label:"Approvals sweep",   src:"Learned", note:"You batch approvals at 09:1x and 16:2x — deploys first, deletes last"},
+        {id:"b-dw", kind:"pattern", label:"Deep-work block",   src:"Learned", note:"No window switches for 3+ min → you dim notifications and stay in one app"},
+        {id:"b-eh", kind:"pattern", label:"Evening handover",  src:"Learned", note:"21:0x · move windows to Operations, snapshot desktop, close mail"},
+        {id:"b-wz", kind:"pattern", label:"Weekend zero",      src:"Learned", note:"Sat inbox-zero sweep, 15 min cap, read-only — no writes observed"}
+      ],
+      fill:function(i,R){
+        if(i % 21 === 3) return {kind:"predict", pred:true,
+          label:"open Brain "+(80+(i%17))+"%", src:"Prediction",
+          note:"From Morning review + exposure reads · the Brain pre-loads the node"};
+        if(i % 21 === 8) return {kind:"predict", pred:true,
+          label:"approve at 09:"+String(10+(i%40)).padStart(2,"0")+" "+(70+(i%25))+"%", src:"Prediction",
+          note:"Approvals sweep pattern · deploy approvals first with 92% precision"};
+        if(i % 21 === 13) return {kind:"predict", pred:true,
+          label:"draft variation "+(75+(i%20))+"%", src:"Prediction",
+          note:"Vendor chase + LD-cap reads converge on the notice draft"};
+        if(i % 21 === 18) return {kind:"predict", pred:true,
+          label:"mail Khalid next "+(65+(i%25))+"%", src:"Prediction",
+          note:"Thread age 6h past your 48h cadence"};
+        switch(i % 7){
+          case 0: return {kind:"action", label:"Opened Chat ×"+((i%5)+2), src:"Observed",
+            note:"07:4x · first app of the day in 19 of 21 sessions"};
+          case 1: return {kind:"action", label:"Read exposure doc ×"+((i%4)+2), src:"Observed",
+            note:"Re-reads cluster before any number goes to the board"};
+          case 2: return {kind:"app",    label:"Generated deck", src:"Observed",
+            note:"Wednesday 20:0x · template + Chat thread + Brain cites"};
+          case 3: return {kind:"action", label:"Moved window → Ops", src:"Observed",
+            note:"Evening handover · mail and agents migrate together"};
+          case 4: return {kind:"app",    label:"Clap → ask", src:"Observed",
+            note:"Voice bursts of 2–4 asks, mostly artifact requests"};
+          case 5: return {kind:"time",   label:"09:"+String(i%60).padStart(2,"0")+" spike", src:"Observed",
+            note:"Approval + write actions peak in this window"};
+          default:return {kind:"action", label:"Filed to Contracts", src:"Observed",
+            note:"You route by drag-to-orb 4:1 over the menu path"};
+        }
+      }
+    },
+    why: {
+      seed:"why", count:100,
+      kinds:{ chain:"#5B94FF", step:"#4FC3F7", retrieval:"#3FCF95", check:"#0EA5B7", out:"#43E0A6", learned:"#C77DFF" },
+      legend:{ chain:"Reasoning chain", step:"Step", retrieval:"Retrieval", check:"Cross-check", out:"Output", learned:"Learned" },
+      hint:"Full reasoning traces — every answer keeps its working, defensible weeks later",
+      hubs:[
+        {id:"w-c2", kind:"chain", label:"C2 exposure answer",    src:"Chat 14 Aug", note:"How SAR 5.32M was derived and why standby dominates LD"},
+        {id:"w-ds", kind:"chain", label:"Dual-source decision",  src:"Decision 14 Aug", note:"Why +1.8% unit rate beats 19 Sep single-source"},
+        {id:"w-ld", kind:"chain", label:"LD cap reading",        src:"Chat 11 Aug", note:"Why the 10% cap binds only past day 67"},
+        {id:"w-vn", kind:"chain", label:"Variation notice draft",src:"Draft 16 Aug", note:"Clause chain behind VN-C2-0114 and the blank sum"}
+      ],
+      fill:function(i,R){
+        switch(i % 10){
+          case 0: return {kind:"step",     label:"Embed query · 384d", src:"Step",
+            note:"Question embedded in-cluster, Riyadh DC-1, zero egress"};
+          case 1: return {kind:"retrieval",label:"Retrieve top-50", src:"Retrieval",
+            note:"HNSW search over 4.2M vectors · 11 ms median"};
+          case 2: return {kind:"retrieval",label:"Rerank → top-8", src:"Retrieval",
+            note:"Cross-encoder rerank, GC-8 and PO chunks survive"};
+          case 3: return {kind:"check",    label:"Cross-check P6", src:"Cross-check",
+            note:"Live schedule pulled via p6-schedule MCP to date-stamp claims"};
+          case 4: return {kind:"check",    label:"Read GC-8 8.4", src:"Cross-check",
+            note:"Clause parsed verbatim — LD 0.15%/day, 10% cap"};
+          case 5: return {kind:"step",     label:"Score 0."+String(70+(i%29)), src:"Step",
+            note:"Groundedness score attached to every claim in the answer"};
+          case 6: return {kind:"out",      label:"Cite 4 sources", src:"Output",
+            note:"Each number in the answer carries its chunk citation"};
+          case 7: return {kind:"out",      label:"Draft answer", src:"Output",
+            note:"Assembled with the working shown — board-ready format"};
+          case 8: return {kind:"learned",  label:"Your edit 09:1"+(i%9), src:"Learned",
+            note:"Edit diff stored — you replaced LD emphasis with standby"};
+          default:return {kind:"learned",  label:"Learned preference", src:"Learned",
+            note:"Future answers lead with standby cost, not the LD cap"};
+        }
+      }
+    }
+  };
+  return MG_DEFS;
+}
+function mgRender(w){
+  var defs = mgDefs();
+  var tab = w.state.tab, def = defs[tab];
+  if(!def) return;
+  if(!def.g) def.g = genGraph(def);
+  var G = def.g;
+  if(!w.state.msel[tab]) w.state.msel[tab] = def.hubs[0].id;
+  var sel = w.state.msel[tab];
+  var host = w.body.querySelector("[data-brbody]"); if(!host) return;
+  var KC = def.kinds;
+  var nb = {};
+  G.edges.forEach(function(e){
+    if(e[0] === sel) nb[e[1]] = e[2];
+    else if(e[1] === sel) nb[e[0]] = e[2];
+  });
+  var edges = G.edges.map(function(e){
+    var a = G.by[e[0]], b = G.by[e[1]];
+    if(!a || !b) return "";
+    var hot = (e[0] === sel || e[1] === sel);
+    var near = !!nb[e[0]] || !!nb[e[1]];
+    var pred = !!e[3];
+    var x1=a.x*WORLD_W, y1=a.y*WORLD_H, x2=b.x*WORLD_W, y2=b.y*WORLD_H;
+    var mx=(x1+x2)/2, my=(y1+y2)/2, dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy)||1;
+    var bow=Math.min(40, len*.12), cx=mx-(dy/len)*bow, cy=my+(dx/len)*bow;
+    var d="M"+x1.toFixed(1)+" "+y1.toFixed(1)+" Q"+cx.toFixed(1)+" "+cy.toFixed(1)+" "+x2.toFixed(1)+" "+y2.toFixed(1);
+    var sw = hot ? 2.2 : (near ? 1.4 : (0.5 + e[2]).toFixed(2));
+    var op = hot ? .95 : (near ? .45 : (.06 + e[2]*.18).toFixed(2));
+    var clr = hot ? "var(--cyan)" : (pred ? "rgba(255,176,32,.75)" : (near ? "rgba(14,165,183,.5)" : "var(--tx-2)"));
+    var out = '<path class="br-edge'+(hot?" hot":(near?" near":""))+'" d="'+d+'" stroke="'+clr+
+      '" stroke-width="'+sw+'" opacity="'+op+'"'+(pred?' stroke-dasharray="5 5"':'')+'/>';
+    if(hot || pred || (near && e[2] > .72)){
+      var dur = (1.6 + (1-e[2])*1.6).toFixed(2);
+      out += '<circle class="br-flow" r="'+(hot?2.8:1.8)+'" fill="'+(pred?"#FFB020":(hot?KC[a.kind]:"rgba(14,165,183,.5)"))+
+        '" opacity="'+(hot?".9":".45")+'"><animateMotion dur="'+dur+'s" repeatCount="indefinite" path="'+d+'"/></circle>';
+    }
+    return out;
+  }).join("");
+  var nodes = G.nodes.map(function(n){
+    var isSel = n.id === sel, near = !!nb[n.id];
+    var r = isSel ? 15 : (n.hub ? 12 : (near ? 10 : 8));
+    var x = (n.x*WORLD_W).toFixed(1), y = (n.y*WORLD_H).toFixed(1);
+    var op = isSel || near || n.hub ? 1 : .5;
+    var col = KC[n.kind] || "#4FC3F7";
+    return '<g class="br-node'+(isSel?" sel":"")+(n.hub&&!isSel?" pulse":"")+'" data-mgnode="'+n.id+'">'+
+      (isSel ? '<circle class="br-halo" cx="'+x+'" cy="'+y+'" r="'+(r+9)+'" fill="none" stroke="'+col+
+        '" stroke-width="1.5" opacity=".45" filter="url(#brGlow)"/>' : "")+
+      '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+col+'" opacity="'+op+'"'+
+        (n.pred ? ' stroke="#FFB020" stroke-width="2" stroke-dasharray="4 3"' : '')+
+        (isSel ? ' filter="url(#brGlow)"' : '')+'/>'+
+      '<circle cx="'+x+'" cy="'+y+'" r="'+(r*.38).toFixed(1)+'" fill="#05070C" opacity="'+(op*.55).toFixed(2)+'"/>'+
+      '<text x="'+x+'" y="'+y+'" dy="'+(r+13)+'" opacity="'+(isSel||near||n.hub?1:.6)+
+        '"'+(n.pred?' fill="#FFB020"':'')+'>'+
+        esc(n.label.length>24 ? n.label.slice(0,23)+"…" : n.label)+'</text></g>';
+  }).join("");
+  host.innerHTML = '<div class="br-graph">'+
+    '<svg class="br-canvas" data-brcanvas viewBox="0 0 '+WORLD_W+' '+WORLD_H+'">'+
+      '<defs><pattern id="brGrid" width="34" height="34" patternUnits="userSpaceOnUse">'+
+        '<path d="M34 0H0V34" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/></pattern>'+
+      '<filter id="brGlow"><feGaussianBlur stdDeviation="3" result="blur"/>'+
+        '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
+      '<g data-brview><rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#brGrid)"/>'+
+      '<g class="br-edges">'+edges+'</g><g class="br-nodes">'+nodes+'</g></g></svg>'+
+    '<div class="br-zoom">'+
+      '<button data-brzoom="in" aria-label="Zoom in">'+ico("i-plus","xs")+'</button>'+
+      '<button data-brzoom="out" aria-label="Zoom out"><svg class="ico xs"><use href="#i-x"/></svg></button>'+
+      '<button data-brzoom="fit" aria-label="Fit to view">'+ico("i-grid","xs")+'</button>'+
+      '<span data-brzoomtx>100%</span></div>'+
+    '<div class="br-legend">'+Object.keys(def.legend).map(function(k){
+      return '<span><i style="background:'+KC[k]+'"></i>'+def.legend[k]+'</span>'; }).join("")+'</div>'+
+    '<div class="br-hint">'+esc(def.hint)+'</div></div>';
+  wireGraph(w, "m:"+tab);
+  mgDetail(w, sel);
+}
+function mgDetail(w, id){
+  var defs = mgDefs();
+  var def = defs[w.state.tab], G = def && def.g;
+  var n = G && G.by[id]; if(!n) return;
+  var d = w.body.querySelector("[data-brdetail]"); if(!d) return;
+  var KC = def.kinds, LG = def.legend;
+  var near = G.edges.filter(function(e){ return e[0]===id || e[1]===id; })
+    .map(function(e){ var o = e[0]===id ? e[1] : e[0];
+      return { node:G.by[o], score:e[2], pred:!!e[3] }; })
+    .filter(function(s){ return s.node; })
+    .sort(function(a,b){ return b.score-a.score; }).slice(0,7);
+  d.innerHTML =
+    '<span class="tag" style="color:'+KC[n.kind]+';border-color:'+KC[n.kind]+'55">'+(LG[n.kind]||n.kind)+'</span>'+
+    (n.pred ? '<span class="tag" style="color:#FFB020;border-color:#FFB02055">prediction</span>' : "")+
+    '<h5 style="margin-top:8px">'+esc(n.label)+'</h5>'+
+    '<div class="src">'+esc(n.src)+'</div>'+
+    '<p style="font-size:12.5px;color:var(--tx-2);line-height:1.6;margin:0">'+esc(n.note)+'</p>'+
+    '<div class="br-sect">Linked in this graph</div>'+
+    (near.length ? near.map(function(s){
+      return '<div class="simrow" data-mgnode="'+s.node.id+'">'+
+        '<span class="mini" style="background:'+KC[s.node.kind]+'"></span>'+
+        '<span class="nm">'+esc(s.node.label)+'</span>'+
+        '<span class="sc" style="'+(s.pred?'color:#FFB020':'')+'">'+(s.pred?'→':s.score.toFixed(2))+'</span></div>';
+    }).join("") : '<p style="font-size:12px;color:var(--tx-4)">No edges yet.</p>')+
+    '<button class="btn sm" style="margin-top:12px;width:100%" data-askbrain="'+esc(n.label)+'">'+
+      ico("i-chat","xs")+'Ask Chat about this</button>';
+}
+function mgSelect(w, id){
+  if(!w || w.appId !== "brain") return;
+  var def = mgDefs()[w.state.tab]; if(!def || !def.g || !def.g.by[id]) return;
+  w.state.msel[w.state.tab] = id;
+  mgRender(w);
+  setWinTitle(w, "Brain", def.g.by[id].label);
+}
+
 function nodeById(id){ return BRAIN_NODES.filter(function(n){ return n.id===id; })[0]; }
 function neighbours(id){
   return BRAIN_EDGES.filter(function(e){ return e[0]===id || e[1]===id; })
@@ -5393,6 +5703,8 @@ MOUNT.chat = function(body, w){
 /* ---------------------------------------------------------- BRAIN */
 MOUNT.brain = function(body, w){
   w.state.tab = "graph"; w.state.sel = "n1";
+  w.state.views = {};   /* per-tab pan/zoom state          */
+  w.state.msel  = {};   /* per-tab selected node on graphs */
   body.innerHTML =
     '<div class="br-wrap">'+
       '<div class="br-main">'+
@@ -5414,18 +5726,22 @@ MOUNT.brain = function(body, w){
     if(t){ w.state.tab = t.getAttribute("data-brtab");
            $$(".tab", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
            drawTab(); return; }
+    var m = e.target.closest("[data-mgnode]");
+    if(m){ mgSelect(w, m.getAttribute("data-mgnode")); return; }
     var n = e.target.closest("[data-brnode]");
     if(n){ brainSelect(w, n.getAttribute("data-brnode")); return; }
   });
   function drawTab(){
     var t = w.state.tab;
+    /* Documents / Emails / Behaviour / Reasoning are full graphs now */
+    if(mgDefs()[t]){ mgRender(w); return; }
     if(t === "graph"){
       host.innerHTML = '<div class="br-graph">' + graphSVG(w.state.sel) +
         '<div class="br-hint">scroll to zoom · drag to pan · click a node</div>'+
         '<div class="br-legend">' + Object.keys(KIND_COLOR).map(function(k){
           return '<span><i style="background:'+KIND_COLOR[k]+'"></i>'+KIND_LABEL[k]+'</span>'; }).join("") +
         '</div></div>';
-      wireGraph(w);
+      wireGraph(w, "graph");
     } else if(t === "docs"){
       var totalDocs = KNOWLEDGE_SOURCES.reduce(function(s,x){return s+x.count},0);
       var totalVecs = "4.2M";
@@ -5677,14 +5993,16 @@ function graphSVG(sel){
          '<div class="br-hint">Scroll to zoom · Drag to pan · Click a node</div>';
 }
 
-/* pan/zoom controller — one transform on the view group, nothing per node */
-function wireGraph(w){
+/* pan/zoom controller — one transform on the view group, nothing per node.
+   Each Brain tab keeps its own view state so switching tabs preserves zoom. */
+function wireGraph(w, key){
   var host = w.body.querySelector(".br-graph"); if(!host) return;
   var svg  = host.querySelector("[data-brcanvas]");
   var view = host.querySelector("[data-brview]");
   var tx   = host.querySelector("[data-brzoomtx]");
   if(!svg || !view) return;
-  var st = w.state.view || (w.state.view = { k:1, x:0, y:0 });
+  var vk = key || "graph";
+  var st = w.state.views[vk] || (w.state.views[vk] = { k:1, x:0, y:0 });
   function apply(){
     view.setAttribute("transform","translate("+st.x.toFixed(1)+","+st.y.toFixed(1)+") scale("+st.k.toFixed(3)+")");
     if(tx) tx.textContent = Math.round(st.k*100) + "%";
