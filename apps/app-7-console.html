@@ -1296,8 +1296,13 @@ function widgetHTML(kind){
       '<div class="row"><span class="d" style="background:var(--public)"></span>'+
       '<span class="nm">postgres</span><span class="v">:5432</span></div></div>';
   if(kind === "brain")
-    return '<div class="wg pv" data-wg="brain"><div class="wh">'+ico("i-brain")+'Brain index</div>'+
-      '<div class="big">8,412</div><div class="sm">documents · 1.94M vectors · 1,024-dim<br>Last incremental: 4 min ago</div></div>';
+    return '<div class="wg pv" data-wg="brain"><div class="wh">'+ico("i-brain")+'Brain activity<span class="sp"></span>'+
+      '<span class="live" style="width:6px;height:6px;border-radius:99px;background:var(--cyan);display:block"></span></div>'+
+      '<div class="big">8,412</div><div class="sm">documents · 1.94M vectors · 1,024-dim</div>'+
+      '<div class="meter" style="margin-top:6px"><i style="width:94%;background:var(--cyan)"></i></div>'+
+      '<div class="sm" style="margin-top:6px;color:var(--tx-3)">'+
+        '<span style="display:flex;align-items:center;gap:5px"><span class="dot" style="width:5px;height:5px;border-radius:99px;background:var(--private);display:inline-block"></span>9/10 sources connected</span>'+
+        '<span style="display:block;margin-top:3px">Last ingest: 4 min ago · 12 new chunks</span></div></div>';
   return '<div class="wg" data-wg="usage"><div class="wh">'+ico("i-chart")+'AI usage today</div>'+
     '<div class="big">184k</div><div class="sm">tokens · SAR 12.40 of a SAR 200 daily budget</div>'+
     '<div class="meter"><i style="width:6%;background:var(--signal)"></i></div></div>';
@@ -2607,6 +2612,7 @@ MOUNT.brain = function(body, w){
                 (n ? '<div class="rag-hit-node" data-brnode="'+h.node+'">'+ico("i-brain","xs")+' '+esc(n.label)+'</div>' : '')+
                 '</div></div>';
             }).join("");
+        });
       }
     } else if(t === "emails"){
       host.innerHTML = '<div class="pane-scroll"><h4 class="sec">Email, as part of the graph</h4>'+
