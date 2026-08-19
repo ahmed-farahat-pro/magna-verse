@@ -711,6 +711,7 @@ body.holo #edgeGlow{opacity:1;animation:holoBreathe 7s ease-in-out infinite}
 .g-word{--tile:#60A5FA;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25)}
 .g-ppt{--tile:#F59E0B;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25)}
 .g-trash{--tile:#EF4444;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25)}
+.g-flow{--tile:#22D3EE;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25)}
 
 /* ============================ DESKTOP WIDGETS ============================
    Live cards sitting on the wallpaper. The desktop should tell you the state
@@ -1226,11 +1227,23 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1p
    space — its wallpaper, icons, widgets and windows, scaled down — so you
    pick by sight, not by name. Apple-TV geometry: the selected card sits
    flat and full-size, neighbours shrink, fade and rotate away on a cylinder. */
+/* No backdrop-filter here. A full-viewport blur has to be recomposited on every
+   frame that the five large card layers animate over it, which is what made the
+   slideshow stutter. The cards cover the desktop almost entirely anyway, so a
+   slightly more opaque ground looks the same and costs nothing. */
 #deskSwitch{position:fixed;inset:0;z-index:260;display:none;flex-direction:column;
   align-items:center;justify-content:center;gap:26px;padding:34px 20px;
-  background:rgba(4,6,10,.78);backdrop-filter:blur(18px) saturate(1.15);
-  -webkit-backdrop-filter:blur(18px) saturate(1.15)}
-:root[data-theme="light"] #deskSwitch{background:rgba(226,231,240,.82)}
+  background:rgba(4,6,10,.93)}
+:root[data-theme="light"] #deskSwitch{background:rgba(226,231,240,.95)}
+/* The blur used to hide the desktop behind the overlay. Dimming the wallpaper
+   layer itself does the same job for free: it is one static opacity change on a
+   layer that is not animating, rather than a full-viewport filter recomputed on
+   every frame the cards move. */
+body.dsw #wallpaper{opacity:.14;transition:opacity .2s ease}
+body.dsw .icon-layer:not(.ds-live *),body.dsw .wg:not(.ds-live *){opacity:.12;transition:opacity .2s ease}
+@media (prefers-reduced-motion:reduce){
+  body.dsw #wallpaper,body.dsw .icon-layer,body.dsw #widgets,body.dsw .wg{transition:none}
+}
 #deskSwitch.on{display:flex;animation:fadeIn .16s ease-out}
 .ds-head{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none}
 .ds-title{font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
@@ -1241,13 +1254,31 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--glass-3);border:1p
   perspective:1600px;perspective-origin:50% 42%}
 .ds-card{position:absolute;left:50%;top:50%;border-radius:14px;cursor:pointer;
   transform-style:preserve-3d;transition:transform .5s cubic-bezier(.22,1,.3,1),
-  opacity .5s ease,filter .5s ease;will-change:transform,opacity}
+  opacity .5s ease,filter .5s ease;will-change:transform,opacity;
+  transform:translate(-50%,-50%)}
+/* Cards are positioned in the same frame they are inserted. Without this the
+   transition runs from the untransformed state and every card visibly flies in
+   from the wrong origin on open — the "glitch". dsBuild paints the resting
+   layout with transitions off, then releases them on the next frame. */
+.ds-card.noanim{transition:none !important}
 .ds-card .ds-screen{position:relative;overflow:hidden;border-radius:14px;
   background:var(--bg);border:1px solid var(--glass-line);
   box-shadow:0 30px 80px rgba(0,0,0,.55)}
 .ds-card.sel .ds-screen{border-color:rgba(14,165,183,.65);
   box-shadow:0 0 0 3px rgba(14,165,183,.22),0 34px 90px rgba(0,0,0,.6)}
-.ds-card .ds-live{position:absolute;top:0;left:0;transform-origin:top left;pointer-events:none}
+.ds-card .ds-live{position:absolute;top:0;left:0;transform-origin:top left;pointer-events:none;
+  contain:layout paint;backface-visibility:hidden}
+/* The preview clones the wallpaper and strips ids so they stay unique in the
+   document — which also strips every id-keyed rule with them. #wallMark is
+   sized, centred and faded entirely by its id, so without these mirrors it
+   rendered stretched and at full opacity across the card. */
+.ds-live .ds-wall{position:absolute;inset:0;overflow:hidden}
+.ds-live .ds-wallmark{position:absolute;left:50%;top:50%;width:min(58vmin,620px);
+  transform:translate(-50%,-50%);opacity:.16}
+:root[data-theme="light"] .ds-live .ds-wallmark{opacity:.2}
+.ds-live .ds-wallmark path{stroke-dasharray:none;stroke-dashoffset:0}
+/* a preview is a still, not a second running desktop */
+.ds-live *{animation:none !important;transition:none !important}
 .ds-card .ds-live *{pointer-events:none !important}
 .ds-card .ds-bar-strip,.ds-card .ds-dock-strip{position:absolute;left:0;right:0;pointer-events:none}
 .ds-card .ds-bar-strip{top:0}
@@ -1852,6 +1883,255 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .runrow .nm{font-weight:620}
 .runrow .sub{font-size:11px;color:var(--tx-3);margin-top:2px;font-family:var(--mono)}
 
+
+/* ============================ NODE GRAPH ENGINE ============================
+   One engine, three consumers: the Workflow app, the Agents diagram and the
+   Automations diagram. Nodes are absolutely-positioned HTML over an SVG edge
+   layer, so node content can be as rich as a card while edges stay vector.
+   The whole scene lives in .ng-vp, which is the only thing that transforms —
+   panning and zooming never touch a node's own style. */
+.ng{position:relative;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;
+  background-color:var(--glass);
+  background-image:radial-gradient(circle at 1px 1px, var(--glass-line-2) 1px, transparent 1.6px);
+  background-size:24px 24px;background-position:0 0;
+  touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;outline:none}
+.ng.panning{cursor:grabbing}
+.ng.linking{cursor:crosshair}
+.ng:focus-visible{outline:2px solid var(--accent-2);outline-offset:-2px}
+.ng-vp{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+.ng-edges{position:absolute;left:-4000px;top:-4000px;width:12000px;height:9000px;overflow:visible}
+.ng-edge{fill:none;stroke:var(--tx-4);stroke-width:1.8;stroke-linecap:round;transition:stroke .18s}
+.ng-edge.hit{stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:pointer}
+.ng-edge.sel{stroke:var(--accent-2);stroke-width:2.4}
+.ng-edge.flow{stroke:var(--cyan);stroke-width:2.4;stroke-dasharray:7 9}
+@media (prefers-reduced-motion: no-preference){ .ng-edge.flow{animation:ngFlow .55s linear infinite} }
+@keyframes ngFlow{to{stroke-dashoffset:-32}}
+.ng-edge.ghost{stroke:var(--cyan);stroke-dasharray:5 6;stroke-width:2}
+.ng-edge.ghost.bad{stroke:var(--accent-2)}
+.ng-elbl{font-family:var(--mono);font-size:9px;fill:var(--tx-4)}
+
+.ng-node{position:absolute;border-radius:12px;background:var(--glass-2);border:1px solid var(--glass-line-2);
+  box-shadow:var(--shadow-sm);cursor:grab;overflow:hidden;
+  transition:box-shadow .18s,border-color .18s,transform .12s}
+.ng-node:hover{border-color:var(--tx-4)}
+.ng-node.dragging{cursor:grabbing;box-shadow:var(--shadow-pop);z-index:6}
+.ng-node.sel{border-color:var(--accent-2);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent-2) 34%,transparent)}
+.ng-node:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.ng-n-hd{display:flex;align-items:center;gap:8px;padding:8px 10px 7px;border-bottom:1px solid var(--glass-line)}
+.ng-n-ic{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;flex:none}
+.ng-n-ic .ico{width:15px;height:15px;stroke:var(--tile,var(--tx))}
+.ng-n-tt{flex:1;min-width:0;line-height:1.25}
+.ng-n-tt b{display:block;font-size:11.8px;font-weight:660;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ng-n-tt i{display:block;font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--tx-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ng-n-st{flex:none;width:9px;height:9px;border-radius:99px;background:var(--tx-4);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--tx-4) 20%,transparent)}
+.ng-n-io{display:flex;justify-content:space-between;gap:6px;padding:7px 0}
+.ng-col{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ng-col.in{align-items:flex-start;padding-left:10px}
+.ng-col.out{align-items:flex-end;padding-right:10px;margin-left:auto}
+.ng-port{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;color:var(--tx-3);
+  padding:1px 0;border-radius:6px;max-width:100%}
+.ng-port span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ng-port .dot{width:11px;height:11px;border-radius:99px;flex:none;display:block;
+  border:2px solid var(--tx-4);background:var(--glass-3);transition:all .15s;cursor:crosshair}
+.ng-port.in .dot{margin-left:-15px}
+.ng-port.out .dot{margin-right:-15px}
+.ng-port:hover .dot{border-color:var(--cyan);transform:scale(1.25)}
+.ng-port.wired .dot{background:var(--tx-4);border-color:var(--tx-4)}
+.ng-port.drop-ok .dot{border-color:var(--private);background:var(--private);transform:scale(1.4)}
+.ng-port.drop-bad .dot{border-color:var(--accent-2)}
+.ng-port:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px}
+.ng-n-ft{display:flex;flex-wrap:wrap;gap:4px;padding:0 10px 8px;align-items:center}
+.ng-chip{font-family:var(--mono);font-size:8.6px;letter-spacing:.02em;padding:1.5px 5px;border-radius:4px;
+  border:1px solid var(--glass-line);color:var(--tx-3);background:var(--glass-3);white-space:nowrap}
+.ng-chip.r{color:var(--private);border-color:color-mix(in srgb,var(--private) 34%,transparent);background:var(--private-dim)}
+.ng-chip.w{color:var(--public);border-color:color-mix(in srgb,var(--public) 36%,transparent);background:var(--public-dim)}
+.ng-chip.eg{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent) 34%,transparent);background:var(--accent-dim)}
+.ng-chip.m{color:#A99BFF;border-color:color-mix(in srgb,var(--signal) 36%,transparent);background:var(--signal-dim)}
+.ng-chip.t{margin-left:auto;color:var(--cyan)}
+/* per-node run state */
+.ng-node[data-st="queued"]{border-color:var(--tx-4)}
+.ng-node[data-st="queued"] .ng-n-st{background:var(--tx-3);box-shadow:0 0 0 3px color-mix(in srgb,var(--tx-3) 22%,transparent)}
+.ng-node[data-st="running"]{border-color:var(--cyan);box-shadow:0 0 0 2px color-mix(in srgb,var(--cyan) 30%,transparent),0 8px 24px var(--glow-cyan)}
+.ng-node[data-st="running"] .ng-n-st{background:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 26%,transparent)}
+.ng-node[data-st="ok"]{border-color:color-mix(in srgb,var(--private) 60%,transparent)}
+.ng-node[data-st="ok"] .ng-n-st{background:var(--private);box-shadow:0 0 0 3px var(--private-dim)}
+.ng-node[data-st="warning"]{border-color:color-mix(in srgb,var(--public) 62%,transparent)}
+.ng-node[data-st="warning"] .ng-n-st{background:var(--public);box-shadow:0 0 0 3px var(--public-dim)}
+.ng-node[data-st="failed"]{border-color:color-mix(in srgb,var(--accent) 62%,transparent)}
+.ng-node[data-st="failed"] .ng-n-st{background:var(--accent-2);box-shadow:0 0 0 3px var(--accent-dim)}
+@media (prefers-reduced-motion: no-preference){
+  .ng-node[data-st="running"] .ng-n-st{animation:sovPulse 1.1s infinite}
+}
+.ng-marq{position:absolute;border:1px solid var(--cyan);background:color-mix(in srgb,var(--cyan) 14%,transparent);
+  border-radius:4px;pointer-events:none;display:none;z-index:8}
+.ng-hud{position:absolute;left:10px;bottom:10px;z-index:9;display:flex;gap:5px;align-items:center;
+  padding:4px;border-radius:10px;background:var(--chrome);border:1px solid var(--glass-line);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.ng-hud button{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--tx-2);
+  border:1px solid transparent}
+.ng-hud button:hover{background:var(--glass-3);color:var(--tx)}
+.ng-hud .zr{font-family:var(--mono);font-size:10.5px;color:var(--tx-3);min-width:42px;text-align:center}
+.ng-hud .wide{width:auto;padding:0 9px;font-size:11px;font-weight:600;gap:5px}
+.ng-mini{position:absolute;right:10px;bottom:10px;z-index:9;width:158px;height:100px;border-radius:9px;
+  background:var(--chrome);border:1px solid var(--glass-line);overflow:hidden;cursor:pointer;
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.ng-mini svg{width:100%;height:100%;display:block}
+.ng-mini .mn{fill:var(--tx-4);opacity:.75}
+.ng-mini .mn.sel{fill:var(--accent-2);opacity:1}
+.ng-mini .mv{fill:color-mix(in srgb,var(--cyan) 16%,transparent);stroke:var(--cyan);stroke-width:1.5}
+.ng-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none;
+  color:var(--tx-4);font-size:12px;line-height:1.7;padding:24px}
+/* quick-add — double-click the canvas */
+.ng-qa{position:absolute;z-index:12;width:250px;max-height:290px;display:none;flex-direction:column;
+  border-radius:12px;background:var(--glass-3);border:1px solid var(--glass-line-2);box-shadow:var(--shadow-pop);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);overflow:hidden}
+.ng-qa.on{display:flex}
+.ng-qa input{width:100%;height:34px;padding:0 11px;background:transparent;border:0;
+  border-bottom:1px solid var(--glass-line);font-size:12.5px;outline:none}
+.ng-qa .list{overflow-y:auto;padding:5px}
+.ng-qa .qi{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 8px;border-radius:7px;
+  font-size:12px;color:var(--tx-2)}
+.ng-qa .qi:hover,.ng-qa .qi[aria-selected="true"]{background:var(--glass-2);color:var(--tx)}
+.ng-qa .qi .g{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--tx-4)}
+
+/* ============================ WORKFLOW APP ============================ */
+.wf{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.wf-top{flex:none;padding:10px 12px;border-bottom:1px solid var(--glass-line);background:rgba(0,0,0,.10)}
+:root[data-theme="light"] .wf-top{background:rgba(255,255,255,.34)}
+.wf-ask{display:flex;gap:7px;align-items:center}
+.wf-ask .ico{color:var(--cyan)}
+.wf-ask input{flex:1;min-width:0;height:34px;padding:0 12px;border-radius:10px;background:var(--glass-3);
+  border:1px solid var(--glass-line-2);font-size:12.5px;outline:none}
+.wf-ask input:focus{border-color:var(--cyan)}
+.wf-chips{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.wf-chips::-webkit-scrollbar{display:none}
+.wf-chips .chip{flex:none;font-size:11px;height:26px}
+.wf-note{margin:8px 0 0;font-size:11.5px;color:var(--tx-2);line-height:1.6;display:flex;gap:7px;align-items:flex-start}
+.wf-note .ico{flex:none;margin-top:1px;color:var(--signal)}
+.wf-main{flex:1;min-height:0;display:flex;overflow:hidden}
+.wf-pal{width:212px;flex:none;border-right:1px solid var(--glass-line);background:rgba(0,0,0,.14);
+  display:flex;flex-direction:column;overflow-y:auto;padding:8px 7px}
+:root[data-theme="light"] .wf-pal{background:rgba(255,255,255,.35)}
+.wf-pg{margin-bottom:6px}
+.wf-pg>summary{list-style:none;cursor:pointer;font-size:10px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--tx-4);font-weight:700;padding:6px 8px;border-radius:7px;display:flex;align-items:center;gap:6px}
+.wf-pg>summary::-webkit-details-marker{display:none}
+.wf-pg>summary:hover{background:var(--glass-3);color:var(--tx-3)}
+.wf-pg>summary .cnt{margin-left:auto;font-family:var(--mono);font-size:9px}
+.wf-pi{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 8px;border-radius:7px;
+  font-size:11.6px;color:var(--tx-2);cursor:grab;border:1px solid transparent}
+.wf-pi:hover{background:var(--glass-3);color:var(--tx);border-color:var(--glass-line)}
+.wf-pi:active{cursor:grabbing}
+.wf-pi .sw{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;flex:none}
+.wf-pi .sw .ico{width:12px;height:12px;stroke:var(--tile,var(--tx))}
+.wf-pi .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wf-mid{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.wf-tools{flex:none;display:flex;gap:6px;align-items:center;padding:7px 10px;
+  border-bottom:1px solid var(--glass-line);overflow-x:auto;scrollbar-width:none}
+.wf-tools::-webkit-scrollbar{display:none}
+.wf-tools>*{flex:none}
+.wf-tools .sp{flex:1 1 auto;min-width:4px}
+.wf-mobonly{display:none}
+.wf-nm{font-size:12px;font-weight:640;color:var(--tx-2);white-space:nowrap;max-width:190px;
+  overflow:hidden;text-overflow:ellipsis}
+.wf-log{flex:none;height:150px;border-top:1px solid var(--glass-line);background:rgba(0,0,0,.16);
+  display:flex;flex-direction:column;overflow:hidden}
+:root[data-theme="light"] .wf-log{background:rgba(255,255,255,.42)}
+.wf-log.shut{height:32px}
+.wf-log-h{flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;height:32px;
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx-4);font-weight:700}
+.wf-log-h .sp{flex:1}
+.wf-log-b{flex:1;min-height:0;overflow-y:auto;padding:0 10px 8px;font-family:var(--mono);font-size:10.5px}
+.wf-lr{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--glass-line);align-items:baseline}
+.wf-lr:last-child{border-bottom:0}
+.wf-lr .t{color:var(--tx-4);flex:none}
+.wf-lr .n{color:var(--tx);flex:none;min-width:112px}
+.wf-lr .m{color:var(--tx-3);flex:1;min-width:0}
+.wf-lr .d{color:var(--cyan);flex:none}
+.wf-lr.ok .n{color:var(--private)}
+.wf-lr.warn .n{color:var(--public)}
+.wf-lr.err .n{color:var(--accent-2)}
+.wf-insp{width:274px;flex:none;border-left:1px solid var(--glass-line);background:rgba(0,0,0,.14);
+  display:flex;flex-direction:column;overflow-y:auto;padding:12px}
+:root[data-theme="light"] .wf-insp{background:rgba(255,255,255,.35)}
+.wf-ih{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.wf-ih .sw{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none}
+.wf-ih .sw .ico{stroke:var(--tile,var(--tx));width:16px;height:16px}
+.wf-ih b{font-size:13px;font-weight:680;display:block}
+.wf-ih i{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--tx-3)}
+.wf-f{margin-bottom:10px}
+.wf-f label{display:block;font-size:10.5px;color:var(--tx-3);margin-bottom:4px;font-weight:600}
+.wf-f input,.wf-f select,.wf-f textarea{width:100%;background:var(--glass-3);border:1px solid var(--glass-line-2);
+  border-radius:8px;padding:7px 9px;font-size:11.8px;outline:none;font-family:var(--sans)}
+.wf-f textarea{min-height:66px;resize:vertical;line-height:1.5}
+.wf-f input:focus,.wf-f select:focus,.wf-f textarea:focus{border-color:var(--cyan)}
+.wf-f .hint{margin-top:4px;font-size:10.5px;color:var(--tx-4);line-height:1.5}
+.wf-f .hint b{color:var(--cyan);font-weight:600}
+.wf-res{border:1px solid var(--glass-line);border-radius:10px;padding:9px 10px;margin-bottom:11px;
+  background:var(--glass-3);font-size:11px;line-height:1.6;color:var(--tx-2)}
+.wf-res .rw{display:flex;gap:8px;align-items:center;margin-bottom:3px}
+.wf-res .rw:last-child{margin-bottom:0}
+.wf-res .rw .k{color:var(--tx-4);min-width:56px;flex:none;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.wf-sheet{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;
+  background:color-mix(in srgb,var(--bg) 76%,transparent);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.wf-sheet.on{display:flex}
+.wf-sheet-h{flex:none;display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--glass-line)}
+.wf-sheet-h b{font-size:13.5px;font-weight:700;flex:1}
+.wf-sheet-b{flex:1;min-height:0;overflow-y:auto;padding:14px}
+.wf-json{font-family:var(--mono);font-size:10.5px;line-height:1.55;white-space:pre;overflow:auto;
+  background:var(--glass-3);border:1px solid var(--glass-line);border-radius:10px;padding:12px;max-height:100%;
+  color:var(--tx-2);-webkit-user-select:text;user-select:text}
+.wf-tpl{border:1px solid var(--glass-line);border-radius:12px;background:var(--glass-2);padding:12px 14px;
+  text-align:left;width:100%;display:block;transition:border-color .18s,transform .18s}
+.wf-tpl:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.wf-tpl b{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:660;margin-bottom:4px}
+.wf-tpl span{display:block;font-size:11.5px;color:var(--tx-2);line-height:1.55}
+.wf-tpl .mt{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+
+/* segmented toggle — list vs diagram, reused by Agents and Automations */
+.segt{display:inline-flex;gap:2px;padding:2px;border-radius:9px;background:var(--glass-3);
+  border:1px solid var(--glass-line)}
+.segt button{height:26px;padding:0 11px;border-radius:7px;font-size:11.5px;font-weight:600;color:var(--tx-3);
+  display:inline-flex;align-items:center;gap:5px}
+.segt button:hover{color:var(--tx-2)}
+.segt button[aria-pressed="true"]{background:var(--glass);color:var(--tx);box-shadow:var(--shadow-sm)}
+
+/* diagram host used inside Agents / Automations */
+.dgm{display:flex;flex-direction:column;border:1px solid var(--glass-line);border-radius:var(--r-lg);
+  overflow:hidden;background:var(--glass);margin-bottom:12px}
+.dgm-h{flex:none;display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--glass-line);
+  flex-wrap:wrap}
+.dgm-h .ttl{font-size:12.5px;font-weight:680;display:flex;align-items:center;gap:7px}
+.dgm-h .sp{flex:1 1 auto;min-width:4px}
+.dgm-c{height:300px;display:flex;position:relative}
+.dgm-det{border-top:1px solid var(--glass-line);padding:10px 12px;font-size:11.5px;line-height:1.6;
+  color:var(--tx-2);background:var(--glass-3);display:none}
+.dgm-det.on{display:block}
+.dgm-det b{color:var(--tx);font-size:12px}
+.dgm-det .kv{padding:5px 0;font-size:11.5px}
+.dgm-det .kv .k{min-width:96px;font-size:11px}
+.dgm-det .kv .v{font-size:11px}
+
+@media (max-width:767px){
+  .wf-pal,.wf-insp{position:absolute;left:0;right:0;bottom:0;top:auto;width:auto;height:min(58vh,420px);
+    z-index:42;border:0;border-top:1px solid var(--glass-line-2);border-radius:16px 16px 0 0;
+    background:var(--glass-3);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    box-shadow:0 -18px 40px rgba(0,0,0,.35);display:none}
+  .wf-pal.on,.wf-insp.on{display:flex}
+  .wf-pal::before,.wf-insp::before{content:"";width:38px;height:4px;border-radius:99px;background:var(--tx-4);
+    margin:0 auto 10px;flex:none}
+  .wf-pi{min-height:40px}
+  .wf-mobonly{display:inline-flex !important}
+  .wf-log{height:118px}
+  .ng-mini{display:none}
+  .ng-hud button{width:34px;height:34px}
+  .dgm-c{height:260px}
+  .wf-chips .chip{max-width:230px;overflow:hidden;text-overflow:ellipsis;display:inline-block;line-height:26px}
+}
+
 /* ============================ MOBILE — app internals ============================
    This block must sit AFTER every app rule above: media queries add no
    specificity, so an identical selector declared later would otherwise win. */
@@ -1957,6 +2237,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <symbol id="i-mcp" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="9.5" rx="2.5"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/><circle cx="9.5" cy="13.5" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13.5" r="1" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-task" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 15l2.4-4 2.3 2.4L14.2 9l2.8 6"/><circle cx="7" cy="15" r="1.5" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.6 2H4.9z"/><path d="M10 20.2a2.2 2.2 0 0 0 4 0"/><circle cx="12" cy="5.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-flow" viewBox="0 0 24 24"><rect x="2.5" y="4" width="6.5" height="5" rx="1.6"/><rect x="15" y="2.6" width="6.5" height="5" rx="1.6"/><rect x="15" y="16.4" width="6.5" height="5" rx="1.6"/><path d="M9 6.5h2.6a2 2 0 0 1 2 2v1.6M13.6 13.2v3.7a2 2 0 0 0 2 2h-.6M9 6.5"/><path d="M9 6.5h6"/><path d="M13.6 10.1v4.9"/><circle cx="13.6" cy="12.5" r="1.4" fill="currentColor" stroke="none" opacity=".45"/></symbol>
 <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></symbol>
 <symbol id="i-api" viewBox="0 0 24 24"><circle cx="5" cy="8" r="2.5"/><circle cx="19" cy="8" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7 9l3 5M17 9l-3 5"/><circle cx="12" cy="11" r="1" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3.2 8 4.2v9.2l-8 4.2-8-4.2V7.4z"/><path d="m4 7.4 8 4.2 8-4.2M12 11.6v9.4"/><circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" opacity=".4"/></symbol>
@@ -3462,16 +3743,17 @@ var APPS = {
   duel:    { name:"Quote Duel",   icon:"i-chart",  tile:"g-sheets",  w:960, h:640, minW:520, minH:400, multi:true  },
   board:   { name:"Board Pack",   icon:"i-doc",    tile:"g-docs2",   w:900, h:640, minW:480, minH:380, multi:false },
   prep:    { name:"Meeting Prep", icon:"i-chat",   tile:"g-chat",    w:860, h:620, minW:480, minH:380, multi:false },
-  audit:   { name:"Audit Score",  icon:"i-shield", tile:"g-agents",  w:880, h:640, minW:480, minH:380, multi:false }
+  audit:   { name:"Audit Score",  icon:"i-shield", tile:"g-agents",  w:880, h:640, minW:480, minH:380, multi:false },
+  workflow:{ name:"Workflow",     icon:"i-flow",   tile:"g-flow",    w:1180,h:760, minW:560, minH:420, multi:true  }
 };
 /* Dock shows the 7 core apps. Running/contextual apps are appended with a
    separator, and renderDock shrinks --dk so the bar never overflows —
    everything else stays on the desktop and in Spotlight. */
-var DOCK_PINNED = ["chat","brain","mail","files","agents","settings","trash"];
-var DOCK_REST   = ["files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","market","tasks",
+var DOCK_PINNED = ["chat","brain","mail","files","agents","workflow","settings","trash"];
+var DOCK_REST   = ["files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","workflow","market","tasks",
                    "approvals","ledger","memory","models","conn","mail","settings","trash","duel","board","prep","audit"];
 var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","word","ppt","sheets","docs","slides","gantt",
-                      "api","db","agents","autos","market","tasks","approvals","ledger","memory",
+                      "api","db","agents","autos","workflow","market","tasks","approvals","ledger","memory",
                       "models","conn","mail","settings","trash","duel","board","prep","audit"];
 
 /* badges that make the desktop informative rather than decorative */
@@ -3766,6 +4048,11 @@ function dockPinned(){
     if(v && v.length){
       /* migrate the old 5-app default to the new 7-app default */
       var OLD_DEFAULT = ["chat","brain","code","browser","terminal"];
+      var OLD_7 = ["chat","brain","mail","files","agents","settings","trash"];
+      if(v.length === OLD_7.length && v.every(function(x,i){ return x === OLD_7[i]; })){
+        saveDock(DOCK_PINNED.slice());
+        return DOCK_PINNED.slice();
+      }
       if(v.length === OLD_DEFAULT.length && v.every(function(x,i){ return x === OLD_DEFAULT[i]; })){
         saveDock(DOCK_PINNED.slice());
         return DOCK_PINNED.slice();
@@ -4332,8 +4619,17 @@ function dsPreview(s){
   if(wp){
     var wpc = wp.cloneNode(true);
     $$("canvas", wpc).forEach(function(c){ c.remove(); });
+    /* carry the id-keyed styling across as classes BEFORE the ids are dropped */
+    var wm = wpc.querySelector("#wallMark");
+    if(wm) wm.classList.add("ds-wallmark");
+    wpc.classList.add("ds-wall");
     $$("[id]", wpc).forEach(function(n){ n.removeAttribute("id"); });
-    wpc.removeAttribute("id");
+    /* Keep the ROOT id. Every descendant rule is written as "#wallpaper .grid",
+       so stripping it silently unstyles the whole clone — that is what rendered
+       the brand mark full-bleed. The duplicate id is safe here: the real
+       elements sit earlier in the document, so getElementById still resolves to
+       them, and previews are inert (pointer-events:none, nothing queries them). */
+    wpc.id = "wallpaper";
     wpc.style.cssText = "position:absolute;inset:0;";
     live.appendChild(wpc);
   }
@@ -4359,7 +4655,7 @@ function dsPreview(s){
   if(mb){
     var mbc = mb.cloneNode(true);
     $$("[id]", mbc).forEach(function(n){ n.removeAttribute("id"); });
-    mbc.removeAttribute("id");
+    mbc.id = "menubar";                 /* see the note on the wallpaper clone */
     mbc.style.cssText = "position:absolute;left:0;top:0;right:0;";
     live.appendChild(mbc);
   }
@@ -4367,7 +4663,7 @@ function dsPreview(s){
   if(dk){
     var dkc = dk.cloneNode(true);
     $$("[id]", dkc).forEach(function(n){ n.removeAttribute("id"); });
-    dkc.removeAttribute("id");
+    dkc.id = "dock";                    /* see the note on the wallpaper clone */
     dkc.style.cssText = "position:absolute;left:0;bottom:0;right:0;";
     live.appendChild(dkc);
   }
@@ -4397,11 +4693,17 @@ function dsBuild(){
   DESK.items = DESK.cards.length;
   DESK.cards.forEach(function(card,i){
     card.setAttribute("data-dsi", i);
+    card.classList.add("noanim");      /* no transition for the first paint */
     card.addEventListener("click", function(){
       if(DESK.sel === i) dsGo();
       else { DESK.sel = i; dsDraw(); }
     });
     stage.appendChild(card);
+  });
+  dsDraw();                            /* put every card at rest, un-animated */
+  void stage.offsetWidth;              /* flush layout so the styles are committed */
+  requestAnimationFrame(function(){
+    DESK.cards.forEach(function(card){ card.classList.remove("noanim"); });
   });
   var dots = $("[data-dsdots]");
   if(dots) dots.innerHTML = DESK.cards.map(function(_,i){
@@ -4414,7 +4716,12 @@ function dsDraw(){
   var CARD_W = Math.min(680, Math.max(340, Math.round(window.innerWidth * .52)));
   DESK.cards.forEach(function(card,i){
     var d = i - DESK.sel, ad = Math.abs(d);
-    if(ad > 2){ card.style.opacity = "0"; card.style.pointerEvents = "none"; return; }
+    /* visibility, not just opacity — an invisible card with will-change still
+       holds a full-size compositor layer, and five of those is the difference
+       between a smooth rail and a stuttering one */
+    if(ad > 2){ card.style.opacity = "0"; card.style.visibility = "hidden";
+                card.style.pointerEvents = "none"; return; }
+    card.style.visibility = "";
     card.style.pointerEvents = "";
     var x = d * (CARD_W * .56);
     var sc = ad === 0 ? 1 : Math.max(.52, .8 - (ad - 1) * .14);
@@ -4443,9 +4750,10 @@ function dsOpen(on){
   if(on === DESK.on) return;
   DESK.on = !!on;
   ov.classList.toggle("on", DESK.on);
+  document.body.classList.toggle("dsw", DESK.on);
   if(DESK.on){
     DESK.sel = spaceIndex(curSpace);
-    dsBuild(); dsDraw();
+    dsBuild();                         /* dsBuild paints the resting layout itself */
   } else {
     setTimeout(function(){ var st = $("[data-dsstage]"); if(st && !DESK.on) st.innerHTML = ""; }, 350);
   }
@@ -5314,7 +5622,7 @@ var AGENTS = [
    tags:["clause-finder","Company Knowledge"], delegates:"PO Slippage Watch"},
   {id:"a3", name:"Board Pack Drafter", tile:"g-auto", icon:"i-slides", state:"idle",
    desc:"Assembles the Thursday narrative from the week's exposure, HSE and schedule movement.",
-   tags:["Thursday 07:00"], delegates:null},
+   tags:["Thursday 07:00"], delegates:"PO Slippage Watch"},
   {id:"a4", name:"HSE Digest", tile:"g-conn", icon:"i-shield", state:"idle",
    desc:"Weekly incident summary with your reporting thresholds already applied.",
    tags:["hse-digest"], delegates:null}
@@ -8677,6 +8985,7 @@ var RUN_STEPS = [
 ];
 MOUNT.agents = function(body, w){
   w.state.tab = "crew"; w.state.step = 0; w.state.timer = null; w.state.taken = false;
+  w.state.dgSel = AGENTS[0].id; w.state.dg = null; w.state.replay = null;
   body.innerHTML = '<div class="pane">'+
     '<div class="tabs">'+
       '<button class="tab" data-agtab="crew" aria-selected="true">Crew</button>'+
@@ -8708,8 +9017,28 @@ MOUNT.agents = function(body, w){
       }).join("") +'</div>';
   }
   function drawAll(){
+    var view = store.get("mv7.agview","list");
+    var seg = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">'+
+      '<div class="segt" role="group" aria-label="Agents view">'+
+        '<button type="button" data-agview="list" aria-pressed="'+(view==="list")+'">'+ico("i-layers","xs")+'List</button>'+
+        '<button type="button" data-agview="diagram" aria-pressed="'+(view==="diagram")+'">'+ico("i-flow","xs")+'Diagram</button>'+
+      '</div>'+
+      (view==="diagram" ? AGENTS.map(function(a){
+          return '<button type="button" class="chip" data-agpick="'+esc(a.id)+'" aria-pressed="'+(w.state.dgSel===a.id)+'">'+esc(a.name)+'</button>'; }).join("")+
+        '<button type="button" class="chip" data-agpick="map" aria-pressed="'+(w.state.dgSel==="map")+'">'+ico("i-agent","xs")+'Delegation map</button>' : '')+
+      '</div>';
+    if(view === "diagram"){
+      body.querySelector("[data-agbody]").innerHTML = '<h4 class="sec">Agents</h4>'+
+        '<p class="sub">Each agent drawn from its own configuration: what wakes it, which sources it may reach, '+
+        'the model, its tool allow-list marked read or write, the guardrail, and where the result lands. '+
+        'Nothing here is a stored picture — change the agent and the diagram changes.</p>'+
+        seg + '<div class="dgm" data-agdgm></div>';
+      drawDgm();
+      return;
+    }
     body.querySelector("[data-agbody]").innerHTML = '<h4 class="sec">Agents</h4>'+
       '<p class="sub">Read actions run free inside their granted scope. Every write waits for you.</p>'+
+      seg +
       '<div class="grid2">'+ AGENTS.map(function(a){
         return '<div class="agc"><div class="top"><span class="av '+a.tile+'">'+ico(a.icon,"sm")+'</span>'+
         '<span class="nm">'+esc(a.name)+'</span>'+
@@ -8719,6 +9048,41 @@ MOUNT.agents = function(body, w){
         (a.delegates?'<span class="tag sg">'+ico("i-agent","xs")+'→ '+esc(a.delegates)+'</span>':"")+
         '<button class="btn sm" data-agrun="'+esc(a.name)+'" style="margin-left:auto">Run now</button>'+
         '</div></div>'; }).join("") +'</div>';
+  }
+  function curAgent(){ return AGENTS.filter(function(x){ return x.id === w.state.dgSel; })[0] || AGENTS[0]; }
+  function drawDgm(){
+    var hostEl = body.querySelector("[data-agdgm]"); if(!hostEl) return;
+    if(w.state.replay){ w.state.replay.stop(); w.state.replay = null; }
+    var isMap = w.state.dgSel === "map";
+    var a = curAgent();
+    var D = dgmMount(hostEl, { title: isMap ? "Delegation across the crew" : a.name,
+      icon: isMap ? "i-agent" : a.icon, openInWorkflow: !isMap });
+    w.state.dg = D;
+    D.G.load(isMap ? agentDelegationGraph() : agentGraph(a), true);
+    D.G.autoLayout();
+    var rec = AGENT_RUNS[a.id];
+    hostEl.querySelector("[data-dgreplay]").title = isMap
+      ? "Replays the delegation order"
+      : "Replays the run recorded " + (rec ? rec.at : "for this agent");
+  }
+  function replayAgent(){
+    var D = w.state.dg; if(!D) return;
+    var isMap = w.state.dgSel === "map";
+    var a = curAgent(), rec = AGENT_RUNS[a.id];
+    var lines = [];
+    D.det.classList.add("on");
+    D.det.innerHTML = '<b>Replaying '+esc(isMap ? "the delegation order" : a.name)+'</b>'+
+      '<p>' + esc(isMap ? "Order the supervisor handed work out in." : "Recorded run · " + (rec ? rec.at : "no timing on file")) + '</p>'+
+      '<div data-agtrace style="font-family:var(--mono);font-size:10.5px;margin-top:6px"></div>';
+    var trace = D.det.querySelector("[data-agtrace]");
+    if(w.state.replay) w.state.replay.stop();
+    w.state.replay = dgmReplay(D.G, isMap ? null : (rec ? rec.steps : null), function(n, t){
+      lines.push('<div>' + esc(n.title) + ' · ' + t.ms + 'ms' + (t.st === "warn" ? ' · warning' : '') + '</div>');
+      trace.innerHTML = lines.join("");
+    }, function(){
+      trace.innerHTML += '<div style="color:var(--private)">replay complete</div>';
+      w.state.replay = null;
+    });
   }
   function drawRun(){
     var host = body.querySelector("[data-agbody]");
@@ -8767,6 +9131,18 @@ MOUNT.agents = function(body, w){
     else drawRun();
   }
   body.addEventListener("click", function(e){
+    var vb = e.target.closest("[data-agview]");
+    if(vb){ store.set("mv7.agview", vb.getAttribute("data-agview")); drawAll(); return; }
+    var pk = e.target.closest("[data-agpick]");
+    if(pk){ w.state.dgSel = pk.getAttribute("data-agpick"); drawAll(); return; }
+    if(e.target.closest("[data-dgreplay]")){ replayAgent(); return; }
+    if(e.target.closest("[data-dgwf]")){
+      var ag = curAgent();
+      openApp("workflow", { graph: agentToWorkflow(ag), name: ag.name,
+        note: "Opened from the " + ag.name + " diagram. The agent's trigger, sources and destination became editable nodes \u2014 the agent itself is unchanged." });
+      toast("Opened \u201c" + ag.name + "\u201d in Workflow. Editing here does not change the agent.", 4200);
+      return;
+    }
     var t = e.target.closest("[data-agtab]");
     if(t){ stopRun(); w.state.tab = t.getAttribute("data-agtab");
            $$("[data-agtab]", body).forEach(function(x){ x.setAttribute("aria-selected", String(x===t)); });
@@ -8814,9 +9190,70 @@ MOUNT.autos = function(body, w){
   var READS  = ["p6-schedule","sap-po-lookup","magna-mail","chat-thread","brain-graph","budget-sheet"];
   var ACTS   = ["Draft letter","Attach sheet","Notify me","Rebuild deck","Park in drafts","Route to Brain","Escalate"];
   body.innerHTML = '<div class="pane"><div class="pane-scroll" data-autohost></div></div>';
+  w.state.auSel = 0; w.state.auDg = null; w.state.auReplay = null;
+  function curAuto(){ return AUTOS[w.state.auSel] || AUTOS[0]; }
+  function drawAuDgm(){
+    var hostEl = body.querySelector("[data-audgm]"); if(!hostEl) return;
+    if(w.state.auReplay){ w.state.auReplay.stop(); w.state.auReplay = null; }
+    var a = curAuto(), g = autoGraph(a);
+    var D = dgmMount(hostEl, { title: a.name, icon:"i-bolt", openInWorkflow:false });
+    w.state.auDg = D; w.state.auG = g;
+    D.G.load({ nodes:g.nodes, edges:g.edges }, true);
+    D.G.autoLayout();
+    /* paint the recorded last run onto the nodes straight away — the
+       diagram should read as "what happened", not as an empty template */
+    if(g.rec){
+      D.G.nodes.forEach(function(n, i){
+        if(i === 0){ D.G.setState(n.id, "ok"); return; }
+        var r = g.rec.steps[i-1];
+        if(!r) return;
+        D.G.setState(n.id, r.st === "warn" ? "warning" : "ok");
+        D.G.setBadge(n.id, r.ms + "ms");
+      });
+    }
+    hostEl.querySelector("[data-dgreplay]").title = g.rec ? "Replays the run of " + g.rec.at : "No recorded run";
+  }
+  function replayAuto(){
+    var D = w.state.auDg, g = w.state.auG; if(!D || !g) return;
+    var a = curAuto();
+    var lines = [];
+    D.det.classList.add("on");
+    D.det.innerHTML = '<b>Replaying ' + esc(a.name) + '</b><p>' +
+      esc(g.rec ? "Recorded run · " + g.rec.at : "No per-step timing on file — using nominal durations.") + '</p>' +
+      '<div data-autrace style="font-family:var(--mono);font-size:10.5px;margin-top:6px"></div>';
+    var trace = D.det.querySelector("[data-autrace]");
+    var timings = g.rec ? [{ms:8,st:"ok"}].concat(g.rec.steps) : null;
+    if(w.state.auReplay) w.state.auReplay.stop();
+    w.state.auReplay = dgmReplay(D.G, timings, function(n, t){
+      lines.push('<div>' + esc(n.title) + ' · ' + t.ms + 'ms' + (t.st === "warn" ? ' · warning' : '') + '</div>');
+      trace.innerHTML = lines.join("");
+    }, function(){
+      trace.innerHTML += '<div style="color:var(--private)">replay complete</div>';
+      w.state.auReplay = null;
+    });
+  }
   w.state.draw = function(){
+    var view = store.get("mv7.autoview","list");
+    var seg = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">'+
+      '<div class="segt" role="group" aria-label="Automations view">'+
+        '<button type="button" data-autoview="list" aria-pressed="'+(view==="list")+'">'+ico("i-layers","xs")+'List</button>'+
+        '<button type="button" data-autoview="diagram" aria-pressed="'+(view==="diagram")+'">'+ico("i-flow","xs")+'Diagram</button>'+
+      '</div>'+
+      (view==="diagram" ? AUTOS.map(function(a,i){
+        return '<button type="button" class="chip" data-autopick="'+i+'" aria-pressed="'+(w.state.auSel===i)+'">'+esc(a.name)+'</button>'; }).join("") : '')+
+      '</div>';
+    if(view === "diagram"){
+      body.querySelector("[data-autohost]").innerHTML =
+        '<h4 class="sec">'+ico("i-bolt","sm")+'Automations as flows</h4>'+
+        '<p class="sub">Schedule, then every step the automation actually performs, with the branch drawn where it '+
+        'branches. The milliseconds and item counts on the nodes are from its last recorded run — not live telemetry. '+
+        'Click a node for detail, or replay the run through the graph.</p>'+
+        seg + '<div class="dgm" data-audgm></div>';
+      drawAuDgm();
+      return;
+    }
     var ready = B.trig && B.reads.length && B.acts.length;
-    body.querySelector("[data-autohost]").innerHTML =
+    body.querySelector("[data-autohost]").innerHTML = seg +
       '<h4 class="sec">'+ico("i-bolt","sm")+'Automation builder</h4>'+
       '<p class="sub">Chain a trigger, the data it may read, and what it may do. Every run asks before it writes.</p>'+
       '<div class="ab-steps">'+
@@ -8854,6 +9291,11 @@ MOUNT.autos = function(body, w){
   };
   w.state.draw();
   body.addEventListener("click", function(e){
+    var vb = e.target.closest("[data-autoview]");
+    if(vb){ store.set("mv7.autoview", vb.getAttribute("data-autoview")); w.state.draw(); return; }
+    var pk = e.target.closest("[data-autopick]");
+    if(pk){ w.state.auSel = +pk.getAttribute("data-autopick"); w.state.draw(); return; }
+    if(e.target.closest("[data-dgreplay]")){ replayAuto(); return; }
     var t = e.target.closest("[data-abt]");
     if(t){ B.trig = (B.trig===t.getAttribute("data-abt")) ? null : t.getAttribute("data-abt"); w.state.draw(); return; }
     var r = e.target.closest("[data-abr]");
@@ -10683,6 +11125,2049 @@ function downloadPPT(slides, name){
   a.click(); URL.revokeObjectURL(url);
   toast("Downloaded as HTML.", 2000);
 }
+
+/* ---------------------------------------------------------- TRASH */
+/* ============================================================
+   8b · NODE GRAPH ENGINE
+   One engine, three consumers: the Workflow app, the Agents
+   diagram and the Automations diagram. Vanilla JS, inline SVG,
+   no library.
+
+   Layout model — the only thing that ever transforms is .ng-vp.
+   Nodes carry content-space x/y and never learn about the camera,
+   so a pan is one style write instead of N. Edges live in an SVG
+   layer offset by SV in both axes, which lets content coordinates
+   go negative without an off-canvas clip.
+
+   Wheel events are swallowed here (preventDefault + stopPropagation)
+   for the same reason #deskSwitch swallows them: the OS listens for
+   a two-finger wheel to change desktops, and panning a canvas must
+   not move the space behind the window.
+   ============================================================ */
+var NG_SEQ = 1;
+function ngId(p){ return (p || "n") + (NG_SEQ++) + Math.random().toString(36).slice(2,5); }
+
+function NGraph(host, opts){
+  opts = opts || {};
+  var SV = 4000;                      /* svg layer offset, content(0,0) → svg(SV,SV) */
+  var MINK = .28, MAXK = 2.4;
+  var G = {
+    host:host, nodes:[], edges:[], sel:[], selEdge:null,
+    tx:40, ty:40, k:1, undo:[], redo:[], opts:opts, ro:!!opts.readOnly
+  };
+
+  host.classList.add("ng");
+  if(!host.hasAttribute("tabindex")) host.setAttribute("tabindex","0");
+  host.setAttribute("role","application");
+  host.setAttribute("aria-label", opts.label || "Node graph canvas");
+  host.innerHTML =
+    '<div class="ng-vp" data-vp>'+
+      '<svg class="ng-edges" data-edges></svg>'+
+      '<div data-nodes style="position:absolute;left:0;top:0;width:0;height:0"></div>'+
+    '</div>'+
+    '<div class="ng-marq" data-marq></div>'+
+    '<div class="ng-empty" data-empty></div>'+
+    (opts.quickAdd ? '<div class="ng-qa" data-qa>'+
+      '<input type="text" data-qain placeholder="Add a node…" aria-label="Search nodes to add" spellcheck="false">'+
+      '<div class="list" data-qalist role="listbox"></div></div>' : '')+
+    '<div class="ng-hud">'+
+      '<button type="button" data-ngz="-" aria-label="Zoom out" title="Zoom out">'+ico("i-x","xs")+'</button>'+
+      '<span class="zr" data-zr aria-live="polite">100%</span>'+
+      '<button type="button" data-ngz="+" aria-label="Zoom in" title="Zoom in">'+ico("i-plus","xs")+'</button>'+
+      '<button type="button" class="wide" data-ngfit aria-label="Fit graph to view">'+ico("i-grid","xs")+'Fit</button>'+
+      (opts.readOnly ? '' : '<button type="button" class="wide" data-nglay aria-label="Tidy layout">'+ico("i-layers","xs")+'Tidy</button>')+
+    '</div>'+
+    '<div class="ng-mini" data-mini role="button" tabindex="0" aria-label="Minimap — click to recentre"><svg viewBox="0 0 158 100" preserveAspectRatio="none" data-minisvg></svg></div>';
+
+  var vp    = host.querySelector("[data-vp]");
+  var svg   = host.querySelector("[data-edges]");
+  var nlay  = host.querySelector("[data-nodes]");
+  var marq  = host.querySelector("[data-marq]");
+  var zr    = host.querySelector("[data-zr]");
+  var mini  = host.querySelector("[data-minisvg]");
+  var emptyN= host.querySelector("[data-empty]");
+  var qa    = host.querySelector("[data-qa]");
+
+  /* ---------- geometry helpers ---------- */
+  function estH(n){ return 40 + Math.max(n.ins.length, n.outs.length, 1) * 18 + ((n.chips && n.chips.length) ? 26 : 10); }
+  function nodeById(id){ for(var i=0;i<G.nodes.length;i++) if(G.nodes[i].id === id) return G.nodes[i]; return null; }
+  function toContent(clientX, clientY){
+    var r = host.getBoundingClientRect();
+    return [ (clientX - r.left - G.tx) / G.k, (clientY - r.top - G.ty) / G.k ];
+  }
+  G.nodeById = nodeById;
+  G.toContent = toContent;
+
+  /* ---------- camera ---------- */
+  function apply(){
+    vp.style.transform = "translate("+G.tx.toFixed(2)+"px,"+G.ty.toFixed(2)+"px) scale("+G.k.toFixed(4)+")";
+    host.style.backgroundSize = (24*G.k).toFixed(2)+"px "+(24*G.k).toFixed(2)+"px";
+    host.style.backgroundPosition = G.tx.toFixed(1)+"px "+G.ty.toFixed(1)+"px";
+    if(zr) zr.textContent = Math.round(G.k*100) + "%";
+    drawMini();
+  }
+  function zoomAt(px, py, nk){
+    nk = clamp(nk, MINK, MAXK);
+    var cx = (px - G.tx) / G.k, cy = (py - G.ty) / G.k;
+    G.k = nk; G.tx = px - cx*nk; G.ty = py - cy*nk;
+    apply();
+  }
+  G.zoomBy = function(f){
+    var r = host.getBoundingClientRect();
+    zoomAt(r.width/2, r.height/2, G.k * f);
+  };
+  G.bounds = function(){
+    if(!G.nodes.length) return {x:0,y:0,w:400,h:260};
+    var x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+    G.nodes.forEach(function(n){
+      var h = n.h || estH(n);
+      x1=Math.min(x1,n.x); y1=Math.min(y1,n.y); x2=Math.max(x2,n.x+n.w); y2=Math.max(y2,n.y+h);
+    });
+    return {x:x1,y:y1,w:Math.max(1,x2-x1),h:Math.max(1,y2-y1)};
+  };
+  G.fit = function(pad){
+    pad = pad == null ? 34 : pad;
+    var r = host.getBoundingClientRect();
+    if(!r.width || !r.height) return;
+    var b = G.bounds();
+    var k = clamp(Math.min((r.width-pad*2)/b.w, (r.height-pad*2)/b.h), MINK, 1.15);
+    G.k = k;
+    G.tx = (r.width - b.w*k)/2 - b.x*k;
+    G.ty = (r.height - b.h*k)/2 - b.y*k;
+    apply();
+  };
+  G.centreOn = function(n){
+    var r = host.getBoundingClientRect();
+    G.tx = r.width/2 - (n.x + n.w/2) * G.k;
+    G.ty = r.height/2 - (n.y + (n.h||estH(n))/2) * G.k;
+    apply();
+  };
+
+  /* ---------- undo ---------- */
+  function ser(){
+    return {
+      nodes: G.nodes.map(function(n){
+        return { id:n.id, type:n.type, x:Math.round(n.x), y:Math.round(n.y), w:n.w, title:n.title, sub:n.sub,
+                 icon:n.icon, tile:n.tile, ins:n.ins, outs:n.outs, data:n.data, meta:n.meta, chips:n.chips };
+      }),
+      edges: G.edges.map(function(e){ return { id:e.id, a:e.a, ap:e.ap, b:e.b, bp:e.bp, label:e.label||"" }; })
+    };
+  }
+  G.serialize = function(){ return JSON.parse(JSON.stringify(ser())); };
+  G.load = function(o, keepCam){
+    var d = JSON.parse(JSON.stringify(o || {nodes:[],edges:[]}));
+    G.nodes = (d.nodes||[]).map(function(n){ n.state = "idle"; n._a = {}; return n; });
+    G.edges = d.edges || [];
+    G.sel = []; G.selEdge = null;
+    G.render();
+    if(!keepCam) G.fit();
+    fire("change");
+  };
+  G.push = function(){
+    if(G.ro) return;
+    G.undo.push(JSON.stringify(ser()));
+    if(G.undo.length > 40) G.undo.shift();
+    G.redo.length = 0;
+  };
+  G.undoStep = function(){
+    if(!G.undo.length) return false;
+    G.redo.push(JSON.stringify(ser()));
+    var s = JSON.parse(G.undo.pop());
+    G.nodes = s.nodes.map(function(n){ n.state="idle"; n._a={}; return n; });
+    G.edges = s.edges; G.sel = []; G.selEdge = null;
+    G.render(); fire("change"); return true;
+  };
+  G.redoStep = function(){
+    if(!G.redo.length) return false;
+    G.undo.push(JSON.stringify(ser()));
+    var s = JSON.parse(G.redo.pop());
+    G.nodes = s.nodes.map(function(n){ n.state="idle"; n._a={}; return n; });
+    G.edges = s.edges; G.sel = []; G.selEdge = null;
+    G.render(); fire("change"); return true;
+  };
+
+  function fire(evt, arg){ if(opts["on"+evt.charAt(0).toUpperCase()+evt.slice(1)]) opts["on"+evt.charAt(0).toUpperCase()+evt.slice(1)](arg, G); }
+
+  /* ---------- mutation ---------- */
+  G.addNode = function(n, silent){
+    if(!silent) G.push();
+    n.id   = n.id || ngId("n");
+    n.w    = n.w || 208;
+    n.ins  = n.ins || [];
+    n.outs = n.outs || [];
+    n.data = n.data || {};
+    n.state= "idle"; n._a = {};
+    G.nodes.push(n);
+    if(!silent){ G.render(); fire("change"); }
+    return n;
+  };
+  G.removeNode = function(id){
+    G.push();
+    G.nodes = G.nodes.filter(function(n){ return n.id !== id; });
+    G.edges = G.edges.filter(function(e){ return e.a !== id && e.b !== id; });
+    G.sel = G.sel.filter(function(s){ return s !== id; });
+    G.render(); fire("change"); fire("select", null);
+  };
+  G.connect = function(a, ap, b, bp, silent, label){
+    if(a === b) return null;
+    var dup = G.edges.filter(function(e){ return e.a===a && e.ap===ap && e.b===b && e.bp===bp; })[0];
+    if(dup) return null;
+    if(!silent) G.push();
+    var e = { id:ngId("e"), a:a, ap:ap, b:b, bp:bp, label:label||"" };
+    G.edges.push(e);
+    if(!silent){ G.render(); fire("change"); }
+    return e;
+  };
+  G.clear = function(){ G.push(); G.nodes = []; G.edges = []; G.sel = []; G.selEdge = null; G.render(); fire("change"); fire("select", null); };
+  G.deleteSelection = function(){
+    if(G.ro) return;
+    if(G.selEdge){ G.push(); G.edges = G.edges.filter(function(e){ return e.id !== G.selEdge; }); G.selEdge = null; G.render(); fire("change"); return; }
+    if(!G.sel.length) return;
+    G.push();
+    var kill = {}; G.sel.forEach(function(id){ kill[id] = 1; });
+    G.nodes = G.nodes.filter(function(n){ return !kill[n.id]; });
+    G.edges = G.edges.filter(function(e){ return !kill[e.a] && !kill[e.b]; });
+    G.sel = []; G.render(); fire("change"); fire("select", null);
+  };
+  G.select = function(id, additive){
+    G.selEdge = null;
+    if(id == null) G.sel = [];
+    else if(additive){ var i = G.sel.indexOf(id); if(i>-1) G.sel.splice(i,1); else G.sel.push(id); }
+    else G.sel = [id];
+    paintSel();
+    fire("select", G.sel.length === 1 ? nodeById(G.sel[0]) : null);
+  };
+  function paintSel(){
+    $$(".ng-node", nlay).forEach(function(el){
+      el.classList.toggle("sel", G.sel.indexOf(el.getAttribute("data-nid")) > -1);
+    });
+    $$(".ng-edge", svg).forEach(function(p){
+      p.classList.toggle("sel", !p.classList.contains("hit") && p.getAttribute("data-eid") === G.selEdge);
+    });
+    drawMini();
+  }
+
+  /* ---------- run state ---------- */
+  G.setState = function(id, st){
+    var n = nodeById(id); if(!n) return;
+    n.state = st;
+    if(n.el) n.el.setAttribute("data-st", st);
+  };
+  G.setBadge = function(id, txt){
+    var n = nodeById(id); if(!n) return;
+    n.badge = txt;
+    if(n.el){ var b = n.el.querySelector("[data-nbadge]"); if(b) b.textContent = txt || ""; }
+  };
+  G.resetStates = function(){
+    G.nodes.forEach(function(n){ n.state = "idle"; n.badge = ""; if(n.el){ n.el.setAttribute("data-st","idle");
+      var b = n.el.querySelector("[data-nbadge]"); if(b) b.textContent = ""; } });
+    $$(".ng-edge.flow", svg).forEach(function(p){ p.classList.remove("flow"); });
+  };
+  G.flowEdge = function(id, on){
+    $$('.ng-edge[data-eid="'+id+'"]', svg).forEach(function(p){
+      if(!p.classList.contains("hit")) p.classList.toggle("flow", !!on);
+    });
+  };
+  G.edgesInto = function(id){ return G.edges.filter(function(e){ return e.b === id; }); };
+  G.edgesFrom = function(id){ return G.edges.filter(function(e){ return e.a === id; }); };
+
+  /* ---------- render ---------- */
+  function portsHTML(n, side){
+    var list = side === "in" ? n.ins : n.outs;
+    return list.map(function(p){
+      var wired = G.edges.some(function(e){
+        return side === "in" ? (e.b === n.id && e.bp === p.id) : (e.a === n.id && e.ap === p.id);
+      });
+      var dot = '<i class="dot"></i>';
+      var lbl = '<span>'+esc(p.label || p.id)+'</span>';
+      return '<button type="button" class="ng-port '+side+(wired?" wired":"")+'" data-pt="'+side+'" data-pid="'+esc(p.id)+'" '+
+             'aria-label="'+esc((side==="in"?"Input ":"Output ")+(p.label||p.id)+" on "+n.title)+'">'+
+             (side === "in" ? dot + lbl : lbl + dot) + '</button>';
+    }).join("");
+  }
+  G.render = function(){
+    nlay.innerHTML = G.nodes.map(function(n){
+      var chips = (n.chips||[]).map(function(c){ return '<span class="ng-chip '+(c.cls||"")+'">'+esc(c.t)+'</span>'; }).join("");
+      return '<div class="ng-node" data-nid="'+esc(n.id)+'" data-st="'+esc(n.state||"idle")+'" tabindex="0" '+
+        'style="left:'+Math.round(n.x)+'px;top:'+Math.round(n.y)+'px;width:'+n.w+'px" '+
+        'aria-label="'+esc(n.title + " — " + (n.sub||""))+'">'+
+        '<div class="ng-n-hd"><span class="ng-n-ic '+esc(n.tile||"g-conn")+'">'+ico(n.icon||"i-cube")+'</span>'+
+          '<span class="ng-n-tt"><b>'+esc(n.title)+'</b><i>'+esc(n.sub||"")+'</i></span>'+
+          '<span class="ng-n-st"></span></div>'+
+        '<div class="ng-n-io"><div class="ng-col in">'+portsHTML(n,"in")+'</div>'+
+          '<div class="ng-col out">'+portsHTML(n,"out")+'</div></div>'+
+        '<div class="ng-n-ft">'+chips+
+          '<span class="ng-chip t" data-nbadge>'+esc(n.badge||"")+'</span></div>'+
+      '</div>';
+    }).join("");
+    /* measure — ports are laid out by CSS, so the anchors come from the DOM */
+    G.nodes.forEach(function(n){
+      var el = nlay.querySelector('.ng-node[data-nid="'+n.id+'"]');
+      n.el = el; if(!el) return;
+      n.h = el.offsetHeight;
+      n._a = {};
+      $$(".ng-port", el).forEach(function(pb){
+        var d = pb.querySelector(".dot");
+        var oy = d.offsetTop + d.offsetHeight/2;
+        var side = pb.getAttribute("data-pt");
+        n._a[side + "|" + pb.getAttribute("data-pid")] = { x: n.x + (side === "in" ? 0 : n.w), y: n.y + oy };
+      });
+    });
+    drawEdges();
+    paintSel();
+    if(emptyN){
+      emptyN.style.display = G.nodes.length ? "none" : "grid";
+      if(!G.nodes.length) emptyN.innerHTML = opts.emptyHTML || "";
+    }
+    drawMini();
+  };
+  function anchor(nid, side, pid){
+    var n = nodeById(nid); if(!n) return null;
+    var a = n._a[side + "|" + pid];
+    if(a) return a;
+    /* port vanished (type changed) — fall back to the node's mid edge */
+    return { x: n.x + (side === "in" ? 0 : n.w), y: n.y + (n.h || estH(n))/2 };
+  }
+  function bez(p1, p2){
+    var dx = Math.max(42, Math.min(170, Math.abs(p2.x - p1.x) * .55));
+    return "M"+(p1.x+SV)+","+(p1.y+SV)+" C"+(p1.x+dx+SV)+","+(p1.y+SV)+" "+(p2.x-dx+SV)+","+(p2.y+SV)+" "+(p2.x+SV)+","+(p2.y+SV);
+  }
+  G.edgePath = bez;
+  function drawEdges(){
+    var h = "";
+    G.edges.forEach(function(e){
+      var p1 = anchor(e.a, "out", e.ap), p2 = anchor(e.b, "in", e.bp);
+      if(!p1 || !p2) return;
+      var d = bez(p1, p2);
+      h += '<path class="ng-edge hit" data-eid="'+esc(e.id)+'" d="'+d+'"></path>';
+      h += '<path class="ng-edge" data-eid="'+esc(e.id)+'" d="'+d+'"></path>';
+      if(e.label) h += '<text class="ng-elbl" x="'+((p1.x+p2.x)/2+SV)+'" y="'+((p1.y+p2.y)/2+SV-5)+'" text-anchor="middle">'+esc(e.label)+'</text>';
+    });
+    h += '<path class="ng-edge ghost" data-ghost style="display:none"></path>';
+    svg.innerHTML = h;
+  }
+  /* live re-route while a node is dragged — no full re-render */
+  function reroute(ids){
+    var touch = {}; ids.forEach(function(i){ touch[i] = 1; });
+    G.nodes.forEach(function(n){
+      if(!touch[n.id] || !n.el) return;
+      Object.keys(n._a).forEach(function(k){
+        var side = k.split("|")[0];
+        var pb = n.el.querySelector('.ng-port[data-pt="'+side+'"][data-pid="'+k.split("|")[1]+'"]');
+        if(!pb) return;
+        var d = pb.querySelector(".dot");
+        n._a[k] = { x: n.x + (side === "in" ? 0 : n.w), y: n.y + d.offsetTop + d.offsetHeight/2 };
+      });
+    });
+    G.edges.forEach(function(e){
+      if(!touch[e.a] && !touch[e.b]) return;
+      var p1 = anchor(e.a,"out",e.ap), p2 = anchor(e.b,"in",e.bp);
+      if(!p1 || !p2) return;
+      var d = bez(p1, p2);
+      $$('.ng-edge[data-eid="'+e.id+'"]', svg).forEach(function(p){ p.setAttribute("d", d); });
+    });
+    drawMini();
+  }
+
+  /* ---------- minimap ---------- */
+  function drawMini(){
+    if(!mini) return;
+    var b = G.bounds(), r = host.getBoundingClientRect();
+    var pad = 14;
+    var bw = b.w + pad*2, bh = b.h + pad*2;
+    var s = Math.min(158/bw, 100/bh);
+    var ox = (158 - bw*s)/2 - (b.x-pad)*s, oy = (100 - bh*s)/2 - (b.y-pad)*s;
+    var h = G.nodes.map(function(n){
+      var sel = G.sel.indexOf(n.id) > -1;
+      return '<rect class="mn'+(sel?" sel":"")+'" x="'+(n.x*s+ox).toFixed(1)+'" y="'+(n.y*s+oy).toFixed(1)+
+        '" width="'+Math.max(2,n.w*s).toFixed(1)+'" height="'+Math.max(2,(n.h||estH(n))*s).toFixed(1)+'" rx="1"></rect>';
+    }).join("");
+    if(r.width){
+      var vx = (-G.tx/G.k)*s+ox, vy = (-G.ty/G.k)*s+oy, vw = (r.width/G.k)*s, vh = (r.height/G.k)*s;
+      h += '<rect class="mv" x="'+vx.toFixed(1)+'" y="'+vy.toFixed(1)+'" width="'+vw.toFixed(1)+'" height="'+vh.toFixed(1)+'" rx="2"></rect>';
+    }
+    mini.innerHTML = h;
+    mini._s = s; mini._ox = ox; mini._oy = oy;
+  }
+
+  /* ---------- auto layout: layered left-to-right by topological depth ---------- */
+  G.layout = function(startX, startY, colGap, rowGap){
+    if(!G.nodes.length) return;
+    colGap = colGap || 92; rowGap = rowGap || 24;
+    var byId = {}; G.nodes.forEach(function(n){ byId[n.id] = n; });
+    var depth = {}; G.nodes.forEach(function(n){ depth[n.id] = 0; });
+    var lim = G.nodes.length;
+    /* longest-path relaxation with a hard cap — cycles (agent↔agent
+       delegation) settle instead of spinning */
+    for(var it = 0; it < lim + 1; it++){
+      var moved = false;
+      for(var i = 0; i < G.edges.length; i++){
+        var e = G.edges[i];
+        if(!byId[e.a] || !byId[e.b] || e.a === e.b) continue;
+        if(depth[e.b] < depth[e.a] + 1 && depth[e.a] + 1 <= lim){ depth[e.b] = depth[e.a] + 1; moved = true; }
+      }
+      if(!moved) break;
+    }
+    var cols = {};
+    G.nodes.forEach(function(n){ (cols[depth[n.id]] = cols[depth[n.id]] || []).push(n); });
+    var keys = Object.keys(cols).map(Number).sort(function(a,b){ return a-b; });
+    var x = startX == null ? 46 : startX;
+    var mid = startY == null ? 260 : startY;
+    keys.forEach(function(d){
+      var col = cols[d], maxW = 0, total = -rowGap;
+      col.forEach(function(n){ maxW = Math.max(maxW, n.w); total += (n.h || estH(n)) + rowGap; });
+      var y = Math.max(24, mid - total/2);
+      col.forEach(function(n){ n.x = x; n.y = y; y += (n.h || estH(n)) + rowGap; });
+      x += maxW + colGap;
+    });
+  };
+  G.autoLayout = function(fit){
+    G.layout(); G.render();          /* pass 1 uses estimates */
+    G.layout(); G.render();          /* pass 2 uses measured heights */
+    if(fit !== false) G.fit();
+  };
+
+  /* ---------- pointer interaction ---------- */
+  var P = { mode:null, id:0, sx:0, sy:0, ox:0, oy:0, moved:false, drag:[], link:null, pts:{}, pinch:0, pk:1 };
+  var ghost = null;
+
+  function ghostPath(){ return svg.querySelector("[data-ghost]"); }
+
+  host.addEventListener("pointerdown", function(e){
+    if(e.button === 2) return;
+    host.focus({preventScroll:true});
+    if(qa) qa.classList.remove("on");
+    P.pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+    if(Object.keys(P.pts).length === 2){                    /* pinch to zoom, touch */
+      var ids = Object.keys(P.pts), a = P.pts[ids[0]], b = P.pts[ids[1]];
+      P.pinch = Math.hypot(a.x-b.x, a.y-b.y); P.pk = G.k; P.mode = "pinch"; return;
+    }
+    var port = e.target.closest(".ng-port");
+    var node = e.target.closest(".ng-node");
+    var edge = e.target.closest(".ng-edge");
+
+    if(port && node && !G.ro){
+      var side = port.getAttribute("data-pt");
+      if(side === "out"){
+        e.preventDefault(); e.stopPropagation();
+        P.mode = "link"; P.id = e.pointerId;
+        P.link = { a:node.getAttribute("data-nid"), ap:port.getAttribute("data-pid"), ok:false, to:null };
+        host.classList.add("linking");
+        grab(host, e.pointerId);
+        return;
+      }
+      /* dragging from an input disconnects it — a real editor affordance */
+      if(side === "in"){
+        var nid = node.getAttribute("data-nid"), pid = port.getAttribute("data-pid");
+        var hit = G.edges.filter(function(x){ return x.b === nid && x.bp === pid; });
+        if(hit.length){ e.preventDefault(); e.stopPropagation(); G.push();
+          G.edges = G.edges.filter(function(x){ return !(x.b === nid && x.bp === pid); });
+          G.render(); fire("change"); return; }
+      }
+    }
+    if(node){
+      var id = node.getAttribute("data-nid");
+      if(G.sel.indexOf(id) === -1) G.select(id, e.shiftKey);
+      else if(e.shiftKey) G.select(id, true);
+      else { G.selEdge = null; paintSel(); fire("select", nodeById(id)); }
+      if(G.ro){ P.mode = "pan"; P.sx = e.clientX; P.sy = e.clientY; P.ox = G.tx; P.oy = G.ty; P.id = e.pointerId; grab(host, e.pointerId); return; }
+      P.mode = "node"; P.id = e.pointerId; P.moved = false;
+      P.sx = e.clientX; P.sy = e.clientY;
+      P.drag = (G.sel.indexOf(id) > -1 ? G.sel.slice() : [id]).map(function(nid){
+        var n = nodeById(nid); return { id:nid, x:n.x, y:n.y };
+      });
+      node.classList.add("dragging");
+      grab(host, e.pointerId);
+      return;
+    }
+    if(edge && edge.classList.contains("hit")){
+      G.sel = []; G.selEdge = edge.getAttribute("data-eid"); paintSel(); fire("select", null);
+      return;
+    }
+    /* empty canvas */
+    if(e.shiftKey && !G.ro){
+      P.mode = "marq"; P.id = e.pointerId;
+      var r = host.getBoundingClientRect();
+      P.sx = e.clientX - r.left; P.sy = e.clientY - r.top;
+      marq.style.display = "block"; marq.style.left = P.sx+"px"; marq.style.top = P.sy+"px";
+      marq.style.width = "0px"; marq.style.height = "0px";
+      grab(host, e.pointerId);
+      return;
+    }
+    G.select(null);
+    P.mode = "pan"; P.id = e.pointerId; P.sx = e.clientX; P.sy = e.clientY; P.ox = G.tx; P.oy = G.ty;
+    host.classList.add("panning");
+    grab(host, e.pointerId);
+  });
+
+  host.addEventListener("pointermove", function(e){
+    if(P.pts[e.pointerId]) P.pts[e.pointerId] = {x:e.clientX, y:e.clientY};
+    if(P.mode === "pinch"){
+      var ids = Object.keys(P.pts); if(ids.length < 2) return;
+      var a = P.pts[ids[0]], b = P.pts[ids[1]];
+      var d = Math.hypot(a.x-b.x, a.y-b.y);
+      if(P.pinch > 8){
+        var r = host.getBoundingClientRect();
+        zoomAt((a.x+b.x)/2 - r.left, (a.y+b.y)/2 - r.top, P.pk * (d / P.pinch));
+      }
+      return;
+    }
+    if(P.id !== e.pointerId || !P.mode) return;
+    if(P.mode === "pan"){
+      G.tx = P.ox + (e.clientX - P.sx); G.ty = P.oy + (e.clientY - P.sy); apply(); return;
+    }
+    if(P.mode === "node"){
+      var dx = (e.clientX - P.sx)/G.k, dy = (e.clientY - P.sy)/G.k;
+      if(!P.moved && Math.hypot(dx*G.k, dy*G.k) > 3){ P.moved = true; G.push(); }
+      if(!P.moved) return;
+      P.drag.forEach(function(d){
+        var n = nodeById(d.id); if(!n) return;
+        n.x = Math.round(d.x + dx); n.y = Math.round(d.y + dy);
+        if(n.el){ n.el.style.left = n.x+"px"; n.el.style.top = n.y+"px"; }
+      });
+      reroute(P.drag.map(function(d){ return d.id; }));
+      return;
+    }
+    if(P.mode === "marq"){
+      var r2 = host.getBoundingClientRect();
+      var cx = e.clientX - r2.left, cy = e.clientY - r2.top;
+      marq.style.left = Math.min(cx,P.sx)+"px"; marq.style.top = Math.min(cy,P.sy)+"px";
+      marq.style.width = Math.abs(cx-P.sx)+"px"; marq.style.height = Math.abs(cy-P.sy)+"px";
+      return;
+    }
+    if(P.mode === "link"){
+      var p1 = anchor(P.link.a, "out", P.link.ap);
+      var c  = toContent(e.clientX, e.clientY);
+      var gp = ghostPath(); if(!gp) return;
+      gp.style.display = "";
+      var tgt = document.elementFromPoint(e.clientX, e.clientY);
+      var pb  = tgt && tgt.closest ? tgt.closest('.ng-port[data-pt="in"]') : null;
+      $$(".ng-port.drop-ok, .ng-port.drop-bad", nlay).forEach(function(x){ x.classList.remove("drop-ok","drop-bad"); });
+      P.link.to = null; P.link.ok = false;
+      var end = {x:c[0], y:c[1]};
+      if(pb){
+        var tn = pb.closest(".ng-node").getAttribute("data-nid");
+        var tp = pb.getAttribute("data-pid");
+        var same = tn === P.link.a;
+        var dup = G.edges.some(function(x){ return x.a===P.link.a && x.ap===P.link.ap && x.b===tn && x.bp===tp; });
+        P.link.ok = !same && !dup;
+        pb.classList.add(P.link.ok ? "drop-ok" : "drop-bad");
+        if(P.link.ok){ P.link.to = {b:tn, bp:tp}; var ta = anchor(tn,"in",tp); if(ta) end = ta; }
+      }
+      gp.setAttribute("d", bez(p1, end));
+      gp.classList.toggle("bad", !!pb && !P.link.ok);
+      return;
+    }
+  });
+
+  function endPointer(e){
+    delete P.pts[e.pointerId];
+    if(P.mode === "pinch"){ if(!Object.keys(P.pts).length) P.mode = null; return; }
+    if(P.id !== e.pointerId) return;
+    if(P.mode === "node"){
+      $$(".ng-node.dragging", nlay).forEach(function(x){ x.classList.remove("dragging"); });
+      if(P.moved) fire("change");
+    }
+    if(P.mode === "marq"){
+      var r = host.getBoundingClientRect();
+      var x1 = Math.min(P.sx, e.clientX - r.left), x2 = Math.max(P.sx, e.clientX - r.left);
+      var y1 = Math.min(P.sy, e.clientY - r.top),  y2 = Math.max(P.sy, e.clientY - r.top);
+      var c1 = [ (x1 - G.tx)/G.k, (y1 - G.ty)/G.k ], c2 = [ (x2 - G.tx)/G.k, (y2 - G.ty)/G.k ];
+      G.sel = G.nodes.filter(function(n){
+        return n.x + n.w > c1[0] && n.x < c2[0] && n.y + (n.h||estH(n)) > c1[1] && n.y < c2[1];
+      }).map(function(n){ return n.id; });
+      marq.style.display = "none";
+      paintSel();
+      fire("select", G.sel.length === 1 ? nodeById(G.sel[0]) : null);
+    }
+    if(P.mode === "link"){
+      var gp = ghostPath(); if(gp){ gp.style.display = "none"; gp.classList.remove("bad"); }
+      $$(".ng-port.drop-ok, .ng-port.drop-bad", nlay).forEach(function(x){ x.classList.remove("drop-ok","drop-bad"); });
+      if(P.link && P.link.to) G.connect(P.link.a, P.link.ap, P.link.to.b, P.link.to.bp);
+      P.link = null;
+      host.classList.remove("linking");
+    }
+    host.classList.remove("panning");
+    P.mode = null; P.drag = [];
+  }
+  host.addEventListener("pointerup", endPointer);
+  host.addEventListener("pointercancel", endPointer);
+
+  /* Wheel: zoom, and never let the gesture reach the OS space switcher —
+     the same contract #deskSwitch honours. */
+  host.addEventListener("wheel", function(e){
+    e.preventDefault(); e.stopPropagation();
+    var r = host.getBoundingClientRect();
+    var f = Math.exp(-e.deltaY * (e.ctrlKey ? .010 : .0022));
+    zoomAt(e.clientX - r.left, e.clientY - r.top, G.k * clamp(f, .8, 1.25));
+  }, {passive:false});
+  host.addEventListener("touchstart", function(e){ e.stopPropagation(); }, {passive:true});
+  host.addEventListener("touchmove",  function(e){ e.stopPropagation(); }, {passive:true});
+  host.addEventListener("touchend",   function(e){ e.stopPropagation(); }, {passive:true});
+  host.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+
+  /* ---------- keyboard ---------- */
+  host.addEventListener("keydown", function(e){
+    if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    var mod = e.metaKey || e.ctrlKey;
+    if(mod && e.key.toLowerCase() === "z"){
+      e.preventDefault(); e.stopPropagation();
+      if(e.shiftKey) G.redoStep(); else G.undoStep();
+      return;
+    }
+    if(e.key === "Escape"){
+      if(qa && qa.classList.contains("on")){ e.stopPropagation(); qa.classList.remove("on"); host.focus(); return; }
+      if(G.sel.length || G.selEdge){ e.stopPropagation(); G.select(null); return; }
+      return;
+    }
+    if((e.key === "Delete" || e.key === "Backspace") && (G.sel.length || G.selEdge)){
+      e.preventDefault(); e.stopPropagation(); G.deleteSelection(); return;
+    }
+    if(mod && e.key.toLowerCase() === "a"){
+      e.preventDefault(); e.stopPropagation();
+      G.sel = G.nodes.map(function(n){ return n.id; }); paintSel(); return;
+    }
+    if(e.key.indexOf("Arrow") === 0 && G.sel.length && !G.ro){
+      e.preventDefault(); e.stopPropagation();
+      var step = e.shiftKey ? 40 : 8;
+      var dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
+      var dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
+      G.push();
+      G.sel.forEach(function(id){ var n = nodeById(id); if(!n) return; n.x += dx; n.y += dy;
+        if(n.el){ n.el.style.left = n.x+"px"; n.el.style.top = n.y+"px"; } });
+      reroute(G.sel); fire("change"); return;
+    }
+    if(e.key === "0" && mod){ e.preventDefault(); e.stopPropagation(); G.fit(); return; }
+  });
+  /* keyboard wiring: Enter on an output arms it, Enter on an input lands it */
+  var armed = null;
+  host.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    var pb = e.target.closest ? e.target.closest(".ng-port") : null;
+    if(!pb || G.ro) return;
+    e.preventDefault(); e.stopPropagation();
+    var nid = pb.closest(".ng-node").getAttribute("data-nid"), pid = pb.getAttribute("data-pid");
+    if(pb.getAttribute("data-pt") === "out"){ armed = {a:nid, ap:pid}; toast("Output armed — focus an input port and press Enter to connect."); return; }
+    if(armed){ var made = G.connect(armed.a, armed.ap, nid, pid); armed = null;
+      toast(made ? "Connected." : "Those ports are already connected."); }
+    else toast("Focus an output port first, then this input.");
+  });
+
+  /* ---------- HUD + minimap ---------- */
+  host.addEventListener("click", function(e){
+    var z = e.target.closest("[data-ngz]");
+    if(z){ e.stopPropagation(); G.zoomBy(z.getAttribute("data-ngz") === "+" ? 1.22 : 1/1.22); return; }
+    if(e.target.closest("[data-ngfit]")){ e.stopPropagation(); G.fit(); return; }
+    if(e.target.closest("[data-nglay]")){ e.stopPropagation(); G.push(); G.autoLayout(); fire("change"); return; }
+  });
+  var miniHost = host.querySelector("[data-mini]");
+  if(miniHost){
+    miniHost.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+    miniHost.addEventListener("click", function(e){
+      e.stopPropagation();
+      var r = miniHost.getBoundingClientRect(), hr = host.getBoundingClientRect();
+      var mx = (e.clientX - r.left) / r.width * 158, my = (e.clientY - r.top) / r.height * 100;
+      var cx = (mx - mini._ox) / mini._s, cy = (my - mini._oy) / mini._s;
+      G.tx = hr.width/2 - cx*G.k; G.ty = hr.height/2 - cy*G.k; apply();
+    });
+    miniHost.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.stopPropagation(); G.fit(); } });
+  }
+  host.addEventListener("dblclick", function(e){
+    if(e.target.closest(".ng-node")){
+      var n = nodeById(e.target.closest(".ng-node").getAttribute("data-nid"));
+      if(n) fire("openNode", n);
+      return;
+    }
+    if(qa && !G.ro){
+      var r = host.getBoundingClientRect();
+      qa._at = toContent(e.clientX, e.clientY);
+      qa.style.left = Math.min(r.width - 260, Math.max(6, e.clientX - r.left)) + "px";
+      qa.style.top  = Math.min(r.height - 300, Math.max(6, e.clientY - r.top)) + "px";
+      qa.classList.add("on");
+      fire("quickAdd", qa);
+      var inp = qa.querySelector("[data-qain]"); if(inp){ inp.value = ""; inp.focus(); }
+    }
+  });
+  G.qa = qa;
+  G.apply = apply;
+  G.reroute = reroute;
+  apply();
+  return G;
+}
+
+/* ============================================================
+   8c · WORKFLOW — node catalogue
+   Every entry declares what it reads, what it writes and whether
+   it causes egress, because that is the vocabulary the rest of
+   Console already uses for residency. The Workflow inspector and
+   the run's approval bar both read these fields — the honesty is
+   in the data, not in per-node copy.
+   ============================================================ */
+var WF_CAT = {
+  /* ---- TRIGGERS ---- */
+  "trig.cron":   { g:"Triggers", name:"Schedule", icon:"i-clock", tile:"g-auto", ins:[], outs:[{id:"main",label:"out"}],
+    access:"none", egress:false, reads:"the clock, inside the DC", writes:"nothing", eg:"none — the scheduler is local",
+    sub:function(d){ return d.cron || "cron"; },
+    params:[{k:"cron",l:"Cron expression",t:"text",d:"0 6 * * 1-5",hint:"cron"},
+            {k:"tz",l:"Timezone",t:"sel",o:["Asia/Riyadh (AST)","UTC"],d:"Asia/Riyadh (AST)"}] },
+  "trig.mail":   { g:"Triggers", name:"Mail arrives", icon:"i-mail", tile:"g-mail", ins:[], outs:[{id:"main",label:"mail"}],
+    access:"read", egress:false, reads:"Outlook Mail (ks7) — matching messages only", writes:"nothing", eg:"none — mail is indexed in Riyadh DC-1",
+    sub:function(d){ return d.from ? "from:"+d.from : "any sender"; },
+    params:[{k:"folder",l:"Folder",t:"sel",o:["Inbox","Inbox/Vendors","Inbox/Project RYD-M3"],d:"Inbox"},
+            {k:"from",l:"From matches",t:"text",d:"@al-rajhi-steel.com"},
+            {k:"subject",l:"Subject contains",t:"text",d:""},
+            {k:"unread",l:"Unread only",t:"sel",o:["yes","no"],d:"yes"}] },
+  "trig.jira":   { g:"Triggers", name:"Jira status change", icon:"i-task", tile:"g-task", ins:[], outs:[{id:"main",label:"issue"}],
+    access:"read", egress:false, reads:"Jira (ks6) issue events", writes:"nothing", eg:"none — self-managed Jira inside the DC",
+    sub:function(d){ return (d.project||"RYD") + " → " + (d.status||"Blocked"); },
+    params:[{k:"project",l:"Project key",t:"text",d:"RYD"},
+            {k:"status",l:"Enters status",t:"sel",o:["Blocked","In Progress","In Review","Done"],d:"Blocked"},
+            {k:"jql",l:"Extra JQL filter",t:"text",d:'labels = "c2"',hint:"jql"}] },
+  "trig.doc":    { g:"Triggers", name:"Document lands", icon:"i-file", tile:"g-files", ins:[], outs:[{id:"main",label:"doc"}],
+    access:"read", egress:false, reads:"the watched space", writes:"nothing", eg:"none",
+    sub:function(d){ return d.space || "space"; },
+    params:[{k:"space",l:"Space",t:"sel",o:["RYD-M3","Company Knowledge","Confluence · Standards","SharePoint · Contracts"],d:"RYD-M3"},
+            {k:"types",l:"File types",t:"text",d:"pdf, docx, xlsx"}] },
+  "trig.hook":   { g:"Triggers", name:"Webhook", icon:"i-api", tile:"g-api", ins:[], outs:[{id:"main",label:"body"}],
+    access:"read", egress:true, reads:"an inbound HTTP request", writes:"nothing",
+    eg:"inbound only — the endpoint is exposed on the DC edge",
+    sub:function(d){ return (d.method||"POST") + " " + (d.path||"/hook"); },
+    params:[{k:"method",l:"Method",t:"sel",o:["POST","GET","PUT"],d:"POST"},
+            {k:"path",l:"Path",t:"text",d:"/hooks/site-iot"},
+            {k:"secret",l:"Shared secret header",t:"text",d:"X-Magna-Sig"}] },
+  "trig.manual": { g:"Triggers", name:"Manual run", icon:"i-play", tile:"g-agents", ins:[], outs:[{id:"main",label:"out"}],
+    access:"none", egress:false, reads:"nothing until you press Run", writes:"nothing", eg:"none",
+    sub:function(){ return "you press Run"; }, params:[] },
+
+  /* ---- SYSTEMS — the connectors already linked in Console ---- */
+  "sys.mail":  { g:"Systems", name:"Mail", icon:"i-mail", tile:"g-mail", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"msgs"}],
+    access:"read", egress:false, reads:"Outlook Mail (ks7) · 36,180 threads indexed", writes:"nothing", eg:"none — Riyadh DC-1",
+    sub:function(d){ return d.query || "search"; }, base:36,
+    params:[{k:"query",l:"Search",t:"text",d:"C2 rebar"},{k:"days",l:"Look back (days)",t:"text",d:"7"}] },
+  "sys.jira":  { g:"Systems", name:"Jira", icon:"i-task", tile:"g-task", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"issues"}],
+    access:"read", egress:false, reads:"Jira (ks6) · 2,156 issues", writes:"nothing — writes need your approval", eg:"none — self-managed",
+    sub:function(d){ return d.jql || "JQL"; }, base:23,
+    params:[{k:"jql",l:"JQL",t:"text",d:'project = RYD AND status = Blocked',hint:"jql"},
+            {k:"max",l:"Max results",t:"text",d:"50"}] },
+  "sys.sap":   { g:"Systems", name:"SAP S/4HANA", icon:"i-db", tile:"g-db", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"rows"}],
+    access:"read", egress:false, reads:"SAP S/4HANA (ks4) · purchase orders, vendor master, goods receipts",
+    writes:"nothing", eg:"none — the connector runs inside the DC", sub:function(d){ return d.object || "PO header"; }, base:42,
+    params:[{k:"object",l:"Object",t:"sel",o:["PO header","PO line items","Vendor master","Goods receipts"],d:"PO line items"},
+            {k:"filter",l:"Filter",t:"text",d:"delivery_date < today AND grn_qty < ordered_qty"},
+            {k:"plant",l:"Plant",t:"text",d:"RYD3"}] },
+  "sys.p6":    { g:"Systems", name:"Primavera P6", icon:"i-chart", tile:"g-gantt", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"acts"}],
+    access:"read", egress:false, reads:"Primavera P6 (ks5) · 1,842 activities, nightly snapshot", writes:"nothing", eg:"none",
+    sub:function(d){ return (d.baseline||"Baseline r7"); }, base:18,
+    params:[{k:"baseline",l:"Baseline",t:"sel",o:["Baseline r7","Baseline r6","Live"],d:"Baseline r7"},
+            {k:"wbs",l:"WBS filter",t:"text",d:"RYD-M3.C2"},
+            {k:"slip",l:"Slip threshold (days)",t:"text",d:"5"}] },
+  "sys.conf":  { g:"Systems", name:"Confluence", icon:"i-doc", tile:"g-docs2", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"pages"}],
+    access:"read", egress:false, reads:"Confluence (ks2) · 1,247 pages", writes:"nothing", eg:"none",
+    sub:function(d){ return d.space || "space"; }, base:12,
+    params:[{k:"space",l:"Space",t:"text",d:"STD"},{k:"cql",l:"CQL",t:"text",d:'type = page AND label = "bep"'}] },
+  "sys.sp":    { g:"Systems", name:"SharePoint", icon:"i-folder", tile:"g-files", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"files"}],
+    access:"read", egress:false, reads:"SharePoint (ks3) · 3,891 documents", writes:"nothing", eg:"none",
+    sub:function(d){ return d.lib || "library"; }, base:27,
+    params:[{k:"lib",l:"Library",t:"text",d:"Contracts"},{k:"path",l:"Path",t:"text",d:"/RYD-M3/C2"}] },
+  "sys.know":  { g:"Systems", name:"Company Knowledge", icon:"i-knowledge", tile:"g-brain", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"docs"}],
+    access:"read", egress:false, reads:"Company Knowledge (ks1) · 8,412 documents, 1.94M vectors", writes:"nothing", eg:"none",
+    sub:function(d){ return d.cat || "all categories"; }, base:8,
+    params:[{k:"cat",l:"Category",t:"sel",o:["all categories","Contracts & POs","Schedules & Plans","HSE Reports","Governance"],d:"all categories"},
+            {k:"since",l:"Changed since",t:"text",d:"7d"}] },
+  "sys.hr":    { g:"Systems", name:"HR System", icon:"i-user", tile:"g-project", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"records"}],
+    access:"read", egress:false, reads:"HR System (ks9) · partial — last sync 3 days ago", writes:"nothing", eg:"none",
+    sub:function(d){ return d.set || "org chart"; }, base:5,
+    params:[{k:"set",l:"Record set",t:"sel",o:["org chart","certifications","site roster"],d:"site roster"}] },
+  "sys.snow":  { g:"Systems", name:"ServiceNow", icon:"i-warn", tile:"g-conn", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"records"}],
+    access:"read", egress:true, reads:"ServiceNow incidents, changes and CMDB",
+    writes:"nothing", eg:"yes — ServiceNow is a hosted tenant outside the DC", sub:function(d){ return d.table || "incident"; }, base:6,
+    params:[{k:"table",l:"Table",t:"sel",o:["incident","change_request","cmdb_ci"],d:"incident"},
+            {k:"query",l:"Encoded query",t:"text",d:"active=true^category=hse"}] },
+  "sys.chat":  { g:"Systems", name:"Teams / Slack", icon:"i-chat", tile:"g-chat", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"msgs"}],
+    access:"read", egress:true, reads:"channel posts and meeting transcripts",
+    writes:"nothing", eg:"yes — Teams is a Microsoft-hosted tenant", sub:function(d){ return d.channel || "#channel"; }, base:14,
+    params:[{k:"channel",l:"Channel",t:"text",d:"#ryd-m3-delivery"},{k:"days",l:"Look back (days)",t:"text",d:"1"}] },
+  "sys.cal":   { g:"Systems", name:"Calendar", icon:"i-clock", tile:"g-auto", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"events"}],
+    access:"read", egress:false, reads:"Outlook Calendar via the Outlook connector", writes:"nothing", eg:"none",
+    sub:function(d){ return d.range || "next 7 days"; }, base:9,
+    params:[{k:"range",l:"Range",t:"sel",o:["today","next 7 days","next 30 days"],d:"next 7 days"}] },
+
+  /* ---- LOGIC ---- */
+  "log.if":     { g:"Logic", name:"If / else", icon:"i-git", tile:"g-code", ins:[{id:"in",label:"in"}],
+    outs:[{id:"true",label:"true"},{id:"false",label:"false"}],
+    access:"none", egress:false, reads:"only the items already on the wire", writes:"nothing", eg:"none",
+    sub:function(d){ return d.cond || "condition"; }, ratio:.42,
+    params:[{k:"cond",l:"Condition",t:"text",d:"slip_days > 5"},
+            {k:"mode",l:"Evaluate",t:"sel",o:["per item","once over all items"],d:"per item"}] },
+  "log.switch": { g:"Logic", name:"Switch", icon:"i-layers", tile:"g-code", ins:[{id:"in",label:"in"}],
+    outs:[{id:"a",label:"case 1"},{id:"b",label:"case 2"},{id:"c",label:"case 3"},{id:"d",label:"default"}],
+    access:"none", egress:false, reads:"only the items already on the wire", writes:"nothing", eg:"none",
+    sub:function(d){ return "on " + (d.field || "field"); }, ratio:1,
+    params:[{k:"field",l:"Field",t:"text",d:"category"},
+            {k:"cases",l:"Cases (comma separated)",t:"text",d:"contract, schedule, hse"}] },
+  "log.loop":   { g:"Logic", name:"Loop over items", icon:"i-reload", tile:"g-code", ins:[{id:"in",label:"in"}],
+    outs:[{id:"item",label:"item"},{id:"done",label:"done"}],
+    access:"none", egress:false, reads:"only the items already on the wire", writes:"nothing", eg:"none",
+    sub:function(d){ return "batch " + (d.batch||"1"); }, ratio:1,
+    params:[{k:"batch",l:"Batch size",t:"text",d:"1"},{k:"max",l:"Max iterations",t:"text",d:"100"}] },
+  "log.merge":  { g:"Logic", name:"Merge", icon:"i-embed", tile:"g-code", ins:[{id:"a",label:"a"},{id:"b",label:"b"}],
+    outs:[{id:"main",label:"out"}],
+    access:"none", egress:false, reads:"only the items already on the wire", writes:"nothing", eg:"none",
+    sub:function(d){ return d.mode || "append"; }, ratio:1,
+    params:[{k:"mode",l:"Mode",t:"sel",o:["append","combine on key","wait for both"],d:"append"},
+            {k:"key",l:"Join key",t:"text",d:"po_number"}] },
+  "log.wait":   { g:"Logic", name:"Wait", icon:"i-clock", tile:"g-auto", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"out"}],
+    access:"none", egress:false, reads:"nothing", writes:"nothing", eg:"none",
+    sub:function(d){ return (d.amount||"10") + " " + (d.unit||"minutes"); }, ratio:1,
+    params:[{k:"amount",l:"Amount",t:"text",d:"10"},{k:"unit",l:"Unit",t:"sel",o:["minutes","hours","days"],d:"minutes"}] },
+  "log.set":    { g:"Logic", name:"Set variable", icon:"i-sliders", tile:"g-code", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"out"}],
+    access:"none", egress:false, reads:"only the items already on the wire", writes:"nothing", eg:"none",
+    sub:function(d){ return (d.name||"var") + " = " + (d.value||"…"); }, ratio:1,
+    params:[{k:"name",l:"Name",t:"text",d:"threshold"},{k:"value",l:"Value",t:"text",d:"5"},
+            {k:"keep",l:"Keep other fields",t:"sel",o:["yes","no"],d:"yes"}] },
+  "log.filter": { g:"Logic", name:"Filter", icon:"i-search", tile:"g-code", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"kept"}],
+    access:"none", egress:false, reads:"only the items already on the wire", writes:"nothing", eg:"none",
+    sub:function(d){ return d.expr || "expression"; }, ratio:.55,
+    params:[{k:"expr",l:"Keep when",t:"text",d:"confidence > 0.8"}] },
+
+  /* ---- AI ---- */
+  "ai.ask":    { g:"AI", name:"Ask the model", icon:"i-spark", tile:"g-brain", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"answer"}],
+    access:"model", egress:false, reads:"whatever is on the wire", writes:"nothing",
+    eg:"none on the Private tier — Public would leave the DC", sub:function(d){ return d.model || "Kimi K2"; }, ratio:1,
+    params:[{k:"model",l:"Model",t:"sel",o:["Kimi K2 Instruct (Private)","Qwen3 32B (Private)","GPT-4o (Public)"],d:"Kimi K2 Instruct (Private)"},
+            {k:"prompt",l:"Prompt",t:"area",d:"Given the rows on the wire, state the commercial position in three sentences. Cite the PO numbers."},
+            {k:"temp",l:"Temperature",t:"text",d:"0.2"}] },
+  "ai.sum":    { g:"AI", name:"Summarise", icon:"i-doc", tile:"g-brain", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"summary"}],
+    access:"model", egress:false, reads:"whatever is on the wire", writes:"nothing", eg:"none on the Private tier",
+    sub:function(d){ return (d.length||"short") + " · " + (d.style||"bullets"); }, ratio:1,
+    params:[{k:"length",l:"Length",t:"sel",o:["one line","short","full page"],d:"short"},
+            {k:"style",l:"Style",t:"sel",o:["bullets","prose","table"],d:"bullets"},
+            {k:"prompt",l:"Extra instruction",t:"area",d:"Lead with the number that changed. Never round SAR figures."}] },
+  "ai.extract":{ g:"AI", name:"Extract fields", icon:"i-vector", tile:"g-brain", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"fields"}],
+    access:"model", egress:false, reads:"whatever is on the wire", writes:"nothing", eg:"none on the Private tier",
+    sub:function(d){ return (d.fields||"").split(",").length + " fields"; }, ratio:1,
+    params:[{k:"fields",l:"Fields",t:"text",d:"po_number, vendor, promised_date, slip_days, exposure_sar"},
+            {k:"strict",l:"Fail on missing field",t:"sel",o:["yes","no"],d:"no"}] },
+  "ai.class":  { g:"AI", name:"Classify", icon:"i-layers", tile:"g-brain", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"labelled"}],
+    access:"model", egress:false, reads:"whatever is on the wire", writes:"nothing", eg:"none on the Private tier",
+    sub:function(d){ return (d.labels||"").split(",").length + " labels"; }, ratio:1,
+    params:[{k:"labels",l:"Labels",t:"text",d:"contract, schedule, hse, commercial, noise"},
+            {k:"multi",l:"Allow multiple",t:"sel",o:["no","yes"],d:"no"},
+            {k:"floor",l:"Confidence floor",t:"text",d:"0.7"}] },
+  "ai.draft":  { g:"AI", name:"Draft a reply", icon:"i-chat", tile:"g-chat", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"draft"}],
+    access:"model", egress:false, reads:"whatever is on the wire", writes:"nothing — it drafts, it does not send", eg:"none on the Private tier",
+    sub:function(d){ return d.tone || "measured"; }, ratio:1,
+    params:[{k:"tone",l:"Tone",t:"sel",o:["measured","formal","direct"],d:"measured"},
+            {k:"prompt",l:"Instruction",t:"area",d:"Acknowledge, restate the dates, cite GC-8 8.4, do not concede the assessed sum."},
+            {k:"sign",l:"Sign as",t:"text",d:"Ahmad Farahat"}] },
+  "ai.rag":    { g:"AI", name:"RAG search the Brain", icon:"i-rag", tile:"g-brain", ins:[{id:"in",label:"query"}], outs:[{id:"main",label:"chunks"}],
+    access:"read", egress:false, reads:"the Brain index — vector retrieval, rerank, citation binding",
+    writes:"nothing", eg:"none — the index and the embedder both live in Riyadh DC-1",
+    sub:function(d){ return "top " + (d.k||"8"); }, ratio:1,
+    params:[{k:"query",l:"Query",t:"text",d:"liquidated damages clause for late delivery"},
+            {k:"sources",l:"Sources",t:"sel",o:["all connected","Company Knowledge","Confluence","SharePoint","Decision Log"],d:"all connected"},
+            {k:"k",l:"Chunks to return",t:"text",d:"8"},
+            {k:"rerank",l:"Rerank",t:"sel",o:["magna-rerank-v1","off"],d:"magna-rerank-v1"}] },
+
+  /* ---- OUTPUT — every one of these is a write ---- */
+  "out.mail":  { g:"Output", name:"Send mail", icon:"i-send", tile:"g-mail", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"sent"}],
+    access:"write", egress:true, reads:"the draft on the wire", writes:"an outgoing message via Outlook",
+    eg:"yes if the recipient is external", sub:function(d){ return d.to || "recipient"; }, ratio:1,
+    params:[{k:"to",l:"To",t:"text",d:"me"},{k:"subject",l:"Subject",t:"text",d:"C2 — POs past their promised date"},
+            {k:"body",l:"Body",t:"area",d:"{{summary}}"},
+            {k:"mode",l:"Mode",t:"sel",o:["park in drafts","send after approval"],d:"park in drafts"}] },
+  "out.jira":  { g:"Output", name:"Create Jira issue", icon:"i-task", tile:"g-task", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"key"}],
+    access:"write", egress:false, reads:"the fields on the wire", writes:"a new Jira issue", eg:"none — self-managed Jira",
+    sub:function(d){ return (d.project||"RYD") + " · " + (d.type||"Task"); }, ratio:1,
+    params:[{k:"project",l:"Project",t:"text",d:"RYD"},{k:"type",l:"Issue type",t:"sel",o:["Task","Bug","Risk","Story"],d:"Risk"},
+            {k:"summary",l:"Summary",t:"text",d:"{{po_number}} past promised date"},
+            {k:"assignee",l:"Assignee",t:"text",d:"unassigned"}] },
+  "out.chan":  { g:"Output", name:"Post to channel", icon:"i-chat", tile:"g-chat", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"posted"}],
+    access:"write", egress:true, reads:"the message on the wire", writes:"a channel post",
+    eg:"yes — Teams is a Microsoft-hosted tenant", sub:function(d){ return d.channel || "#channel"; }, ratio:1,
+    params:[{k:"channel",l:"Channel",t:"text",d:"#ryd-m3-delivery"},
+            {k:"text",l:"Message",t:"area",d:"{{summary}}"},
+            {k:"mention",l:"Mention",t:"text",d:""}] },
+  "out.doc":   { g:"Output", name:"Write a document", icon:"i-doc", tile:"g-docs2", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"file"}],
+    access:"write", egress:false, reads:"the content on the wire", writes:"a document in the VFS", eg:"none",
+    sub:function(d){ return d.name || "document"; }, ratio:1,
+    params:[{k:"name",l:"File name",t:"text",d:"C2 board pack.docx"},
+            {k:"folder",l:"Folder",t:"sel",o:["Desktop","Documents","Drafts"],d:"Drafts"},
+            {k:"format",l:"Format",t:"sel",o:["docx","md","pdf"],d:"docx"}] },
+  "out.know":  { g:"Output", name:"Save to knowledge", icon:"i-ingest", tile:"g-brain", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"indexed"}],
+    access:"write", egress:false, reads:"the content on the wire", writes:"new chunks into the Brain index", eg:"none",
+    sub:function(d){ return d.source || "Company Knowledge"; }, ratio:1,
+    params:[{k:"source",l:"Knowledge source",t:"sel",o:["Company Knowledge","Decision Log"],d:"Company Knowledge"},
+            {k:"chunker",l:"Chunker",t:"sel",o:["recursive-512","sentence-256","paragraph-256"],d:"recursive-512"},
+            {k:"tags",l:"Tags",t:"text",d:"c2, rebar"}] },
+  "out.notify":{ g:"Output", name:"Notify me", icon:"i-bell", tile:"g-agents", ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"sent"}],
+    access:"write", egress:false, reads:"the message on the wire", writes:"a notification in your Centre", eg:"none",
+    sub:function(d){ return d.urgency || "normal"; }, ratio:1,
+    params:[{k:"urgency",l:"Urgency",t:"sel",o:["normal","high — breaks focus mode"],d:"normal"},
+            {k:"text",l:"Text",t:"text",d:"{{summary}}"}] }
+};
+var WF_GROUPS = ["Triggers","Systems","Logic","AI","Output"];
+
+/* cron → plain English. Deliberately narrow: five fields, and it says so
+   when it cannot read an expression rather than guessing. */
+var WF_DOW = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function cronEnglish(expr){
+  var f = String(expr||"").trim().split(/\s+/);
+  if(f.length !== 5) return "Console previews the 5-field form only — this one runs as written.";
+  var m = f[0], h = f[1], dom = f[2], mon = f[3], dow = f[4];
+  var when = "";
+  if(/^\*\/(\d+)$/.test(m) && h === "*") when = "every " + m.split("/")[1] + " minutes";
+  else if(m === "*" && h === "*") when = "every minute";
+  else if(/^\d+$/.test(m) && /^\*\/(\d+)$/.test(h)) when = "every " + h.split("/")[1] + " hours, at :" + String(m).padStart(2,"0");
+  else if(/^\d+$/.test(m) && h === "*") when = "every hour at :" + String(m).padStart(2,"0");
+  else if(/^\d+$/.test(m) && /^\d+$/.test(h)) when = "at " + String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+  else return "Console cannot read this expression — it will still run as written.";
+  var days = "";
+  if(dow === "1-5") days = " on weekdays";
+  else if(dow === "0,6" || dow === "6,0") days = " at the weekend";
+  else if(/^\d$/.test(dow)) days = " on " + WF_DOW[+dow % 7] + "s";
+  else if(dow === "*" && /^\d+$/.test(dom)) days = " on day " + dom + " of the month";
+  else if(dow === "*") days = " every day";
+  var months = mon === "*" ? "" : " in month " + mon;
+  return (when + days + months).replace(/^\w/, function(c){ return c.toUpperCase(); }) + ".";
+}
+
+/* ---- node factory ---------------------------------------------------- */
+function wfSub(n){
+  var t = WF_CAT[n.type]; if(!t) return "";
+  try{ return typeof t.sub === "function" ? t.sub(n.data||{}) : (t.sub||""); }catch(e){ return ""; }
+}
+function wfChips(n){
+  var t = WF_CAT[n.type]; if(!t) return [];
+  var c = [];
+  if(t.access === "read")  c.push({cls:"r", t:"reads"});
+  if(t.access === "write") c.push({cls:"w", t:"writes"});
+  if(t.access === "model") c.push({cls:"m", t:"model"});
+  if(t.egress) c.push({cls:"eg", t:"egress"});
+  return c;
+}
+function wfNode(type, x, y, data){
+  var t = WF_CAT[type]; if(!t) return null;
+  var d = {};
+  (t.params||[]).forEach(function(p){ d[p.k] = p.d; });
+  if(data) Object.keys(data).forEach(function(k){ d[k] = data[k]; });
+  var n = { id:ngId("wf"), type:type, x:x||0, y:y||0, w:t.w||208, title:t.name,
+            icon:t.icon, tile:t.tile, ins:JSON.parse(JSON.stringify(t.ins)),
+            outs:JSON.parse(JSON.stringify(t.outs)), data:d };
+  n.sub = wfSub(n); n.chips = wfChips(n);
+  return n;
+}
+function wfRefresh(n){ n.sub = wfSub(n); n.chips = wfChips(n); }
+
+/* ============================================================
+   8d · PROMPT → WORKFLOW
+   Deterministic intent parsing. Not a language model: a rule
+   table over the node catalogue, run in a fixed order. Output
+   phrases are matched and removed first, so "email me a summary"
+   becomes a Send-mail output rather than a Mail source.
+   ============================================================ */
+var WF_OUT_RULES = [
+  { re:/\b(e-?mail|mail)\s+(me|us|it|them|the team)\b|\bsend\s+(me\s+)?(an?\s+|the\s+)?(e-?mail|mail|summary)\b|\bby e-?mail\b/g, type:"out.mail" },
+  { re:/\bcreate\s+(a\s+)?jira\b|\braise\s+(a\s+)?(ticket|issue|risk)\b|\bopen\s+(a\s+)?(jira\s+)?(issue|ticket)\b|\bjira issue for\b/g, type:"out.jira" },
+  { re:/\bpost\s+(it\s+|the\s+\w+\s+)?to\b|\bto the channel\b|\bon (teams|slack)\b|\bpost to #?[\w-]+\b|#[\w-]+/g, type:"out.chan" },
+  { re:/\bwrite\s+(a|the)\s+(document|doc|report|board pack|memo|note)\b|\bproduce\s+(a|the)\s+(report|document|board pack)\b|\bboard pack document\b/g, type:"out.doc" },
+  { re:/\bsave\s+(it\s+)?(to|into)\s+(company\s+)?knowledge\b|\bindex it\b|\badd\s+(it\s+)?to the brain\b|\bsave to knowledge\b/g, type:"out.know" },
+  { re:/\bnotify me\b|\balert me\b|\btell me\b|\bping me\b|\bflag (it )?to me\b|\bescalate\b[^.]*\bto me\b/g, type:"out.notify" }
+];
+var WF_SYS_RULES = [
+  { re:/\bsap\b|s\/4|s4hana|purchase order|\bpos?\b|vendor master|goods receipt|\bgrn\b/, type:"sys.sap" },
+  { re:/\bp6\b|primavera|baseline|critical path|\bfloat\b|schedule (movement|slip)|activit(y|ies)/, type:"sys.p6" },
+  { re:/\bjira\b|\bissue\b|\bticket\b|\bsprint\b|\bbacklog\b/, type:"sys.jira" },
+  { re:/confluence|\bstandard\b|procedure|\bbep\b/, type:"sys.conf" },
+  { re:/sharepoint|document librar/, type:"sys.sp" },
+  { re:/\bmail\b|e-?mail|outlook|inbox|correspondence/, type:"sys.mail" },
+  { re:/company knowledge|knowledge base|\bthe brain\b|indexed documents/, type:"sys.know" },
+  { re:/\bhr\b|headcount|org chart|site roster|certifications/, type:"sys.hr" },
+  { re:/servicenow|\bincident\b|change request|\bcmdb\b/, type:"sys.snow" },
+  { re:/\bteams\b|\bslack\b|\bchannel\b/, type:"sys.chat" },
+  { re:/\bcalendar\b|\bmeeting\b|\binvite\b/, type:"sys.cal" }
+];
+var WF_AI_ORDER = ["ai.rag","ai.extract","ai.class","ai.sum","ai.draft","ai.ask"];
+var WF_AI_RULES = [
+  { re:/summar/, type:"ai.sum" },
+  { re:/extract|pull out|the fields|parse out|read off/, type:"ai.extract" },
+  { re:/classif|categoris|categoriz|triage|\broute\b/, type:"ai.class" },
+  { re:/draft\s+(a\s+)?(reply|response|answer)|reply to|respond to/, type:"ai.draft" },
+  { re:/search (the )?(brain|company knowledge|confluence)|look up|find the (standard|clause|policy)|\bclause\b|\brag\b/, type:"ai.rag" },
+  { re:/ask the model|\bexplain\b|\bassess\b|analys|\bwork out\b|\bwhy\b/, type:"ai.ask" }
+];
+
+function wfParse(text){
+  var raw = String(text || "").trim();
+  var t = " " + raw.toLowerCase().replace(/[‘’]/g, "'") + " ";
+  var plan = { trigger:null, tdata:{}, systems:[], logic:[], ai:[], outputs:[], needs:[], text:raw };
+
+  /* 1 · outputs first, then blank the phrases so systems do not double-match */
+  var st = t;
+  WF_OUT_RULES.forEach(function(r){
+    r.re.lastIndex = 0;
+    if(r.re.test(t)){
+      if(plan.outputs.indexOf(r.type) === -1) plan.outputs.push(r.type);
+      r.re.lastIndex = 0;
+      st = st.replace(r.re, " ");
+    }
+  });
+
+  /* 2 · trigger — event triggers beat schedules */
+  if(/\bwebhook\b|\bhttp post\b|\binbound request\b|\bcallback\b/.test(t)) plan.trigger = "trig.hook";
+  else if(/(when|whenever)[^.]*\b(e-?mail|mail)\b|(e-?mail|mail)\s+(arrives|lands|comes in)|new (vendor |supplier )?(e-?mail|mail)/.test(t)) plan.trigger = "trig.mail";
+  else if(/jira[^.]*\b(moves|move|enters|transitions|goes|changes|is moved)\b|\b(moves|enters|transitions) to\b/.test(t)) plan.trigger = "trig.jira";
+  else if(/(document|file|doc|drawing)[^.]*\b(lands|added|uploaded|arrives|dropped|appears)\b|\blands in\b/.test(t)) plan.trigger = "trig.doc";
+  else {
+    var cron = null;
+    var hh = null, mm = 0;
+    var m1 = t.match(/\b(\d{1,2})\s*[:.]\s*(\d{2})\s*(am|pm)?/);
+    var m2 = t.match(/\b(\d{1,2})\s*(am|pm)\b/);
+    if(m1){ hh = +m1[1]; mm = +m1[2]; if(m1[3] === "pm" && hh < 12) hh += 12; if(m1[3] === "am" && hh === 12) hh = 0; }
+    else if(m2){ hh = +m2[1]; if(m2[2] === "pm" && hh < 12) hh += 12; if(m2[2] === "am" && hh === 12) hh = 0; }
+    var everyH = t.match(/every\s+(\d+)\s*hours?/), everyM = t.match(/every\s+(\d+)\s*minutes?/);
+    var dow = "*";
+    var dayHit = t.match(/every\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)|on\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)s?|\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)s\b/);
+    if(/every weekday|weekdays|working day|business day/.test(t)) dow = "1-5";
+    else if(dayHit){
+      var dn = dayHit[1] || dayHit[2] || dayHit[3];
+      dow = String(WF_DOW.map(function(d){ return d.toLowerCase(); }).indexOf(dn));
+    }
+    if(everyM) cron = "*/" + everyM[1] + " * * * *";
+    else if(everyH) cron = "0 */" + everyH[1] + " * * *";
+    else if(/\bhourly\b|every hour\b/.test(t)) cron = "0 * * * *";
+    else if(hh != null || dow !== "*" || /\bdaily\b|every day|every morning|each morning|every night|weekly|every week|every month|monthly/.test(t)){
+      if(hh == null) hh = /morning/.test(t) ? 6 : /night|evening/.test(t) ? 20 : 6;
+      if(dow === "*" && /weekly|every week/.test(t)) dow = "0";
+      cron = mm + " " + hh + " * * " + dow;
+    }
+    if(cron){ plan.trigger = "trig.cron"; plan.tdata = { cron:cron }; }
+    else { plan.trigger = "trig.manual"; plan.needs.push("no schedule or event in the sentence — it starts as a manual run"); }
+  }
+  if(plan.trigger === "trig.mail"){
+    var vend = /vendor|supplier|fabricator/.test(t);
+    plan.tdata = { folder: vend ? "Inbox/Vendors" : "Inbox", from: vend ? "@al-rajhi-steel.com" : "", unread:"yes" };
+    if(!vend) plan.needs.push("the mail filter — no sender or subject was named");
+  }
+  if(plan.trigger === "trig.jira"){
+    var stm = t.match(/\bto\s+(blocked|done|in review|in progress)\b/);
+    plan.tdata = { status: stm ? stm[1].replace(/\b\w/g, function(c){ return c.toUpperCase(); }) : "Blocked" };
+  }
+  if(plan.trigger === "trig.doc"){
+    var sp = t.match(/\b(ryd-m3|company knowledge|confluence|sharepoint)\b/);
+    plan.tdata = { space: sp ? (sp[1] === "ryd-m3" ? "RYD-M3" : sp[1] === "company knowledge" ? "Company Knowledge" :
+                   sp[1] === "confluence" ? "Confluence · Standards" : "SharePoint · Contracts") : "RYD-M3" };
+  }
+
+  /* 3 · systems, on the output-stripped string */
+  WF_SYS_RULES.forEach(function(r){
+    if(r.re.test(st) && plan.systems.indexOf(r.type) === -1) plan.systems.push(r.type);
+  });
+  /* the trigger already supplies its own items — do not read the same system twice */
+  if(plan.trigger === "trig.mail") plan.systems = plan.systems.filter(function(s){ return s !== "sys.mail"; });
+  if(plan.trigger === "trig.jira") plan.systems = plan.systems.filter(function(s){ return s !== "sys.jira"; });
+  if(plan.systems.length > 3) plan.systems = plan.systems.slice(0, 3);
+
+  /* 4 · logic */
+  if(/\bfor each\b|\bloop\b|\bevery item\b|\bone by one\b|\bfor every\b/.test(t)) plan.logic.push({type:"log.loop", data:{}});
+  if(/\bfilter\b|\bonly (the|those|keep)\b|high confidence|\bexclude\b|\bprobable\b/.test(t)) plan.logic.push({type:"log.filter", data:{}});
+  var condM = t.match(/\b(?:if|when|that|which)\s+(?:the\s+)?([a-z0-9 ,'\-]{4,60}?)\s*(?:,|\.|\band\b|\bthen\b|$)/);
+  if(/\bif\b|\bslipp?ed\b|\bpast (their|the)\b|\bover\b|\babove\b|\bexceeds?\b|\bmore than\b|\bgreater than\b|\bover threshold\b|\bpast threshold\b/.test(t)){
+    var cond = condM ? condM[1].trim() : "";
+    plan.logic.push({ type:"log.if", data:{ cond: cond || "condition" } });
+    if(!cond) plan.needs.push("the If condition — nothing testable was in the sentence");
+  }
+  var waitM = t.match(/\bwait\s+(\d+)\s*(minutes?|hours?|days?)\b/) || t.match(/\bafter\s+(\d+)\s*(minutes?|hours?|days?)\b/);
+  if(waitM || /\bre-?check\b|\bpause\b/.test(t))
+    plan.logic.push({ type:"log.wait", data: waitM ? { amount:waitM[1], unit:waitM[2].replace(/s?$/,"s") } : {} });
+
+  /* 5 · AI, put back into pipeline order */
+  var ai = [];
+  WF_AI_RULES.forEach(function(r){ if(r.re.test(t) && ai.indexOf(r.type) === -1) ai.push(r.type); });
+  plan.ai = WF_AI_ORDER.filter(function(x){ return ai.indexOf(x) > -1; });
+
+  /* 6 · defaults and honesty */
+  if(!plan.outputs.length){ plan.outputs.push("out.notify"); plan.needs.push("no destination was named — it notifies you instead"); }
+  if(!plan.systems.length && plan.trigger === "trig.cron" && !plan.ai.length)
+    plan.needs.push("no system to read — add one from the palette");
+  return plan;
+}
+
+function wfPlanToGraph(plan){
+  var nodes = [], edges = [];
+  function add(type, data){ var n = wfNode(type, 0, 0, data); nodes.push(n); return n; }
+  function link(a, ap, b, bp, label){ edges.push({ id:ngId("e"), a:a.id, ap:ap, b:b.id, bp:bp, label:label||"" }); }
+
+  var trig = add(plan.trigger, plan.tdata);
+  var heads = [];
+  plan.systems.forEach(function(s){
+    var d = {};
+    if(s === "sys.sap" && /slip|promised|late|past/.test(plan.text.toLowerCase()))
+      d = { object:"PO line items", filter:"promised_date < today AND grn_qty < ordered_qty" };
+    if(s === "sys.sap" && /duplicate|vendor master/.test(plan.text.toLowerCase()))
+      d = { object:"Vendor master", filter:"fuzzy_name_score > 0.86" };
+    var n = add(s, d);
+    link(trig, trig.outs[0].id, n, n.ins[0].id);
+    heads.push(n);
+  });
+  var cur;
+  if(!heads.length) cur = trig;
+  else if(heads.length === 1) cur = heads[0];
+  else {
+    var mg = add("log.merge", {});
+    /* Merge ships with two inputs; widen it when the plan fans in further */
+    while(mg.ins.length < heads.length) mg.ins.push({ id:"p"+mg.ins.length, label:String.fromCharCode(97+mg.ins.length) });
+    wfRefresh(mg);
+    heads.forEach(function(h, i){ link(h, h.outs[0].id, mg, mg.ins[i].id); });
+    cur = mg;
+  }
+  var falseBranch = null;
+  plan.logic.forEach(function(L){
+    var n = add(L.type, L.data);
+    link(cur, cur.outs[0].id, n, n.ins[0].id);
+    if(L.type === "log.if"){ falseBranch = n; cur = n; }
+    else cur = n;
+  });
+  plan.ai.forEach(function(a){
+    var d = {};
+    if(a === "ai.rag" && /clause|standard|policy|contract/.test(plan.text.toLowerCase()))
+      d = { query:"governing clause for the situation on the wire" };
+    var n = add(a, d);
+    var port = cur.outs.filter(function(p){ return p.id === "true"; })[0] ? "true" : cur.outs[0].id;
+    link(cur, port, n, n.ins[0].id);
+    cur = n;
+  });
+  plan.outputs.forEach(function(o){
+    var n = add(o, {});
+    var port = cur.outs.filter(function(p){ return p.id === "true"; })[0] ? "true" : cur.outs[0].id;
+    link(cur, port, n, n.ins[0].id);
+  });
+  if(falseBranch && !edges.some(function(e){ return e.a === falseBranch.id && e.ap === "false"; }))
+    plan.needs.push("the If node's false branch goes nowhere");
+  return { nodes:nodes, edges:edges };
+}
+
+/* the one-line honest report the app prints under the prompt bar */
+function wfSummary(plan, g){
+  var chain = g.nodes.map(function(n){ return n.title; });
+  var writes = g.nodes.filter(function(n){ return (WF_CAT[n.type]||{}).access === "write"; });
+  var egress = g.nodes.filter(function(n){ return (WF_CAT[n.type]||{}).egress; });
+  var s = "Built " + g.nodes.length + " nodes — " + chain.slice(0, 6).join(" → ") + (chain.length > 6 ? " → …" : "") + ".";
+  var needs = plan.needs.slice();
+  if(writes.length) needs.unshift("your approval on " + writes.map(function(n){ return n.title.toLowerCase(); }).join(" and ") + " before anything is written");
+  if(egress.length) needs.push(egress.length + " node" + (egress.length>1?"s":"") + " would leave the DC");
+  return s + (needs.length ? " Still needs: " + needs.join("; ") + "." : " Nothing outstanding.");
+}
+
+var WF_EXAMPLES = [
+  "Every weekday at 6am check SAP for POs that slipped past their promised date, and email me a summary",
+  "When a vendor email arrives, classify it and draft a reply, escalate variation asks to me",
+  "Every Thursday at 07:00 pull P6 and SAP, summarise the week's schedule movement and write a board pack document",
+  "When a Jira issue moves to Blocked, search Confluence for the standard and post the answer to the channel",
+  "Every hour check ServiceNow for HSE incidents, extract the fields and create a Jira issue for each",
+  "When a document lands in the RYD-M3 space, summarise it and save it to Company Knowledge",
+  "Every Sunday scan the SAP vendor master for probable duplicates, filter to high confidence and notify me",
+  "Webhook from the site IoT feed: if the reading is over threshold, wait 10 minutes then alert me on Teams"
+];
+
+/* ---- pre-built Magna workflows -------------------------------------- */
+var WF_TEMPLATES = [
+  { name:"PO slippage → exposure brief", icon:"i-warn",
+    d:"06:00 on weekdays. Reads SAP purchase orders and the P6 baseline, merges them, keeps anything past five days, prices the exposure and parks a mail in drafts.",
+    spec:{ n:[["trig.cron",{cron:"0 6 * * 1-5"}],["sys.sap",{object:"PO line items",filter:"promised_date < today AND grn_qty < ordered_qty"}],
+               ["sys.p6",{}],["log.merge",{mode:"combine on key"}],["log.if",{cond:"slip_days > 5"}],
+               ["ai.sum",{length:"short"}],["out.mail",{subject:"C2 — POs past promised date"}],["out.notify",{}]],
+           e:[[0,"main",1,"in"],[0,"main",2,"in"],[1,"main",3,"a"],[2,"main",3,"b"],[3,"main",4,"in"],
+              [4,"true",5,"in"],[5,"main",6,"in"],[4,"false",7,"in"]] } },
+  { name:"Vendor mail triage", icon:"i-mail",
+    d:"Every message from a vendor folder gets classified, contract questions get a Brain lookup and a drafted reply, everything else is filed and you are notified once.",
+    spec:{ n:[["trig.mail",{folder:"Inbox/Vendors",from:"@al-rajhi-steel.com"}],["ai.class",{labels:"contract, schedule, hse, commercial, noise"}],
+               ["log.switch",{field:"label",cases:"contract, schedule, hse"}],["ai.rag",{query:"governing clause for the vendor's claim"}],
+               ["ai.draft",{tone:"measured"}],["out.mail",{mode:"park in drafts",to:"the vendor"}],["out.notify",{}]],
+           e:[[0,"main",1,"in"],[1,"main",2,"in"],[2,"a",3,"in"],[3,"main",4,"in"],[4,"main",5,"in"],[2,"d",6,"in"]] } },
+  { name:"Board pack — night before", icon:"i-slides",
+    d:"Wednesday 20:00. Pulls the week from P6, SAP and Company Knowledge, summarises it against your reporting thresholds and writes the deck into Drafts. It never sends.",
+    spec:{ n:[["trig.cron",{cron:"0 20 * * 3"}],["sys.p6",{}],["sys.sap",{object:"PO header"}],["sys.know",{cat:"Governance"}],
+               ["log.merge",{mode:"append"}],["ai.sum",{length:"full page",style:"prose"}],["out.doc",{name:"C2 board pack.docx",folder:"Drafts"}]],
+           e:[[0,"main",1,"in"],[0,"main",2,"in"],[0,"main",3,"in"],[1,"main",4,"a"],[2,"main",4,"b"],[3,"main",4,"c"],
+              [4,"main",5,"in"],[5,"main",6,"in"]] } },
+  { name:"Blocked Jira → standard lookup", icon:"i-task",
+    d:"When an issue enters Blocked, the Brain finds the governing standard in Confluence, the model writes the answer and it is posted back to the delivery channel.",
+    spec:{ n:[["trig.jira",{project:"RYD",status:"Blocked"}],["sys.conf",{space:"STD"}],["ai.rag",{sources:"Confluence",k:"6"}],
+               ["ai.ask",{prompt:"Answer the blocker using only the retrieved standard. Cite the page."}],["out.chan",{channel:"#ryd-m3-delivery"}]],
+           e:[[0,"main",1,"in"],[1,"main",2,"in"],[2,"main",3,"in"],[3,"main",4,"in"]] } },
+  { name:"HSE incident → risk register", icon:"i-shield",
+    d:"Hourly ServiceNow sweep. Extracts the reportable fields, loops over each incident and raises a Risk in Jira. ServiceNow is a hosted tenant, so this one shows egress.",
+    spec:{ n:[["trig.cron",{cron:"0 * * * *"}],["sys.snow",{table:"incident",query:"active=true^category=hse"}],
+               ["ai.extract",{fields:"incident_id, severity, site, reported_at, lost_time"}],["log.loop",{batch:"1"}],
+               ["out.jira",{project:"RYD",type:"Risk",summary:"{{incident_id}} — {{severity}}"}],["out.notify",{urgency:"high — breaks focus mode"}]],
+           e:[[0,"main",1,"in"],[1,"main",2,"in"],[2,"main",3,"in"],[3,"item",4,"in"],[3,"done",5,"in"]] } },
+  { name:"New document → indexed knowledge", icon:"i-ingest",
+    d:"A document landing in the RYD-M3 space is summarised, tagged and written back into Company Knowledge so the Brain can cite it the same day.",
+    spec:{ n:[["trig.doc",{space:"RYD-M3",types:"pdf, docx"}],["ai.sum",{length:"one line"}],["ai.extract",{fields:"title, author, package, revision"}],
+               ["out.know",{source:"Company Knowledge",chunker:"recursive-512"}],["out.notify",{}]],
+           e:[[0,"main",1,"in"],[1,"main",2,"in"],[2,"main",3,"in"],[3,"main",4,"in"]] } }
+];
+function wfFromSpec(spec){
+  var nodes = spec.n.map(function(p){ return wfNode(p[0], 0, 0, p[1]); });
+  var edges = spec.e.map(function(e){
+    return { id:ngId("e"), a:nodes[e[0]].id, ap:e[1], b:nodes[e[2]].id, bp:e[3], label:"" };
+  });
+  return { nodes:nodes, edges:edges };
+}
+
+/* ---- saved workflows ------------------------------------------------- */
+function wfSavedAll(){ try{ return JSON.parse(store.get("mv7.wf.saved","[]")) || []; }catch(e){ return []; } }
+function wfSavedPut(list){ store.set("mv7.wf.saved", JSON.stringify(list)); }
+
+/* the exported shape — deliberately flat and readable */
+function wfExport(g, name){
+  return {
+    format: "magnaverse.workflow",
+    version: 1,
+    name: name || "Untitled workflow",
+    exported: new Date().toISOString(),
+    residency: "Riyadh DC-1 · Private tier unless a node says otherwise",
+    nodes: g.nodes.map(function(n){
+      var t = WF_CAT[n.type] || {};
+      return { id:n.id, type:n.type, name:n.title, position:[Math.round(n.x), Math.round(n.y)],
+               access:t.access || "none", egress: !!t.egress, params:n.data };
+    }),
+    edges: g.edges.map(function(e){ return { from:e.a, fromPort:e.ap, to:e.b, toPort:e.bp }; })
+  };
+}
+function wfCopy(text, okMsg){
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.cssText = "position:fixed;opacity:0;left:-9999px";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast(okMsg || "Copied."); }catch(e){ toast("Could not copy — select the text and copy manually."); }
+    ta.remove();
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(text).then(function(){ toast(okMsg || "Copied."); }, fallback);
+  else fallback();
+}
+
+/* ---------------------------------------------------------- WORKFLOW */
+MOUNT.workflow = function(body, w){
+  var S = w.state;
+  S.name = (w.params && w.params.name) || "Untitled workflow";
+  S.running = false; S.timer = null; S.log = [];
+
+  body.innerHTML =
+    '<div class="wf">'+
+      '<div class="wf-top">'+
+        '<div class="wf-ask">'+ico("i-spark","sm")+
+          '<input type="text" data-wfask placeholder="Describe a workflow — “every weekday at 6am check SAP for slipped POs and email me a summary”" spellcheck="false" aria-label="Describe a workflow">'+
+          '<button class="btn primary" data-wfgen>'+ico("i-play","xs")+'Generate</button></div>'+
+        '<div class="wf-chips" role="group" aria-label="Example prompts">'+
+          WF_EXAMPLES.map(function(x,i){ return '<button type="button" class="chip" data-wfex="'+i+'" title="'+esc(x)+'">'+esc(x.slice(0,58))+(x.length>58?"…":"")+'</button>'; }).join("")+
+        '</div>'+
+        '<p class="wf-note" data-wfnote>'+ico("i-warn","xs")+
+          '<span>Prototype generator. It matches keywords against the node catalogue — it is not a language model, '+
+          'so phrasing it has no rule for lands as a manual trigger you then edit. Read the graph before you trust it.</span></p>'+
+      '</div>'+
+      '<div class="wf-main">'+
+        '<div class="wf-pal" data-wfpal></div>'+
+        '<div class="wf-mid">'+
+          '<div class="wf-tools">'+
+            '<button class="btn sm primary" data-wfrun>'+ico("i-play","xs")+'Run</button>'+
+            '<button class="btn sm" data-wfreset>Reset states</button>'+
+            '<span style="width:1px;height:18px;background:var(--glass-line)"></span>'+
+            '<button class="btn sm" data-wfsheet="tpl">'+ico("i-grid","xs")+'Templates</button>'+
+            '<button class="btn sm" data-wfsheet="open">'+ico("i-folder","xs")+'Open</button>'+
+            '<button class="btn sm" data-wfsheet="save">'+ico("i-download","xs")+'Save</button>'+
+            '<button class="btn sm" data-wfsheet="json">'+ico("i-code","xs")+'Export JSON</button>'+
+            '<button class="btn sm" data-wfclear>Clear</button>'+
+            '<button class="btn sm wf-mobonly" data-wftog="pal">'+ico("i-plus","xs")+'Nodes</button>'+
+            '<button class="btn sm wf-mobonly" data-wftog="insp">'+ico("i-sliders","xs")+'Inspect</button>'+
+            '<span class="sp"></span>'+
+            '<span class="wf-nm" data-wfnm>'+esc(S.name)+'</span>'+
+          '</div>'+
+          '<div data-wfcanvas></div>'+
+          '<div class="wf-log" data-wflog>'+
+            '<div class="wf-log-h">'+ico("i-term","xs")+'<span>Run log</span><span class="sp"></span>'+
+              '<button class="btn sm" data-wflogtog aria-expanded="true">Hide</button></div>'+
+            '<div class="wf-log-b" data-wflogb></div></div>'+
+        '</div>'+
+        '<div class="wf-insp" data-wfinsp></div>'+
+      '</div>'+
+      '<div class="wf-sheet" data-wfsheetel>'+
+        '<div class="wf-sheet-h">'+ico("i-layers","sm")+'<b data-wfsheettitle></b>'+
+          '<button class="btn sm" data-wfsheetclose>'+ico("i-x","xs")+'Close</button></div>'+
+        '<div class="wf-sheet-b" data-wfsheetb></div></div>'+
+    '</div>';
+
+  var canvasHost = body.querySelector("[data-wfcanvas]");
+  var insp = body.querySelector("[data-wfinsp]");
+  var logB = body.querySelector("[data-wflogb]");
+  var sheet = body.querySelector("[data-wfsheetel]");
+
+  var G = NGraph(canvasHost, {
+    quickAdd: true,
+    label: "Workflow canvas",
+    emptyHTML: "Drag a node from the palette, double-click for quick add,<br>or describe the workflow in the bar above.",
+    onSelect: function(n){ drawInsp(n); },
+    onChange: function(){ S.dirty = true; },
+    onOpenNode: function(n){ G.select(n.id); if(isMobile()) body.querySelector("[data-wfinsp]").classList.add("on"); }
+  });
+  S.G = G;
+
+  /* ---------- palette ---------- */
+  (function(){
+    var pal = body.querySelector("[data-wfpal]");
+    pal.innerHTML = WF_GROUPS.map(function(gname, gi){
+      var items = Object.keys(WF_CAT).filter(function(k){ return WF_CAT[k].g === gname; });
+      return '<details class="wf-pg"'+(gi < 3 ? " open" : "")+'>'+
+        '<summary>'+esc(gname)+'<span class="cnt">'+items.length+'</span></summary>'+
+        items.map(function(k){
+          var t = WF_CAT[k];
+          return '<button type="button" class="wf-pi" data-wfadd="'+esc(k)+'" title="'+esc(t.reads||"")+'">'+
+            '<span class="sw '+esc(t.tile)+'">'+ico(t.icon)+'</span><span class="nm">'+esc(t.name)+'</span>'+
+            (t.access === "write" ? '<span class="ng-chip w">w</span>' : t.access === "read" ? '<span class="ng-chip r">r</span>' :
+             t.access === "model" ? '<span class="ng-chip m">ai</span>' : '')+
+          '</button>';
+        }).join("")+'</details>';
+    }).join("");
+  })();
+
+  /* drag a palette entry onto the canvas; a plain click drops it in the middle */
+  var pdrag = null, proxy = null;
+  function pdMove(e){
+    if(!pdrag) return;
+    if(!pdrag.moved && Math.hypot(e.clientX - pdrag.sx, e.clientY - pdrag.sy) < 5) return;
+    pdrag.moved = true;
+    if(!proxy){
+      var t = WF_CAT[pdrag.type];
+      proxy = el("div","wf-pi");
+      proxy.style.cssText = "position:fixed;z-index:500;pointer-events:none;background:var(--glass-3);"+
+        "border:1px solid var(--cyan);border-radius:8px;padding:6px 9px;box-shadow:var(--shadow-pop)";
+      proxy.innerHTML = '<span class="sw '+esc(t.tile)+'">'+ico(t.icon)+'</span><span class="nm">'+esc(t.name)+'</span>';
+      document.body.appendChild(proxy);
+    }
+    proxy.style.left = (e.clientX + 10) + "px";
+    proxy.style.top  = (e.clientY + 10) + "px";
+  }
+  function pdUp(e){
+    document.removeEventListener("pointermove", pdMove, true);
+    document.removeEventListener("pointerup", pdUp, true);
+    if(proxy){ proxy.remove(); proxy = null; }
+    if(!pdrag) return;
+    var type = pdrag.type, moved = pdrag.moved;
+    pdrag = null;
+    var r = canvasHost.getBoundingClientRect();
+    var inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    var c;
+    if(moved && inside) c = G.toContent(e.clientX, e.clientY);
+    else if(moved) return;                       /* dropped outside — nothing happens */
+    else c = G.toContent(r.left + r.width/2, r.top + r.height/2);
+    var n = wfNode(type, Math.round(c[0] - 104), Math.round(c[1] - 40));
+    G.addNode(n);
+    G.select(n.id);
+    toast("Added " + n.title + ".");
+  }
+  body.querySelector("[data-wfpal]").addEventListener("pointerdown", function(e){
+    var pi = e.target.closest("[data-wfadd]"); if(!pi) return;
+    e.preventDefault();
+    pdrag = { type: pi.getAttribute("data-wfadd"), sx:e.clientX, sy:e.clientY, moved:false };
+    document.addEventListener("pointermove", pdMove, true);
+    document.addEventListener("pointerup", pdUp, true);
+  });
+
+  /* ---------- quick add ---------- */
+  (function(){
+    var qa = G.qa; if(!qa) return;
+    var inp = qa.querySelector("[data-qain]"), list = qa.querySelector("[data-qalist]");
+    function draw(q){
+      var lc = (q||"").toLowerCase();
+      var keys = Object.keys(WF_CAT).filter(function(k){
+        var t = WF_CAT[k];
+        return !lc || (t.name + " " + t.g + " " + k).toLowerCase().indexOf(lc) > -1;
+      }).slice(0, 40);
+      list.innerHTML = keys.map(function(k, i){
+        var t = WF_CAT[k];
+        return '<button type="button" class="qi" data-qadd="'+esc(k)+'" role="option" aria-selected="'+(i===0)+'">'+
+          '<span class="ng-n-ic '+esc(t.tile)+'" style="width:20px;height:20px;border-radius:6px">'+ico(t.icon)+'</span>'+
+          esc(t.name)+'<span class="g">'+esc(t.g)+'</span></button>';
+      }).join("") || '<div class="empty-msg" style="padding:16px">No node matches that.</div>';
+    }
+    qa.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+    inp.addEventListener("input", function(){ draw(inp.value); });
+    inp.addEventListener("keydown", function(e){
+      e.stopPropagation();
+      if(e.key === "Escape"){ qa.classList.remove("on"); canvasHost.focus(); return; }
+      if(e.key === "Enter"){ var f = list.querySelector("[data-qadd]"); if(f) f.click(); }
+    });
+    qa.addEventListener("click", function(e){
+      var b = e.target.closest("[data-qadd]"); if(!b) return;
+      var at = qa._at || [0,0];
+      var n = wfNode(b.getAttribute("data-qadd"), Math.round(at[0]) - 104, Math.round(at[1]) - 40);
+      G.addNode(n); G.select(n.id);
+      qa.classList.remove("on"); canvasHost.focus();
+    });
+    G.opts.onQuickAdd = function(){ draw(""); };
+  })();
+
+  /* ---------- inspector ---------- */
+  function drawInsp(n){
+    if(!n){
+      insp.innerHTML = '<div class="wf-ih"><span class="sw g-conn">'+ico("i-sliders")+'</span>'+
+        '<span><b>Nothing selected</b><i>'+G.nodes.length+' nodes · '+G.edges.length+' edges</i></span></div>'+
+        '<div class="wf-res"><div class="rw"><span class="k">Canvas</span>drag to pan, wheel to zoom, Shift-drag to marquee.</div>'+
+        '<div class="rw"><span class="k">Wiring</span>drag an output dot onto an input dot. Drag off an input to unwire.</div>'+
+        '<div class="rw"><span class="k">Keys</span>Delete removes, arrows nudge, Cmd-Z undoes, Cmd-0 fits.</div></div>'+
+        '<p class="sub" style="font-size:11.5px">Every node states what it reads, what it writes and whether it leaves '+
+        'the DC. A run stops at each write and raises the same approval bar the rest of Console uses.</p>';
+      return;
+    }
+    var t = WF_CAT[n.type] || {};
+    insp.innerHTML =
+      '<div class="wf-ih"><span class="sw '+esc(n.tile)+'">'+ico(n.icon)+'</span>'+
+        '<span><b>'+esc(n.title)+'</b><i>'+esc(n.type)+'</i></span></div>'+
+      '<div class="wf-res">'+
+        '<div class="rw"><span class="k">Reads</span>'+esc(t.reads || "nothing")+'</div>'+
+        '<div class="rw"><span class="k">Writes</span>'+esc(t.writes || "nothing")+'</div>'+
+        '<div class="rw"><span class="k">Egress</span>'+esc(t.eg || "none")+'</div>'+
+      '</div>'+
+      (t.params || []).map(function(p){
+        var v = n.data[p.k] == null ? "" : n.data[p.k];
+        var f;
+        if(p.t === "sel") f = '<select data-wfp="'+esc(p.k)+'">'+p.o.map(function(o){
+              return '<option'+(o===v?" selected":"")+'>'+esc(o)+'</option>'; }).join("")+'</select>';
+        else if(p.t === "area") f = '<textarea data-wfp="'+esc(p.k)+'" spellcheck="false">'+esc(v)+'</textarea>';
+        else f = '<input type="text" data-wfp="'+esc(p.k)+'" value="'+esc(v)+'" spellcheck="false">';
+        var hint = "";
+        if(p.hint === "cron") hint = '<div class="hint" data-wfhint="cron"><b>'+esc(cronEnglish(v))+'</b></div>';
+        if(p.hint === "jql")  hint = '<div class="hint">Runs against the linked Jira. Reads only — a write needs its own node.</div>';
+        return '<div class="wf-f"><label for="wfp-'+esc(p.k)+'">'+esc(p.l)+'</label>'+
+               f.replace("data-wfp=", 'id="wfp-'+esc(p.k)+'" data-wfp=')+hint+'</div>';
+      }).join("")+
+      '<div style="display:flex;gap:6px;margin-top:6px">'+
+        '<button class="btn sm" data-wfdup>Duplicate</button>'+
+        '<button class="btn sm danger" data-wfdel>Delete node</button></div>';
+  }
+  insp.addEventListener("input", function(e){
+    var f = e.target.closest("[data-wfp]"); if(!f) return;
+    var n = G.nodeById(G.sel[0]); if(!n) return;
+    n.data[f.getAttribute("data-wfp")] = f.value;
+    wfRefresh(n);
+    var el2 = n.el && n.el.querySelector(".ng-n-tt i"); if(el2) el2.textContent = n.sub;
+    var hint = f.parentNode.querySelector('[data-wfhint="cron"] b');
+    if(hint) hint.textContent = cronEnglish(f.value);
+    S.dirty = true;
+  });
+  insp.addEventListener("change", function(e){
+    var f = e.target.closest("select[data-wfp]"); if(!f) return;
+    var n = G.nodeById(G.sel[0]); if(!n) return;
+    n.data[f.getAttribute("data-wfp")] = f.value; wfRefresh(n); G.render(); G.select(n.id);
+  });
+  insp.addEventListener("click", function(e){
+    var n = G.nodeById(G.sel[0]);
+    if(e.target.closest("[data-wfdel]") && n){ G.removeNode(n.id); return; }
+    if(e.target.closest("[data-wfdup]") && n){
+      var c = wfNode(n.type, n.x + 32, n.y + 40, n.data);
+      G.addNode(c); G.select(c.id); toast("Duplicated.");
+    }
+  });
+
+  /* ---------- run log ---------- */
+  function logPush(cls, node, msg, dur){
+    S.log.push({ t:tsTime(), n:node, m:msg, d:dur||"", cls:cls });
+    var row = el("div", "wf-lr " + (cls||""));
+    row.innerHTML = '<span class="t">'+esc(tsTime())+'</span><span class="n">'+esc(node)+'</span>'+
+      '<span class="m">'+esc(msg)+'</span><span class="d">'+esc(dur||"")+'</span>';
+    logB.appendChild(row);
+    logB.scrollTop = logB.scrollHeight;
+  }
+  function logClear(){ S.log = []; logB.innerHTML = ""; }
+
+  /* ---------- run ---------- */
+  function topo(){
+    var byId = {}, indeg = {}, adj = {};
+    G.nodes.forEach(function(n){ byId[n.id] = n; indeg[n.id] = 0; adj[n.id] = []; });
+    G.edges.forEach(function(e){ if(byId[e.a] && byId[e.b]){ adj[e.a].push(e.b); indeg[e.b]++; } });
+    var q = G.nodes.filter(function(n){ return indeg[n.id] === 0; }).map(function(n){ return n.id; });
+    var out = [], seen = {};
+    while(q.length){
+      var id = q.shift(); if(seen[id]) continue; seen[id] = 1; out.push(id);
+      adj[id].forEach(function(b){ indeg[b]--; if(indeg[b] === 0) q.push(b); });
+    }
+    G.nodes.forEach(function(n){ if(!seen[n.id]) out.push(n.id); });   /* cycles keep their order */
+    return out;
+  }
+  function stopRun(msg){
+    S.running = false;
+    if(S.timer){ clearTimeout(S.timer); S.timer = null; }
+    G.edges.forEach(function(e){ G.flowEdge(e.id, false); });
+    var b = body.querySelector("[data-wfrun]");
+    if(b) b.innerHTML = ico("i-play","xs") + "Run";
+    if(msg) logPush("warn", "run", msg);
+  }
+  function runGraph(){
+    if(S.running){ stopRun("Stopped by you."); return; }
+    if(!G.nodes.length){ toast("Nothing to run — the canvas is empty."); return; }
+    logClear();
+    G.resetStates();
+    S.running = true;
+    body.querySelector("[data-wfrun]").innerHTML = ico("i-x","xs") + "Stop";
+    var order = topo(), items = {}, i = 0, t0 = Date.now();
+    logPush("", "run", "Started · " + order.length + " nodes · Private tier, Riyadh DC-1");
+    order.forEach(function(id){ G.setState(id, "queued"); });
+    dockActivity("workflow", "working", 2400);
+
+    function finish(){
+      stopRun();
+      logPush("ok", "run", "Finished in " + ((Date.now() - t0)/1000).toFixed(1) + "s", "");
+      toast("Run finished — " + order.length + " nodes.");
+      neuralFlash(3);
+    }
+    function step(){
+      if(!S.running) return;
+      if(i >= order.length){ finish(); return; }
+      var id = order[i], n = G.nodeById(id);
+      if(!n){ i++; step(); return; }
+      var t = WF_CAT[n.type] || {};
+      var ins = G.edgesInto(id);
+      var inCount = ins.length ? ins.reduce(function(s, e){ return s + (items[e.a] || 0); }, 0) : 1;
+      var outCount = t.base != null ? t.base : Math.max(0, Math.round(inCount * (t.ratio == null ? 1 : t.ratio)));
+      items[id] = outCount;
+      var dur = (t.g === "AI" ? 900 + (i * 211) % 1700 : t.g === "Systems" ? 180 + (i * 137) % 720 :
+                 t.g === "Output" ? 160 + (i * 97) % 420 : 6 + (i * 13) % 40);
+      ins.forEach(function(e){ G.flowEdge(e.id, true); });
+      G.setState(id, "running");
+      G.setBadge(id, "…");
+
+      function execute(){
+        var wait = REDUCED ? 0 : Math.min(1400, 240 + dur / 3);
+        S.timer = setTimeout(function(){
+          if(!S.running) return;
+          ins.forEach(function(e){ G.flowEdge(e.id, false); });
+          var warn = outCount === 0 && t.g !== "Triggers";
+          G.setState(id, warn ? "warning" : "ok");
+          G.setBadge(id, outCount + " · " + dur + "ms");
+          logPush(warn ? "warn" : "ok", n.title,
+            (warn ? "no items passed — " : "") + (t.reads ? "read " + t.reads.split("·")[0].trim() + " · " : "") +
+            outCount + " item" + (outCount === 1 ? "" : "s"), dur + "ms");
+          i++; step();
+        }, wait);
+      }
+      if(t.access === "write"){
+        logPush("warn", n.title, "write held — waiting for your approval");
+        G.setState(id, "queued");
+        requestApproval(w, {
+          title: "“" + n.title + "” wants to write.",
+          detail: esc(t.writes) + (t.egress ? " <b>This one leaves the DC.</b>" : " Stays inside Riyadh DC-1.") +
+                  " " + esc(outCount + " item" + (outCount === 1 ? "" : "s") + " on the wire."),
+          confirm: "Allow this write",
+          okToast: "Approved — the node is executing.",
+          onApprove: function(){ if(!S.running) return; G.setState(id, "running"); execute(); },
+          onCancel: function(){
+            G.setState(id, "failed"); G.setBadge(id, "blocked");
+            ins.forEach(function(e){ G.flowEdge(e.id, false); });
+            logPush("err", n.title, "you declined the write — run stopped here");
+            stopRun();
+          }
+        });
+        return;
+      }
+      execute();
+    }
+    step();
+  }
+
+  /* ---------- sheets ---------- */
+  function openSheet(kind){
+    var tt = body.querySelector("[data-wfsheettitle]"), sb = body.querySelector("[data-wfsheetb]");
+    if(kind === "tpl"){
+      tt.textContent = "Templates";
+      sb.innerHTML = '<p class="sub">Six workflows built for this project. Loading one replaces the canvas — save first if you want to keep what is there.</p>'+
+        '<div class="grid2">'+ WF_TEMPLATES.map(function(x, i){
+          var g = wfFromSpec(x.spec);
+          var wr = g.nodes.filter(function(n){ return (WF_CAT[n.type]||{}).access === "write"; }).length;
+          var eg = g.nodes.filter(function(n){ return (WF_CAT[n.type]||{}).egress; }).length;
+          return '<button type="button" class="wf-tpl" data-wftpl="'+i+'"><b>'+ico(x.icon,"sm")+esc(x.name)+'</b>'+
+            '<span>'+esc(x.d)+'</span><span class="mt"><span class="ng-chip">'+g.nodes.length+' nodes</span>'+
+            (wr ? '<span class="ng-chip w">'+wr+' write'+(wr>1?"s":"")+'</span>' : '')+
+            (eg ? '<span class="ng-chip eg">'+eg+' egress</span>' : '')+'</span></button>';
+        }).join("") +'</div>';
+    } else if(kind === "open"){
+      tt.textContent = "Saved workflows";
+      var list = wfSavedAll();
+      sb.innerHTML = '<p class="sub">Stored in this browser only — localStorage, not a server. Clearing site data clears these.</p>'+
+        (list.length ? list.map(function(x, i){
+          return '<div class="runrow"><span class="dot" style="background:var(--cyan)"></span>'+
+            '<div class="mid"><div class="nm">'+esc(x.name)+'</div><div class="sub">'+
+            esc(new Date(x.ts).toLocaleString())+' · '+x.graph.nodes.length+' nodes</div></div>'+
+            '<button class="btn sm" data-wfopen="'+i+'">Open</button>'+
+            '<button class="btn sm danger" data-wfdrop="'+i+'">Delete</button></div>';
+        }).join("") : '<div class="empty-msg">Nothing saved yet.</div>');
+    } else if(kind === "save"){
+      tt.textContent = "Save workflow";
+      sb.innerHTML = '<div class="wf-f" style="max-width:420px"><label for="wfsavename">Name</label>'+
+        '<input type="text" id="wfsavename" data-wfsavename value="'+esc(S.name)+'" spellcheck="false"></div>'+
+        '<button class="btn primary" data-wfdosave>'+ico("i-check","xs")+'Save to this browser</button>'+
+        '<p class="sub" style="margin-top:14px">'+G.nodes.length+' nodes and '+G.edges.length+' edges will be stored.</p>';
+    } else {
+      tt.textContent = "Export JSON";
+      var json = JSON.stringify(wfExport(G, S.name), null, 2);
+      sb.innerHTML = '<div style="display:flex;gap:7px;margin-bottom:10px">'+
+          '<button class="btn sm primary" data-wfjsoncopy>'+ico("i-download","xs")+'Copy JSON</button>'+
+          '<span style="font-size:11.5px;color:var(--tx-3);align-self:center">'+
+          G.nodes.length+' nodes · '+G.edges.length+' edges · format magnaverse.workflow v1</span></div>'+
+        '<pre class="wf-json" data-wfjson>'+esc(json)+'</pre>';
+    }
+    sheet.classList.add("on");
+    var f = sheet.querySelector("input, button"); if(f) f.focus();
+  }
+  function closeSheet(){ sheet.classList.remove("on"); }
+
+  function loadGraph(g, name, note){
+    G.load({ nodes:g.nodes, edges:g.edges }, true);
+    G.autoLayout();
+    S.name = name || S.name;
+    body.querySelector("[data-wfnm]").textContent = S.name;
+    setWinTitle(w, "Workflow", S.name);
+    logClear();
+    if(note) body.querySelector("[data-wfnote] span").textContent = note;
+    drawInsp(null);
+  }
+
+  /* ---------- events ---------- */
+  body.addEventListener("click", function(e){
+    var t;
+    if(e.target.closest("[data-wfgen]")){
+      var q = body.querySelector("[data-wfask]").value.trim();
+      if(!q){ toast("Type what the workflow should do first."); return; }
+      var plan = wfParse(q), g = wfPlanToGraph(plan);
+      loadGraph(g, q.slice(0, 46) + (q.length > 46 ? "…" : ""));
+      body.querySelector("[data-wfnote] span").textContent = wfSummary(plan, g);
+      toast("Generated " + g.nodes.length + " nodes. Check the parameters before running.", 4200);
+      tsPush("Workflow", "generated a graph from a sentence — " + g.nodes.length + " nodes");
+      return;
+    }
+    if(t = e.target.closest("[data-wfex]")){
+      var ex = WF_EXAMPLES[+t.getAttribute("data-wfex")];
+      body.querySelector("[data-wfask]").value = ex;
+      var p2 = wfParse(ex), g2 = wfPlanToGraph(p2);
+      loadGraph(g2, ex.slice(0, 46) + "…");
+      body.querySelector("[data-wfnote] span").textContent = wfSummary(p2, g2);
+      return;
+    }
+    if(e.target.closest("[data-wfrun]")){ runGraph(); return; }
+    if(e.target.closest("[data-wfreset]")){ stopRun(); G.resetStates(); logClear(); toast("States cleared."); return; }
+    if(e.target.closest("[data-wfclear]")){ stopRun(); G.clear(); logClear(); drawInsp(null); return; }
+    if(t = e.target.closest("[data-wfsheet]")){ openSheet(t.getAttribute("data-wfsheet")); return; }
+    if(e.target.closest("[data-wfsheetclose]")){ closeSheet(); return; }
+    if(t = e.target.closest("[data-wftog]")){
+      var k = t.getAttribute("data-wftog");
+      var panel = body.querySelector(k === "pal" ? "[data-wfpal]" : "[data-wfinsp]");
+      var other = body.querySelector(k === "pal" ? "[data-wfinsp]" : "[data-wfpal]");
+      other.classList.remove("on");
+      panel.classList.toggle("on");
+      return;
+    }
+    if(t = e.target.closest("[data-wftpl]")){
+      var tpl = WF_TEMPLATES[+t.getAttribute("data-wftpl")];
+      loadGraph(wfFromSpec(tpl.spec), tpl.name, "Template loaded — " + tpl.d);
+      closeSheet(); toast("Loaded “" + tpl.name + "”.");
+      return;
+    }
+    if(t = e.target.closest("[data-wfopen]")){
+      var all = wfSavedAll(), it = all[+t.getAttribute("data-wfopen")];
+      if(it){ loadGraph(it.graph, it.name, "Opened “" + it.name + "” from this browser."); closeSheet(); toast("Opened."); }
+      return;
+    }
+    if(t = e.target.closest("[data-wfdrop]")){
+      var all2 = wfSavedAll(); all2.splice(+t.getAttribute("data-wfdrop"), 1); wfSavedPut(all2);
+      openSheet("open"); toast("Deleted.");
+      return;
+    }
+    if(e.target.closest("[data-wfdosave]")){
+      var nm = (body.querySelector("[data-wfsavename]").value || "Untitled workflow").trim();
+      var all3 = wfSavedAll();
+      var ix = -1; all3.forEach(function(x, j){ if(x.name === nm) ix = j; });
+      var rec = { name:nm, ts:Date.now(), graph:G.serialize() };
+      if(ix > -1) all3[ix] = rec; else all3.unshift(rec);
+      wfSavedPut(all3.slice(0, 40));
+      S.name = nm; S.dirty = false;
+      body.querySelector("[data-wfnm]").textContent = nm;
+      setWinTitle(w, "Workflow", nm);
+      closeSheet(); toast("Saved “" + nm + "” to this browser.");
+      return;
+    }
+    if(e.target.closest("[data-wfjsoncopy]")){
+      wfCopy(body.querySelector("[data-wfjson]").textContent, "Workflow JSON copied.");
+      return;
+    }
+    if(t = e.target.closest("[data-wflogtog]")){
+      var lg = body.querySelector("[data-wflog]");
+      var shut = lg.classList.toggle("shut");
+      t.textContent = shut ? "Show" : "Hide";
+      t.setAttribute("aria-expanded", String(!shut));
+      return;
+    }
+  });
+  body.querySelector("[data-wfask]").addEventListener("keydown", function(e){
+    e.stopPropagation();
+    if(e.key === "Enter"){ e.preventDefault(); body.querySelector("[data-wfgen]").click(); }
+  });
+  body.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && sheet.classList.contains("on")){ e.stopPropagation(); closeSheet(); return; }
+    if(e.key === "Escape" && isMobile()){
+      var open = body.querySelector(".wf-pal.on, .wf-insp.on");
+      if(open){ e.stopPropagation(); open.classList.remove("on"); }
+    }
+  });
+
+  setWinTitle(w, "Workflow", S.name);
+  drawInsp(null);
+  /* an incoming graph (from an Agent diagram) wins; otherwise start on a template */
+  if(w.params && w.params.graph){
+    loadGraph(w.params.graph, S.name, w.params.note || "Opened from a diagram — every node is editable here.");
+  } else {
+    loadGraph(wfFromSpec(WF_TEMPLATES[0].spec), WF_TEMPLATES[0].name,
+      "Template loaded — " + WF_TEMPLATES[0].d);
+  }
+  setTimeout(function(){ G.fit(); }, 60);
+};
+
+/* ============================================================
+   8e · AGENTS AND AUTOMATIONS AS DIAGRAMS
+   Both views derive from the data already in this file — AGENTS,
+   AUTOS, KNOWLEDGE_SOURCES, RAG_PIPELINE, RUN_STEPS. Nothing here
+   invents a capability an agent does not have; where a field does
+   not exist (per-step timings for an automation) the recorded run
+   is stored explicitly below and the UI says it is the last run.
+   ============================================================ */
+
+/* which knowledge source a configured tag or phrase actually reaches */
+var AG_KS_RULES = [
+  { re:/sap|purchase|\bpo\b|exposure/i, ks:"ks4" },
+  { re:/p6|schedule|baseline|slip/i,    ks:"ks5" },
+  { re:/clause|company knowledge|knowledge|hse|incident|threshold/i, ks:"ks1" },
+  { re:/confluence|standard/i,          ks:"ks2" },
+  { re:/jira|issue/i,                   ks:"ks6" },
+  { re:/mail|outlook/i,                 ks:"ks7" },
+  { re:/decision/i,                     ks:"ks8" }
+];
+function ksById(id){ for(var i=0;i<KNOWLEDGE_SOURCES.length;i++) if(KNOWLEDGE_SOURCES[i].id === id) return KNOWLEDGE_SOURCES[i]; return null; }
+function agentTrigger(a){
+  var timeTag = (a.tags||[]).filter(function(t){ return /\d{1,2}:\d{2}|daily|weekly|hourly/i.test(t); })[0];
+  if(timeTag) return { kind:"schedule", label:timeTag };
+  var d = a.desc || "";
+  var m = d.match(/every (two hours|three hours|hour|day|week|morning)/i);
+  if(m) return { kind:"schedule", label: m[0].charAt(0).toUpperCase() + m[0].slice(1) };
+  var wm = d.match(/^When [^,.]+/i);
+  if(wm) return { kind:"event", label: wm[0] };
+  if(/^weekly/i.test(d)) return { kind:"schedule", label:"Weekly" };
+  return { kind:"manual", label:"Manual run" };
+}
+function agentSources(a){
+  var hay = (a.tags||[]).join(" ") + " " + (a.desc||"");
+  var out = [];
+  AG_KS_RULES.forEach(function(r){ if(r.re.test(hay) && out.indexOf(r.ks) === -1) out.push(r.ks); });
+  return out.map(ksById).filter(Boolean);
+}
+function agentTools(a){
+  var ksNames = KNOWLEDGE_SOURCES.map(function(k){ return k.name.toLowerCase(); });
+  var reads = (a.tags||[]).filter(function(t){
+    return !/\d{1,2}:\d{2}|^daily$|^weekly$/i.test(t) && ksNames.indexOf(t.toLowerCase()) === -1;
+  }).map(function(t){ return { name:t, mode:"read" }; });
+  var d = a.desc || "";
+  if(!/never writes|read-only/i.test(d)){
+    if(/draft/i.test(d))                     reads.push({ name:"draft-position", mode:"write" });
+    else if(/assembl|deck|pack|narrative/i.test(d)) reads.push({ name:"assemble-deck", mode:"write" });
+    else if(/summary|digest/i.test(d))       reads.push({ name:"compose-digest", mode:"write" });
+  }
+  if(!reads.length) reads.push({ name:"no tool granted", mode:"read" });
+  return reads;
+}
+function agentModel(){
+  var gen = RAG_PIPELINE.filter(function(p){ return /answer generation/i.test(p.step); })[0];
+  return gen ? gen.desc : "Kimi K2 Instruct · Private tier · Riyadh DC-1";
+}
+function agentDest(a){
+  var d = a.desc || "";
+  if(/never writes|read-only/i.test(d)) return { title:"Notification Centre", sub:"it raises, you decide", icon:"i-bell", tile:"g-agents" };
+  if(/draft/i.test(d))    return { title:"Chat draft", sub:"waits for your approval", icon:"i-chat", tile:"g-chat" };
+  if(/deck|pack/i.test(d))return { title:"Drafts", sub:"parked, never sent", icon:"i-slides", tile:"g-slides" };
+  return { title:"Mail digest", sub:"parked in drafts", icon:"i-mail", tile:"g-mail" };
+}
+
+/* ---- one agent as a flow ---------------------------------------------- */
+function agentGraph(a){
+  var nodes = [], edges = [], i = 0;
+  function N(o){ o.id = o.id || ("ag" + (++i)); o.x = 0; o.y = 0; o.w = o.w || 196;
+    o.ins = o.ins || [{id:"in",label:"in"}]; o.outs = o.outs || [{id:"main",label:"out"}];
+    o.chips = o.chips || []; o.data = {}; nodes.push(o); return o; }
+  function L(x, y, port){ edges.push({ id:ngId("e"), a:x.id, ap:port || x.outs[0].id, b:y.id, bp:y.ins[0].id, label:"" }); }
+
+  var tg = agentTrigger(a);
+  var trig = N({ title: tg.kind === "event" ? "Trigger · event" : tg.kind === "schedule" ? "Trigger · schedule" : "Trigger · manual",
+    sub: tg.label, icon: tg.kind === "event" ? "i-bolt" : "i-clock", tile: tg.kind === "event" ? "g-auto" : "g-auto",
+    ins: [], chips:[{cls:"", t:tg.kind}],
+    detail:"<b>"+esc(tg.label)+"</b><p>Derived from the agent's configured tags and description. "+
+      "A schedule fires inside the DC; an event trigger is raised by another agent or a connector.</p>" });
+
+  var srcs = agentSources(a);
+  var srcNodes = srcs.map(function(k){
+    var n = N({ title:k.name, sub:k.count.toLocaleString() + " items · " + k.lastSync, icon:k.icon,
+      tile: k.status === "connected" ? "g-brain" : k.status === "partial" ? "g-auto" : "g-trash",
+      chips:[{cls:"r", t:"reads"}, {cls:"", t:k.status}],
+      detail:'<b>'+esc(k.name)+'</b><div class="kv"><span class="k">Status</span><span class="v">'+esc(k.status)+'</span></div>'+
+        '<div class="kv"><span class="k">Indexed</span><span class="v">'+k.count.toLocaleString()+' items · '+esc(k.vectors)+' vectors</span></div>'+
+        '<div class="kv"><span class="k">Chunker</span><span class="v">'+esc(k.chunker)+'</span></div>'+
+        '<div class="kv"><span class="k">Last sync</span><span class="v">'+esc(k.lastSync)+'</span></div>'+
+        '<div class="kv"><span class="k">Freshness</span><span class="v">'+Math.round(k.freshness*100)+'%</span></div>'+
+        '<p>This agent may reach this source. It cannot reach anything not drawn here.</p>' });
+    L(trig, n); return n;
+  });
+  if(!srcNodes.length){
+    var none = N({ title:"No source granted", sub:"reaches nothing", icon:"i-x", tile:"g-trash",
+      chips:[{cls:"", t:"empty"}], detail:"<b>No knowledge source</b><p>Nothing in this agent's configuration names a source it may read.</p>" });
+    L(trig, none); srcNodes = [none];
+  }
+  var model = N({ title:"Model", sub: agentModel().split("·")[0].trim(), icon:"i-model", tile:"g-monitor",
+    chips:[{cls:"m", t:"model"}],
+    detail:"<b>Answer generation</b><p>"+esc(agentModel())+"</p><p>Taken from the Brain's live RAG pipeline — "+
+      "the same model that answers in Chat, on the Private tier, inside Riyadh DC-1.</p>" });
+  srcNodes.forEach(function(s){ L(s, model); });
+
+  var tools = agentTools(a);
+  var toolNodes = tools.map(function(t){
+    var n = N({ title:t.name, sub: t.mode === "write" ? "write · needs approval" : "read · runs free",
+      icon: t.mode === "write" ? "i-approve" : "i-plug", tile: t.mode === "write" ? "g-auto" : "g-conn",
+      chips: t.mode === "write" ? [{cls:"w", t:"writes"}] : [{cls:"r", t:"reads"}],
+      detail:"<b>"+esc(t.name)+"</b><p>"+(t.mode === "write"
+        ? "A write. It is proposed, then it waits in your approval queue. Nothing leaves without your yes."
+        : "A read inside the granted scope. It runs without asking you.")+"</p>" });
+    L(model, n); return n;
+  });
+  var guard = N({ title:"Guardrails", sub:"reads free · writes wait", icon:"i-shield", tile:"g-vault",
+    chips:[{cls:"r", t:"read ok"}, {cls:"w", t:"write held"}],
+    detail:"<b>Guardrails</b><p>Read actions run free inside their granted scope. Every write waits for you — "+
+      "the OS-wide approval bar, not a per-agent setting.</p><p>Residency: Private tier, Riyadh DC-1. "+
+      "No node in this flow causes egress.</p>" });
+  toolNodes.forEach(function(t){ L(t, guard); });
+
+  var dest = agentDest(a);
+  var out = N({ title:dest.title, sub:dest.sub, icon:dest.icon, tile:dest.tile, outs:[],
+    chips:[{cls:"", t:"result"}],
+    detail:"<b>"+esc(dest.title)+"</b><p>"+esc(a.desc)+"</p>" });
+  L(guard, out);
+
+  if(a.delegates){
+    var del = N({ title:a.delegates, sub:"delegated agent", icon:"i-agent", tile:"g-agents", outs:[],
+      chips:[{cls:"m", t:"agent"}],
+      detail:"<b>"+esc(a.delegates)+"</b><p>"+esc(a.name)+" hands work to this agent. The delegate runs under its own "+
+        "tool allow-list — delegation does not widen scope.</p>" });
+    L(guard, del);
+  }
+  return { nodes:nodes, edges:edges };
+}
+
+/* ---- the delegation map across every agent ---------------------------- */
+function agentDelegationGraph(){
+  var nodes = [], edges = [], byName = {};
+  AGENTS.forEach(function(a){
+    var n = { id:"dg_"+a.id, x:0, y:0, w:206, title:a.name, sub:a.state, icon:a.icon, tile:a.tile,
+      ins:[{id:"in",label:"in"}], outs:[{id:"main",label:"delegates"}], data:{},
+      chips:[{cls: a.state === "running" ? "r" : "", t:a.state}, {cls:"", t:(a.tags||[]).length + " tools"}],
+      detail:"<b>"+esc(a.name)+"</b><p>"+esc(a.desc)+"</p>"+
+        '<div class="kv"><span class="k">Tools</span><span class="v">'+esc((a.tags||[]).join(", "))+'</span></div>'+
+        '<div class="kv"><span class="k">Delegates to</span><span class="v">'+esc(a.delegates || "nobody")+'</span></div>' };
+    nodes.push(n); byName[a.name] = n;
+  });
+  AGENTS.forEach(function(a){
+    if(!a.delegates || !byName[a.delegates]) return;
+    edges.push({ id:ngId("e"), a:"dg_"+a.id, ap:"main", b:byName[a.delegates].id, bp:"in", label:"delegates" });
+  });
+  return { nodes:nodes, edges:edges };
+}
+
+/* ---- agent → editable workflow ---------------------------------------- */
+var AG_KS_TO_WF = { ks1:"sys.know", ks2:"sys.conf", ks3:"sys.sp", ks4:"sys.sap", ks5:"sys.p6",
+                    ks6:"sys.jira", ks7:"sys.mail", ks8:"sys.know", ks9:"sys.hr" };
+function labelToCron(label){
+  var l = String(label||"").toLowerCase();
+  var hm = l.match(/(\d{1,2}):(\d{2})/);
+  var dayIdx = -1;
+  WF_DOW.forEach(function(d, i){ if(l.indexOf(d.toLowerCase()) > -1) dayIdx = i; });
+  if(hm) return (+hm[2]) + " " + (+hm[1]) + " * * " + (dayIdx > -1 ? dayIdx : "*");
+  if(/every two hours/.test(l)) return "0 */2 * * *";
+  if(/every hour|hourly/.test(l)) return "0 * * * *";
+  if(/weekly/.test(l)) return "0 7 * * 0";
+  if(/daily|every day|every morning/.test(l)) return "0 6 * * *";
+  return "0 6 * * 1-5";
+}
+function agentToWorkflow(a){
+  var nodes = [], edges = [];
+  function add(type, data){ var n = wfNode(type, 0, 0, data); nodes.push(n); return n; }
+  function link(x, p, y){ edges.push({ id:ngId("e"), a:x.id, ap:p, b:y.id, bp:y.ins[0].id, label:"" }); }
+  var tg = agentTrigger(a);
+  var trig = tg.kind === "schedule" ? add("trig.cron", { cron: labelToCron(tg.label) }) : add("trig.manual", {});
+  var srcs = agentSources(a).map(function(k){ return AG_KS_TO_WF[k.id]; })
+    .filter(function(v, i, arr){ return v && arr.indexOf(v) === i; }).slice(0, 3);
+  var heads = srcs.map(function(t){ var n = add(t, {}); link(trig, trig.outs[0].id, n); return n; });
+  var cur = trig;
+  if(heads.length === 1) cur = heads[0];
+  else if(heads.length > 1){
+    var mg = add("log.merge", {});
+    while(mg.ins.length < heads.length) mg.ins.push({ id:"p"+mg.ins.length, label:String.fromCharCode(97+mg.ins.length) });
+    wfRefresh(mg);
+    heads.forEach(function(h, i){ link(h, h.outs[0].id, mg); mg.ins[i] && edges[edges.length-1] && (edges[edges.length-1].bp = mg.ins[i].id); });
+    cur = mg;
+  }
+  var ai = add("ai.ask", { prompt: a.desc });
+  link(cur, cur.outs[0].id, ai);
+  var writes = agentTools(a).filter(function(t){ return t.mode === "write"; });
+  var dest = agentDest(a);
+  var out = writes.length
+    ? add(/deck|pack|drafts/i.test(dest.title) ? "out.doc" : /mail/i.test(dest.title) ? "out.mail" : "out.notify", {})
+    : add("out.notify", {});
+  link(ai, ai.outs[0].id, out);
+  return { nodes:nodes, edges:edges };
+}
+
+/* The last recorded run for each agent. a2's timings are the ones behind
+   RUN_STEPS — the tool trace the Running tab already replays — the rest are
+   the timings recorded the last time each agent woke up. */
+var AGENT_RUNS = {
+  a1:{ at:"today 08:00", steps:[{ms:12,st:"ok"},{ms:388,st:"ok"},{ms:426,st:"ok"},{ms:1180,st:"ok"},
+        {ms:210,st:"ok"},{ms:184,st:"ok"},{ms:22,st:"ok"},{ms:40,st:"ok"},{ms:30,st:"ok"},{ms:30,st:"ok"}] },
+  a2:{ at:"today 08:06", steps:[{ms:14,st:"ok"},{ms:344,st:"ok"},{ms:206,st:"ok"},{ms:2410,st:"ok"},
+        {ms:530,st:"ok"},{ms:96,st:"ok"},{ms:1620,st:"ok"},{ms:28,st:"ok"},{ms:35,st:"ok"},{ms:35,st:"ok"}] },
+  a3:{ at:"last Thursday 07:00", steps:[{ms:16,st:"ok"},{ms:640,st:"ok"},{ms:512,st:"ok"},{ms:298,st:"warn"},
+        {ms:2860,st:"ok"},{ms:1840,st:"ok"},{ms:44,st:"ok"},{ms:60,st:"ok"},{ms:40,st:"ok"},{ms:40,st:"ok"}] },
+  a4:{ at:"Sunday 07:00", steps:[{ms:11,st:"ok"},{ms:266,st:"ok"},{ms:1290,st:"ok"},{ms:410,st:"ok"},
+        {ms:38,st:"ok"},{ms:52,st:"ok"},{ms:40,st:"ok"},{ms:40,st:"ok"},{ms:40,st:"ok"},{ms:40,st:"ok"}] }
+};
+
+/* ---- automations ------------------------------------------------------ */
+/* The recorded last run. AUTOS carries when/last/state but no per-step
+   timings, so the timings live here, keyed by name, and the UI labels
+   them as the last recorded run rather than live telemetry. */
+var AUTO_RUNS = {
+  "P6 slip heartbeat":     { at:"today 06:00",          steps:[{ms:412,items:1842,st:"ok"},{ms:38,items:3,st:"ok"},{ms:640,items:1,st:"ok"},{ms:120,items:1,st:"ok"}] },
+  "Board pack scheduler":  { at:"last Thursday 07:00",  steps:[{ms:1840,items:6,st:"ok"},{ms:2260,items:1,st:"ok"},{ms:118,items:1,st:"warn"},{ms:90,items:1,st:"ok"}] },
+  "Vendor duplicate sweep":{ at:"2 days ago",           steps:[{ms:3120,items:4118,st:"ok"},{ms:214,items:11,st:"ok"},{ms:96,items:11,st:"ok"},{ms:60,items:11,st:"ok"}] }
+};
+function autoSteps(a){
+  return String(a.desc || "").replace(/\.$/, "")
+    .split(/,\s+|\s+and\s+then\s+|\s+and\s+/)
+    .map(function(s){ return s.trim(); })
+    .filter(Boolean)
+    .map(function(s){
+      var kind = "read";
+      if(/^(reads?|scores?|runs?|pulls?|checks?|rebuilds?|reviews?)\b/i.test(s)) kind = /^runs?\b/i.test(s) ? "agent" : "read";
+      else if(/posts?|puts?|propose|sends?|escalat|creates?|writes?|parks?|notif/i.test(s)) kind = "write";
+      else if(/flags?|if\b|more than|probable|slipping|threshold|exceeds?|over\b/i.test(s)) kind = "cond";
+      return { text:s, kind:kind };
+    });
+}
+function autoGraph(a){
+  var nodes = [], edges = [], i = 0;
+  var rec = AUTO_RUNS[a.name];
+  function N(o){ o.id = o.id || ("au" + (++i)); o.x = 0; o.y = 0; o.w = o.w || 202;
+    o.ins = o.ins || [{id:"in",label:"in"}]; o.outs = o.outs || [{id:"main",label:"out"}];
+    o.chips = o.chips || []; o.data = {}; nodes.push(o); return o; }
+  function L(x, y, port){ edges.push({ id:ngId("e"), a:x.id, ap:port || x.outs[0].id, b:y.id, bp:y.ins[0].id, label:port === "false" ? "no" : port === "true" ? "yes" : "" }); }
+
+  var trig = N({ title:"Schedule", sub:a.when, icon:"i-clock", tile:"g-auto", ins:[],
+    chips:[{cls:"", t:a.state === "due" ? "due" : "ok"}],
+    detail:"<b>"+esc(a.when)+"</b><p>Last run "+esc(a.last)+". "+
+      (rec ? "Timings below come from the recorded run of "+esc(rec.at)+"." : "No per-step timings recorded for this automation yet.")+"</p>" });
+
+  var steps = autoSteps(a), cur = trig, condNode = null;
+  steps.forEach(function(s, si){
+    var r = rec && rec.steps[si];
+    var isCond = s.kind === "cond";
+    var n = N({
+      title: s.text.length > 26 ? s.text.slice(0, 25) + "…" : s.text,
+      sub: r ? (r.items.toLocaleString() + " items · " + r.ms + "ms") : "no recorded timing",
+      icon: s.kind === "write" ? "i-send" : s.kind === "cond" ? "i-git" : s.kind === "agent" ? "i-agent" : "i-db",
+      tile: s.kind === "write" ? "g-auto" : s.kind === "cond" ? "g-code" : s.kind === "agent" ? "g-agents" : "g-db",
+      outs: isCond ? [{id:"true",label:"yes"},{id:"false",label:"no"}] : [{id:"main",label:"out"}],
+      chips: (s.kind === "write" ? [{cls:"w", t:"writes"}] : s.kind === "cond" ? [{cls:"", t:"branch"}] : [{cls:"r", t:"reads"}])
+             .concat(r && r.st === "warn" ? [{cls:"w", t:"warn"}] : []),
+      detail:"<b>"+esc(s.text)+"</b><p>"+(s.kind === "write"
+        ? "A write. On the schedule it still raises the approval bar before it lands."
+        : s.kind === "cond" ? "A branch. Only the yes side continues to the next step."
+        : s.kind === "agent" ? "This step hands the objective to an agent, which runs under its own allow-list."
+        : "A read inside the granted scope.")+"</p>"+
+        (r ? '<div class="kv"><span class="k">Last run</span><span class="v">'+r.ms+'ms · '+r.items.toLocaleString()+
+             ' items · '+esc(r.st)+'</span></div>' : '')
+    });
+    L(cur, n, condNode && cur === condNode ? "true" : undefined);
+    if(isCond) condNode = n;
+    cur = n;
+  });
+  if(condNode){
+    var skip = N({ title:"Nothing to report", sub:"run ends quietly", icon:"i-check", tile:"g-conn", outs:[],
+      chips:[{cls:"", t:"no-op"}], detail:"<b>No branch</b><p>When the condition is false the automation stops here and says nothing.</p>" });
+    L(condNode, skip, "false");
+  }
+  return { nodes:nodes, edges:edges, steps:steps, rec:rec };
+}
+
+/* ---- shared diagram shell -------------------------------------------- */
+function dgmMount(host, opts){
+  host.innerHTML = '<div class="dgm-h">'+
+      '<span class="ttl">'+ico(opts.icon || "i-agent","sm")+'<span data-dgttl>'+esc(opts.title||"")+'</span></span>'+
+      '<span class="sp"></span>'+
+      '<button class="btn sm" data-dgreplay>'+ico("i-play","xs")+'Replay last run</button>'+
+      (opts.openInWorkflow ? '<button class="btn sm" data-dgwf>'+ico("i-flow","xs")+'Open in Workflow</button>' : '')+
+    '</div>'+
+    '<div class="dgm-c"><div data-dgcanvas></div></div>'+
+    '<div class="dgm-det" data-dgdet></div>';
+  var det = host.querySelector("[data-dgdet]");
+  var G = NGraph(host.querySelector("[data-dgcanvas]"), {
+    readOnly: true,
+    label: opts.title || "Diagram",
+    emptyHTML: "Nothing to draw.",
+    onSelect: function(n){
+      if(!n){ det.classList.remove("on"); return; }
+      det.innerHTML = n.detail || ("<b>"+esc(n.title)+"</b><p>"+esc(n.sub||"")+"</p>");
+      det.classList.add("on");
+    }
+  });
+  return { G:G, host:host, det:det };
+}
+/* walk the graph in topological order and paint the recorded run onto it */
+function dgmReplay(G, timings, onStep, done){
+  G.resetStates();
+  var byId = {}, indeg = {}, adj = {};
+  G.nodes.forEach(function(n){ byId[n.id] = n; indeg[n.id] = 0; adj[n.id] = []; });
+  G.edges.forEach(function(e){ if(byId[e.a] && byId[e.b]){ adj[e.a].push(e.b); indeg[e.b]++; } });
+  var q = G.nodes.filter(function(n){ return indeg[n.id] === 0; }).map(function(n){ return n.id; });
+  var order = [], seen = {};
+  while(q.length){
+    var id = q.shift(); if(seen[id]) continue; seen[id] = 1; order.push(id);
+    adj[id].forEach(function(b){ indeg[b]--; if(indeg[b] === 0) q.push(b); });
+  }
+  G.nodes.forEach(function(n){ if(!seen[n.id]) order.push(n.id); });
+  order.forEach(function(id){ G.setState(id, "queued"); });
+  var i = 0, timer = null;
+  function step(){
+    if(i >= order.length){ if(done) done(); return; }
+    var id = order[i], n = G.nodeById(id);
+    var t = (timings && timings[i]) || { ms: 120 + (i*97)%600, st:"ok" };
+    var ins = G.edgesInto(id);
+    ins.forEach(function(e){ G.flowEdge(e.id, true); });
+    G.setState(id, "running");
+    if(onStep) onStep(n, t, i);
+    timer = setTimeout(function(){
+      ins.forEach(function(e){ G.flowEdge(e.id, false); });
+      G.setState(id, t.st === "warn" ? "warning" : t.st === "fail" ? "failed" : "ok");
+      G.setBadge(id, t.ms + "ms");
+      i++; step();
+    }, REDUCED ? 0 : Math.min(900, 200 + t.ms/6));
+  }
+  step();
+  return { stop:function(){ if(timer) clearTimeout(timer); i = order.length; } };
+}
+
 
 /* ---------------------------------------------------------- TRASH */
 MOUNT.trash = function(body, w){

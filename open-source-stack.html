@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE — open-source stack</title>
+<meta name="description" content="Every third-party library in MagnaVERSE Console, licence-verified against primary sources — plus an IDE recommendation and a vetted adoption shortlist.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px; --topbar:57px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+    --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+    --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+    --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+    --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+    --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+    --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+    --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+    --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+  --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+  --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+  --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+  --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0; max-width:100%; overflow-x:hidden}
+html{scroll-behavior:smooth; scroll-padding-top:calc(var(--topbar) + 16px)}
+body{background:var(--bg); color:var(--tx); font-family:var(--sans); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal-bright); outline-offset:2px; border-radius:4px}
+button{font:inherit; cursor:pointer}
+h1,h2,h3,h4{text-wrap:balance}
+
+.wrap{max-width:1100px; margin:0 auto; padding:0 24px}
+@media (max-width:520px){ .wrap{padding:0 16px} }
+
+/* ---------- header ---------- */
+.top{position:sticky; top:0; z-index:30; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; gap:12px; height:var(--topbar)}
+@media (max-width:520px){ .top-in{padding:0 16px} }
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; font-size:14px; color:var(--tx); text-decoration:none; min-width:0; min-height:44px; padding-right:4px}
+.brand:hover{text-decoration:none}
+.magna-mark{width:24px; height:auto; flex:none; display:block}
+.brand .wm{font-weight:650; letter-spacing:-.01em; white-space:nowrap}
+.brand .wm span{color:var(--tx-3); font-weight:600}
+.top .sep{width:1px; height:20px; background:var(--line); flex:none}
+.top .ctx{font-size:12.5px; color:var(--tx-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+@media (max-width:680px){ .top .sep,.top .ctx{display:none} }
+.themeseg{margin-left:auto; display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:99px; padding:3px; flex:none}
+.themeseg button{min-width:38px; height:38px; border:0; background:transparent; border-radius:99px; color:var(--tx-3); display:grid; place-items:center}
+.themeseg button[aria-pressed="true"]{background:var(--surface); color:var(--tx); box-shadow:var(--shadow-sm)}
+.themeseg svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+
+/* ---------- hero ---------- */
+.hero{padding:52px 0 8px}
+@media (max-width:520px){ .hero{padding:32px 0 8px} }
+.eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--signal-bright); background:var(--signal-dim); padding:6px 12px; border-radius:99px; margin:0 0 18px}
+h1{font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-.025em; line-height:1.12; margin:0 0 16px; max-width:20ch}
+.lede{font-size:clamp(15.5px,2vw,17.5px); color:var(--tx-2); max-width:68ch; margin:0 0 8px; line-height:1.6}
+.lede b{color:var(--tx); font-weight:650}
+.meta{display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:22px; font-size:12.5px; color:var(--tx-3); font-family:var(--mono)}
+.meta b{color:var(--tx-2); font-weight:500}
+.disclaimer{margin-top:24px; border:1px solid var(--line-2); border-left:3px solid var(--amber); border-radius:0 var(--r) var(--r) 0; background:var(--amber-dim); padding:13px 17px; font-size:13.4px; color:var(--tx-2); line-height:1.6; max-width:72ch}
+.disclaimer b{color:var(--tx)}
+
+/* ---------- question strip ---------- */
+.qstrip{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:34px 0 0}
+@media (max-width:760px){ .qstrip{grid-template-columns:1fr} }
+.qstrip a{display:block; border:1px solid var(--line); border-radius:var(--r-lg); padding:16px 18px; background:var(--surface); color:var(--tx); text-decoration:none; transition:border-color .15s, background .15s}
+.qstrip a:hover{border-color:var(--line-2); background:var(--surface-2); text-decoration:none}
+.qstrip .n{display:block; font-family:var(--mono); font-size:11px; color:var(--signal-bright); font-weight:600; letter-spacing:.04em; margin-bottom:7px}
+.qstrip .qh{display:block; font-size:14.5px; font-weight:700; margin:0 0 5px; letter-spacing:-.01em}
+.qstrip p{font-size:12.8px; color:var(--tx-3); margin:0; line-height:1.5}
+
+/* ---------- sections ---------- */
+section{max-width:1100px; margin:0 auto; padding:56px 24px; border-top:1px solid var(--line)}
+@media (max-width:520px){ section{padding:40px 16px} }
+.sect-h{display:flex; align-items:baseline; gap:12px; margin-bottom:8px; flex-wrap:wrap}
+.sect-h .tag{font-family:var(--mono); font-size:11.5px; color:var(--tx-4); letter-spacing:.04em; text-transform:uppercase}
+h2{font-size:clamp(21px,3.2vw,30px); font-weight:800; letter-spacing:-.02em; margin:0; line-height:1.2}
+h3.sub{font-size:clamp(16px,2.2vw,19px); font-weight:750; letter-spacing:-.015em; margin:40px 0 10px}
+h4.mini{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--tx-3); margin:26px 0 10px}
+.sect-sub{color:var(--tx-2); font-size:14.8px; max-width:74ch; margin:10px 0 26px; line-height:1.65}
+p.body{color:var(--tx-2); font-size:14.6px; line-height:1.7; max-width:74ch; margin:0 0 14px}
+p.body b, li b{color:var(--tx); font-weight:650}
+ul.body{color:var(--tx-2); font-size:14.4px; line-height:1.7; max-width:74ch; margin:0 0 14px; padding-left:20px}
+ul.body li{margin-bottom:8px}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-3); padding:2px 5px; border-radius:5px; color:var(--tx-2); word-break:break-word}
+
+/* ---------- tables ---------- */
+.tscroll{overflow-x:auto; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); -webkit-overflow-scrolling:touch}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:13.4px}
+th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.55}
+thead th{background:var(--surface-2); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--tx-3); font-weight:700; white-space:nowrap; position:sticky; top:0; z-index:1}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+td.nm{font-weight:650; color:var(--tx); white-space:nowrap}
+td .file{font-family:var(--mono); font-size:11.8px; color:var(--tx-3); display:block; margin-top:3px; white-space:nowrap}
+.scroll-hint{font-size:11.5px; color:var(--tx-4); margin:7px 0 0; font-family:var(--mono)}
+@media (min-width:900px){ .scroll-hint{display:none} }
+
+/* ---------- licence pills ---------- */
+.lic{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; font-weight:600; padding:3px 8px; border-radius:99px; white-space:nowrap; border:1px solid transparent; letter-spacing:-.01em}
+.lic::before{content:""; width:5px; height:5px; border-radius:99px; background:currentColor; flex:none}
+.lic-mit{color:var(--green); background:var(--green-dim); border-color:color-mix(in srgb, var(--green) 28%, transparent)}
+.lic-apache{color:var(--teal); background:var(--teal-dim); border-color:color-mix(in srgb, var(--teal) 28%, transparent)}
+.lic-bsd{color:var(--signal-bright); background:var(--signal-dim); border-color:color-mix(in srgb, var(--signal) 28%, transparent)}
+.lic-isc{color:var(--violet); background:var(--violet-dim); border-color:color-mix(in srgb, var(--violet) 28%, transparent)}
+.lic-ofl{color:var(--amber); background:var(--amber-dim); border-color:color-mix(in srgb, var(--amber) 30%, transparent)}
+.lic-avoid{color:var(--red); background:var(--red-dim); border-color:color-mix(in srgb, var(--red) 30%, transparent)}
+
+/* ---------- callouts ---------- */
+.callout{border:1px solid var(--line-2); border-left:3px solid var(--signal); border-radius:0 var(--r-lg) var(--r-lg) 0; background:var(--signal-dim); padding:18px 22px; margin:26px 0}
+.callout.warn{border-left-color:var(--red); background:var(--red-dim)}
+.callout.good{border-left-color:var(--green); background:var(--green-dim)}
+.callout.amber{border-left-color:var(--amber); background:var(--amber-dim)}
+.callout h3{font-size:13px; font-weight:800; margin:0 0 9px; text-transform:uppercase; letter-spacing:.04em; color:var(--tx); display:flex; align-items:center; gap:8px}
+.callout p{font-size:14px; color:var(--tx-2); line-height:1.68; margin:0 0 10px; max-width:74ch}
+.callout p:last-child{margin-bottom:0}
+.callout ul{font-size:14px; color:var(--tx-2); line-height:1.68; margin:0; padding-left:20px; max-width:74ch}
+.callout ul li{margin-bottom:7px}
+.callout ul li:last-child{margin-bottom:0}
+
+/* ---------- verdict ---------- */
+.verdict{border:1px solid color-mix(in srgb, var(--green) 40%, var(--line)); background:var(--green-dim); border-radius:var(--r-lg); padding:22px 24px; margin:26px 0}
+.verdict .lbl{font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--green); display:block; margin-bottom:9px}
+.verdict h3{font-size:clamp(17px,2.4vw,21px); font-weight:800; margin:0 0 10px; letter-spacing:-.015em; color:var(--tx)}
+.verdict p{font-size:14.4px; color:var(--tx-2); line-height:1.68; margin:0 0 10px; max-width:74ch}
+.verdict p:last-child{margin-bottom:0}
+
+/* ---------- filter bar ---------- */
+.filterbar{position:sticky; top:var(--topbar); z-index:20; background:color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter:blur(12px); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px 16px; margin:0 0 24px; box-shadow:var(--shadow-sm)}
+.fb-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.fb-row + .fb-row{margin-top:11px; padding-top:11px; border-top:1px solid var(--line)}
+.fb-lbl{font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--tx-4); flex:none; width:64px}
+@media (max-width:600px){ .fb-lbl{width:100%; margin-bottom:2px} }
+.chip{min-height:34px; display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:99px; border:1px solid var(--line); background:var(--surface); color:var(--tx-2); font-size:12.4px; font-weight:600; white-space:nowrap; transition:border-color .14s, background .14s, color .14s}
+.chip:hover{border-color:var(--line-2); background:var(--surface-2)}
+.chip[aria-pressed="true"]{background:var(--tx); color:var(--bg); border-color:var(--tx)}
+.chip .ct{font-family:var(--mono); font-size:10.5px; opacity:.6; font-weight:500}
+.fb-count{margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--tx-3); flex:none; padding-left:8px}
+.fb-count b{color:var(--tx); font-weight:600}
+.fb-reset{min-height:34px; padding:6px 12px; border-radius:99px; border:1px solid var(--line); background:transparent; color:var(--tx-3); font-size:12.4px; font-weight:600}
+.fb-reset:hover{border-color:var(--line-2); color:var(--tx)}
+@media (pointer:coarse), (max-width:768px){ .chip,.fb-reset{min-height:44px; padding:10px 15px} .themeseg button{min-width:44px; height:44px} .lcard .src{min-height:44px} .qstrip a{padding:18px} }
+
+/* ---------- cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+@media (max-width:840px){ .cards{grid-template-columns:1fr} }
+.lcard{border:1px solid var(--line); border-radius:var(--r-lg); padding:17px 19px; background:var(--surface); display:flex; flex-direction:column; min-width:0}
+.lcard.is-avoid{border-color:color-mix(in srgb, var(--red) 34%, var(--line)); background:color-mix(in srgb, var(--red) 3%, var(--surface))}
+.lcard .hd{display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; margin-bottom:5px}
+.lcard h3{font-size:15.5px; font-weight:750; margin:0; letter-spacing:-.015em; color:var(--tx); min-width:0; word-break:break-word}
+.lcard .cat{font-family:var(--mono); font-size:10.5px; color:var(--tx-4); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; display:block}
+.lcard .what{font-size:13.6px; color:var(--tx-2); line-height:1.6; margin:0 0 11px}
+.lcard dl{margin:0; font-size:13px; line-height:1.6}
+.lcard dt{font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--tx-4); margin-bottom:3px}
+.lcard dd{margin:0 0 10px; color:var(--tx-2)}
+.lcard dd:last-of-type{margin-bottom:0}
+.lcard .risk{color:var(--tx-2)}
+.lcard .ft{margin-top:auto; padding-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.lcard .src{font-family:var(--mono); font-size:11.2px; color:var(--tx-3); text-decoration:none; display:inline-flex; align-items:center; gap:5px; min-height:24px}
+.lcard .src:hover{color:var(--accent); text-decoration:underline}
+.lcard .src svg{width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2; flex:none}
+.lcard .sz{font-family:var(--mono); font-size:11px; color:var(--tx-4); margin-left:auto}
+.inuse{font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--signal-bright); background:var(--signal-dim); border:1px solid color-mix(in srgb, var(--signal) 26%, transparent); padding:2px 7px; border-radius:99px; white-space:nowrap}
+.noresult{grid-column:1/-1; text-align:center; padding:48px 20px; color:var(--tx-3); font-size:14.5px; border:1px dashed var(--line-2); border-radius:var(--r-lg)}
+
+/* ---------- adoption order ---------- */
+.steps{list-style:none; counter-reset:s; margin:24px 0 0; padding:0}
+.steps li{counter-increment:s; position:relative; padding:0 0 22px 52px; border-left:2px solid var(--line); margin-left:16px}
+.steps li:last-child{border-left-color:transparent; padding-bottom:0}
+.steps li::before{content:counter(s); position:absolute; left:-17px; top:-2px; width:32px; height:32px; border-radius:99px; background:var(--tx); color:var(--bg); display:grid; place-items:center; font-family:var(--mono); font-size:13px; font-weight:700}
+.steps h3{font-size:15.5px; font-weight:750; margin:3px 0 6px; letter-spacing:-.015em}
+.steps p{font-size:13.8px; color:var(--tx-2); line-height:1.65; margin:0 0 7px; max-width:70ch}
+.steps .unlocks{font-size:12.6px; color:var(--tx-3); font-family:var(--mono); line-height:1.55; display:block}
+.steps .unlocks b{color:var(--green); font-weight:600}
+
+footer{max-width:1100px; margin:0 auto; padding:40px 24px 64px; color:var(--tx-3); font-size:12.8px; border-top:1px solid var(--line); line-height:1.7}
+@media (max-width:520px){ footer{padding:32px 16px 48px} }
+footer .fmark{display:flex; align-items:center; gap:9px; margin-bottom:14px}
+footer p{margin:0 0 9px; max-width:74ch}
+
+.magna-mark path{stroke-dasharray:1200; stroke-dashoffset:0}
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{ from{stroke-dashoffset:1200} to{stroke-dashoffset:0} }
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
+.vh{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.skip{position:absolute; left:-9999px; top:0; z-index:100; background:var(--tx); color:var(--bg); padding:10px 16px; border-radius:0 0 var(--r) 0; font-size:13px; font-weight:600}
+.skip:focus{left:0; text-decoration:none}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#main">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-nav" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-nav" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-nav)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-nav)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wm">Magna<span>VERSE</span></span>
+    </a>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="ctx">Open-source stack</span>
+    <div class="themeseg" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="light" aria-pressed="false" title="Light theme"><span class="vh">Light theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+      </button>
+      <button type="button" data-theme-set="system" aria-pressed="true" title="Match system"><span class="vh">Match system theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.8" y="4.2" width="18.4" height="12.6" rx="2"/><path d="M8.5 20.5h7"/></svg>
+      </button>
+      <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark theme"><span class="vh">Dark theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.3A8.6 8.6 0 1 1 9.7 3.5a6.9 6.9 0 0 0 10.8 10.8z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="wrap">
+  <div class="hero">
+    <p class="eyebrow">Engineering research · licence audit</p>
+    <h1>The open-source stack behind Console</h1>
+    <p class="lede">MagnaVERSE Console is almost entirely hand-written vanilla JavaScript. <b>Four</b> third-party libraries and <b>one</b> webfont service are all that it depends on — and every one of them is fetched from a public CDN at runtime, which quietly contradicts the product's own sovereignty promise.</p>
+    <p class="lede">This page does three things: it documents <b>what we already use</b> and what each thing is actually licensed under; it picks <b>an open-source code editor</b> for the Code app; and it proposes <b>a vetted shortlist</b> of permissively-licensed libraries worth adopting next — starting with the file-export gap that blocks 11 of the 50 user flows.</p>
+    <div class="meta">
+      <span>Dated <b>19 August 2026</b></span>
+      <span>Every licence verified against a primary source</span>
+      <span><b>65</b> libraries in the shortlist, each licence-checked</span>
+    </div>
+    <div class="disclaimer">
+      <b>This is engineering research, not legal advice.</b> Licences were read from each project's own <code>LICENSE</code> file at the date above and are linked throughout so you can check them yourself. Licences change — Editor.js and Roboto Mono both changed theirs, and this page documents two more that did. Re-verify before you ship, and route anything in the “check with legal” section to counsel.
+    </div>
+
+    <nav class="qstrip" aria-label="The three questions">
+      <a href="#part-1"><span class="n">Part 1</span><span class="qh">What we use today</span><p>Four libraries, eight plugins, four fonts — and one sovereignty problem affecting all of them.</p></a>
+      <a href="#part-2"><span class="n">Part 2</span><span class="qh">An IDE for the Code app</span><p>Monaco vs CodeMirror vs Ace, and why “VS Code is MIT” is only half true.</p></a>
+      <a href="#part-3"><span class="n">Part 3</span><span class="qh">What else is worth adopting</span><p>A filterable shortlist, with the commercial traps called out by name.</p></a>
+    </nav>
+  </div>
+</div>
+
+<!-- ============================ PART 1 ============================ -->
+<section id="part-1">
+  <div class="sect-h"><span class="tag">Part 1</span></div>
+  <h2>What is actually in the repo today</h2>
+  <p class="sect-sub">I audited every <code>&lt;script src&gt;</code> and <code>&lt;link href&gt;</code> across the repository. The result is unusually small for a product of this surface area, because nearly all of Console is hand-built: the window manager, the Brain corpus graph, the maths rendering, the Mermaid-style SVG diagrams and the terminal are all original vanilla JavaScript with no library behind them.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption class="vh">Third-party dependencies currently in the repository, with verified licences</caption>
+      <thead><tr><th scope="col">Library</th><th scope="col">Where</th><th scope="col">What it does</th><th scope="col">Licence</th><th scope="col">Verified against</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="nm">frappe-gantt<span class="file">v1.2.2</span></td>
+          <td><code>apps/app-gantt.html</code></td>
+          <td>The Gantt chart window — task bars, dependency arrows, critical path, week/month views.</td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><a href="https://github.com/frappe/gantt/blob/master/license.txt">license.txt</a> · © 2024 Frappe Technologies</td>
+        </tr>
+        <tr>
+          <td class="nm">LuckyExcel<span class="file">v1.0.1</span></td>
+          <td><code>apps/app-sheets.html</code></td>
+          <td>Parses an uploaded <code>.xlsx</code> into JSON for the Sheets window. Import only — it does not write files.</td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><a href="https://github.com/dream-num/Luckyexcel/blob/master/LICENSE">LICENSE</a> · © 2020 Mengshukeji</td>
+        </tr>
+        <tr>
+          <td class="nm">PptxGenJS<span class="file">v4.0.1</span></td>
+          <td><code>apps/app-slides.html</code></td>
+          <td>Generates a real <code>.pptx</code> from the Slides window — the one genuine file-export path in the product.</td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><a href="https://github.com/gitbrent/PptxGenJS/blob/master/LICENSE">LICENSE</a> · © 2015–2022 Brent Ely</td>
+        </tr>
+        <tr>
+          <td class="nm">Editor.js<span class="file">v2.31.6 · core</span></td>
+          <td><code>apps/app-docs.html</code></td>
+          <td>The block-based Docs editor — the editing engine itself.</td>
+          <td><span class="lic lic-apache">Apache-2.0</span></td>
+          <td><a href="https://github.com/codex-team/editor.js/blob/next/LICENSE">LICENSE</a> · © 2015–present CodeX</td>
+        </tr>
+        <tr>
+          <td class="nm">Editor.js plugins<span class="file">8 packages</span></td>
+          <td><code>apps/app-docs.html</code></td>
+          <td>header, list, table, marker, inline-code, delimiter, paragraph, simple-image.</td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td>All eight LICENSE files read individually under <a href="https://github.com/editor-js">github.com/editor-js</a></td>
+        </tr>
+        <tr>
+          <td class="nm">Inter<span class="file">webfont</span></td>
+          <td rowspan="4"><code>desktop-wireframes.html</code><br><code>theme-picker.html</code><br><code>theme-preview.html</code></td>
+          <td rowspan="4">Webfonts loaded from the Google Fonts CDN. Note these are a third-party network request on every page load.</td>
+          <td><span class="lic lic-ofl">OFL-1.1</span></td>
+          <td><a href="https://github.com/google/fonts/blob/main/ofl/inter/OFL.txt">OFL.txt</a></td>
+        </tr>
+        <tr>
+          <td class="nm">Playfair Display<span class="file">webfont</span></td>
+          <td><span class="lic lic-ofl">OFL-1.1</span></td>
+          <td><a href="https://github.com/google/fonts/blob/main/ofl/playfairdisplay/OFL.txt">OFL.txt</a> · Reserved Font Name</td>
+        </tr>
+        <tr>
+          <td class="nm">Roboto Mono<span class="file">webfont</span></td>
+          <td><span class="lic lic-ofl">OFL-1.1</span></td>
+          <td><a href="https://github.com/google/fonts/blob/main/ofl/robotomono/OFL.txt">OFL.txt</a> · relicensed 2025</td>
+        </tr>
+        <tr>
+          <td class="nm">DM Sans<span class="file">webfont</span></td>
+          <td><span class="lic lic-ofl">OFL-1.1</span></td>
+          <td><a href="https://github.com/google/fonts/blob/main/ofl/dmsans/OFL.txt">OFL.txt</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="scroll-hint">← scroll the table sideways →</p>
+
+  <div class="callout good">
+    <h3>The main OS file has zero dependencies</h3>
+    <p><code>apps/app-7-console.html</code> is 632 KB and contains <b>no external <code>&lt;script&gt;</code> or <code>&lt;link&gt;</code> tags at all</b> — I verified this by grep, and the count is zero. The only absolute URLs in the file are strings in sample data (<code>localhost:5173</code>, <code>example.com</code>, <code>wikipedia.org</code>). The window manager, Brain graph, KaTeX-style maths, Mermaid-style diagrams and the terminal are all hand-written. That is a genuine asset for a sovereignty story, and it is worth protecting deliberately rather than by accident.</p>
+  </div>
+
+  <h3 class="sub">Two findings worth correcting in your notes</h3>
+
+  <div class="callout amber">
+    <h3>Editor.js is Apache-2.0, not MIT</h3>
+    <p>This is the one most people get wrong, and the brief was right to flag it. The core <code>@editorjs/editorjs</code> package is <b>Apache-2.0</b> — confirmed in the LICENSE file, in <code>package.json</code>, and on the npm registry, all three in agreement. Its history is <code>ISC → Apache-2.0</code> in August 2018; there was a request to move it to MIT that the maintainers declined in favour of Apache, which is probably where the folklore comes from. Confusingly, <b>all eight official plugins really are MIT</b> — so the Docs app ships a mixed-licence stack.</p>
+    <p><b>What Apache-2.0 adds over MIT, in practice.</b> Three things. (1) §3 grants an express patent licence from every contributor — this is a <i>benefit</i> to Magna, not a cost, and it is why many corporate legal teams prefer Apache to MIT. It terminates automatically if you sue claiming the work infringes your patents. (2) §4(d) requires you to propagate a <code>NOTICE</code> file if the upstream has one — <b>Editor.js has no NOTICE file</b>, verified, so this does not trigger. (3) §4(b) requires prominent statements of change on any file you modify — only relevant if you vendor and patch it.</p>
+    <p><b>Net obligation for Magna:</b> add the Apache-2.0 licence text and the <code>Copyright © 2015-present CodeX</code> line to a third-party attributions page. That is the same class of work the MIT dependencies already require. No copyleft, no source disclosure, no reciprocal licensing. It is not a reason to drop Editor.js.</p>
+  </div>
+
+  <div class="callout amber">
+    <h3>Roboto Mono is no longer Apache-2.0</h3>
+    <p>The Roboto family was historically Apache-2.0. Roboto Mono was <b>relicensed to OFL-1.1 during 2025</b> and the old <code>apache/robotomono/</code> path in the Google Fonts catalogue now 404s. Any inherited documentation still calling it Apache-2.0 is stale. Google's own catalogue guidance now states that only the OFL is accepted for new families. This changes nothing practical for us — OFL-1.1 permits commercial embedding and self-hosting — but it is exactly the kind of drift that makes a dated, sourced page like this one worth keeping.</p>
+  </div>
+
+  <h3 class="sub">The sovereignty problem: all of it comes from a public CDN</h3>
+  <p class="body">This is the most important finding in Part 1, and it is not a licensing issue at all. Every third-party asset above is fetched at runtime from <code>cdn.jsdelivr.net</code> or <code>fonts.googleapis.com</code>. For a product whose pitch is on-premises, sovereign, zero-egress AI, that is a contradiction sitting in the source:</p>
+  <ul class="body">
+    <li>An air-gapped Magna deployment <b>would simply fail to load</b> the Gantt, Sheets, Slides and Docs windows. There is no offline fallback.</li>
+    <li>Every page view leaks the client's IP address and referrer to two third parties. Google Fonts CDN linking specifically is what triggered the EU privacy complaints; the same reasoning applies under Saudi data-residency expectations.</li>
+    <li>Six of the loads pin <code>@latest</code>. That is a live supply-chain exposure — an upstream compromise or a breaking major release lands in production with no review, no lockfile and no subresource integrity hash.</li>
+    <li>The font <i>files</i> are OFL-1.1, which is a perpetual irrevocable grant. The Google Fonts <i>API</i> is a service governed by Google's API Terms of Service, which Google can change or withdraw. Self-hosting converts a service dependency into an asset you own.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h3>Recommendation: vendor all five, this week</h3>
+    <p>This is a one-line change per file plus a <code>vendor/</code> directory, and it is the single highest ratio of credibility gained to effort spent anywhere in this document. Download each library at a pinned version, commit it, and rewrite the tags to relative paths. Do the same for the four fonts as self-hosted <code>woff2</code> with a local <code>@font-face</code> block — remembering to ship the OFL text next to the files, which is OFL's one real redistribution condition.</p>
+    <p>Then write a <code>THIRD-PARTY-NOTICES</code> file containing the MIT texts, the Apache-2.0 text for Editor.js, and the four OFL texts. Once that is done, the demo runs on an air-gapped laptop and the sovereignty claim survives its first technical audit.</p>
+  </div>
+</section>
+
+<!-- ============================ PART 2 ============================ -->
+<section id="part-2">
+  <div class="sect-h"><span class="tag">Part 2</span></div>
+  <h2>An open-source IDE for the Code app</h2>
+  <p class="sect-sub">Console's Code app today renders files into a <code>&lt;pre&gt;</code> with a hand-written <code>codeLines()</code> highlighter. It reads local folders, shows a live preview iframe and simulates a shell — but there is no real editor: you cannot meaningfully type in it. Two separate questions follow, and they have different answers.</p>
+
+  <h3 class="sub">Option A — embed an editor component</h3>
+  <p class="body">This is the question that actually matters for Console, because the Code app is one window inside a shell, not a product of its own. Three real candidates. All three are permissively licensed, so licence is not the deciding factor here — <b>Arabic is</b>.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption class="vh">Comparison of embeddable browser code editors</caption>
+      <thead><tr><th scope="col"></th><th scope="col">Monaco 0.56</th><th scope="col">CodeMirror 6</th><th scope="col">Ace 1.44</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Licence</td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><span class="lic lic-bsd">BSD-3-Clause</span></td></tr>
+        <tr><td class="nm">Bundle, gzipped</td>
+          <td>661 KB <span class="file">core only, no languages</span></td>
+          <td><b>163 KB</b> <span class="file">full setup + JS syntax</span></td>
+          <td>123 KB <span class="file">core; modes load separately</span></td></tr>
+        <tr><td class="nm">Full distribution</td><td>93 MB · 1,909 files</td><td>per-package, ~20 KB meta</td><td>52 MB · 2,151 files</td></tr>
+        <tr><td class="nm">Arabic / RTL</td>
+          <td><b>None.</b> Four open bugs, including one where the editor is invisible inside a <code>dir="rtl"</code> container</td>
+          <td><b>First-class and documented.</b> <code>direction:rtl</code>, per-line direction, bidi isolates</td>
+          <td>Real <code>BidiHandler</code> implementation, but less polished and barely documented</td></tr>
+        <tr><td class="nm">Mobile / touch</td>
+          <td><b>Not supported.</b> Microsoft's own FAQ answers this in one word: “No.”</td>
+          <td><b>Designed for it</b> — native <code>contenteditable</code> selection and IME</td>
+          <td>Partial; hidden-textarea model predates touch</td></tr>
+        <tr><td class="nm">Language server</td>
+          <td>monaco-languageclient <span class="lic lic-mit">MIT</span> — needs a server process</td>
+          <td>codemirror-languageserver <span class="lic lic-bsd">BSD-3</span> — needs a server process</td>
+          <td>No first-party option <span class="file">unverified</span></td></tr>
+        <tr><td class="nm">Self-host, no bundler</td>
+          <td>AMD loader works but is <b>officially deprecated and slated for removal</b></td>
+          <td>One build step, then commit the artifact</td>
+          <td>Trivial — plain <code>&lt;script&gt;</code> tags</td></tr>
+        <tr><td class="nm">Maintenance</td><td>Very active (Microsoft)</td><td>Very active <span class="file">repo moved off GitHub</span></td><td>Active — v1.44.0, Aug 2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="scroll-hint">← scroll the table sideways →</p>
+
+  <h3 class="sub">Option B — self-host a full IDE, and the licence trap in it</h3>
+  <p class="body">This is where nearly everyone gets the licensing wrong, so it is worth being exact. <b>“VS Code is MIT” is only half true</b>, and the half that is false is the half most people mean.</p>
+
+  <div class="callout">
+    <h3>The three different legal objects called “VS Code”</h3>
+    <ul>
+      <li><b>The source at <code>github.com/microsoft/vscode</code> is genuinely MIT.</b> That is real and verifiable.</li>
+      <li><b>The binaries from <code>code.visualstudio.com</code> are proprietary.</b> They ship under a Microsoft EULA that forbids reverse-engineering and forbids you to “provide the software as a stand-alone offering” — which is precisely what a hosted browser IDE is. It also states telemetry can be opted out of in many scenarios <b>but not all</b>. For a zero-egress Saudi deployment that is disqualifying twice over.</li>
+      <li><b>“Code&nbsp;-&nbsp;OSS” is the precise name for the MIT part</b> — the source tree built without Microsoft's branding, proprietary extensions and telemetry keys. Microsoft's own README says VS Code is “a distribution of the Code&nbsp;-&nbsp;OSS repository with Microsoft-specific customizations released under a traditional Microsoft product license.” Same repository, two different legal objects, depending on whether you build it or download it.</li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <h3>You may not point a self-hosted fork at Microsoft's extension marketplace</h3>
+    <p>The current <b>Visual Studio Marketplace Terms of Use (last updated September 2025)</b> state that Marketplace Offerings “are intended for use only with In-Scope Products and Services and you <b>may not install, reverse-engineer, import or use</b> Marketplace Offerings in products and services except for the In-Scope Products and Services” — a list that means Microsoft's own products only. This is not a grey area.</p>
+    <p><b>Note the wording changed.</b> The version widely quoted online, including in code-server's own FAQ, is from January 2019 and reads far more softly. Anyone relying on that older text in a compliance memo is working from stale language. The compliant route is <b>Open VSX</b> (EPL-2.0, governed by the Eclipse Foundation under a vendor-neutral working group), which is <b>self-hostable via Docker Compose</b> — mirror the extensions you need into an internal registry and never egress at all.</p>
+  </div>
+
+  <div class="tscroll">
+    <table>
+      <caption class="vh">Self-hostable IDE servers and their licences</caption>
+      <thead><tr><th scope="col">Option</th><th scope="col">Licence</th><th scope="col">State as of August 2026</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">code-server<span class="file">coder/code-server</span></td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><b>Very active</b> — v4.133.0 released two days before this page was written. Wraps Code&nbsp;-&nbsp;OSS via patch files, not the EULA binaries. Defaults to Open VSX; <code>$EXTENSIONS_GALLERY</code> redirects to an internal registry. Self-contained webviews that do not call Microsoft.</td></tr>
+        <tr><td class="nm">openvscode-server<span class="file">gitpod-io/…</span></td>
+          <td><span class="lic lic-mit">MIT</span></td>
+          <td><b>Dormant.</b> No release since February 2026, no repository activity since March 2026, and the parent company has pivoted away entirely. A direct fork rather than a patch set. Would not build on it now.</td></tr>
+        <tr><td class="nm">Eclipse Theia</td>
+          <td><span class="lic lic-avoid">EPL-2.0 OR GPL-2.0 + Classpath</span></td>
+          <td>Very active, genuinely vendor-neutral. The dual licence is <b>your choice, not a trap</b> — elect EPL-2.0 and document it. EPL is weak file-scoped copyleft. But it embeds Monaco, so you inherit the RTL problem anyway.</td></tr>
+        <tr><td class="nm">Gitpod / Ona</td>
+          <td><span class="lic lic-avoid">AGPL-3.0 → proprietary</span></td>
+          <td><b>Ruled out.</b> Gitpod Classic source was AGPL-3.0; self-hosted was deprecated and pay-as-you-go sunset in October 2025. Rebranded to Ona; the successor is a vendor-managed control plane, AWS-only. Flex licence terms <b>unverified</b> — no public LICENSE found. Incompatible with sovereignty either way.</td></tr>
+        <tr><td class="nm">Coder<span class="file">coder/coder</span></td>
+          <td><span class="lic lic-avoid">AGPL-3.0 + enterprise</span></td>
+          <td>Wrong layer — a Kubernetes workspace-provisioning platform, not an embeddable editor. AGPL §13's network clause is a genuine concern for a hosted internal service, and the enterprise features are proprietary.</td></tr>
+        <tr><td class="nm">Eclipse Che</td>
+          <td><span class="lic lic-avoid">EPL-2.0</span></td>
+          <td>Clean licence, but a Kubernetes-native multi-tenant platform. Wildly disproportionate for one window in a demo shell.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="scroll-hint">← scroll the table sideways →</p>
+
+  <div class="verdict">
+    <span class="lbl">Recommendation</span>
+    <h3>CodeMirror 6, and it is not close</h3>
+    <p><b>Arabic decides it on its own.</b> Console is being built for Saudi Arabia. Monaco has no RTL support and four open bugs about it, one of which reports the editor being <i>invisible</i> inside a <code>dir="rtl"</code> container — which is exactly how an Arabic-first shell is constructed. That is shipping a broken window on day one. CodeMirror 6 gives working Arabic from a <code>direction: rtl</code> declaration on a parent, with visual cursor motion, per-line direction, and bidi isolates for the mixed case every real Saudi codebase contains: Arabic comments around Latin code.</p>
+    <p><b>The other three reasons all point the same way.</b> Microsoft's own answer on mobile support is the single word “No”, while CodeMirror 6 was rewritten specifically for touch — and Console must survive being resized into a small window. The measured bundle is <b>163 KB gzipped with syntax highlighting versus Monaco's 661 KB with no languages at all</b> — four times smaller for strictly more function. And it is a plain ES-module library you instantiate against a DOM node, which is exactly the shape of the vanilla-JS codebase we already have.</p>
+    <p><b>Accept these caveats up front.</b> No LSP out of the box — add <code>codemirror-languageserver</code> later if real intelligence is ever needed, and note it requires a server process per language, so defer it. One build step to produce the bundle: run it once, commit the artifact next to the other vendored files. And make certain you take <b>CodeMirror 6, not 5</b> — most tutorials online are CM5 and the APIs are completely incompatible. For the compliance file: the canonical repository has moved to <code>code.haverbeke.berlin</code> and GitHub is now a mirror, so cite the MIT <code>LICENSE</code> shipped inside each npm package, since that is the artifact actually redistributed.</p>
+    <p><b>Second choice, for later.</b> If Console's Code app ever has to become a real IDE — terminals, debugging, the extension ecosystem — the answer is <b>code-server</b> (MIT) paired with a <b>self-hosted Open VSX</b>, with <code>--disable-telemetry</code> and the gallery pointed inward. Licensing is clean and it is the most actively maintained option available. It just is not right for one window in a prototype. Pin a version and vendor the artifact rather than tracking <code>latest</code>: Coder Technologies already runs an AGPL-plus-proprietary split on its flagship <code>coder/coder</code>, so the precedent for a terms change exists even though code-server itself is cleanly MIT today.</p>
+  </div>
+</section>
+
+<!-- ============================ PART 3 ============================ -->
+<section id="part-3">
+  <div class="sect-h"><span class="tag">Part 3</span></div>
+  <h2>What else is worth adopting</h2>
+  <p class="sect-sub">Every entry below was licence-checked against the project's own <code>LICENSE</code> file. This is a shortlist, not a catalogue — things I would actually recommend, plus the specific traps in this space that are worth naming so nobody adopts them by accident. Filter by licence or by what part of Console it serves.</p>
+
+  <div class="filterbar" role="region" aria-label="Filter the library list">
+    <div class="fb-row" role="group" aria-label="Filter by licence">
+      <span class="fb-lbl" id="fl-lic">Licence</span>
+      <div id="lic-chips" class="fb-row" style="gap:8px; margin:0; padding:0; border:0"></div>
+    </div>
+    <div class="fb-row" role="group" aria-label="Filter by category">
+      <span class="fb-lbl" id="fl-cat">Area</span>
+      <div id="cat-chips" class="fb-row" style="gap:8px; margin:0; padding:0; border:0"></div>
+    </div>
+    <div class="fb-row">
+      <button type="button" class="fb-reset" id="reset">Reset filters</button>
+      <span class="fb-count" aria-live="polite" id="count"></span>
+    </div>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="callout good">
+    <h3>On Arabic and RTL: the answer is discipline, not a dependency</h3>
+    <p>This came out of the research more clearly than expected, so it is worth stating plainly. <b>Console does not need an RTL library.</b> The two obvious candidates — <code>rtlcss</code> (MIT) and <code>postcss-rtlcss</code> (Apache-2.0) — are PostCSS transforms that mechanically flip <code>margin-left</code> into <code>margin-right</code> at build time. Adopting either would mean introducing exactly the build pipeline this codebase is designed to avoid, in order to solve a problem the browser already solves.</p>
+    <p><b>Three platform features replace the entire category.</b> CSS logical properties (<code>margin-inline-start</code>, <code>padding-block</code>, <code>inset-inline</code>, <code>border-inline-end</code>) have been broadly supported since around 2021 — write them once and both directions work, with no second stylesheet and no divergence between builds. The <code>:dir(rtl)</code> selector has been widely available since December 2023 and beats <code>[dir="rtl"]</code> because it matches inherited directionality. And <code>dir="auto"</code> on user-generated content — chat messages, file names, model output — makes the browser infer direction per string, which is essential for a mixed Arabic and English console and costs nothing.</p>
+    <p><b>The realistic failure mode is a developer typing <code>margin-left</code> out of habit.</b> Guard it with a CI grep for <code>(margin|padding|border|inset)-(left|right)</code> and <code>text-align:\s*(left|right)</code>. That is one line of CI, and it replaces a dependency, a build step and a whole class of bug. Shaping libraries like <b>bidi-js</b> and <b>harfbuzzjs</b> only earn their weight when you leave the DOM — canvas, WebGL, or PDF glyph runs.</p>
+  </div>
+</section>
+
+<!-- ============================ PART 4 ============================ -->
+<section id="part-4">
+  <div class="sect-h"><span class="tag">Part 4</span></div>
+  <h2>Recommended adoption order</h2>
+  <p class="sect-sub">Ordered by what each step unblocks, not by how interesting it is. The first two are worth more than everything after them combined.</p>
+
+  <ol class="steps">
+    <li>
+      <h3>Vendor what is already there</h3>
+      <p>Pull frappe-gantt, LuckyExcel, PptxGenJS, Editor.js and its eight plugins down at pinned versions into a <code>vendor/</code> directory, self-host the four fonts as <code>woff2</code>, and rewrite the tags to relative paths. Write the <code>THIRD-PARTY-NOTICES</code> file at the same time, with fonts in their own OFL section.</p>
+      <span class="unlocks"><b>Unblocks:</b> the sovereignty claim itself — the demo runs air-gapped, no visitor IP reaches a third party, and six <code>@latest</code> supply-chain exposures disappear. <b>Cost:</b> under a day.</span>
+    </li>
+    <li>
+      <h3>File export — <code>docx</code>, then SheetJS, then jsPDF</h3>
+      <p>This is the biggest functional gap in the product by a wide margin. Add <b>docx</b> first: it is MIT, it works in the browser, and Word does Arabic shaping for you at render time. Then <b>SheetJS Community</b> for <code>.xlsx</code>, vendored from the vendor's own CDN rather than the stale npm package. Then <b>jsPDF</b> for PDF, paired with Noto Naskh Arabic.</p>
+      <span class="unlocks"><b>Unblocks: 11 of the 50 user flows</b> — export is the single most frequent blocking capability in <code>flows.html</code>, more than twice the next one. Four flows are outright gaps, seven are partial.</span>
+    </li>
+    <li>
+      <h3>CodeMirror 6 in the Code app</h3>
+      <p>Replace the hand-rolled <code>&lt;pre&gt;</code> highlighter with a real editor. Build the bundle once and commit the artifact next to the other vendored files. Take v6, not v5.</p>
+      <span class="unlocks"><b>Unblocks:</b> the Code app becoming genuinely usable rather than a read-only viewer — and it is the only editor choice that renders Arabic correctly, which matters more here than anywhere else.</span>
+    </li>
+    <li>
+      <h3>Chart.js for the missing chart renderer</h3>
+      <p>A small, well-understood addition that closes a flat gap: there is no chart renderer anywhere in the prototypes, and the live build currently answers a chart request with box-drawing characters that reflow into garbage at any other window width.</p>
+      <span class="unlocks"><b>Unblocks:</b> two flows outright, and removes one of the most visibly embarrassing behaviours in the live product.</span>
+    </li>
+    <li>
+      <h3>KaTeX and highlight.js to retire hand-written rendering</h3>
+      <p>Console hand-renders both maths and syntax highlighting today. Both replacements drop in as plain script tags with no build step, and both self-host cleanly. Remember KaTeX's fonts are OFL and need their own notices section.</p>
+      <span class="unlocks"><b>Unblocks:</b> correctness and breadth on two surfaces that currently only approximate the real thing — and deletes a meaningful amount of code we would otherwise maintain forever.</span>
+    </li>
+    <li>
+      <h3>The workflow canvas — Drawflow, plus <code>@dagrejs/dagre</code></h3>
+      <p>For the n8n-style builder now in progress. Drawflow is the only credible vanilla, zero-dependency, no-build option at 8 kB, and dagre gives you auto-layout. Adopt Drawflow knowing you are adopting a fork you will maintain; at that size it is a reasonable trade. Study React Flow and Vue Flow for the interaction model — and remember n8n's own canvas runs on Vue Flow.</p>
+      <span class="unlocks"><b>Unblocks:</b> the workflow builder, without touching n8n's source and without adopting a framework.</span>
+    </li>
+    <li>
+      <h3>Arabic: Noto Naskh Arabic and CSS logical-property discipline</h3>
+      <p>Self-host Noto Naskh, add the CI grep for physical properties, and set <code>dir="auto"</code> on all user and model content. No library required.</p>
+      <span class="unlocks"><b>Unblocks:</b> Arabic that is correct on screen and correct in generated PDFs. Worth knowing how far there is to go: <b>CSS logical properties appear zero times across every app file in the repo</b>, and <code>dir="rtl"</code> appears exactly twice in total. <code>flows.html</code> records Arabic answers rendering left-to-right as a live defect.</span>
+    </li>
+    <li>
+      <h3>Later, if the product grows into it</h3>
+      <p><b>xterm.js</b> when the terminal needs to attach to a real shell. <b>Cytoscape.js</b> if the Brain graph outgrows hand-rendering. <b>uFuzzy</b> at 8 kB to sharpen the Cmd+K palette. <b>transformers.js</b> for genuinely local embeddings — with all four egress flags set and verified on a disconnected machine. <b>code-server</b> only if the Code app has to become a real IDE, paired with a self-hosted Open VSX.</p>
+      <span class="unlocks"><b>Unblocks:</b> depth rather than breadth. None of these are urgent; all of them are safe.</span>
+    </li>
+  </ol>
+</section>
+
+<!-- ============================ PART 5 ============================ -->
+<section id="part-5">
+  <div class="sect-h"><span class="tag">Part 5</span></div>
+  <h2>Licences to avoid, or to check with legal</h2>
+  <p class="sect-sub">Magna's business model is the thing that decides these questions: <b>a self-hosted product, shipped to a customer, for money.</b> That combination defeats most of the reassuring arguments people make about copyleft. The single most common mistake is assuming “we only run it internally” protects you — it does not, once the software leaves your organisation as part of a deliverable.</p>
+
+  <h3 class="sub">The four families, and why each one bites</h3>
+
+  <div class="callout warn">
+    <h3>AGPL-3.0 — the internal-use defence collapses when you ship</h3>
+    <p>§13 requires that if you <i>modify</i> the program and let users interact with it over a network, you must offer them the source of your version. People fixate on §13 and miss the simpler problem: <b>the ordinary conveying obligations still apply</b>. Shipping an on-premises appliance to a customer <i>is</i> conveying — the customer is a third party — which triggers source-disclosure for the covered work and anything forming a single combined work with it. “We only self-host it internally” is a good argument right up until the moment the product is delivered, which is Magna's entire model.</p>
+    <p><b>Verified in this space:</b> Grafana (moved from Apache-2.0 in 2021), Nextcloud server, Plausible, ONLYOFFICE server, Firecrawl, and <b>Windmill</b>'s core — worth knowing since Windmill is an obvious thing to reach for while building a workflow builder. Metabase splits AGPL from a commercial <code>enterprise/</code> tree; Mattermost is a three-way split where, notably, <b>binaries compiled by Mattermost Inc. are MIT</b> even though the source is AGPL.</p>
+    <p><b>Three corrections worth making,</b> because these are widely misfiled as AGPL and are not: <b>Rocket.Chat is MIT</b> at root, <b>Chatwoot is MIT</b> at root — both open-core with paid <code>enterprise/</code> directories — and <b>Cal.com's repository is now plain MIT</b> (it redirects to <code>cal.diy</code>, with the commercial product taken closed-source separately).</p>
+  </div>
+
+  <div class="callout warn">
+    <h3>SSPL — reaches your entire operational stack, not just the program</h3>
+    <p>Two differences from AGPL, and both matter. First, <b>the trigger is offering the functionality as a service — modification is not required.</b> Second, and far more serious, the scope: SSPL demands the source not only of the program but of <b>“all programs that you use to make the Program available as a service”</b> — its own text enumerates management software, user interfaces, APIs, automation, monitoring, backup, storage and hosting software. It reaches code with no derivative-work relationship to the licensed program at all. OSI never approved it; MongoDB submitted it twice and withdrew it.</p>
+    <p><b>Get the current state right, because it has moved twice.</b> MongoDB is SSPL and has <i>not</i> reverted. But <b>Elasticsearch and Kibana are now triple-licensed</b> — AGPL-3.0 <i>or</i> SSPL <i>or</i> Elastic License 2.0, your choice, with <code>x-pack/</code> solely ELv2. And <b>Redis is tri-licensed as of Redis 8</b>: 7.2 and earlier were BSD-3-Clause, 7.4 was RSALv2 or SSPL, and 8.0+ adds AGPLv3 as an option.</p>
+    <p><b>Practical consequence:</b> where AGPL is on the menu you can <i>elect</i> it and be governed by AGPL's narrower clause instead of SSPL's stack-wide one. <b>Record that election in writing</b> in the licence register. Silently defaulting to “it's SSPL, we can't use it” is a self-inflicted wound.</p>
+  </div>
+
+  <div class="callout warn">
+    <h3>BSL / BUSL-1.1 — a clock that restarts with every version you upgrade to</h3>
+    <p>BSL grants only non-production use unless an <b>Additional Use Grant</b> says otherwise, then converts to a real open-source licence on a <b>Change Date</b>. The detail people miss: <b>the Change Date runs per version.</b> The build you ship today converts four years from <i>its</i> publication — upgrade next quarter and the clock restarts. The Additional Use Grant is drafted per product and is where all the risk lives.</p>
+    <p><b>Verified:</b> Terraform and Vault are BUSL-1.1 converting to MPL-2.0 after four years, and their licensor is now <b>IBM</b> following the acquisition; their grant permits production use <i>unless</i> you offer the software to third parties to compete with the paid version. <b>OpenTofu, the Terraform fork, is plain MPL-2.0</b> and is the correct choice if you need those semantics in a shipped product. MariaDB MaxScale's grant is bluntly quantitative — fewer than three production server instances.</p>
+    <p><b>Two live corrections.</b> <b>CockroachDB is no longer BSL at all</b> — it is now a proprietary licence with a mandatory licence key, mandatory telemetry, and <b>no Change Date whatsoever</b>. It never becomes open source. Citing it as a BSL example is now actively misleading. And <b>Sentry uses FSL</b>, not BSL: everything is permitted except a “Competing Use”, converting to Apache-2.0 after two years rather than four.</p>
+  </div>
+
+  <div class="callout warn">
+    <h3>fair-code and “source available” — the category with no SPDX identifier</h3>
+    <p><b>n8n's Sustainable Use License</b> restricts you to “your own internal business purposes or&hellip; non-commercial or personal use”, and permits distribution only free of charge and non-commercially. <b>For Magna both halves fail at once:</b> shipping to a customer is not your own internal purpose, and you are not doing it free. Embedding n8n in a product you sell requires a separate commercial agreement. Note also that non-master branches are not licensed at all, and <code>.ee.</code> files fall under a separate enterprise licence.</p>
+    <p><b>The n8n-adjacent alternatives are not uniformly safe either.</b> Of the four a team would naturally evaluate: <b>Activepieces (MIT core)</b> and <b>Flowise (Apache-2.0 core)</b> survive this model provided the <code>ee</code>/<code>enterprise</code> directories are excluded from the build and that exclusion is enforced in CI. <b>Windmill's core is AGPL</b>. <b>Dify uses a modified Apache-2.0</b> that adds two conditions fatal here: multi-tenant service is prohibited without written authorisation, and <b>you may not remove or modify the Dify logo or copyright information</b> — which forecloses white-labelling.</p>
+    <p><b>Two more in this family worth naming.</b> <b>Open WebUI</b> is especially relevant, since it is the closest thing to what Console is: it is BSD-3-Clause <i>plus a branding clause</i> that prohibits altering or removing Open WebUI branding, with an exception only below 50 users per 30 days. A white-labelled Magna product built on it would be in breach. And <b>Directus</b> quietly moved to a bespoke “Monospace Sustainable Core License” whose redistribution clause forbids imposing a licence fee for the granted rights — in direct tension with shipping it inside a paid product. Its licence lives in a lowercase <code>license</code> file, which is exactly how scanners miss it.</p>
+  </div>
+
+  <div class="callout amber">
+    <h3>“Free for non-commercial use” — the quietest trap of all</h3>
+    <p>These carry no copyleft, so no scanner flags them, and they are routinely assumed free because a free tier exists.</p>
+    <ul>
+      <li><b>Handsontable</b> — free use is limited to personal or evaluation purposes <i>outside production</i>. Covered in Part 3; it also carries a non-compete clause.</li>
+      <li><b>Highcharts</b> — <b>not free for commercial use</b>, and this is misunderstood constantly. It is a proprietary Highsoft licence in three tiers, and <b>Magna's model needs the OEM tier</b> because the product is distributed to third parties. It is <i>not</i> CC BY-NC, despite the folklore. Its npm licence field is a bare URL, which scanners frequently mis-tag as permissive.</li>
+      <li><b>Syncfusion</b> — the free Community License is gated on hard thresholds: under $1M revenue, at most 5 developers and 10 employees. A Saudi enterprise is outside every one of them.</li>
+      <li><b>Kendo UI</b> — embedding is permitted but you <b>must display a copyright message visible to end users</b>, so it cannot be fully white-labelled; and your customers need their own developer licences if they build UI with it.</li>
+      <li><b>DevExtreme</b> — per-developer subscription required to build commercial applications “whether sold or distributed free-of-charge”, though distribution is then royalty-free.</li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <h3>One that is fine, but not as free as it looks: Font Awesome</h3>
+    <p>Worth a line because an icon set is an easy unexamined choice. <b>Font Awesome Free splits three ways within itself:</b> the icons as SVG and JS are <b>CC-BY-4.0</b> and therefore <b>require attribution</b>; the web and desktop <b>fonts are OFL-1.1</b> with “Font Awesome” as a Reserved Font Name; and only the remaining non-icon, non-font <b>code is MIT</b>. Usable in a shipped proprietary product, but it obliges an attribution surface, and CC-BY is content rather than code — many corporate policies route it to a different review path. Tabler Icons, one MIT notice for the whole set, avoids all of this.</p>
+  </div>
+
+  <div class="callout good">
+    <h3>Make the licence gate fail closed</h3>
+    <p>The pattern running through this entire section: <b>almost every trap declares a non-SPDX licence string</b> — <code>SEE LICENSE IN LICENSE.txt</code>, a bare URL, <code>LicenseRef-LICENSE</code>, <code>Commercial</code>, or nothing at all. A CI gate configured to reject a denylist of known-bad SPDX identifiers will wave every one of them straight through.</p>
+    <p><b>Configure the gate to fail on any unrecognised or absent licence string, not just on a copyleft denylist.</b> Then add an explicit package denylist for the specific traps found here: <code>handsontable</code>, <code>hyperformula</code>, <code>ag-grid-enterprise</code>, <code>@univerjs-pro/*</code>, <code>@tiptap-pro/*</code>, <code>arabic-reshaper</code>, <code>highcharts</code>, and <code>elkjs</code> pending legal review. Several of these traps also hide in non-standard filenames — <code>license.txt</code> lowercase, <code>LICENCE.md</code> with British spelling, <code>License</code> with no extension — which is why GitHub's own detector reports <code>NOASSERTION</code> for a surprising number of them.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="fmark">
+    <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:22px">
+      <defs>
+        <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+        </linearGradient>
+        <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+        </linearGradient>
+      </defs>
+      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span style="font-weight:650; color:var(--tx)">Magna<span style="color:var(--tx-3)">VERSE</span></span>
+  </div>
+  <p><b style="color:var(--tx-2)">Engineering research, not legal advice.</b> Every licence on this page was read from the project's own <code>LICENSE</code> file or official licensing page on <b>19 August 2026</b> and is linked so you can verify it. Anything that could not be confirmed from a primary source is marked unverified in place rather than guessed at.</p>
+  <p>Known unverified items, carried deliberately: MathJax v4's font package declares Apache-2.0 but ships no LICENSE and its stated source repository 404s; <code>fontkit</code> has no LICENSE file in its repository at all; Univer Pro's licence-key validation may or may not require network egress; and whether internal-only hosting constitutes distribution under EPL-2.0 is a legal question for counsel, not an engineering one.</p>
+  <p>This page is a single self-contained HTML file with no external scripts, no webfonts, no images and no build step — which felt like the only honest way to write a document about other people's dependencies.</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  /* ---- theme ---- */
+  var root = document.documentElement;
+  var btns = Array.prototype.slice.call(document.querySelectorAll("[data-theme-set]"));
+  function read(){
+    try{ return localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system"; }
+    catch(e){ return "system"; }
+  }
+  function apply(mode){
+    if(mode === "light" || mode === "dark"){ root.setAttribute("data-theme", mode); }
+    else{ root.removeAttribute("data-theme"); }
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-set") === mode)); });
+  }
+  function write(mode){
+    try{ localStorage.setItem("mv-theme", mode); localStorage.setItem("mv.theme", mode); }catch(e){}
+  }
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var m = b.getAttribute("data-theme-set");
+      apply(m); write(m);
+    });
+  });
+  apply(read());
+})();
+
+/* ---- library catalogue ---- */
+(function(){
+  "use strict";
+  var CATS = [
+    ["code",   "Code editor"],
+    ["graph",  "Workflow canvas"],
+    ["chart",  "Diagrams &amp; charts"],
+    ["sheet",  "Spreadsheet"],
+    ["doc",    "Rich text"],
+    ["slides", "Slides"],
+    ["term",   "Terminal"],
+    ["render", "Maths &amp; code"],
+    ["files",  "File export"],
+    ["ai",     "In-browser AI"],
+    ["rtl",    "Arabic &amp; RTL"],
+    ["ui",     "Desktop UI"]
+  ];
+  var LICS = [
+    ["mit",    "MIT"],
+    ["apache", "Apache-2.0"],
+    ["bsd",    "BSD"],
+    ["isc",    "ISC"],
+    ["ofl",    "OFL"],
+    ["avoid",  "Avoid / check"]
+  ];
+
+  /* n=name c=category k=licence-class l=licence-label w=what f=fit r=risk s=source z=size u=in-use */
+  var LIBS = [
+  /* ---------------- code editors ---------------- */
+  {n:"CodeMirror 6", c:"code", k:"mit", l:"MIT", z:"163 kB gzip",
+   s:"https://github.com/codemirror/dev/blob/main/LICENSE",
+   w:"A modular, modern code editor — syntax highlighting via Lezer grammars, autocomplete, linting, search, composed from ~15 small packages.",
+   f:"<b>The recommendation for the Code app.</b> First-class documented Arabic/bidi support, built for touch, four times smaller than Monaco, and a plain ES-module library that suits a vanilla-JS codebase.",
+   r:"No LSP out of the box — add <code>codemirror-languageserver</code> (BSD-3-Clause) later, and note it needs a server process per language. Requires one build step; run it once and commit the artifact. <b>Take v6, not v5</b> — most tutorials online are CM5 and the APIs are incompatible. The canonical repo has moved off GitHub to <code>code.haverbeke.berlin</code>; cite the MIT LICENSE inside each npm package."},
+
+  {n:"Monaco Editor", c:"code", k:"mit", l:"MIT", z:"661 kB gzip",
+   s:"https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt",
+   w:"The editor that powers VS Code, extracted as a standalone component.",
+   f:"Unmatched familiarity and IntelliSense quality for TypeScript. That is the entire case for it.",
+   r:"<b>Fails this product on Arabic.</b> No RTL support and four open bugs, including one reporting the editor is invisible inside a <code>dir=&quot;rtl&quot;</code> container. Microsoft's own FAQ answers mobile support with one word: &ldquo;No.&rdquo; 661 kB gzipped with <i>no languages loaded</i>, from a 93 MB distribution. Its no-bundler AMD path is <b>officially deprecated and slated for removal</b>. Licence is clean; everything else is wrong for Console."},
+
+  {n:"Ace", c:"code", k:"bsd", l:"BSD-3-Clause", z:"123 kB gzip",
+   s:"https://github.com/ajaxorg/ace/blob/master/LICENSE",
+   w:"The long-standing browser editor from Cloud9, with 199 language modes and 48 themes as lazily-loaded files.",
+   f:"By far the easiest to self-host with no build step at all — plain script tags, drop the folder in. And it has genuine bidi support, unlike Monaco.",
+   r:"Healthier than its reputation (v1.44.0, August 2026), but weaker than CodeMirror 6 on every axis that matters, and <b>no LSP story</b> (unverified). BSD-3-Clause adds a non-endorsement clause. <b>Scanner gotcha:</b> the GitHub API reports its SPDX as <code>NOASSERTION</code> because of a modified header, so SBOM tooling may flag it as unknown — cite the npm metadata instead."},
+
+  {n:"code-server", c:"code", k:"mit", l:"MIT",
+   s:"https://github.com/coder/code-server/blob/main/LICENSE",
+   w:"Full VS Code running on a server and delivered to a browser tab — terminals, debugging, extensions.",
+   f:"<b>The right answer if the Code app ever has to become a real IDE.</b> Wraps Code&nbsp;-&nbsp;OSS via patch files rather than the proprietary binaries, defaults to Open VSX, and its webviews are self-contained so they never call Microsoft.",
+   r:"A server process in an iframe — heavy for one window in a prototype, and it inherits VS Code's own weak RTL story. Point <code>$EXTENSIONS_GALLERY</code> at a self-hosted Open VSX and run <code>--disable-telemetry</code>. <b>Pin a version and vendor it:</b> Coder Technologies already runs an AGPL-plus-proprietary split on its flagship <code>coder/coder</code>, so the precedent for a terms change exists."},
+
+  /* ---------------- workflow canvas ---------------- */
+  {n:"n8n", c:"graph", k:"avoid", l:"SUL-1.0", z:"not OSI",
+   s:"https://github.com/n8n-io/n8n/blob/master/LICENSE.md",
+   w:"The workflow automation product Console's node builder is modelled on. <b>It is not open source in the OSI sense</b> and cannot simply be adopted.",
+   f:"It fits as a <i>reference design</i> only. Study the interaction model, ship none of the code.",
+   r:"The Sustainable Use License restricts you to &ldquo;internal business purposes or&hellip; non-commercial or personal use&rdquo;, and redistribution must be free of charge and non-commercial. SPDX records <code>SUL-1.0</code> as <b>not OSI-approved</b>; n8n's own npm metadata declines to state an SPDX id. Files marked <code>.ee.</code> fall under a separate Enterprise licence requiring a paid subscription in production. Licence history: Apache-2.0 &rarr; Commons Clause &rarr; SUL. <b>Do not vendor, fork or copy n8n source.</b>"},
+
+  {n:"React Flow (xyflow)", c:"graph", k:"mit", l:"MIT", z:"58 kB gzip",
+   s:"https://github.com/xyflow/xyflow/blob/main/LICENSE",
+   w:"The most mature node-graph canvas on the web — nodes, edges, handles, minimap, snapping, viewport controls.",
+   f:"The reference implementation for the interaction model Console needs. Worth reading even if we do not adopt it.",
+   r:"<b>Requires React</b>, which Console does not use and would need a build step for. MIT since 2019 with no relicensing; xyflow is a rebrand, not a licence change. <b>React Flow Pro is a separate proprietary licence</b> covering paid example templates — the core is MIT and the vendor commits to keeping it so, but do not paste Pro example code into the product."},
+
+  {n:"Vue Flow", c:"graph", k:"mit", l:"MIT",
+   s:"https://github.com/bcakmakoglu/vue-flow/blob/master/LICENSE",
+   w:"A Vue 3 port of React Flow's model, and — notably — <b>what n8n's own editor canvas actually runs on today</b>.",
+   f:"The strongest signal available about what a real n8n-style canvas is built from. n8n shipped it in v1.66 alpha and made it the default in v1.70.",
+   r:"Requires Vue 3 and a build step. Attribution must carry <b>both</b> copyright holders — webkid GmbH and Burak Cakmakoglu — because it derives from React Flow."},
+
+  {n:"Drawflow", c:"graph", k:"mit", l:"MIT", z:"8.4 kB gzip",
+   s:"https://github.com/jerosoler/Drawflow/blob/master/LICENSE",
+   w:"A node editor in <b>plain vanilla JavaScript with zero dependencies</b> — drag nodes, connect ports, pan and zoom, import/export JSON.",
+   f:"<b>By far the best structural fit.</b> No framework, no build step, 8.4 kB gzipped — it drops straight into a single self-contained HTML file the way Console is written.",
+   r:"<b>Effectively unmaintained.</b> Last npm publish September 2024, last commit October 2024, ~246 open issues. Not archived, but idle for the better part of two years. MIT is irrevocable, so the honest plan is to vendor it, fork it, and own it. At this size that is a realistic amount of code to maintain."},
+
+  {n:"Rete.js", c:"graph", k:"mit", l:"MIT", z:"5.6 kB gzip core",
+   s:"https://github.com/retejs/rete/blob/main/LICENSE",
+   w:"A framework-agnostic node-editor <i>engine</i> — graph model, sockets, dataflow execution — with rendering supplied by plugins.",
+   f:"Actively maintained (v2.0.6, 12k stars) and the core is genuinely tiny and framework-free, so the graph model could be used headlessly behind Console's own renderer.",
+   r:"There is <b>no first-class vanilla renderer</b> — the shipped render plugins target React, Vue, Angular and Svelte. Using it in Console means writing a custom render plugin, which is most of the work."},
+
+  {n:"LiteGraph.js", c:"graph", k:"mit", l:"MIT", z:"120 kB gzip",
+   s:"https://github.com/jagenjo/litegraph.js/blob/master/LICENSE",
+   w:"A single-file vanilla-JS node graph with a canvas renderer and a built-in execution engine.",
+   f:"Vanilla and dependency-free, so it fits the no-build constraint.",
+   r:"Dormant upstream — last commit August 2024. <b>The &ldquo;battle-tested by ComfyUI&rdquo; argument does not transfer:</b> ComfyUI runs a hard fork (<code>@comfyorg/litegraph</code>) described as largely incompatible with the original, and that fork's repo is now archived into ComfyUI's monorepo. Upstream gets none of that investment. Also heavy for what it does, at 120 kB gzip versus Drawflow's 8."},
+
+  {n:"jsPlumb Community", c:"graph", k:"mit", l:"MIT OR GPL-2.0",
+   s:"https://github.com/jsplumb/community-edition/blob/master/jsPlumb-LICENSE.txt",
+   w:"The connectivity library that n8n's editor used <i>before</i> it migrated to Vue Flow.",
+   f:"Honestly: it does not. Included here so nobody rediscovers it and assumes it is current.",
+   r:"<b>Discontinued.</b> The new repo's own description reads &ldquo;This repository no longer receives updates&rdquo;; the npm package has been frozen at v2.15.6 since 2021. Dual MIT/GPL-2.0 — if you ever do use it, <b>state the MIT election explicitly</b> in your notices to remove any GPL ambiguity. The commercial jsPlumb Toolkit is a separate paid product. <b>Do not adopt.</b>"},
+
+  /* ---------------- diagrams and charts ---------------- */
+  {n:"Mermaid", c:"chart", k:"mit", l:"MIT", z:"949 kB gzip",
+   s:"https://github.com/mermaid-js/mermaid/blob/develop/LICENSE",
+   w:"Text-to-diagram rendering — flowcharts, sequence, Gantt, ER, state — from a compact markup language.",
+   f:"Console already hand-renders Mermaid-<i>style</i> SVG diagrams. This would replace that with the real grammar and far broader diagram coverage.",
+   r:"<b>Enormous</b> — 3.4 MB minified, 949 kB gzipped, dwarfing everything else here. That is a real cost for a single-file page. Licence is clean MIT; Mermaid Chart Inc. sells proprietary hosted tooling on top, a classic open-core structure worth watching but not currently a constraint."},
+
+  {n:"@dagrejs/dagre", c:"chart", k:"mit", l:"MIT", z:"17 kB gzip",
+   s:"https://github.com/dagrejs/dagre/blob/master/LICENSE",
+   w:"Directed-graph layout — computes node positions and edge routes for a DAG. The layout half of a node canvas.",
+   f:"Exactly what an auto-arrange button in the workflow builder needs, and it is what n8n itself depends on. Tiny and unopinionated about rendering.",
+   r:"<b>Install the right package.</b> The unscoped <code>dagre</code> on npm is dead — v0.8.5 from 2019, and it drags in lodash. The maintained one is <code>@dagrejs/dagre</code> (v3.1.1, August 2026, lodash-free, 17 kB gzip). <code>dagre-d3</code> is abandoned. Both scoped and unscoped are MIT; the difference is purely maintenance."},
+
+  {n:"ELK.js", c:"chart", k:"avoid", l:"EPL-2.0 OR GPL-3.0", z:"456 kB gzip",
+   s:"https://github.com/kieler/elkjs/blob/master/LICENSE.md",
+   w:"A far more sophisticated graph layout engine than dagre — orthogonal edge routing, layered and force layouts, port constraints.",
+   f:"It would produce visibly better workflow layouts than dagre. That is the only argument for it.",
+   r:"<b>The one genuinely non-permissive library in this review.</b> Its LICENSE is the full EPL-2.0 <i>with Exhibit A filled in</i>, which is why npm declares <code>EPL-2.0 OR GPL-3.0-or-later</code>. EPL-2.0 is weak file-level copyleft: modifications to ELK files must be released under EPL, and it carries a patent-retaliation clause. It does not meet a MIT/Apache/BSD/ISC bar. Usable unmodified as a separate bundled artifact, but <b>route it through legal first</b> — and note it is also the second-heaviest item here."},
+
+  {n:"D3", c:"chart", k:"isc", l:"ISC", z:"90 kB gzip full",
+   s:"https://github.com/d3/d3/blob/main/LICENSE",
+   w:"The foundational data-visualisation toolkit — scales, axes, shapes, transitions, force simulation, geo projections.",
+   f:"Individual <code>d3-*</code> submodules (<code>d3-scale</code>, <code>d3-shape</code>) are the right way to build bespoke charts that match Console's design language rather than looking like a charting library.",
+   r:"<b>Relicensed from BSD-3-Clause to ISC</b> — both permissive, but cite ISC now. The monolithic <code>d3</code> bundle pulls in far more than any one chart needs; import submodules. It is a toolkit, not a chart library: expect to write real code."},
+
+  {n:"Chart.js", c:"chart", k:"mit", l:"MIT", z:"69 kB gzip",
+   s:"https://github.com/chartjs/Chart.js/blob/master/LICENSE.md",
+   w:"Batteries-included charting — bar, line, pie, radar, scatter — with sensible defaults and animation.",
+   f:"<code>flows.html</code> records a flat gap: <b>no chart renderer exists anywhere in the prototypes</b>, and a chart request renders as box-drawing characters. This closes that in an afternoon.",
+   r:"Canvas-only rendering, so charts are not DOM-inspectable and need explicit work to be accessible or exportable as SVG. Healthy project, clean MIT."},
+
+  {n:"Apache ECharts", c:"chart", k:"apache", l:"Apache-2.0", z:"360 kB gzip",
+   s:"https://github.com/apache/echarts/blob/master/LICENSE",
+   w:"A much larger charting library than Chart.js — dense dashboards, geo maps, large-dataset rendering, rich interaction.",
+   f:"If Console's analytics surfaces grow beyond simple bar and line charts, this is the step up. Strong RTL and CJK track record.",
+   r:"<b>The one library here with a live attribution duty.</b> Apache-2.0 §4(d) requires propagating the NOTICE file, and ECharts ships one. Its LICENSE also has a subcomponents section: four files contain BSD-3-Clause d3 code needing separate attribution. Not a blocker — just get it into the notices file, because an on-prem enterprise deliverable is exactly where this gets audited."},
+
+  {n:"Cytoscape.js", c:"chart", k:"mit", l:"MIT", z:"133 kB gzip",
+   s:"https://github.com/cytoscape/cytoscape.js/blob/unstable/LICENSE",
+   w:"Graph theory visualisation and analysis — large networks, clustering, pathfinding, many layout algorithms.",
+   f:"The natural fit for the <b>Brain corpus graph</b>, which is a knowledge network rather than a chart. Console renders that by hand today.",
+   r:"It is an analysis and visualisation library, not an editor — node editing would still be yours to build. Actively maintained, clean MIT."},
+
+  {n:"Highcharts", c:"chart", k:"avoid", l:"Proprietary",
+   s:"https://shop.highcharts.com/license",
+   w:"A very polished commercial charting library with excellent RTL and accessibility support.",
+   f:"It does not fit a permissive bar. Listed because it is assumed free more often than almost anything else in this document.",
+   r:"<b>Not free for commercial use, and this is misunderstood constantly.</b> It is a proprietary Highsoft licence in three tiers, and <b>Magna's model needs the OEM tier</b>, because the product is distributed to third parties. It is <b>not</b> CC BY-NC — that is folklore. Its npm licence field is a bare URL, which SBOM scanners routinely mis-tag as permissive, so it will not trip a naive licence gate. Use Chart.js, ECharts or uPlot."},
+
+  {n:"uPlot", c:"chart", k:"mit", l:"MIT", z:"21.5 kB gzip",
+   s:"https://github.com/leeoniya/uPlot/blob/master/LICENSE",
+   w:"An extremely fast, extremely small time-series plotter that handles hundreds of thousands of points.",
+   f:"Right for telemetry and monitoring panels — the residency/audit surfaces — where the data is dense and the chart should cost nothing.",
+   r:"Deliberately minimal: lines, areas, bars, OHLC only. No pie, no radar, bare-bones styling. Zero dependencies. Note the &ldquo;tiny&rdquo; reputation is the gzip figure; minified it is ~50 kB."},
+
+  /* ---------------- spreadsheet ---------------- */
+  {n:"Handsontable", c:"sheet", k:"avoid", l:"Proprietary", z:"no SPDX id",
+   s:"https://github.com/handsontable/handsontable/blob/master/LICENSE.txt",
+   w:"A well-known data grid, very widely assumed to still be open source. It is not.",
+   f:"It does not fit. Listed so it is never adopted by mistake.",
+   r:"<b>MIT through v6.2.2 (Dec 2018); relicensed at v7.0.0 in March 2019.</b> The free licence covers use that is &ldquo;strictly personal or solely for evaluation purposes&hellip; outside the production environment&rdquo;. A paid Magna deployment is squarely commercial and <b>requires a purchased licence</b>. Worse, it carries a <b>non-compete clause</b> forbidding its use to build competing software — and a spreadsheet app arguably competes. Even licensed, that clause needs legal review."},
+
+  {n:"HyperFormula", c:"sheet", k:"avoid", l:"GPL-3.0-only", z:"or paid",
+   s:"https://github.com/handsontable/hyperformula/blob/master/LICENSE.txt",
+   w:"The most capable open formula engine available — full dependency graph, recalculation ordering, circular-reference detection, ~400 functions.",
+   f:"Technically it is exactly what a real Sheets app needs. That is what makes it dangerous.",
+   r:"<b>GPL-3.0 or a purchased proprietary key — nothing in between.</b> Console inlines dependencies into single self-contained HTML files, which is the strongest possible form of linking with no dynamic-linking argument available. Shipping that file to a customer is <i>conveying</i> under GPLv3 §6, which would oblige Magna to license <b>the entire Console source</b> under GPLv3 and supply Corresponding Source. On-prem does not help — plain GPLv3 has no network clause, but you are physically shipping the bundle. Minification launders nothing. <b>Exclude unless the commercial key is bought.</b>"},
+
+  {n:"Univer", c:"sheet", k:"apache", l:"Apache-2.0",
+   s:"https://github.com/dream-num/univer/blob/dev/LICENSE",
+   w:"The actively-developed successor to Luckysheet from the same vendor — sheets, docs and slides in one engine.",
+   f:"The most capable permissive spreadsheet available, and the vendor's own recommended path off Luckysheet. Core is plain unmodified Apache-2.0 with no Commons Clause.",
+   r:"<b>Know exactly where the paywall sits.</b> All 58 open-source packages are uniformly Apache-2.0. But <b>Univer Pro</b> is a separate commercial layer, and it gates precisely what a business spreadsheet needs most: <b>xlsx/docx import &amp; export, print, charts, and pivot tables</b>. Pro packages carry no npm licence field at all. Unverified and important: whether Pro licence-key validation requires network egress — a hard question under zero-egress. Reports also suggest new Pro purchases are currently paused."},
+
+  {n:"AG Grid Community", c:"sheet", k:"mit", l:"MIT",
+   s:"https://github.com/ag-grid/ag-grid/blob/latest/LICENSE.txt",
+   w:"A very fast, very mature data grid — virtualised rows, sorting, filtering, editing, keyboard navigation.",
+   f:"If Sheets is really a <i>grid</i> rather than a spreadsheet, this is the strongest option, and the free/paid boundary is a package name you can enforce in CI.",
+   r:"<b>Community is MIT and free in production; <code>ag-grid-enterprise</code> is commercial and is not.</b> Enterprise gates row grouping, pivoting, styled Excel export, range selection, master/detail and integrated charts — a real functional gap for a spreadsheet. Ban the Enterprise package name in CI and the risk is essentially zero."},
+
+  {n:"Formula.js", c:"sheet", k:"mit", l:"MIT",
+   s:"https://github.com/formulajs/formulajs/blob/master/LICENSE",
+   w:"~500 Excel-compatible functions implemented in JavaScript — the maths half of a formula engine.",
+   f:"<b>The recommended permissive escape from HyperFormula.</b> Actively released (v4.6.1, July 2026) where the alternatives are stale or archived.",
+   r:"Be honest about what it is not: a function library, <b>not a dependency-graph engine</b>. It evaluates <code>SUM(1,2)</code> but does no cell-reference resolution, recalculation ordering or circular-reference detection — you write that. That is the true cost of avoiding GPL. Its LICENSE bundles three MIT copyright blocks (Sutoiku, SheetJS, jStat); retain all three."},
+
+  {n:"x-spreadsheet", c:"sheet", k:"mit", l:"MIT",
+   s:"https://github.com/myliang/x-spreadsheet/blob/master/LICENSE",
+   w:"A lightweight canvas-rendered spreadsheet component.",
+   f:"The smallest real spreadsheet here, and MIT is irrevocable, so vendoring it is safe.",
+   r:"<b>Effectively abandoned</b> — last release September 2020, 412 open issues. Its designated successor <code>@wolf-table/table</code> stalled at v0.0.3 in March 2024. Adopt only with the intention of owning it outright."},
+
+  {n:"Luckysheet", c:"sheet", k:"mit", l:"MIT", z:"~30 MB",
+   s:"https://github.com/dream-num/Luckysheet/blob/master/LICENSE",
+   w:"The predecessor to Univer, and the sibling of the LuckyExcel parser Console already uses.",
+   f:"Superficially attractive because Console already ships LuckyExcel. Do not be drawn in.",
+   r:"<b>Archived read-only in October 2025 and publicly deprecated by its own authors</b>, who state it should not be used in production and recommend Univer instead, citing unfixed problems with large-data loading, chart styles, pivot tables and <i>formula calculation</i>. MIT is permanent so there is no legal risk — but adopting it means owning a 30 MB codebase its authors call unfit."},
+
+  /* ---------------- rich text ---------------- */
+  {n:"Tiptap", c:"doc", k:"mit", l:"MIT",
+   s:"https://github.com/ueberdosis/tiptap/blob/main/LICENSE.md",
+   w:"A headless editor framework over ProseMirror — you get the document model and commands, you supply the UI.",
+   f:"<b>The best capability-to-effort ratio for the Docs app.</b> Headless means it can wear Console's design language completely rather than fighting a stock toolbar.",
+   r:"Core is plain MIT with no carve-outs. In June 2025 Tiptap <b>open-sourced about ten formerly-Pro extensions</b> — v3 expanded what is free. What remains paid is only the service-backed extensions (Comments, Snapshots, parts of the AI toolkit), published to a private registry, and <b>those are a poor fit for an air-gapped deployment regardless of price</b>. Notably <code>@tiptap/extension-collaboration</code> is MIT — the primitives are free, only the hosted cloud costs. Ban <code>@tiptap-pro/*</code> in CI."},
+
+  {n:"ProseMirror", c:"doc", k:"mit", l:"MIT",
+   s:"https://github.com/ProseMirror/prosemirror/blob/master/LICENSE",
+   w:"The rigorous document-model toolkit that sits underneath Tiptap — schemas, transforms, collaborative editing primitives.",
+   f:"The highest ceiling of anything here, and the right foundation if the document model needs to be genuinely custom.",
+   r:"<b>A toolkit, not an editor.</b> No toolbar, no menus, no defaults — you write the schema, plugins and UI yourself. Highest build cost of the group. Use Tiptap unless you have a specific reason not to."},
+
+  {n:"Lexical", c:"doc", k:"mit", l:"MIT",
+   s:"https://github.com/facebook/lexical/blob/main/LICENSE",
+   w:"Meta's extensible text-editor framework, built for performance and accessibility.",
+   f:"Excellent accessibility story and a clean plugin model.",
+   r:"Licence is spotless — <b>plain MIT with no <code>PATENTS</code> file</b>, so the old Meta BSD+Patents controversy does not apply here; I checked the repo root. The real risk is stability: still <b>pre-1.0 (v0.49.0)</b> after several years, so breaking changes between minor versions are normal. Pin hard."},
+
+  {n:"Quill", c:"doc", k:"bsd", l:"BSD-3-Clause",
+   s:"https://github.com/slab/quill/blob/main/LICENSE",
+   w:"A batteries-included WYSIWYG editor that works out of the box with a stock toolbar.",
+   f:"Fastest path to a working editor if the Docs app needs to exist tomorrow.",
+   r:"<b>It is BSD-3-Clause, not MIT</b> — commonly misremembered. Still permissive, but it adds a <b>non-endorsement clause</b>: do not use the Quill or Slab names to promote MagnaVERSE without permission. Stewardship moved <code>quilljs</code> &rarr; <code>slab</code>. Development has visibly slowed since v2 (last release Nov 2024), and its Delta model maps awkwardly onto a paged document."},
+
+  {n:"Editor.js", c:"doc", k:"apache", l:"Apache-2.0", u:1,
+   s:"https://github.com/codex-team/editor.js/blob/next/LICENSE",
+   w:"The block-based editor already powering <code>apps/app-docs.html</code>.",
+   f:"Already integrated and working, and the block model suits a Docs app well. No reason to replace it.",
+   r:"<b>Apache-2.0, not MIT</b> — see Part 1. Practical obligation is one licence text plus a copyright line in the notices file. Its <b>eight official plugins are MIT</b>, but community <code>@editorjs/*</code> blocks are each separately licensed — <b>audit any new block plugin individually</b>, the core licence does not cover them."},
+
+  /* ---------------- slides ---------------- */
+  {n:"Reveal.js", c:"slides", k:"mit", l:"MIT",
+   s:"https://github.com/hakimel/reveal.js/blob/master/LICENSE",
+   w:"The standard HTML presentation framework — slide transitions, speaker notes, fragments, PDF export, nested decks.",
+   f:"A natural renderer for the Slides app, pairing with PptxGenJS which already handles the <code>.pptx</code> export.",
+   r:"<b>The cleanest licence in this entire audit.</b> I specifically checked the Slides.com relationship: that is a separate hosted SaaS by the same author, and there is a paid video course — <b>neither gates any library feature</b>. No Pro tier exists for the library. Healthy (v6.0.1, April 2026)."},
+
+  {n:"Impress.js", c:"slides", k:"mit", l:"MIT",
+   s:"https://github.com/impress/impress.js/blob/master/LICENSE",
+   w:"Prezi-style 3D-transform presentations on an infinite canvas.",
+   f:"Only if Console wants a deliberately theatrical presentation mode. It is a visual effect, not a slide tool.",
+   r:"<b>Functionally frozen</b> — last release v2.0.0 in July 2022. It is a renderer with no editing story. Reveal.js is better maintained and does the same job."},
+
+  /* ---------------- terminal ---------------- */
+  {n:"xterm.js", c:"term", k:"mit", l:"MIT",
+   s:"https://github.com/xtermjs/xterm.js/blob/master/LICENSE",
+   w:"A full terminal emulator in the browser — the same one VS Code ships.",
+   f:"Console's terminal is currently simulated. If it ever needs to attach to a real shell, this is the only serious answer, and it handles the hard parts (escape sequences, reflow, selection, unicode width) that are miserable to hand-roll.",
+   r:"Licence is clean, but <b>use the scoped package</b>: unscoped <code>xterm</code> is deprecated and frozen at v5.3.0, while <code>@xterm/xterm</code> is at v6.0.0. All first-party addons are MIT. Note <code>@xterm/addon-webgl</code> is 2.4 MB on its own — add it only if you need GPU rendering. Retain <b>all three</b> copyright lines (xterm.js authors, SourceLair, Christopher Jeffrey)."},
+
+  /* ---------------- file generation ---------------- */
+  {n:"docx", c:"files", k:"mit", l:"MIT", z:"145 kB gzip",
+   s:"https://github.com/dolanmiu/docx/blob/master/LICENSE",
+   w:"Generates real <code>.docx</code> Word files declaratively, <b>in the browser</b> as well as in Node.",
+   f:"<b>The single highest-value adoption on this page.</b> <code>export:docx</code> is the most-requested missing capability across the 50 flows — &ldquo;you ask for it as a document to circulate, nothing comes back&rdquo; recurs verbatim. Actively maintained, all dependencies permissive and local.",
+   r:"<b>It is also the safest Arabic output path in the whole document</b>, and that is not obvious. Word performs the Arabic shaping itself at render time — you set <code>bidirectional: true</code> on the paragraph and ship no shaping code at all, sidestepping the hard problem that makes Arabic PDF generation painful. Prefer it over PDF wherever the format is negotiable."},
+
+  {n:"SheetJS (Community)", c:"files", k:"apache", l:"Apache-2.0", z:"328 kB gzip",
+   s:"https://git.sheetjs.com/sheetjs/sheetjs/raw/LICENSE",
+   w:"Reads and <b>writes</b> xlsx, xls, csv and more. Console currently uses LuckyExcel, which only reads.",
+   f:"Closes <code>export:xlsx</code> — the second-biggest export gap. Flow 21 is blunt about it: &ldquo;an answer's own table cannot be exported at all.&rdquo; The vendor <b>explicitly recommends vendoring</b> a local copy, which suits an air-gapped deployment perfectly.",
+   r:"<b>Two real catches.</b> First, distribution moved off npm: the public <code>xlsx</code> package is frozen at 0.18.5 from March 2022 and is <b>not formally deprecated</b>, so tooling will not warn you — the authoritative source is <code>cdn.sheetjs.com</code> (currently 0.20.3). Second, <b>cell styling is Pro-only</b>. The Apache-2.0 Community edition writes correct data but cannot style cells, add charts or set conditional formatting. Budget for that now, because &ldquo;make the report look right&rdquo; is the request that always arrives."},
+
+  {n:"jsPDF", c:"files", k:"mit", l:"MIT", z:"130 kB gzip",
+   s:"https://github.com/parallax/jsPDF/blob/master/LICENSE",
+   w:"Creates PDFs client-side. Ships a UAX#9 bidi engine and an Arabic module.",
+   f:"Closes <code>export:pdf</code>, and its Arabic support is genuinely better than its reputation — but conditionally.",
+   r:"<b>Its Arabic module is a hardcoded presentation-forms lookup table, not a real OpenType shaper</b> — it never executes the font's GSUB/GPOS tables. So it works only if the embedded font carries glyphs for the U+FExx presentation forms, and it cannot position tashkeel correctly or do kashida justification. <b>Pair it with Noto Naskh Arabic, never with Cairo</b> — see the Arabic cards. This explains most of the 64 open Arabic-titled issues."},
+
+  {n:"pdf.js", c:"files", k:"apache", l:"Apache-2.0", z:"127 kB + 365 kB worker",
+   s:"https://github.com/mozilla/pdf.js/blob/master/LICENSE",
+   w:"Mozilla's PDF renderer. <b>It views PDFs; it cannot create them</b> — it is the other half of the workflow, not an alternative to jsPDF.",
+   f:"Console ingests documents. Rendering an uploaded PDF in a window, with page anchors, is a direct answer to the flows that complain a dropped file is not parsed in the turn.",
+   r:"Arabic <i>display</i> is correct, because a PDF carries pre-positioned glyphs and pdf.js just draws them. The <b>text layer</b> is where it degrades — Arabic search with diacritics has been broken since a 2013 issue that is still open. So: display yes, search and copy with caution. The worker file is mandatory and adds 365 kB gzipped."},
+
+  {n:"pdf-lib", c:"files", k:"mit", l:"MIT",
+   s:"https://github.com/Hopding/pdf-lib/blob/master/LICENSE.md",
+   w:"Parses and <b>modifies existing</b> PDFs — fill forms, merge, split, stamp. That is its reason to exist; jsPDF only creates.",
+   f:"Right for stamping a residency receipt or a classification banner onto a document that already exists.",
+   r:"<b>More dormant than its download count suggests.</b> The original repo's last release was v1.17.1 in November 2021 and its last commit days later — nearly five years — yet npm still serves millions of weekly downloads off it. The active lineage moved to <code>pdfme/pdfme</code>; the intermediate mirror is archived. If you adopt it, take the pdfme lineage. Like jsPDF it does not run GSUB, so Arabic emits unjoined."},
+
+  {n:"harfbuzzjs", c:"files", k:"mit", l:"MIT", z:"160 kB gzip",
+   s:"https://github.com/harfbuzz/harfbuzzjs/blob/main/LICENSE",
+   w:"The real HarfBuzz text shaper compiled to WebAssembly — the same engine browsers and operating systems use.",
+   f:"<b>The only correct answer if Arabic PDF output must be typographically right.</b> Pair with bidi-js for reordering and feed positioned glyph IDs into pdf-lib.",
+   r:"<b>There is no maintained library that packages this pipeline</b> — you would be writing and owning the glue between shaper, bidi engine and PDF writer. That is a real project, not an afternoon. Upstream HarfBuzz inside the wasm is under an &ldquo;Old MIT&rdquo; variant that scanners report as <code>NOASSERTION</code>. Only reach for this after the docx route has been ruled out."},
+
+  {n:"arabic-reshaper (npm)", c:"files", k:"avoid", l:"GPL-3.0",
+   s:"https://github.com/louy/Javascript-Arabic-Reshaper/blob/master/LICENSE",
+   w:"A JavaScript Arabic reshaper — and a natural top search result for exactly the problem above.",
+   f:"It does not fit. It is listed purely as a landmine warning.",
+   r:"<b>It is GPL-3.0.</b> This sits directly in the path a developer walks when they search for &ldquo;javascript arabic reshaper&rdquo;, and pulling it into a bundled proprietary deliverable would be a strong-copyleft contamination event. <b>The permissive equivalent is <code>arabic-persian-reshaper</code> (MIT).</b> Add the GPL package name to a CI denylist."},
+
+  /* ---------------- maths and code rendering ---------------- */
+  {n:"KaTeX", c:"render", k:"mit", l:"MIT + OFL fonts", z:"592 kB total",
+   s:"https://github.com/KaTeX/KaTeX/blob/main/LICENSE",
+   w:"Fast, synchronous LaTeX maths rendering to HTML and CSS.",
+   f:"Console hand-renders KaTeX-<i>style</i> maths today. This is the real thing, it drops in as plain tags, and it self-hosts with zero egress.",
+   r:"<b>The JS is MIT but the 20 bundled fonts are separately licensed under OFL-1.1</b>, each with a Reserved Font Name (<code>KaTeX_Main</code>, <code>KaTeX_Math</code>&hellip;). They must appear as a distinct OFL section in the notices file, not lumped in with the MIT code. Because of the RFNs, <b>ship the fonts unmodified</b> — subsetting counts as modification and would oblige renaming."},
+
+  {n:"highlight.js", c:"render", k:"bsd", l:"BSD-3-Clause", z:"43 kB gzip",
+   s:"https://github.com/highlightjs/highlight.js/blob/main/LICENSE",
+   w:"Syntax highlighting for ~200 languages with automatic language detection.",
+   f:"<b>The recommended code highlighter</b>, and the best self-hosting story of the three: <code>@highlightjs/cdn-assets</code> ships pre-built browser bundles that work as a plain script tag with no module resolution and no network. Actively maintained.",
+   r:"BSD-3-Clause, not MIT — the extra non-endorsement clause means you may not use the highlight.js name or contributor names in MagnaVERSE marketing without permission. Practically costless."},
+
+  {n:"Shiki", c:"render", k:"avoid", l:"MIT core, GPL grammars",
+   s:"https://github.com/shikijs/textmate-grammars-themes/blob/main/packages/tm-grammars/NOTICE",
+   w:"Highlighting using real TextMate grammars and VS Code themes — the most accurate output available.",
+   f:"Its output quality is the best of any highlighter. That is the whole appeal, and it is not enough here.",
+   r:"<b>Shiki itself is MIT, but its bundled grammars are not uniformly permissive</b> — the upstream claim that bundled content is permissive does not survive reading the machine-readable NOTICE. Of 155 grammars: <b>5 are GPL-3.0</b> (ada, gnuplot, nginx, org, racket), one is LGPL, two are MPL-2.0, and <b>12 are legally unresolved</b>. One theme is GPL-3.0. They are data files rather than linked code, which weakens the argument — but shipping GPL-3.0 assets inside a proprietary on-prem deliverable is exactly what legal review exists to catch. It also cannot load from a plain module script. <b>Use highlight.js instead.</b>"},
+
+  {n:"Prism", c:"render", k:"mit", l:"MIT", z:"40 kB",
+   s:"https://github.com/PrismJS/prism/blob/master/LICENSE",
+   w:"A very small, very simple highlighter — 7 kB for the core.",
+   f:"The lightest option if only a handful of languages matter, and trivially self-hosted.",
+   r:"<b>Feature-frozen with a successor that has never shipped.</b> Prism v2 has no published release on npm at all, not even a prerelease, while the maintainers accept only security PRs against v1. There was a 2.5-year gap between the last two v1 releases and 483 open issues. Licence is clean; momentum is not."},
+
+  {n:"MathJax", c:"render", k:"apache", l:"Apache-2.0", z:"~3.3 MB",
+   s:"https://github.com/mathjax/MathJax/blob/master/LICENSE",
+   w:"The most complete LaTeX and MathML renderer, with a full speech-rule engine and braille output.",
+   f:"Wins decisively over KaTeX on LaTeX coverage and on accessibility. Worth it only if maths is central rather than incidental.",
+   r:"Five times larger than KaTeX and asynchronous, so it reflows. <b>Unverified and worth escalating:</b> v4 moved its fonts into a separate package that declares Apache-2.0 in <code>package.json</code> but <b>ships no LICENSE and no NOTICE file, and its stated source repository returns 404</b> — while the upstream New Computer Modern font is under the GUST Font License, not Apache-2.0. Get written confirmation before this enters an enterprise deployment."},
+
+  /* ---------------- in-browser AI ---------------- */
+  {n:"transformers.js", c:"ai", k:"apache", l:"Apache-2.0",
+   s:"https://github.com/huggingface/transformers.js/blob/main/LICENSE",
+   w:"Runs ONNX transformer models directly in the browser — embeddings, classification, summarisation — with no server.",
+   f:"The most credible route to genuinely local RAG for the Brain corpus. Embedding entirely in the browser is a strong sovereignty story: the text never leaves the tab.",
+   r:"<b>Two separate egress problems, both fixable, both on by default.</b> Model loading defaults to <code>huggingface.co</code> and <code>allowLocalModels</code> is <b>false</b> in browsers — and even with local models it still <b>hardcodes a jsDelivr URL for ~24 MB of WASM</b>. Set <code>allowRemoteModels:false</code>, <code>allowLocalModels:true</code>, <code>localModelPath</code> and <code>backends.onnx.wasm.wasmPaths</code>, enforce with CSP <code>connect-src 'self'</code>, and <b>verify on a genuinely disconnected machine</b>. Separately: <b>model licences are entirely independent of the library's Apache-2.0</b> — several popular embedders are CC-BY-NC, which would be non-commercial contamination. Record licence and commit SHA for every model shipped."},
+
+  {n:"ONNX Runtime Web", c:"ai", k:"mit", l:"MIT",
+   s:"https://github.com/microsoft/onnxruntime/blob/main/LICENSE",
+   w:"The inference engine underneath transformers.js — WASM and WebGPU backends for running ONNX models.",
+   f:"Worth naming separately because it is what you actually self-host for an air-gapped deployment.",
+   r:"The WASM artifacts are large — 11 MB for SIMD+threads, 23 MB for the WebGPU build. It resolves them <b>relative to the JS bundle's path</b>, so override <code>ort.env.wasm.wasmPaths</code> explicitly. Multi-threading requires COOP/COEP cross-origin isolation headers, which is a real deployment cost. Ship its <code>ThirdPartyNotices.txt</code>."},
+
+  {n:"WebLLM", c:"ai", k:"apache", l:"Apache-2.0",
+   s:"https://github.com/mlc-ai/web-llm/blob/main/LICENSE",
+   w:"Runs a full LLM inside the browser on WebGPU, with an OpenAI-compatible API.",
+   f:"Self-hosting is properly supported — model URLs are plain strings you can point at your own origin, with optional SRI hashes.",
+   r:"<b>Demo-grade for enterprise desktops, and be honest about why.</b> An 8B model needs 5–6 GB of VRAM and a 4–5 GB first-load download <i>per browser profile</i>; smaller models like Qwen3-0.6B need ~1.4 GB. WebGPU is solid in Chrome, Edge and Safari 26+, still uneven on Firefox/Linux. Pre-seeding that cache across an air-gapped fleet is an unsolved operational problem. Model weights carry their own licences, separate from the Apache-2.0 code."},
+
+  {n:"sqlite-vec", c:"ai", k:"mit", l:"MIT OR Apache-2.0",
+   s:"https://github.com/asg017/sqlite-vec/blob/main/LICENSE-MIT",
+   w:"Vector search as a SQLite extension. Paired with <code>sql.js</code> or <code>wa-sqlite</code> (both MIT) it gives persistence and similarity search together.",
+   f:"The most durable option <i>if</i> vector search ever needs to outgrow memory.",
+   r:"<b>Read this before adopting any vector library: at Console's scale you do not need one.</b> Brute-force cosine over a single contiguous <code>Float32Array</code> measures 0.25 ms at 1,000 chunks and 2.5 ms at 10,000 — invisible beside the 10–50 ms the embedding model spends on the query itself, and it stays inside a 60 fps frame to roughly 60,000 chunks. Normalise at ingest and it is a bare dot product. Note also that <code>voy</code> and <code>hnswlib-wasm</code> are both abandoned (last commits 2023), and sqlite-vec is pre-v1 with no shipped browser WASM build. Elect the MIT arm of the dual licence to avoid Apache NOTICE duties."},
+
+  /* ---------------- Arabic and RTL ---------------- */
+  {n:"Noto Naskh Arabic", c:"rtl", k:"ofl", l:"OFL-1.1",
+   s:"https://github.com/notofonts/arabic/blob/main/OFL.txt",
+   w:"Google's Naskh-style Arabic typeface, designed for extended reading.",
+   f:"<b>The recommended Arabic font, and the evidence is empirical.</b> Its glyph coverage was tested directly against the presentation forms jsPDF depends on: <b>141 of 141 complete</b>. It also declares <b>no Reserved Font Name</b>, so you may subset it freely without any renaming obligation.",
+   r:"OFL-1.1, not MIT — it needs its own section in the notices file. Take it from <code>notofonts/arabic</code>; the old per-family repos are frozen at 2021, and beware that <code>notofonts/Noto-Arabic</code> is a different, Apache-2.0 repository."},
+
+  {n:"IBM Plex Sans Arabic", c:"rtl", k:"ofl", l:"OFL-1.1", z:"72 kB woff2",
+   s:"https://github.com/IBM/plex/blob/master/LICENSE.txt",
+   w:"A modern sans-serif Arabic companion to IBM Plex, with a strong enterprise register.",
+   f:"Excellent for UI chrome, and its presentation-form coverage tested at 140 of 141 — the only gap is a byte-order mark, not a glyph. Safe with jsPDF.",
+   r:"<b>It carries the Reserved Font Name &ldquo;Plex&rdquo;, and subsetting counts as modification under the OFL.</b> So if you subset it to shrink an on-prem bundle — a very natural optimisation — you must rename the result and may no longer call it Plex. Ship it unmodified and the name is yours to keep; if you intend to subset, prefer Noto Naskh."},
+
+  {n:"Cairo", c:"rtl", k:"ofl", l:"OFL-1.1",
+   s:"https://github.com/Gue3bara/Cairo/blob/master/OFL.txt",
+   w:"A popular contemporary Arabic/Latin typeface, widely used across the region.",
+   f:"Perfectly good on screen, where the browser runs real OpenType shaping, and it declares no Reserved Font Name.",
+   r:"<b>Do not use it with jsPDF.</b> Testing its glyph coverage found <b>52 missing presentation forms — including every single ISOLATED letter form</b>. That means any standalone letter, such as the conjunction <span dir=\"rtl\" lang=\"ar\">و</span>, renders as an empty box in a generated PDF. This is a font gap, not a jsPDF bug, and it is the likely cause of the widely-reported &ldquo;Arabic fonts not rendering in jsPDF&rdquo; complaints."},
+
+  {n:"bidi-js", c:"rtl", k:"mit", l:"MIT", z:"11 kB gzip",
+   s:"https://github.com/lojjic/bidi-js/blob/main/LICENSE.txt",
+   w:"A standalone UAX#9 bidirectional-text implementation — reordering only, no glyph shaping.",
+   f:"Needed only when you leave the DOM: drawing text into canvas or WebGL, or emitting PDF glyph runs.",
+   r:"<b>For anything rendered in the DOM you do not need this, or any RTL library.</b> The browser already embeds HarfBuzz and a complete bidi implementation, so Arabic shaping and reordering are free and perfect. CSS logical properties plus <code>dir=\"auto\"</code> replace the whole category — see the note below the list."},
+
+  /* ---------------- desktop UI ---------------- */
+  {n:"uFuzzy", c:"ui", k:"mit", l:"MIT", z:"8.2 kB",
+   s:"https://github.com/leeoniya/uFuzzy/blob/main/LICENSE",
+   w:"A tiny, high-quality fuzzy-search matcher with ranking, in a single dependency-free IIFE.",
+   f:"<b>The highest value-per-byte dependency on this page.</b> Console already ships a Cmd+K switcher; this makes its matching genuinely good for 8 kB, with no build step.",
+   r:"Matching only — no UI, which is the point. Pair it with the palette you already have rather than adopting a palette component."},
+
+  {n:"Fuse.js", c:"ui", k:"apache", l:"Apache-2.0", z:"19 kB",
+   s:"https://github.com/krisk/Fuse/blob/main/LICENSE",
+   w:"The best-known JavaScript fuzzy-search library, with weighted multi-key scoring.",
+   f:"Richer scoring than uFuzzy when searching structured records with several weighted fields.",
+   r:"<b>It is Apache-2.0, not MIT</b> — very commonly misremembered, including in many dependency inventories. No NOTICE file, so the obligation is ordinary attribution. Larger and slower than uFuzzy; prefer uFuzzy unless you need weighted multi-key search."},
+
+  {n:"interact.js", c:"ui", k:"mit", l:"MIT", z:"96 kB min",
+   s:"https://github.com/taye/interact.js/blob/main/LICENSE",
+   w:"Drag, drop, resize, multi-touch gestures, snapping and inertia — framework-free.",
+   f:"The only one of the drag libraries that does free-form dragging <b>and</b> resizing, which is exactly the window-manager problem.",
+   r:"Console's window manager already works. Honest assessment: <b>modern Pointer Events make this largely unnecessary</b> — <code>setPointerCapture()</code> solved the &ldquo;pointer left the element mid-drag&rdquo; bug that used to justify a library, and one code path now covers mouse, touch and pen. Adopt only to acquire its edge cases quickly."},
+
+  {n:"SortableJS", c:"ui", k:"mit", l:"MIT", z:"44 kB min",
+   s:"https://github.com/SortableJS/Sortable/blob/master/LICENSE",
+   w:"Reorderable lists with drag handles, animation and cross-list transfer. Vanilla-first, zero dependencies.",
+   f:"The right tool for a reorderable dock, taskbar or workflow step list — a narrower and better-solved problem than window dragging.",
+   r:"Scoped to list sorting; it will not manage windows. Healthy and widely deployed. Avoid native HTML5 drag-and-drop for any of this — it is designed for moving data between documents, and gives an unstylable drag image with poor mobile and RTL behaviour."},
+
+  {n:"WinBox.js", c:"ui", k:"apache", l:"Apache-2.0", z:"16 kB",
+   s:"https://github.com/nextapps-de/winbox/blob/master/LICENSE",
+   w:"A genuine floating-window manager — drag, resize, minimise, maximise, snap — in 16 kB with zero dependencies.",
+   f:"The only true window manager among the candidates. Docking libraries like golden-layout and dockview solve tiled IDE panes, which is the wrong metaphor for Console's floating desktop.",
+   r:"<b>No built-in RTL support</b> — titlebar controls and resize handles are positioned LTR, so Arabic would need overrides. Last commit December 2023. Also worth knowing for the audit trail: the publisher squashes git history, so the LICENSE has <b>no auditable commit trail</b> — archive a copy alongside anything you vendor. Given Console's window manager already works and needs bespoke behaviour anyway, <b>hand-rolling remains the better call.</b>"},
+
+  {n:"golden-layout", c:"ui", k:"mit", l:"MIT (v2+)",
+   s:"https://github.com/golden-layout/golden-layout/blob/master/LICENSE",
+   w:"A mature tiling and docking layout manager for tabbed, splittable panes.",
+   f:"Only relevant if Console ever wants an IDE-style tiled workspace mode alongside floating windows.",
+   r:"<b>A real relicensing history worth knowing.</b> It was dual GPL-3.0 / CC-BY-NC-4.0 from November 2014, and MIT only from March 2016 — and published npm tarballs continued shipping the old licence files afterwards. <b>Pin v2 or later and purge any stray <code>LICENSE-CC-NC-4.0</code> from vendored trees.</b> Note also that dockview, a similar option, splits MIT core from a proprietary <code>dockview-enterprise</code> sibling package."},
+
+  {n:"Tabler Icons", c:"ui", k:"mit", l:"MIT",
+   s:"https://github.com/tabler/tabler-icons/blob/main/LICENSE",
+   w:"6,184 consistent stroke icons, shipped as plain SVG files in outline and filled variants.",
+   f:"<b>The cleanest icon licence available.</b> Plain SVGs need no build step and inline straight into Console's single-file pages. Verified: there is <b>no paid icon tier</b> — the paid products are dashboard templates and illustrations, not a locked icon subset.",
+   r:"Essentially none. One MIT notice covers the whole set, which is more than can be said for the alternative below."},
+
+  {n:"Lucide", c:"ui", k:"isc", l:"ISC + MIT",
+   s:"https://github.com/lucide-icons/lucide/blob/main/LICENSE",
+   w:"The community continuation of Feather icons — a large, well-drawn, consistent set as plain SVG.",
+   f:"Excellent quality and the most widely recognised icon language in modern products.",
+   r:"<b>Its LICENSE is composite and shipping only the ISC line is non-compliant.</b> The file is ISC for Lucide's own work, then a separator, then an enumerated list of about 110 Feather-derived icons under MIT © Cole Bemis. That list includes icons you will certainly use — <code>check</code>, <code>search</code>, <code>x</code>, <code>chevron-*</code>, <code>terminal</code>, <code>command</code>. Fix is trivial: vendor the LICENSE file verbatim, since it already contains both notices."},
+
+  {n:"Font Awesome Free", c:"ui", k:"ofl", l:"CC-BY-4.0 + OFL + MIT",
+   s:"https://github.com/FortAwesome/Font-Awesome/blob/6.x/LICENSE.txt",
+   w:"The most widely deployed icon set on the web, with a free tier and a paid Pro tier.",
+   f:"Usable in a shipped proprietary product — but it is not the free-and-forget choice people assume.",
+   r:"<b>The free tier splits three ways within itself.</b> The icons as SVG and JS are <b>CC-BY-4.0 and therefore require attribution</b>; the web and desktop fonts are OFL-1.1 with &ldquo;Font Awesome&rdquo; as a Reserved Font Name; only the remaining non-icon, non-font code is MIT. So it obliges an attribution surface in the product, and CC-BY is content rather than code, which many corporate policies route to a separate review path. <b>Tabler Icons is one MIT notice for the whole set</b> and avoids all of it."},
+
+  {n:"Remix Icon", c:"ui", k:"avoid", l:"Remix Icon License v1.0",
+   s:"https://github.com/Remix-Design/RemixIcon/blob/master/License",
+   w:"A large, popular neutral icon set — and one that changed licence very recently.",
+   f:"It no longer fits a permissive bar. Included because inherited documentation still calls it Apache-2.0.",
+   r:"<b>Relicensed away from Apache-2.0 in January 2026</b> to a bespoke licence with no SPDX identifier. The boundary is exact: <b>v4.8.0 is Apache-2.0; v4.9.0 onward is not.</b> The new terms forbid redistributing the icons as a standalone pack, building a competing library, and — most relevant here — using any icon <b>as a logo, trademark, app icon or brand identity</b>, explicitly including recoloured or rotated versions. Its own text warns of incompatibility with licences requiring unrestricted redistribution. <b>Pin v4.8.0 and archive that LICENSE as proof, or use Tabler.</b>"}
+  ];
+
+  var catName = {}; CATS.forEach(function(c){ catName[c[0]] = c[1]; });
+  var state = { lic:null, cat:null };
+  var cardsEl = document.getElementById("cards");
+  var countEl = document.getElementById("count");
+
+  function esc(s){ return String(s).replace(/&(?!#?\w+;)/g,"&amp;").replace(/</g,"&lt;"); }
+
+  function card(l){
+    var cls = "lcard" + (l.k === "avoid" ? " is-avoid" : "");
+    var h = '<article class="' + cls + '" data-lic="' + l.k + '" data-cat="' + l.c + '">';
+    h += '<div class="hd"><h3>' + esc(l.n) + '</h3><span class="lic lic-' + l.k + '">' + esc(l.l) + '</span>';
+    if(l.u){ h += '<span class="inuse">In use</span>'; }
+    h += '</div>';
+    h += '<span class="cat">' + catName[l.c] + '</span>';
+    h += '<p class="what">' + l.w + '</p>';
+    h += '<dl><dt>Why it fits Console</dt><dd>' + l.f + '</dd>';
+    h += '<dt>Cost / risk</dt><dd class="risk">' + l.r + '</dd></dl>';
+    h += '<div class="ft">';
+    if(l.s){ h += '<a class="src" href="' + l.s + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Licence source</a>'; }
+    if(l.z){ h += '<span class="sz">' + esc(l.z) + '</span>'; }
+    h += '</div></article>';
+    return h;
+  }
+
+  function render(){
+    var vis = LIBS.filter(function(l){
+      return (!state.lic || l.k === state.lic) && (!state.cat || l.c === state.cat);
+    });
+    cardsEl.innerHTML = vis.length
+      ? vis.map(card).join("")
+      : '<p class="noresult">No library matches both filters. Try clearing one.</p>';
+    countEl.innerHTML = "<b>" + vis.length + "</b> of " + LIBS.length + " shown";
+    document.querySelectorAll("#lic-chips .chip").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.v === state.lic));
+    });
+    document.querySelectorAll("#cat-chips .chip").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.v === state.cat));
+    });
+  }
+
+  function buildChips(hostId, defs, key){
+    var host = document.getElementById(hostId);
+    host.innerHTML = defs.map(function(d){
+      var n = LIBS.filter(function(l){ return l[key === "lic" ? "k" : "c"] === d[0]; }).length;
+      if(!n) return "";
+      return '<button type="button" class="chip" data-v="' + d[0] + '" aria-pressed="false">' +
+             d[1] + ' <span class="ct">' + n + '</span></button>';
+    }).join("");
+    host.addEventListener("click", function(e){
+      var b = e.target.closest(".chip"); if(!b) return;
+      state[key] = (state[key] === b.dataset.v) ? null : b.dataset.v;
+      render();
+    });
+  }
+
+  buildChips("lic-chips", LICS, "lic");
+  buildChips("cat-chips", CATS, "cat");
+  document.getElementById("reset").addEventListener("click", function(){
+    state.lic = null; state.cat = null; render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
