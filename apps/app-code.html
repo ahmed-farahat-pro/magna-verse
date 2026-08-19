@@ -171,13 +171,17 @@ button{background:none;border:0;padding:0;cursor:pointer;color:inherit}
    ============================================================ */
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh;min-width:0}
 .topbar{flex:none;display:flex;align-items:center;gap:8px;height:48px;padding:0 10px;
-  background:var(--chrome);border-bottom:1px solid var(--line);min-width:0}
+  background:var(--chrome);border-bottom:1px solid var(--line);min-width:0;
+  /* at 320px the controls cannot all fit — scroll the bar, never the page */
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.topbar::-webkit-scrollbar{display:none}
+.topbar .brand{flex:none}
 .topbar .brand{display:flex;align-items:center;gap:9px;padding-right:4px;min-width:0}
 .topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
 .topbar .sp{flex:1;min-width:0}
 .topbar .grp{display:flex;align-items:center;gap:4px;flex:none}
 
-.stage{flex:1;min-height:0;display:flex;min-width:0;position:relative}
+.stage{flex:1;min-height:0;display:flex;min-width:0;position:relative;overflow:hidden}
 
 /* --- file tree --- */
 .tree{width:var(--tree-w);flex:none;display:flex;flex-direction:column;min-width:0;
@@ -261,6 +265,102 @@ body:not(.tree-open) .tree{display:none}
   position:relative;touch-action:none}
 .split:hover::after,.split.dragging::after{content:"";position:absolute;inset:0 2px;background:var(--signal)}
 @media (max-width:1079px){ .split{display:none} }
+
+/* ============================================================
+   11 · BOTTOM PANE — preview · run · terminal
+   ============================================================ */
+.bot{flex:none;display:flex;flex-direction:column;border-top:1px solid var(--line);
+  height:var(--bot-h,34%);min-height:0;background:var(--surface-2)}
+.bot.collapsed{height:auto}
+.bot.collapsed .bot-stage{display:none}
+.bot-bar{flex:none;display:flex;align-items:center;gap:6px;padding:5px 9px;border-bottom:1px solid var(--line);
+  font-size:11.5px;color:var(--tx-3);overflow-x:auto;scrollbar-width:none;min-height:34px}
+.bot-bar::-webkit-scrollbar{display:none}
+.bot-bar .sp{flex:1;min-width:4px}
+.bot-bar .btn{flex:none}
+.bot-bar .btn[aria-current="true"]{background:var(--surface-3);border-color:var(--line-2);color:var(--tx)}
+.bot-stage{flex:1;min-height:0;overflow:auto;position:relative;background:var(--surface)}
+.bot-stage[data-mode="run"]{padding:11px 13px}
+.pvinfo{font-family:var(--mono);font-size:10px;color:var(--tx-4);margin-right:4px;white-space:nowrap}
+.seg .errdot{display:inline-block;min-width:14px;height:14px;line-height:14px;padding:0 3px;border-radius:99px;
+  background:var(--accent);color:#fff;font-size:9px;font-weight:700;text-align:center;margin-left:4px;font-family:var(--mono)}
+.pv-stage{min-height:100%;display:grid;place-items:start center;padding:12px}
+.devframe{background:#0b0b0d;border-radius:12px;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;max-width:100%}
+.devframe.phone{border-radius:26px;padding:9px 5px;width:206px}
+.devframe.phone::before{content:"";height:16px;flex:none;display:block;position:relative}
+.devframe.phone .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:62px;height:15px;
+  background:#0b0b0d;border-radius:99px;z-index:2}
+.devframe.desktop{width:100%;max-width:640px}
+.devframe .bar{height:16px;flex:none;display:flex;align-items:center;gap:4px;padding:0 6px}
+.devframe .bar i{width:6px;height:6px;border-radius:99px;background:#3a3a40;display:block}
+.devframe iframe{border:0;background:#fff;border-radius:6px;width:100%;flex:1;display:block}
+.devframe.desktop iframe{height:300px}
+.devframe.phone iframe{border-radius:16px;height:330px}
+.term{min-height:100%;padding:9px 12px;font-family:var(--mono);font-size:11px;line-height:1.65;
+  color:#8FBF9F;background:#06080a}
+:root[data-theme="light"] .term{background:#0A0D10}
+.term .p{color:#3FCF95}.term .w{color:#E0A33C}.term .e{color:#FF6B6B}
+.run{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.run-h{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:13px}
+.run-h .sp{flex:1}
+.run-kind{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;
+  border-radius:var(--r-pill);border:1px solid var(--line-2);color:var(--tx-3)}
+.run-kind.node{color:var(--private);border-color:color-mix(in srgb,var(--private) 40%,transparent);background:var(--private-dim)}
+.run-kind.python{color:var(--public);border-color:color-mix(in srgb,var(--public) 40%,transparent);background:var(--public-dim)}
+.run-kind.static{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,transparent)}
+.run-note{display:flex;gap:7px;align-items:flex-start;margin:9px 0 0;font-size:11.5px;line-height:1.6;color:var(--tx-3)}
+.run-note .ico{flex:none;margin-top:2px;color:var(--tx-4)}
+.run-note.warn .ico,.run-note.err .ico{color:var(--public)}
+.run-note b{color:var(--tx-2)}
+.run-note code,.run-files code{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.run-files{margin-top:9px;display:flex;gap:5px;flex-wrap:wrap}
+.run-boot{font-family:var(--mono);font-size:10.5px;line-height:1.7;color:#2f9c6c;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:var(--r);padding:8px 11px;margin-bottom:9px}
+:root:not([data-theme="light"]) .run-boot{color:#8FBF9F}
+.run-boot .p{color:#3FCF95}.run-boot .w{color:#E0A33C}
+.route-list{display:flex;flex-direction:column;gap:4px}
+.route{display:flex;align-items:center;gap:9px;width:100%;padding:7px 10px;border-radius:9px;text-align:left;
+  border:1px solid var(--line);background:var(--surface-2);min-height:34px}
+.route:hover{background:var(--surface-3);border-color:var(--line-2)}
+.route.dead{cursor:default;opacity:.85}
+.route .m{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:2px 6px;
+  border-radius:4px;background:var(--surface-3);color:var(--tx-3);flex:none;min-width:46px;text-align:center}
+.route .m.get{color:var(--private);background:var(--private-dim)}
+.route .m.post{color:var(--public);background:var(--public-dim)}
+.route .m.put,.route .m.patch{color:var(--blue)}
+.route .m.delete{color:var(--accent-2);background:var(--accent-dim)}
+.route .p{font-family:var(--mono);font-size:12px;color:var(--tx);flex:1;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.route .fn{font-family:var(--mono);font-size:10px;color:var(--tx-4);flex:none}
+.route .go{font-size:10.5px;color:var(--tx-4);flex:none}
+.route:hover .go{color:var(--private)}
+.run-req{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.run-req input{flex:1;min-width:130px;height:32px;border-radius:8px;background:var(--surface-2);
+  border:1px solid var(--line-2);padding:0 11px;font-family:var(--mono);font-size:12px;outline:none}
+.run-req input:focus{border-color:color-mix(in srgb,var(--signal) 55%,transparent)}
+.run-req select{height:32px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line-2);
+  padding:0 7px;font-family:var(--mono);font-size:11.5px;flex:none}
+.run-body{width:100%;margin-top:6px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);
+  padding:7px 10px;font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical;color:var(--tx)}
+.run-res{margin-top:10px;border:1px solid var(--line-2);border-radius:var(--r);overflow:hidden;background:var(--surface-2)}
+.run-res .rh{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface-3);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px}
+.run-res .rh .code{font-weight:700;padding:1px 6px;border-radius:4px}
+.run-res .rh .code.c2{color:var(--private);background:var(--private-dim)}
+.run-res .rh .code.c3{color:var(--blue)}
+.run-res .rh .code.c4{color:var(--public);background:var(--public-dim)}
+.run-res .rh .code.c5{color:var(--accent-2);background:var(--accent-dim)}
+.run-res .rh .u{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-2)}
+.run-res .rh .ms{color:var(--tx-4);flex:none}
+.run-res .hh{padding:5px 10px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;
+  color:var(--tx-4);line-height:1.6}
+.run-res pre{margin:0;padding:10px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--tx-2);
+  white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
+.run-res pre.err{color:var(--accent-2)}
+@media (pointer:coarse){ .route{min-height:44px} .run-req input,.run-req select{height:44px} }
+@media (max-width:767px){ .bot{height:var(--bot-h,42%)} .devframe.desktop iframe{height:240px} }
 
 /* ============================================================
    5 · AI PANEL
@@ -437,7 +537,9 @@ body:not(.ai-open) .ai{display:none}
 .inline .out{flex:1;min-height:0;overflow:auto;padding:0 11px 11px}
 .inline .empty{padding:0 11px 11px;font-size:11.5px;color:var(--tx-3);line-height:1.6}
 .inline .empty .exs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
-.mdiff{height:230px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.mdiff{height:200px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+/* the Accept row must stay reachable when the card is taller than the sheet */
+.inline .out .diffcard .acts{position:sticky;bottom:0;z-index:2}
 @media (pointer:coarse){ .inline .prompt input{height:44px} }
 
 /* ============================================================
@@ -511,6 +613,10 @@ body:not(.ai-open) .ai{display:none}
   .ai-h .sheetclose{display:grid}
 }
 /* ---- mobile: both rails are sheets ---- */
+@media (max-width:420px){
+  /* the mark stays, the wordmark goes — the buttons matter more at this width */
+  .topbar .wordmark{display:none}
+}
 @media (max-width:767px){
   .topbar{height:52px;gap:5px}
   .topbar .lbl{display:none}
@@ -675,6 +781,26 @@ body:not(.ai-open) .ai{display:none}
           <div class="out" id="inlineOut" hidden></div>
         </div>
       </div>
+      <!-- live preview / run / terminal -->
+      <section class="bot" id="bot" aria-label="Preview and run">
+        <div class="bot-bar">
+          <div class="seg" role="group" aria-label="Bottom pane">
+            <button data-bot="preview" aria-pressed="true">Preview</button>
+            <button data-bot="run" aria-pressed="false">Run</button>
+            <button data-bot="term" aria-pressed="false">Terminal</button>
+          </div>
+          <span class="sp"></span>
+          <span id="botDevs"></span>
+          <button class="btn sm" id="btnPvOnly" data-cmd="preview.only"
+                  title="Open the assembled document in its own browser tab">
+            <svg class="ico sm"><use href="#i-ext"/></svg></button>
+          <button class="btn sm" data-cmd="preview.reload" title="Re-render">
+            <svg class="ico sm"><use href="#i-undo"/></svg></button>
+          <button class="btn sm" id="btnBotCollapse" data-cmd="preview.collapse" title="Collapse this pane">
+            <svg class="ico sm"><use href="#i-chev"/></svg></button>
+        </div>
+        <div class="bot-stage" id="botStage" dir="ltr"></div>
+      </section>
     </main>
 
     <div class="split" id="splitAI" role="separator" aria-orientation="vertical"
@@ -854,11 +980,20 @@ paintThemeButton();
    ============================================================ */
 var PROJECTS = [
   { id:"p1", name:"c2-status", desc:"Package C2 status page", files:[
-    { n:"index.html", t:"html", code:'<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <title>Package C2 — Status</title>\n  <style>\n    body{font:15px -apple-system,system-ui,sans-serif;margin:0;padding:28px;background:#0c0c0e;color:#f2f3f6}\n    h1{font-size:20px;margin:0 0 4px}\n    .sub{color:#9a9aa2;font-size:13px;margin-bottom:20px}\n    .n{font-size:34px;font-weight:800;color:#ff4a50;letter-spacing:-.02em}\n    table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}\n    th,td{border-bottom:1px solid #26262b;padding:9px 6px;text-align:left}\n    th{color:#9a9aa2;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}\n    .ok{color:#3fcf95}.bad{color:#e0a33c}\n  </style>\n</head>\n<body>\n  <h1>Package C2 — rebar</h1>\n  <div class="sub">RYD-M3 · updated from SAP + P6</div>\n  <div class="n">SAR 5.32M</div>\n  <div class="sub">exposure at 45 days</div>\n  <table>\n    <tr><th>Metric</th><th>Value</th></tr>\n    <tr><td>Ordered</td><td>1,240 t</td></tr>\n    <tr><td>Delivered</td><td class="bad">742 t</td></tr>\n    <tr><td>Promised</td><td>03 Aug 2026</td></tr>\n    <tr><td>Schedule slip</td><td class="bad">11 days</td></tr>\n    <tr><td>Critical path</td><td class="bad">yes</td></tr>\n    <tr><td>Residency</td><td class="ok">Riyadh DC-1</td></tr>\n  </table>\n</body>\n</html>' },
-    { n:"README.md", t:"md", code:"# c2-status\n\nA single-page status board for Package C2.\n\n- Reads nothing live — figures are pasted from the SAP and P6 pulls\n- Deployed as a link for the Thursday board pack\n" }
+    { n:"index.html", t:"html", code:'<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <title>Package C2 — Status</title>\n  <link rel="stylesheet" href="theme.css">\n  <style>\n    body{font:15px -apple-system,system-ui,sans-serif;margin:0;padding:28px;background:#0c0c0e;color:#f2f3f6}\n    h1{font-size:20px;margin:0 0 4px}\n    .sub{color:#9a9aa2;font-size:13px;margin-bottom:20px}\n    .n{font-size:34px;font-weight:800;color:#ff4a50;letter-spacing:-.02em}\n    table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}\n    th,td{border-bottom:1px solid #26262b;padding:9px 6px;text-align:left}\n    th{color:#9a9aa2;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}\n    .ok{color:#3fcf95}.bad{color:#e0a33c}\n  </style>\n</head>\n<body>\n  <h1>Package C2 — rebar</h1>\n  <div class="sub">RYD-M3 · updated from SAP + P6</div>\n  <div class="n">SAR 5.32M</div>\n  <div class="sub">exposure at 45 days</div>\n  <table>\n    <tr><th>Metric</th><th>Value</th></tr>\n    <tr><td>Ordered</td><td>1,240 t</td></tr>\n    <tr><td>Delivered</td><td class="bad">742 t</td></tr>\n    <tr><td>Promised</td><td>03 Aug 2026</td></tr>\n    <tr><td>Schedule slip</td><td class="bad">11 days</td></tr>\n    <tr><td>Critical path</td><td class="bad">yes</td></tr>\n    <tr><td>Residency</td><td class="ok">Riyadh DC-1</td></tr>\n  </table>\n  \x3Cscript src="app.js"><\/script>\n</body>\n</html>' },
+    { n:"theme.css",  t:"css",  code:'/* Pulled in by index.html with a relative href. The preview resolves it\n   against the in-memory project and inlines it — no server, nothing fetched. */\n.badge{\n  display:inline-block; margin-top:16px; padding:4px 11px; border-radius:99px;\n  font-size:11px; letter-spacing:.04em; text-transform:uppercase;\n  border:1px solid #2a2a30; color:#9a9aa2;\n}\n.badge.live{ color:#3fcf95; border-color:#1e4a38; }\n' },
+    { n:"app.js",     t:"js",   code:'// Runs inside the preview iframe. sandbox="allow-scripts" and no\n// allow-same-origin, so it can compute and paint but cannot reach the OS\n// around it. Edit this file and the preview re-runs it as you type.\nconst rows = document.querySelectorAll(\'table tr\').length - 1;\nconst stamp = document.createElement(\'div\');\nstamp.className = \'badge live\';\nstamp.textContent = rows + \' metrics · rendered \' + new Date().toLocaleTimeString(\'en-GB\');\ndocument.body.appendChild(stamp);\nconsole.log(\'c2-status ready —\', rows, \'metric rows\');\n' },
+    { n:"README.md",  t:"md",   code:'# c2-status\n\nA single-page status board for Package C2.\n\n- Reads nothing live — figures are pasted from the SAP and P6 pulls\n- Deployed as a link for the Thursday board pack\n' }
   ]},
   { id:"p2", name:"exposure-calc", desc:"Exposure model, plain JS", files:[
-    { n:"calc.js", t:"js", code:"// Exposure model for a rebar delay.\n// Every figure traceable: LD from GC-8 8.4, standby from the crew rate card.\n\nconst PACKAGE_VALUE = 41800000;   // SAR, C2 scope\nconst LD_RATE       = 0.0015;     // 0.15% per day, GC-8 8.4\nconst LD_CAP        = 0.10;       // 10% of package value\nconst STANDBY_DAY   = 94000;      // SAR/day, idled rebar crew\nconst ESCALATION    = 0.021;      // fabricator price escalation\n\nexport function exposure(days){\n  const ld      = Math.min(PACKAGE_VALUE * LD_RATE * days, PACKAGE_VALUE * LD_CAP);\n  const standby = STANDBY_DAY * days;\n  const esc     = PACKAGE_VALUE * ESCALATION * (days / 45);\n  return { ld, standby, esc, total: ld + standby + esc };\n}\n\n// Day the LD cap becomes binding — the number people get wrong.\nexport const capBitesAt = Math.ceil(LD_CAP / LD_RATE);   // 67\n" }
+    { n:"calc.js", t:"js", code:'// Exposure model for a rebar delay.\n// Every figure traceable: LD from GC-8 8.4, standby from the crew rate card.\n\nconst PACKAGE_VALUE = 41800000;   // SAR, C2 scope\nconst LD_RATE       = 0.0015;     // 0.15% per day, GC-8 8.4\nconst LD_CAP        = 0.10;       // 10% of package value\nconst STANDBY_DAY   = 94000;      // SAR/day, idled rebar crew\nconst ESCALATION    = 0.021;      // fabricator price escalation\n\nexport function exposure(days){\n  const ld      = Math.min(PACKAGE_VALUE * LD_RATE * days, PACKAGE_VALUE * LD_CAP);\n  const standby = STANDBY_DAY * days;\n  const esc     = PACKAGE_VALUE * ESCALATION * (days / 45);\n  return { ld, standby, esc, total: ld + standby + esc };\n}\n\n// Day the LD cap becomes binding — the number people get wrong.\nexport const capBitesAt = Math.ceil(LD_CAP / LD_RATE);   // 67\n' }
+  ]},
+  { id:"p3", name:"c2-api", desc:"Express API over the exposure model", files:[
+    { n:"server.js",    t:"js",   code:'// Package C2 exposure API. Plain Express, no database — the figures come\n// from the same contract terms the model in exposure-calc uses.\n//\n// The Run pane evaluates this file in the browser with a shim for `express`.\n// The route handlers below are your real closures over these real constants,\n// so hitting /exposure/45 does the arithmetic for real. Anything Node-only\n// (fs, a driver, an unknown require) is reported, never faked.\nconst express = require(\'express\');\nconst app = express();\napp.use(express.json());\n\nconst PACKAGE_VALUE = 41800000;   // SAR, C2 scope\nconst LD_RATE       = 0.0015;     // 0.15% per day, GC-8 8.4\nconst LD_CAP        = 0.10;       // 10% of package value\nconst STANDBY_DAY   = 94000;      // SAR/day, idled rebar crew\nconst ESCALATION    = 0.021;      // fabricator price escalation\n\nfunction exposure(days){\n  const ld      = Math.min(PACKAGE_VALUE * LD_RATE * days, PACKAGE_VALUE * LD_CAP);\n  const standby = STANDBY_DAY * days;\n  const esc     = PACKAGE_VALUE * ESCALATION * (days / 45);\n  return { days, ld, standby, esc, total: ld + standby + esc };\n}\n\napp.get(\'/health\', (req, res) => {\n  res.json({ ok: true, residency: \'Riyadh DC-1\', egressBytes: 0 });\n});\n\napp.get(\'/exposure/:days\', (req, res) => {\n  const days = Number(req.params.days);\n  if(!Number.isFinite(days) || days < 0)\n    return res.status(400).json({ error: \'days must be a finite number >= 0\', got: req.params.days });\n  res.json(exposure(days));\n});\n\napp.get(\'/cap\', (req, res) => {\n  res.json({\n    capBitesAtDay: Math.ceil(LD_CAP / LD_RATE),\n    cappedAtSAR:   PACKAGE_VALUE * LD_CAP,\n    note:          \'past this day, every further day costs standby plus escalation only\'\n  });\n});\n\napp.post(\'/packages\', (req, res) => {\n  const { name, value } = req.body || {};\n  if(!name) return res.status(422).json({ error: \'name is required\' });\n  res.status(201).json({ created: name, value: value == null ? PACKAGE_VALUE : value });\n});\n\napp.listen(3000, () => console.log(\'C2 API listening on http://localhost:3000\'));\n' },
+    { n:"package.json", t:"json", code:'{\n  "name": "c2-api",\n  "version": "0.1.0",\n  "private": true,\n  "main": "server.js",\n  "scripts": {\n    "dev": "node server.js",\n    "start": "node server.js"\n  },\n  "dependencies": {\n    "express": "^4.19.2"\n  }\n}\n' }
+  ]},
+  { id:"p4", name:"p6-bridge", desc:"Flask bridge to Primavera P6", files:[
+    { n:"app.py", t:"py", code:'# Bridge that reads the nightly Primavera P6 snapshot and exposes it to the\n# rest of the estate. Flask, running on the delivery VM inside DC-1.\n#\n# The Run pane parses these routes so you can see the surface, but it does NOT\n# execute them: there is no Python in a browser tab, and inventing a response\n# would be worse than admitting that.\nfrom flask import Flask, jsonify, request\n\napp = Flask(__name__)\n\nBASELINE = "r7"\n\n@app.route("/health")\ndef health():\n    return jsonify(ok=True, baseline=BASELINE, residency="Riyadh DC-1")\n\n@app.route("/activities/<package>")\ndef activities(package):\n    return jsonify(package=package, baseline=BASELINE, slipDays=11, criticalPath=True)\n\n@app.route("/baseline", methods=["POST"])\ndef set_baseline():\n    global BASELINE\n    BASELINE = request.json.get("baseline", BASELINE)\n    return jsonify(baseline=BASELINE), 202\n\nif __name__ == "__main__":\n    app.run(host="0.0.0.0", port=8000)\n' }
   ]}
 ];
 
@@ -931,7 +1066,7 @@ function langFor(path){
 /* comment syntax, used by the inline-edit transforms */
 function commentFor(path){
   var l = langFor(path);
-  if(l === "html" || l === "xml" || l === "markdown") return { a:"<!-- ", b:" -->" };
+  if(l === "html" || l === "xml" || l === "markdown") return { a:"\x3C!-- ", b:" --\x3E" };
   if(l === "css" || l === "scss" || l === "less") return { a:"/* ", b:" */" };
   if(l === "python" || l === "shell" || l === "yaml" || l === "ini" || l === "ruby") return { a:"# ", b:"" };
   if(l === "sql") return { a:"-- ", b:"" };
@@ -998,6 +1133,20 @@ function monacoReady(cb){
   sc.onload = function(){
     try{
       window.require.config({ paths:{ vs: base } });
+      /* The vendored build has language/ removed, but editor.main still carries
+         the contribution stubs that lazily require those modules the first time a
+         model of that language is created — four 404s per boot and an unhandled
+         rejection each. Register no-op AMD modules under the same ids so the lazy
+         import resolves instead of hitting the network. Tokenising is unaffected:
+         that lives in basic-languages, which was kept. */
+      try{
+        var noop = function(){ return { dispose:function(){} }; };
+        var svcStub = new Proxy({}, { get:function(){ return noop; } });
+        ["vs/language/html/htmlMode","vs/language/css/cssMode",
+         "vs/language/json/jsonMode","vs/language/typescript/tsMode"].forEach(function(id){
+          window.define(id, [], function(){ return svcStub; });
+        });
+      }catch(e){}
       window.require(["vs/editor/editor.main"], function(){
         try{
           window.monaco.editor.defineTheme("magna-dark", { base:"vs-dark", inherit:true, rules:[],
@@ -1020,7 +1169,7 @@ function ensureModel(f){
   if(f.model || !window.monaco) return f.model;
   try{
     f.model = window.monaco.editor.createModel(f.text, langFor(f.path));
-    f.model.onDidChangeContent(function(){ scheduleDirtyPaint(); });
+    f.model.onDidChangeContent(function(){ scheduleDirtyPaint(); schedulePreview(); });
   }catch(e){ f.model = null; }
   return f.model;
 }
@@ -1072,7 +1221,7 @@ function buildFallback(){
   FB = $("textarea", host);
   FB.addEventListener("input", function(){
     var f = activeFile(); if(!f) return;
-    f.text = FB.value; scheduleDirtyPaint();
+    f.text = FB.value; scheduleDirtyPaint(); schedulePreview();
   });
   FB.addEventListener("keyup", paintStatus);
   FB.addEventListener("click", paintStatus);
@@ -1108,6 +1257,7 @@ function showFile(id, focus){
   }
   paintFallback();
   drawTabs(); drawTree(); paintStatus(); drawContext(); paintEmpty();
+  if(typeof drawBottom === "function" && BOT.open) drawBottom();
   document.title = (f ? baseName(f.path) + " — " : "") + "MagnaVERSE Code";
 }
 function closeTab(id){
@@ -1483,6 +1633,21 @@ var COMMANDS = [
   { id:"view.ai",         label:"Toggle the AI panel",         hint:"",    run:function(){ setPanel("ai", !PANEL.ai); } },
   { id:"theme.toggle",    label:"Switch theme",                hint:"",    run:function(){ $("#btnTheme").click(); } },
   { id:"workspace.reset", label:"Reset to the sample projects", hint:"",   run:resetWorkspace },
+  { id:"preview.toggle",  label:"Toggle the preview pane",      hint:"",    run:function(){ BOT.open = !BOT.open; drawBottom(); } },
+  { id:"preview.reload",  label:"Re-render the preview",        hint:"",    run:function(){ $("#botStage").removeAttribute("data-sig"); drawBottom();
+                                                                              toast(BOT.mode === "run" ? "Re-evaluated the server file." : "Re-rendered from the current buffer."); } },
+  { id:"preview.only",    label:"Open the running page in a new tab", hint:"", run:previewOnly },
+  { id:"preview.collapse",label:"Collapse or expand the bottom pane", hint:"", run:function(){ BOT.open = !BOT.open; drawBottom(); } },
+  { id:"run.open",        label:"Run this project",             hint:"",    run:function(){ BOT.mode = "run"; BOT.open = true; drawBottom(); } },
+  { id:"run.static",      label:"Run — render the static project", hint:"", run:function(){ BOT.mode = "preview"; BOT.open = true;
+                                                                              $("#botStage").removeAttribute("data-sig"); drawBottom();
+                                                                              toast("Running it — the Preview tab is the running page."); } },
+  { id:"run.reload",      label:"Re-evaluate the server file",  hint:"",    run:function(){ renderRun(); toast("Re-evaluated the file."); } },
+  { id:"run.send",        label:"Send the request",             hint:"",    run:function(){
+                                                                              var u = $("#runURL"); if(!u) return;
+                                                                              BOT.url = u.value.trim() || "/";
+                                                                              runSend($("#runMethod").value, BOT.url, $("#runBody").value.trim()); } },
+  { id:"term.open",       label:"Show the terminal",            hint:"",    run:function(){ BOT.mode = "term"; BOT.open = true; drawBottom(); } },
   { id:"about",           label:"What is real in this prototype", hint:"", run:aboutPanel }
 ];
 function edAction(id){
@@ -1565,7 +1730,7 @@ function newFile(){
   if(!name) return;
   if(fileByPath(name)){ toast("That path already exists."); return openFile(fileByPath(name).id, true); }
   var f = addFile(name, "", true);
-  f.saved = " ";                 /* born unsaved, so the dot shows */
+  f.saved = null;                 /* born unsaved, so the dot shows */
   drawTree(); openFile(f.id, true);
   toast("Created " + name + " in this tab's workspace.");
 }
@@ -2506,6 +2671,7 @@ function applyEdit(key){
   if(!f){ f = addFile(p.path, "", true); if(window.monaco) ensureModel(f); drawTree(); }
   setText(f, p.after, "assist");
   p.state = "accepted";
+  if(BOT.open && BOT.mode === "preview") setTimeout(pushDoc, 30);
   /* re-render without re-registering a fresh pending entry */
   var node = $('[data-card="'+key+'"]');
   if(node){
@@ -2559,7 +2725,7 @@ $("#aiThread").addEventListener("click", function(e){
     var add = 0, del = 0;
     keys.forEach(function(k){ var s = diffStat(diffRows(PEND[k].before, PEND[k].after)); add += s.add; del += s.del; });
     return requestApproval({
-      title: "Write to " + keys.length + " files?",
+      title: "Write to " + keys.length + " file" + (keys.length === 1 ? "" : "s") + "?",
       detail: "<p style='margin:0 0 4px'>"+keys.map(function(k){ return "<code>"+esc(PEND[k].path)+"</code>"; }).join(", ")+
         "</p><p style='margin:0'><code>+"+add+" −"+del+"</code> lines across "+keys.length+
         " file(s). Every one goes into the undo stack.</p>",
@@ -2666,7 +2832,9 @@ function inlineTransform(instr, text, path, variant){
   var lang = langFor(path);
   var v = variant || 0;
 
-  var ren = q.match(/rename\s+([A-Za-z_$][\w$]*)\s+(?:to|as|into)\s+([A-Za-z_$][\w$]*)/);
+  /* match on the ORIGINAL text, not the lower-cased copy — identifiers are
+     case-sensitive and "rename days to daysLate" must not produce dayslate */
+  var ren = String(instr).match(/rename\s+([A-Za-z_$][\w$]*)\s+(?:to|as|into)\s+([A-Za-z_$][\w$]*)/i);
   if(ren){
     var re = new RegExp("\\b" + ren[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g");
     var hits = (text.match(re) || []).length;
@@ -2692,7 +2860,7 @@ function inlineTransform(instr, text, path, variant){
     if(v % 2 === 0){
       var head = ind + c.a + "—" + " " + text.split("\n").length + " lines, described in place." + c.b;
       return { next:head + "\n" + lines.map(function(l){
-          if(!l.trim() || /^\s*(\/\/|\/\*|#|<!--)/.test(l)) return l;
+          if(!l.trim() || /^\s*(\/\/|\/\*|#|\x3C!--)/.test(l)) return l;
           return l;
         }).join("\n"),
         note:"A single header comment. Line-by-line commentary usually rots faster than the code it describes." };
@@ -2736,6 +2904,13 @@ function inlineTransform(instr, text, path, variant){
       if(n && !seen[n]){ seen[n] = true; nums.push(n); }
     });
     if(!nums.length) return { next:text, note:"No multi-digit literals in the selection." };
+    if(v % 2 === 1){
+      var frozen = ind + "const K = Object.freeze({ " + nums.map(function(n, i){ return "V"+(i+1)+": "+n; }).join(", ") + " });";
+      var b2 = text;
+      nums.forEach(function(n, i){ b2 = b2.replace(new RegExp("(^|[^\\w.])"+n+"(?![\\w.])","g"), "$1K.V"+(i+1)); });
+      return { next:frozen + "\n" + b2, note:"Variant: one frozen table instead of loose consts. Groups the "+
+        "values and makes them impossible to reassign, at the cost of a K. prefix everywhere." };
+    }
     var decls = nums.map(function(n, i){ return ind + "const VALUE_" + (i + 1) + " = " + n + ";"; }).join("\n");
     var body = text;
     nums.forEach(function(n, i){ body = body.replace(new RegExp("(^|[^\\w.])" + n + "(?![\\w.])", "g"), "$1VALUE_" + (i + 1)); });
@@ -2831,7 +3006,7 @@ $("#inlineInput").addEventListener("keydown", function(e){
 function inlineGenerate(isRetry){
   var instr = $("#inlineInput").value.trim();
   if(!instr) return toast("Describe the change first.");
-  if(!isRetry) INLINE.variant = 0;
+  if(!isRetry){ INLINE.variant = 0; INLINE.prevNext = null; }
   INLINE.instruction = instr;
   var out = $("#inlineOut");
   $("#inlineEmpty").hidden = true;
@@ -2849,12 +3024,20 @@ function renderInline(r){
   var out = $("#inlineOut");
   var st = diffStat(diffRows(INLINE.before, r.next));
   var same = r.next === INLINE.before;
+  /* Retry cycles a variant, but not every transform has two forms. Saying
+     "variant 2" over identical bytes would imply sampling that is not
+     happening — there is no model here to sample from. */
+  var repeat = INLINE.variant > 0 && INLINE.prevNext === r.next;
+  INLINE.prevNext = r.next;
+  var vlabel = INLINE.variant
+    ? " · variant " + (INLINE.variant + 1) + (repeat ? " — identical bytes: this transform has one form, and nothing here samples" : "")
+    : "";
   out.innerHTML =
     '<div class="diffcard">'+
       '<div class="dh">'+ico("i-code", "xs")+'<span class="pth">'+esc(INLINE.path)+' · lines '+
         INLINE.from+'–'+INLINE.to+'</span>'+
         '<span class="stat"><span class="a">+'+st.add+'</span> <span class="r">−'+st.del+'</span></span></div>'+
-      '<div class="note">'+esc(r.note)+(INLINE.variant ? " · variant " + (INLINE.variant + 1) : "")+'</div>'+
+      '<div class="note">'+esc(r.note)+esc(vlabel)+'</div>'+
       '<div class="mdiff" id="mdiff"></div>'+
       '<div class="acts">'+
         '<button class="btn sm ok" data-inacc="1"'+(same ? " disabled" : "")+'>'+ico("i-check","xs")+'Accept</button>'+
@@ -2936,6 +3119,504 @@ function inlineAccept(){
 }
 
 /* ============================================================
+   PREVIEW + RUN
+   The preview is not a picture of the code — it is the code,
+   assembled into one document and executed in a sandboxed
+   iframe. The run pane is honest about the line between the
+   two things it can do: it genuinely serves a static project,
+   and it genuinely calls an Express handler; it does not
+   pretend to run Python.
+   ============================================================ */
+
+/* Resolve an href written inside `basedir` against the in-memory project. */
+function pvResolve(basedir, href){
+  href = String(href).split("?")[0].split("#")[0].trim();
+  if(/^(https?:|data:|blob:|mailto:|#)/i.test(href)) return null;   /* not ours to inline */
+  var parts = (href.charAt(0) === "/" ? href.slice(1) : (basedir ? basedir + "/" : "") + href).split("/");
+  var out = [];
+  parts.forEach(function(p){
+    if(p === "" || p === ".") return;
+    if(p === ".."){ out.pop(); return; }
+    out.push(p);
+  });
+  return out.join("/");
+}
+/* The bootstrap injected at the top of every preview. It is the only reason
+   a failing preview says anything at all: window.onerror, unhandled
+   rejections and console.* are forwarded to the parent, which prints them in
+   the terminal with a file and a line. */
+var PV_BOOT =
+'\x3Cscript>(function(){\n' +
+'  var post = function(kind, msg, line, col){\n' +
+'    try{ parent.postMessage({ __mvPreview:1, kind:kind, msg:String(msg), line:line|0, col:col|0 }, "*"); }catch(e){}\n' +
+'  };\n' +
+'  window.addEventListener("error", function(e){\n' +
+'    post("error", e.message || "Script error", e.lineno, e.colno);\n' +
+'  }, true);\n' +
+'  window.addEventListener("unhandledrejection", function(e){\n' +
+'    var r = e.reason;\n' +
+'    post("error", "Unhandled promise rejection: " + ((r && r.message) || r), 0, 0);\n' +
+'  });\n' +
+'  ["error","warn","log","info"].forEach(function(k){\n' +
+'    var orig = console[k] ? console[k].bind(console) : function(){};\n' +
+'    console[k] = function(){\n' +
+'      var s = Array.prototype.map.call(arguments, function(a){\n' +
+'        try{ return (a && typeof a === "object") ? JSON.stringify(a) : String(a); }catch(err){ return String(a); }\n' +
+'      }).join(" ");\n' +
+'      post(k === "error" ? "error" : k === "warn" ? "warn" : "log", s, 0, 0);\n' +
+'      orig.apply(console, arguments);\n' +
+'    };\n' +
+'  });\n' +
+'  post("ready", "preview booted", 0, 0);\n' +
+'})();\x3C/script>\n';
+
+/* Assemble one runnable document out of the project, inlining every local
+   link/stylesheet and script/src reference. Returns the document plus a line
+   map, so an error at line 412 of the assembled file can be reported as
+   app.js:12 — which is the only form of that number anyone can act on. */
+function pvAssemble(get, htmlPath, htmlText){
+  var dir = htmlPath.indexOf("/") > -1 ? htmlPath.slice(0, htmlPath.lastIndexOf("/")) : "";
+  var doc = "", map = [], line = 1, used = [];
+  function add(text, path, srcFrom){
+    var n = String(text).split("\n").length;
+    /* srcFrom 0 marks an inlined block — do NOT collapse it to 1 with ||,
+       that is what makes the reported line number land one line early */
+    map.push({ from:line, to:line + n - 1, path:path, srcFrom:(srcFrom == null ? 1 : srcFrom) });
+    doc += text;
+    line += n - 1;
+  }
+  add(PV_BOOT, "__preview__", 1);
+  var re = /\x3Clink\b[^>]*>|\x3Cscript\b[^>]*>\x3C\/script>|\x3Cscript\b[^>]*\/>/gi;
+  var last = 0, m;
+  function srcLineAt(i){ return htmlText.slice(0, i).split("\n").length; }
+  while((m = re.exec(htmlText))){
+    var tag = m[0], href = null, kind = null;
+    if(/^\x3Clink/i.test(tag)){
+      if(/rel\s*=\s*["']?stylesheet/i.test(tag)){
+        href = (tag.match(/href\s*=\s*["']([^"']+)["']/i) || [])[1];
+        kind = "css";
+      }
+    } else {
+      href = (tag.match(/src\s*=\s*["']([^"']+)["']/i) || [])[1];
+      kind = "js";
+    }
+    var path = href ? pvResolve(dir, href) : null;
+    var asset = path ? get(path) : null;
+    if(!asset){ continue; }                      /* leave the tag alone */
+    add(htmlText.slice(last, m.index), htmlPath, srcLineAt(last));
+    if(kind === "css") add("<style>\n" + asset.text + "\n</style>", path, 0);
+    else               add("\x3Cscript>\n" + asset.text + "\n\x3C/script>", path, 0);
+    used.push(path);
+    last = m.index + tag.length;
+  }
+  add(htmlText.slice(last), htmlPath, srcLineAt(last));
+  /* an inlined block starts one line after its own style/script opener */
+  map.forEach(function(e){ if(e.srcFrom === 0){ e.srcFrom = 1; e.from = e.from + 1; } });
+  return { doc:doc, map:map, inlined:used };
+}
+function pvMapLine(map, n){
+  for(var i = 0; i < map.length; i++){
+    var e = map[i];
+    if(n >= e.from && n <= e.to && e.path !== "__preview__")
+      return e.path + ":" + (e.srcFrom + (n - e.from));
+  }
+  return "preview:" + n;
+}
+/* A page for a file that is not HTML — honest, not a blank frame. */
+function pvPlaceholder(name, why){
+  return '<!doctype html><html><head><meta charset="utf-8"></head>'+
+    '<body style="font:14px -apple-system,system-ui,sans-serif;padding:22px;background:#fff;color:#333">'+
+    '<b>'+esc(name)+'</b><p style="color:#666;font-size:13px;line-height:1.6">'+why+'</p></body></html>';
+}
+
+/* ---- what kind of project is this? ---------------------------------------- */
+function pvKind(files){
+  var hasExpress = false, hasFlask = false, hasHTML = false;
+  files.forEach(function(f){
+    var t = f.text;
+    if(/\.jsx?$|\.mjs$|\.cjs$/.test(f.path) && (/require\(\s*['"]express['"]\s*\)/.test(t) || /from\s+['"]express['"]/.test(t))) hasExpress = true;
+    if(/\.py$/.test(f.path) && (/Flask\s*\(/.test(t) || /@app\.route/.test(t))) hasFlask = true;
+    if(/\.html?$/i.test(f.path)) hasHTML = true;
+  });
+  if(hasExpress) return "node";
+  if(hasFlask)   return "python";
+  if(hasHTML)    return "static";
+  return "none";
+}
+
+/* ---- the Express shim -----------------------------------------------------
+   This evaluates the user's file. `express` and `app` are fakes, but the route
+   handlers are their real closures over their real module scope, so calling
+   one runs their arithmetic on their constants. Anything Node-only —
+   require of an unknown module, fs, a database driver — throws with the name
+   of the thing it wanted, which is more useful than a fabricated 200. */
+function pvExpress(src, path){
+  var routes = [], logs = [], listen = null, err = null;
+  function log(){
+    logs.push(Array.prototype.map.call(arguments, function(a){
+      try{ return (a && typeof a === "object") ? JSON.stringify(a) : String(a); }catch(e){ return String(a); }
+    }).join(" "));
+  }
+  function mkApp(){
+    var app = function(){};
+    ["get","post","put","delete","patch","options","head","all"].forEach(function(m){
+      app[m] = function(p){
+        var hs = Array.prototype.slice.call(arguments, 1);
+        var h = hs[hs.length - 1];
+        if(typeof p === "string" && typeof h === "function")
+          routes.push({ method:m.toUpperCase(), path:p, handler:h, chain:hs });
+      };
+    });
+    app.use = function(){ return app; };
+    app.set = function(){ return app; };
+    app.listen = function(port, cb){
+      listen = typeof port === "number" ? port : 3000;
+      if(typeof port === "function") port();
+      else if(typeof cb === "function") cb();
+      return { close:function(){}, address:function(){ return { port:listen }; } };
+    };
+    return app;
+  }
+  var express = function(){ return mkApp(); };
+  express.json = function(){ return function(q, s, n){ n && n(); }; };
+  express.urlencoded = express.json;
+  express.static = function(){ return function(q, s, n){ n && n(); }; };
+  express.Router = function(){ return mkApp(); };
+  var mod = { exports:{} };
+  function req_(name){
+    if(name === "express") return express;
+    if(name === "path") return { join:function(){ return Array.prototype.join.call(arguments, "/"); },
+                                 resolve:function(){ return Array.prototype.join.call(arguments, "/"); } };
+    if(name === "url" || name === "querystring") return {};
+    throw new Error("require('" + name + "') — this preview is a browser shim with no Node runtime, " +
+      "no module resolution and no filesystem. Nothing here can load that module.");
+  }
+  try{
+    var fn = new Function("require", "module", "exports", "console", "process", "__dirname", "__filename",
+      "\"use strict\";\n" + src);
+    fn(req_, mod, mod.exports, { log:log, info:log, warn:log, error:log },
+       { env:{ NODE_ENV:"development", PORT:"3000" }, argv:["node", path], platform:"browser" },
+       "/app", "/app/" + path);
+  }catch(e){
+    err = (e && e.name === "SyntaxError")
+      ? "SyntaxError while evaluating " + path + ": " + e.message +
+        (/import|export/.test(src) ? " · the file uses ESM syntax, which this shim cannot evaluate." : "")
+      : (e && e.message) || String(e);
+  }
+  return { routes:routes, logs:logs, listen:listen, error:err };
+}
+/* Express-style :param matching, so /exposure/45 finds /exposure/:days */
+function pvMatch(route, pathname){
+  var rp = route.path.split("/").filter(Boolean), up = pathname.split("/").filter(Boolean);
+  if(rp.length !== up.length) return null;
+  var params = {};
+  for(var i = 0; i < rp.length; i++){
+    if(rp[i].charAt(0) === ":"){ params[rp[i].slice(1)] = decodeURIComponent(up[i]); continue; }
+    if(rp[i] !== up[i]) return null;
+  }
+  return params;
+}
+function pvCall(route, method, url, bodyText){
+  var qi = url.indexOf("?"), pathname = qi < 0 ? url : url.slice(0, qi);
+  var query = {};
+  if(qi >= 0) url.slice(qi + 1).split("&").forEach(function(kv){
+    var p = kv.split("="); if(p[0]) query[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || "");
+  });
+  var params = pvMatch(route, pathname) || {};
+  var body = {};
+  if(bodyText){
+    try{ body = JSON.parse(bodyText); }catch(e){ body = { _raw:bodyText }; }
+  }
+  var logs = [], done = false;
+  var res = {
+    statusCode:200, headers:{}, body:null,
+    status:function(c){ this.statusCode = c; return this; },
+    sendStatus:function(c){ this.statusCode = c; this.body = String(c); done = true; return this; },
+    set:function(k, v){ if(typeof k === "object") { for(var x in k) this.headers[x] = k[x]; } else this.headers[k] = v; return this; },
+    setHeader:function(k, v){ this.headers[k] = v; return this; },
+    type:function(t){ this.headers["Content-Type"] = t; return this; },
+    json:function(o){
+      this.headers["Content-Type"] = "application/json; charset=utf-8";
+      try{ this.body = JSON.stringify(o, null, 2); }catch(e){ this.body = String(o); }
+      done = true; return this;
+    },
+    send:function(x){
+      if(x && typeof x === "object") return this.json(x);
+      this.headers["Content-Type"] = this.headers["Content-Type"] || "text/html; charset=utf-8";
+      this.body = String(x); done = true; return this;
+    },
+    end:function(x){ if(x != null) this.body = String(x); done = true; return this; },
+    redirect:function(c, loc){
+      if(typeof c === "string"){ loc = c; c = 302; }
+      this.statusCode = c; this.headers.Location = loc; this.body = ""; done = true; return this;
+    }
+  };
+  var req = { method:method, url:url, originalUrl:url, path:pathname, params:params, query:query,
+              body:body, headers:{ host:"localhost:3000", "content-type":"application/json" },
+              get:function(h){ return this.headers[String(h).toLowerCase()]; } };
+  var error = null;
+  try{
+    var out = route.handler(req, res, function(){});
+    if(out && typeof out.then === "function")
+      error = "The handler returned a Promise. This shim calls handlers synchronously, so an async " +
+              "handler's response is not captured — everything before the first await did run.";
+  }catch(e){
+    error = (e && e.message) || String(e);
+  }
+  return { status:res.statusCode, headers:res.headers, body:res.body, done:done, error:error, logs:logs, req:req };
+}
+/* Flask: the route list is genuinely parsed. The code is not run, and the
+   pane says so — a fabricated Python response would be worse than nothing. */
+function pvFlask(src){
+  var out = [], re = /@app\.route\(\s*["']([^"']+)["']\s*(?:,\s*methods\s*=\s*\[([^\]]*)\])?\s*\)\s*\r?\n\s*def\s+([A-Za-z_]\w*)/g, m;
+  while((m = re.exec(src))){
+    var methods = m[2] ? m[2].replace(/['"\s]/g, "").split(",").filter(Boolean) : ["GET"];
+    out.push({ path:m[1], methods:methods, fn:m[3] });
+  }
+  return out;
+}
+
+/* ============================================================
+   18 · THE BOTTOM PANE — live preview · run · terminal
+   The preview is the project assembled into one document and
+   executed in a sandboxed iframe, re-rendered 300 ms after you
+   stop typing and again after every accepted AI edit.
+   ============================================================ */
+var BOT = { mode:"preview", open:true, device:"desktop", log:[], errs:0, frame:null, map:[], run:null, url:"" };
+
+function botLog(html){
+  BOT.log.push(html);
+  if(BOT.mode === "term" && BOT.open) renderTerm();
+}
+function projectFiles(){
+  var f = activeFile();
+  var proj = f && f.path.indexOf("/") > -1 ? f.path.slice(0, f.path.indexOf("/")) : "";
+  var list = FILES.filter(function(x){ return proj ? x.path.indexOf(proj + "/") === 0 : true; });
+  return { name:proj || "workspace", files:list.map(function(x){ return { path:x.path, text:getText(x) }; }) };
+}
+function previewFile(){
+  var f = activeFile();
+  if(f && /\.html?$/i.test(f.path)) return { path:f.path, text:getText(f) };
+  var p = projectFiles();
+  var idx = p.files.filter(function(x){ return /(^|\/)index\.html?$/i.test(x.path); })[0];
+  return idx || p.files.filter(function(x){ return /\.html?$/i.test(x.path); })[0] || null;
+}
+function assembleDoc(){
+  var h = previewFile();
+  if(!h) return { doc:pvPlaceholder(activeFile() ? baseName(activeFile().path) : "nothing open",
+    "There is no <code>.html</code> file in this project, so there is nothing to render. Open the "+
+    "<b>Run</b> tab — if this is an Express project its routes can still be called."),
+    map:[], inlined:[], path:null };
+  var r = pvAssemble(function(p){ var x = fileByPath(p); return x ? { path:p, text:getText(x) } : null; },
+                     h.path, h.text);
+  r.path = h.path;
+  return r;
+}
+function frameShell(){
+  var d = BOT.device;
+  if(d === "phone")
+    return '<div class="devframe phone"><span class="notch"></span><iframe sandbox="allow-scripts" data-pv title="Live preview"></iframe></div>';
+  if(d === "android")
+    return '<div class="devframe phone" style="border-radius:18px"><iframe sandbox="allow-scripts" data-pv title="Live preview"></iframe></div>';
+  return '<div class="devframe desktop"><div class="bar"><i></i><i></i><i></i></div>'+
+         '<iframe sandbox="allow-scripts" data-pv title="Live preview"></iframe></div>';
+}
+function pushDoc(){
+  if(!BOT.frame) return;
+  var r = assembleDoc();
+  BOT.map = r.map;
+  BOT.frame.srcdoc = r.doc;
+  var info = $("#pvInfo");
+  if(info) info.textContent = r.path
+    ? baseName(r.path) + (r.inlined.length ? " + " + r.inlined.length + " inlined" : "")
+    : "no html";
+}
+var pvTimer = null;
+function schedulePreview(){
+  clearTimeout(pvTimer);
+  pvTimer = setTimeout(function(){ if(BOT.open && BOT.mode === "preview") pushDoc(); }, 300);
+}
+function renderPreview(){
+  var stage = $("#botStage");
+  if(stage.getAttribute("data-mode") !== "preview" || stage.getAttribute("data-sig") !== BOT.device){
+    stage.setAttribute("data-mode", "preview");
+    stage.setAttribute("data-sig", BOT.device);
+    stage.innerHTML = '<div class="pv-stage">' + frameShell() + '</div>';
+    BOT.frame = $("[data-pv]", stage);
+  }
+  pushDoc();
+}
+function renderTerm(){
+  var stage = $("#botStage");
+  stage.setAttribute("data-mode", "term"); stage.removeAttribute("data-sig");
+  BOT.errs = 0; paintBotSeg();
+  stage.innerHTML = '<div class="term">'+
+    '<div><span class="p">›</span> magna dev --project ' + esc(projectFiles().name) + '</div>'+
+    '<div>no packages installed — nothing here reaches a registry</div>'+
+    BOT.log.map(function(l){ return "<div>" + l + "</div>"; }).join("")+
+    '<div style="color:var(--tx-4);margin-top:8px">— this shell is a log, not a TTY. Everything above happened '+
+    'in this tab: the preview really executed, the routes really ran, and no port was bound.</div></div>';
+  stage.scrollTop = stage.scrollHeight;
+}
+function paintBotSeg(){
+  var b = $('[data-bot="term"]');
+  if(b) b.innerHTML = "Terminal" + (BOT.errs ? ' <span class="errdot">' + BOT.errs + '</span>' : "");
+}
+function renderRun(){
+  var stage = $("#botStage");
+  stage.setAttribute("data-mode", "run"); stage.removeAttribute("data-sig");
+  var p = projectFiles(), kind = pvKind(p.files);
+  var head = '<div class="run-h"><b>' + esc(p.name) + '</b><span class="run-kind ' + kind + '">' +
+    (kind === "node" ? "Express" : kind === "python" ? "Flask" : kind === "static" ? "static site" : "no entry point") +
+    '</span><span class="sp"></span></div>';
+  if(kind === "static"){
+    stage.innerHTML = '<div class="run">' + head +
+      '<button class="btn sm ok" data-cmd="run.static">Run</button></div>'+
+      '<p class="run-note">Running a static project means rendering it, and that is exactly what the Preview '+
+      'tab does: the HTML, CSS and JS in these files are assembled into one document and executed in a sandboxed '+
+      'iframe. Scripts run for real. There is no port and no server, because none is needed.</p>'+
+      '<div class="run-files">' + p.files.map(function(f){ return '<code>' + esc(baseName(f.path)) + '</code>'; }).join(" ") + '</div>';
+    return;
+  }
+  if(kind === "python"){
+    var pyf = p.files.filter(function(f){ return /\.py$/.test(f.path); })[0];
+    var routes = pvFlask(pyf.text);
+    stage.innerHTML = '<div class="run">' + head + '</div>'+
+      '<p class="run-note warn">' + ico("i-warn","xs") + '<span><b>Not executed.</b> This is Python, and a browser '+
+      'tab has no Python runtime. The route table below is genuinely parsed out of <code>' + esc(baseName(pyf.path)) +
+      '</code>, so it is real; the behaviour behind each route is not run, and inventing a response would be worse '+
+      'than saying so.</span></p>'+
+      '<div class="route-list">' + (routes.length ? routes.map(function(r){
+        return '<div class="route dead"><span class="m">' + esc(r.methods.join("/")) + '</span>'+
+          '<code class="p">' + esc(r.path) + '</code><span class="fn">def ' + esc(r.fn) + '()</span></div>';
+      }).join("") : '<p class="run-note">No <code>@app.route</code> decorators found.</p>') + '</div>';
+    return;
+  }
+  if(kind !== "node"){
+    stage.innerHTML = '<div class="run">' + head + '</div>'+
+      '<p class="run-note">Nothing in <b>' + esc(p.name) + '</b> looks like an entry point — no HTML to render '+
+      'and no server to start.</p>';
+    return;
+  }
+  var srv = p.files.filter(function(f){ return /require\(\s*['"]express['"]\s*\)|from\s+['"]express['"]/.test(f.text); })[0];
+  var run = pvExpress(srv.text, srv.path);
+  BOT.run = { file:srv.path, routes:run.routes };
+  var out = '<div class="run">' + head + '<button class="btn sm" data-cmd="run.reload">Re-evaluate</button></div>';
+  if(run.error){
+    out += '<p class="run-note err">' + ico("i-warn","xs") + '<span><b>Could not evaluate ' +
+      esc(baseName(srv.path)) + '.</b> ' + esc(run.error) + '</span></p>';
+  } else {
+    out += '<div class="run-boot">' +
+      (run.listen ? '<span class="p">›</span> node ' + esc(baseName(srv.path)) + ' — app.listen(' + run.listen + ') called'
+                  : '<span class="w">›</span> the file never calls app.listen()') +
+      run.logs.map(function(l){ return '<div>' + esc(l) + '</div>'; }).join("") +
+      '<div>' + run.routes.length + ' route(s) registered</div></div>';
+    out += '<div class="route-list">' + run.routes.map(function(r, i){
+      return '<button class="route" data-route="' + i + '"><span class="m ' + r.method.toLowerCase() + '">' +
+        esc(r.method) + '</span><code class="p">' + esc(r.path) + '</code><span class="go">call</span></button>';
+    }).join("") + '</div>'+
+    '<div class="run-req"><input type="text" id="runURL" placeholder="/exposure/45" aria-label="Request path" value="'+
+      esc(BOT.url || (run.routes[0] ? run.routes[0].path.replace(/:(\w+)/g, "45") : "/")) + '">'+
+      '<select id="runMethod" aria-label="Method">' + ["GET","POST","PUT","DELETE","PATCH"].map(function(m){
+        return '<option>' + m + '</option>'; }).join("") + '</select>'+
+      '<button class="btn sm ok" data-cmd="run.send">Send</button></div>'+
+    '<textarea class="run-body" id="runBody" rows="2" placeholder=\'JSON body for POST/PUT — {"name":"C3"}\'></textarea>'+
+    '<div id="runOut"></div>';
+  }
+  out += '<p class="run-note">' + ico("i-warn","xs") + '<span><b>What is real here.</b> <code>' +
+    esc(baseName(srv.path)) + '</code> is evaluated in this tab with a shim standing in for <code>express</code>. '+
+    'The handlers are your real functions closing over your real constants, so a response body is computed by the '+
+    'code in the buffer rather than looked up. What is not real: no port, no process, no middleware chain, no '+
+    'filesystem, no module resolution — <code>require</code> of anything but <code>express</code> throws and says '+
+    'what it wanted.</span></p>';
+  stage.innerHTML = out;
+}
+function runSend(method, url, bodyText){
+  if(!BOT.run) return;
+  var qi = url.indexOf("?"), pathname = qi < 0 ? url : url.slice(0, qi), hit = null;
+  for(var i = 0; i < BOT.run.routes.length; i++){
+    var r = BOT.run.routes[i];
+    if(r.method === method && pvMatch(r, pathname)){ hit = r; break; }
+  }
+  var host = $("#runOut");
+  if(!hit){
+    host.innerHTML = '<div class="run-res"><div class="rh"><span class="code c4">404</span>'+
+      '<span class="u">' + esc(method + " " + url) + '</span></div>'+
+      '<pre>No route in ' + esc(baseName(BOT.run.file)) + ' matches that path. Express would answer 404 here too.</pre></div>';
+    botLog('<span class="w">›</span> ' + esc(method + " " + url) + ' → 404 (no matching route)');
+    return;
+  }
+  var t0 = performance.now(), res = pvCall(hit, method, url, bodyText), ms = (performance.now() - t0).toFixed(1);
+  if(res.error){
+    host.innerHTML = '<div class="run-res"><div class="rh"><span class="code c5">500</span>'+
+      '<span class="u">' + esc(method + " " + url) + '</span><span class="ms">' + ms + ' ms</span></div>'+
+      '<pre class="err">' + esc(res.error) + '</pre>'+
+      '<p class="run-note">That is the real exception the handler threw, not a substitute for one.</p></div>';
+    botLog('<span class="e">✕</span> ' + esc(method + " " + url) + ' → threw: ' + esc(res.error));
+    return;
+  }
+  var cls = res.status >= 500 ? "c5" : res.status >= 400 ? "c4" : res.status >= 300 ? "c3" : "c2";
+  host.innerHTML = '<div class="run-res"><div class="rh"><span class="code ' + cls + '">' + res.status + '</span>'+
+    '<span class="u">' + esc(method + " " + url) + '</span><span class="ms">' + ms + ' ms</span></div>'+
+    '<div class="hh">' + (Object.keys(res.headers).length
+      ? Object.keys(res.headers).map(function(k){ return esc(k) + ": " + esc(res.headers[k]); }).join("<br>")
+      : "no headers set") + '</div>'+
+    '<pre>' + esc(res.body == null ? (res.done ? "" : "(the handler never called res.send/json/end — Express would hang here)") : res.body) + '</pre></div>';
+  botLog('<span class="p">›</span> ' + esc(method + " " + url) + ' → ' + res.status + ' in ' + ms + ' ms');
+}
+window.addEventListener("message", function(e){
+  var d = e.data;
+  if(!d || d.__mvPreview !== 1) return;
+  if(!BOT.frame || e.source !== BOT.frame.contentWindow) return;
+  if(d.kind === "ready") return;
+  var where = d.line ? pvMapLine(BOT.map || [], d.line) : "";
+  var mark = d.kind === "error" ? '<span class="e">✕</span> ' : d.kind === "warn" ? '<span class="w">!</span> ' : '<span class="p">·</span> ';
+  botLog(mark + esc(d.msg) + (where ? ' <span style="opacity:.6">' + esc(where) + '</span>' : ""));
+  if(d.kind === "error"){ BOT.errs++; paintBotSeg(); }
+});
+function drawBottom(){
+  var bot = $("#bot");
+  bot.classList.toggle("collapsed", !BOT.open);
+  bot.hidden = false;
+  $$("[data-bot]").forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-bot") === BOT.mode)); });
+  paintBotSeg();
+  $("#botDevs").innerHTML = BOT.mode === "preview"
+    ? '<span class="pvinfo" id="pvInfo"></span>' + ["desktop","phone","android"].map(function(d){
+        return '<button class="btn sm" data-dev="'+d+'"'+(BOT.device===d?' aria-current="true"':'')+'>'+
+          (d === "desktop" ? "Desktop" : d === "phone" ? "iPhone" : "Android")+'</button>'; }).join("")
+    : "";
+  $("#btnPvOnly").style.display = BOT.mode === "preview" ? "" : "none";
+  $("#btnBotCollapse").innerHTML = ico(BOT.open ? "i-chev" : "i-chev", "xs");
+  $("#btnBotCollapse").style.transform = BOT.open ? "" : "rotate(180deg)";
+  if(!BOT.open) return;
+  if(BOT.mode === "term") return renderTerm();
+  if(BOT.mode === "run")  return renderRun();
+  renderPreview();
+}
+function previewOnly(){
+  var r = assembleDoc();
+  var url = URL.createObjectURL(new Blob([r.doc], { type:"text/html" }));
+  window.open(url, "_blank", "noopener");
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 20000);
+  toast("Opened the assembled document in its own tab. " +
+    (r.inlined.length ? r.inlined.length + " local asset(s) inlined." : "No local assets to inline."), 4200);
+}
+document.addEventListener("click", function(e){
+  var t;
+  if((t = e.target.closest("[data-bot]"))){ BOT.mode = t.getAttribute("data-bot"); BOT.open = true; return drawBottom(); }
+  if((t = e.target.closest("[data-dev]"))){ BOT.device = t.getAttribute("data-dev"); return drawBottom(); }
+  if((t = e.target.closest("[data-route]"))){
+    var rt = BOT.run && BOT.run.routes[+t.getAttribute("data-route")];
+    if(!rt) return;
+    var url = rt.path.replace(/:(\w+)/g, function(_, n){ return /day/i.test(n) ? "45" : "1"; });
+    $("#runURL").value = url; $("#runMethod").value = rt.method; BOT.url = url;
+    var bd = $("#runBody");
+    if(rt.method !== "GET" && !bd.value.trim()) bd.value = '{"name":"C3","value":12500000}';
+    return runSend(rt.method, url, bd.value.trim());
+  }
+});
+
+/* ============================================================
    17 · BOOT
    ============================================================ */
 (function boot(){
@@ -2956,6 +3637,7 @@ function inlineAccept(){
   if(first) openFile(first.id, false);
   else { drawTabs(); paintEmpty(); }
   greet();
+  drawBottom();
   if(restored) toast("Restored the workspace from this browser's storage.", 3200);
 })();
 </script>
