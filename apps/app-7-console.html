@@ -2008,7 +2008,7 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .wf-ask input:focus{border-color:var(--cyan)}
 .wf-chips{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
 .wf-chips::-webkit-scrollbar{display:none}
-.wf-chips .chip{flex:none;font-size:11px;height:26px}
+.wf-chips .chip{flex:none;font-size:11px;height:26px;white-space:nowrap;max-width:min(46vw,320px);overflow:hidden;text-overflow:ellipsis;display:inline-block;line-height:24px}
 .wf-note{margin:8px 0 0;font-size:11.5px;color:var(--tx-2);line-height:1.6;display:flex;gap:7px;align-items:flex-start}
 .wf-note .ico{flex:none;margin-top:1px;color:var(--signal)}
 .wf-main{flex:1;min-height:0;display:flex;overflow:hidden}
@@ -2114,12 +2114,15 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .dgm-det .kv{padding:5px 0;font-size:11.5px}
 .dgm-det .kv .k{min-width:96px;font-size:11px}
 .dgm-det .kv .v{font-size:11px}
+.dgm .ng-mini{display:none}
+.chip.dgpick[aria-pressed="true"]{color:var(--tx);background:var(--glass);font-weight:640;border-color:color-mix(in srgb,var(--cyan) 62%,transparent);box-shadow:var(--shadow-sm)}
 
 @media (max-width:767px){
   .wf-pal,.wf-insp{position:absolute;left:0;right:0;bottom:0;top:auto;width:auto;height:min(58vh,420px);
     z-index:42;border:0;border-top:1px solid var(--glass-line-2);border-radius:16px 16px 0 0;
-    background:var(--glass-3);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
-    box-shadow:0 -18px 40px rgba(0,0,0,.35);display:none}
+    background:color-mix(in srgb,var(--bg) 88%,var(--glass-3));
+    backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    box-shadow:0 -18px 40px rgba(0,0,0,.35);display:none;padding-bottom:76px}
   .wf-pal.on,.wf-insp.on{display:flex}
   .wf-pal::before,.wf-insp::before{content:"";width:38px;height:4px;border-radius:99px;background:var(--tx-4);
     margin:0 auto 10px;flex:none}
@@ -2127,9 +2130,11 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
   .wf-mobonly{display:inline-flex !important}
   .wf-log{height:118px}
   .ng-mini{display:none}
+  /* the OS parks its Ask AI pill bottom-left on a phone, so the canvas HUD
+     moves to the free corner rather than sitting under it */
+  .ng-hud{left:auto;right:8px;bottom:8px}
   .ng-hud button{width:34px;height:34px}
   .dgm-c{height:260px}
-  .wf-chips .chip{max-width:230px;overflow:hidden;text-overflow:ellipsis;display:inline-block;line-height:26px}
 }
 
 /* ============================ MOBILE — app internals ============================
@@ -9024,8 +9029,8 @@ MOUNT.agents = function(body, w){
         '<button type="button" data-agview="diagram" aria-pressed="'+(view==="diagram")+'">'+ico("i-flow","xs")+'Diagram</button>'+
       '</div>'+
       (view==="diagram" ? AGENTS.map(function(a){
-          return '<button type="button" class="chip" data-agpick="'+esc(a.id)+'" aria-pressed="'+(w.state.dgSel===a.id)+'">'+esc(a.name)+'</button>'; }).join("")+
-        '<button type="button" class="chip" data-agpick="map" aria-pressed="'+(w.state.dgSel==="map")+'">'+ico("i-agent","xs")+'Delegation map</button>' : '')+
+          return '<button type="button" class="chip dgpick" data-agpick="'+esc(a.id)+'" aria-pressed="'+(w.state.dgSel===a.id)+'">'+esc(a.name)+'</button>'; }).join("")+
+        '<button type="button" class="chip dgpick" data-agpick="map" aria-pressed="'+(w.state.dgSel==="map")+'">'+ico("i-agent","xs")+'Delegation map</button>' : '')+
       '</div>';
     if(view === "diagram"){
       body.querySelector("[data-agbody]").innerHTML = '<h4 class="sec">Agents</h4>'+
@@ -9240,7 +9245,7 @@ MOUNT.autos = function(body, w){
         '<button type="button" data-autoview="diagram" aria-pressed="'+(view==="diagram")+'">'+ico("i-flow","xs")+'Diagram</button>'+
       '</div>'+
       (view==="diagram" ? AUTOS.map(function(a,i){
-        return '<button type="button" class="chip" data-autopick="'+i+'" aria-pressed="'+(w.state.auSel===i)+'">'+esc(a.name)+'</button>'; }).join("") : '')+
+        return '<button type="button" class="chip dgpick" data-autopick="'+i+'" aria-pressed="'+(w.state.auSel===i)+'">'+esc(a.name)+'</button>'; }).join("") : '')+
       '</div>';
     if(view === "diagram"){
       body.querySelector("[data-autohost]").innerHTML =
@@ -11697,6 +11702,10 @@ function NGraph(host, opts){
      the same contract #deskSwitch honours. */
   host.addEventListener("wheel", function(e){
     e.preventDefault(); e.stopPropagation();
+    /* a sideways trackpad swipe pans instead of zooming — and either way the
+       event stops here, so the OS never sees it as a space change */
+    if(e.shiftKey){ G.tx -= (e.deltaX || e.deltaY); apply(); return; }
+    if(Math.abs(e.deltaX) > Math.abs(e.deltaY)){ G.tx -= e.deltaX; apply(); return; }
     var r = host.getBoundingClientRect();
     var f = Math.exp(-e.deltaY * (e.ctrlKey ? .010 : .0022));
     zoomAt(e.clientX - r.left, e.clientY - r.top, G.k * clamp(f, .8, 1.25));
@@ -12068,8 +12077,8 @@ function wfRefresh(n){ n.sub = wfSub(n); n.chips = wfChips(n); }
    ============================================================ */
 var WF_OUT_RULES = [
   { re:/\b(e-?mail|mail)\s+(me|us|it|them|the team)\b|\bsend\s+(me\s+)?(an?\s+|the\s+)?(e-?mail|mail|summary)\b|\bby e-?mail\b/g, type:"out.mail" },
-  { re:/\bcreate\s+(a\s+)?jira\b|\braise\s+(a\s+)?(ticket|issue|risk)\b|\bopen\s+(a\s+)?(jira\s+)?(issue|ticket)\b|\bjira issue for\b/g, type:"out.jira" },
-  { re:/\bpost\s+(it\s+|the\s+\w+\s+)?to\b|\bto the channel\b|\bon (teams|slack)\b|\bpost to #?[\w-]+\b|#[\w-]+/g, type:"out.chan" },
+  { re:/\bcreate\s+(an?\s+)?jira\s+issue(\s+for\s+(each|every|it))?\b|\bcreate\s+(an?\s+)?jira\b|\braise\s+(an?\s+)?(ticket|issue|risk)\b|\bopen\s+(an?\s+)?(jira\s+)?(issue|ticket)\b/g, type:"out.jira" },
+  { re:/\b(alert|notify|ping|tell)\s+me\s+on\s+(teams|slack)\b|\bpost\s+(it\s+|the\s+\w+\s+)?to\b|\b(to\s+)?the channel\b|\bon (teams|slack)\b|#[\w-]+/g, type:"out.chan" },
   { re:/\bwrite\s+(a|the)\s+(document|doc|report|board pack|memo|note)\b|\bproduce\s+(a|the)\s+(report|document|board pack)\b|\bboard pack document\b/g, type:"out.doc" },
   { re:/\bsave\s+(it\s+)?(to|into)\s+(company\s+)?knowledge\b|\bindex it\b|\badd\s+(it\s+)?to the brain\b|\bsave to knowledge\b/g, type:"out.know" },
   { re:/\bnotify me\b|\balert me\b|\btell me\b|\bping me\b|\bflag (it )?to me\b|\bescalate\b[^.]*\bto me\b/g, type:"out.notify" }
@@ -12077,7 +12086,7 @@ var WF_OUT_RULES = [
 var WF_SYS_RULES = [
   { re:/\bsap\b|s\/4|s4hana|purchase order|\bpos?\b|vendor master|goods receipt|\bgrn\b/, type:"sys.sap" },
   { re:/\bp6\b|primavera|baseline|critical path|\bfloat\b|schedule (movement|slip)|activit(y|ies)/, type:"sys.p6" },
-  { re:/\bjira\b|\bissue\b|\bticket\b|\bsprint\b|\bbacklog\b/, type:"sys.jira" },
+  { re:/\bjira\b|\bsprint\b|\bbacklog\b/, type:"sys.jira" },
   { re:/confluence|\bstandard\b|procedure|\bbep\b/, type:"sys.conf" },
   { re:/sharepoint|document librar/, type:"sys.sp" },
   { re:/\bmail\b|e-?mail|outlook|inbox|correspondence/, type:"sys.mail" },
@@ -12372,6 +12381,8 @@ MOUNT.workflow = function(body, w){
         '<div class="wf-pal" data-wfpal></div>'+
         '<div class="wf-mid">'+
           '<div class="wf-tools">'+
+            '<button class="btn sm wf-mobonly" data-wftog="pal">'+ico("i-plus","xs")+'Nodes</button>'+
+            '<button class="btn sm wf-mobonly" data-wftog="insp">'+ico("i-sliders","xs")+'Inspect</button>'+
             '<button class="btn sm primary" data-wfrun>'+ico("i-play","xs")+'Run</button>'+
             '<button class="btn sm" data-wfreset>Reset states</button>'+
             '<span style="width:1px;height:18px;background:var(--glass-line)"></span>'+
@@ -12380,15 +12391,13 @@ MOUNT.workflow = function(body, w){
             '<button class="btn sm" data-wfsheet="save">'+ico("i-download","xs")+'Save</button>'+
             '<button class="btn sm" data-wfsheet="json">'+ico("i-code","xs")+'Export JSON</button>'+
             '<button class="btn sm" data-wfclear>Clear</button>'+
-            '<button class="btn sm wf-mobonly" data-wftog="pal">'+ico("i-plus","xs")+'Nodes</button>'+
-            '<button class="btn sm wf-mobonly" data-wftog="insp">'+ico("i-sliders","xs")+'Inspect</button>'+
             '<span class="sp"></span>'+
             '<span class="wf-nm" data-wfnm>'+esc(S.name)+'</span>'+
           '</div>'+
           '<div data-wfcanvas></div>'+
-          '<div class="wf-log" data-wflog>'+
+          '<div class="wf-log'+(isMobile() ? " shut" : "")+'" data-wflog>'+
             '<div class="wf-log-h">'+ico("i-term","xs")+'<span>Run log</span><span class="sp"></span>'+
-              '<button class="btn sm" data-wflogtog aria-expanded="true">Hide</button></div>'+
+              '<button class="btn sm" data-wflogtog aria-expanded="'+(!isMobile())+'">'+(isMobile()?"Show":"Hide")+'</button></div>'+
             '<div class="wf-log-b" data-wflogb></div></div>'+
         '</div>'+
         '<div class="wf-insp" data-wfinsp></div>'+
@@ -12629,9 +12638,19 @@ MOUNT.workflow = function(body, w){
       if(!n){ i++; step(); return; }
       var t = WF_CAT[n.type] || {};
       var ins = G.edgesInto(id);
-      var inCount = ins.length ? ins.reduce(function(s, e){ return s + (items[e.a] || 0); }, 0) : 1;
+      var inCount = ins.length ? ins.reduce(function(s, e){ return s + (items[e.a + "|" + e.ap] || 0); }, 0) : 1;
       var outCount = t.base != null ? t.base : Math.max(0, Math.round(inCount * (t.ratio == null ? 1 : t.ratio)));
-      items[id] = outCount;
+      var split = "";
+      if(n.type === "log.if"){
+        /* the false branch carries the complement, not a second copy */
+        items[id + "|true"] = outCount; items[id + "|false"] = Math.max(0, inCount - outCount);
+        split = outCount + " yes / " + Math.max(0, inCount - outCount) + " no";
+      } else if(n.type === "log.switch"){
+        var per = Math.floor(inCount / Math.max(1, n.outs.length));
+        n.outs.forEach(function(p, pi){ items[id + "|" + p.id] = pi === n.outs.length - 1 ? inCount - per*(n.outs.length-1) : per; });
+      } else {
+        n.outs.forEach(function(p){ items[id + "|" + p.id] = outCount; });
+      }
       var dur = (t.g === "AI" ? 900 + (i * 211) % 1700 : t.g === "Systems" ? 180 + (i * 137) % 720 :
                  t.g === "Output" ? 160 + (i * 97) % 420 : 6 + (i * 13) % 40);
       ins.forEach(function(e){ G.flowEdge(e.id, true); });
@@ -12645,7 +12664,7 @@ MOUNT.workflow = function(body, w){
           ins.forEach(function(e){ G.flowEdge(e.id, false); });
           var warn = outCount === 0 && t.g !== "Triggers";
           G.setState(id, warn ? "warning" : "ok");
-          G.setBadge(id, outCount + " · " + dur + "ms");
+          G.setBadge(id, (split || outCount) + " · " + dur + "ms");
           logPush(warn ? "warn" : "ok", n.title,
             (warn ? "no items passed — " : "") + (t.reads ? "read " + t.reads.split("·")[0].trim() + " · " : "") +
             outCount + " item" + (outCount === 1 ? "" : "s"), dur + "ms");
@@ -12808,6 +12827,11 @@ MOUNT.workflow = function(body, w){
       return;
     }
   });
+  /* on a phone the palette and inspector are sheets — touching the canvas dismisses them */
+  canvasHost.addEventListener("pointerdown", function(){
+    if(!isMobile()) return;
+    $$(".wf-pal.on, .wf-insp.on", body).forEach(function(x){ x.classList.remove("on"); });
+  }, true);
   body.querySelector("[data-wfask]").addEventListener("keydown", function(e){
     e.stopPropagation();
     if(e.key === "Enter"){ e.preventDefault(); body.querySelector("[data-wfgen]").click(); }
@@ -12888,10 +12912,10 @@ function agentModel(){
   return gen ? gen.desc : "Kimi K2 Instruct · Private tier · Riyadh DC-1";
 }
 function agentDest(a){
-  var d = a.desc || "";
+  var d = (a.name || "") + " " + (a.desc || "");
   if(/never writes|read-only/i.test(d)) return { title:"Notification Centre", sub:"it raises, you decide", icon:"i-bell", tile:"g-agents" };
+  if(/deck|board pack|narrative/i.test(d)) return { title:"Drafts", sub:"parked, never sent", icon:"i-slides", tile:"g-slides" };
   if(/draft/i.test(d))    return { title:"Chat draft", sub:"waits for your approval", icon:"i-chat", tile:"g-chat" };
-  if(/deck|pack/i.test(d))return { title:"Drafts", sub:"parked, never sent", icon:"i-slides", tile:"g-slides" };
   return { title:"Mail digest", sub:"parked in drafts", icon:"i-mail", tile:"g-mail" };
 }
 
@@ -13004,7 +13028,7 @@ function labelToCron(label){
 function agentToWorkflow(a){
   var nodes = [], edges = [];
   function add(type, data){ var n = wfNode(type, 0, 0, data); nodes.push(n); return n; }
-  function link(x, p, y){ edges.push({ id:ngId("e"), a:x.id, ap:p, b:y.id, bp:y.ins[0].id, label:"" }); }
+  function link(x, p, y, bp){ edges.push({ id:ngId("e"), a:x.id, ap:p, b:y.id, bp:bp || y.ins[0].id, label:"" }); }
   var tg = agentTrigger(a);
   var trig = tg.kind === "schedule" ? add("trig.cron", { cron: labelToCron(tg.label) }) : add("trig.manual", {});
   var srcs = agentSources(a).map(function(k){ return AG_KS_TO_WF[k.id]; })
@@ -13016,7 +13040,7 @@ function agentToWorkflow(a){
     var mg = add("log.merge", {});
     while(mg.ins.length < heads.length) mg.ins.push({ id:"p"+mg.ins.length, label:String.fromCharCode(97+mg.ins.length) });
     wfRefresh(mg);
-    heads.forEach(function(h, i){ link(h, h.outs[0].id, mg); mg.ins[i] && edges[edges.length-1] && (edges[edges.length-1].bp = mg.ins[i].id); });
+    heads.forEach(function(h, i){ link(h, h.outs[0].id, mg, mg.ins[i].id); });
     cur = mg;
   }
   var ai = add("ai.ask", { prompt: a.desc });
