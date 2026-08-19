@@ -3759,8 +3759,8 @@ var APPS = {
 /* Dock shows the 7 core apps. Running/contextual apps are appended with a
    separator, and renderDock shrinks --dk so the bar never overflows —
    everything else stays on the desktop and in Spotlight. */
-var DOCK_PINNED = ["chat","brain","mail","files","agents","workflow","settings","trash"];
-var DOCK_REST   = ["files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","workflow","market","tasks",
+var DOCK_PINNED = ["chat","brain","code","mail","files","agents","workflow","settings","trash"];
+var DOCK_REST   = ["code","files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","workflow","market","tasks",
                    "approvals","ledger","memory","models","conn","mail","settings","trash","duel","board","prep","audit"];
 var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","word","ppt","sheets","docs","slides","gantt",
                       "api","db","agents","autos","workflow","market","tasks","approvals","ledger","memory",
@@ -4086,6 +4086,12 @@ function freezeLayer(node){ var l = node.closest(".icon-layer"); if(l) l.classLi
 function thawLayer(node){ var l = node.closest(".icon-layer"); if(l) l.classList.remove("gesture"); }
 document.addEventListener("pointerdown", function(e){
   if(isMobile()) return;
+  /* Secondary click is for the context menu only. Without this, a right-click
+     started an icon drag, pointerup read the short press as a tap and called
+     openApp, and the contextmenu event opened the menu on top — so a right-click
+     both launched the app and opened the menu. macOS ctrl-click is a secondary
+     click too, and reports button 0, so it needs the same guard. */
+  if(e.button !== 0 || e.ctrlKey) return;
   var ic = e.target.closest(".dicon"), dk = e.target.closest(".dk");
   /* file/folder icons are owned by the freeDrag handler below — running
      both systems on the same icon made drags fight each other (glitching,
@@ -4212,6 +4218,7 @@ document.addEventListener("pointerup", function(e){
    lastPtrOpen prevents a double open when both events fire) */
 var lastPtrOpen = 0;
 document.addEventListener("click", function(e){
+  if(e.button !== 0 || e.ctrlKey) return;          /* secondary click opens the menu, not the app */
   var b = e.target.closest("[data-open]");
   if(!b || b.classList.contains("dragging")) return;
   if(!isMobile() && Date.now() - lastPtrOpen < 500) return;
@@ -6486,6 +6493,7 @@ document.addEventListener("click", function(e){
 /* Override the existing icon drag to also support free positioning of dicon-file */
 var freeDrag = null;
 document.addEventListener("pointerdown", function(e){
+  if(e.button !== 0 || e.ctrlKey) return;   /* secondary click belongs to the context menu */
   if(isMobile()) return;
   var ic = e.target.closest(".dicon-file");
   if(!ic) return;
@@ -8660,7 +8668,26 @@ MOUNT.code = function(body, w){
     MONACO.queue.push(cb);
     if(MONACO.state === "loading") return;
     MONACO.state = "loading";
-    var base = "../vendor/monaco/vs";
+    /* Absolute, not relative. Monaco spawns its language services as web
+       workers, and inside a WorkerGlobalScope a "../" path resolves against the
+       worker's own URL rather than the page — which threw
+       "Failed to parse URL from ../vendor/monaco/vs/language/html/htmlWorker.js"
+       on every boot. The worker is bootstrapped from a data: URI that carries
+       the absolute base with it, which is the documented workaround. */
+    var root = new URL("../vendor/monaco/", location.href).href.replace(/\/$/, "");
+    var base = root + "/vs";              /* AMD "vs" package path            */
+    /* baseUrl is the PARENT of vs — Monaco appends "vs/..." itself, and
+       passing the vs folder here produced .../vendor/monaco/vs/vs/language/... */
+    var workerBoot = "self.MonacoEnvironment={baseUrl:'" + root + "'};" +
+                     "importScripts('" + base + "/base/worker/workerMain.js');";
+    var workerURL = URL.createObjectURL(new Blob([workerBoot], {type:"text/javascript"}));
+    /* 0.52 asks for getWorker first and only falls back to getWorkerUrl, so
+       supply both or the language services quietly resolve "../" themselves. */
+    window.MonacoEnvironment = {
+      baseUrl: root,
+      getWorker: function(){ return new Worker(workerURL); },
+      getWorkerUrl: function(){ return workerURL; }
+    };
     var sc = document.createElement("script");
     sc.src = base + "/loader.js";
     sc.onerror = function(){ MONACO.state = "failed"; monacoFlush(null); };

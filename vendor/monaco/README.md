@@ -6,16 +6,24 @@ Vendored rather than loaded from a CDN. Console's own Sovereignty widget reads
 `Egress today: 0 bytes`; a CDN script tag would make that false the moment the
 Code window opened, and would break in an air-gapped deployment.
 
-Trimmed from the 13 MB `min/vs` distribution:
+Trimmed from the 13 MB `min/vs` distribution down to 4.9 MB:
 
-| Kept | Why |
-|---|---|
-| `loader.js`, `base/`, `editor/` | The editor itself |
-| `basic-languages/` — 13 of 81 | Tokenising for the languages Console shows |
+| Removed | Size | Why |
+|---|---|---|
+| `language/` | 6.4 MB | The TypeScript, JSON, CSS and HTML **IntelliSense services**. Console displays and edits code; it does not complete or type-check it. |
+| `nls.messages.*.js` | 1.7 MB | Non-English locale bundles. English is built in. |
 
-Removed: `language/` (the TypeScript/JSON/CSS/HTML IntelliSense services, ~6.9 MB
-— Console does not need completion or type checking) and all `nls.messages.*`
-locale bundles (English is built in).
+All 81 `basic-languages` tokenisers are kept, so syntax highlighting is
+unaffected — verified: HTML tokenises to 8 distinct token classes with the
+services removed.
+
+Removing `language/` also removes the only reason Monaco spawns a web worker,
+which sidesteps a real trap: workers resolve relative paths against their own
+URL, not the page, so `../vendor/...` threw
+`Failed to parse URL` on every boot. If you ever add the services back you will
+need `MonacoEnvironment.getWorker` returning a Blob-bootstrapped worker whose
+`baseUrl` is the **parent** of `vs` — passing the `vs` folder itself yields
+`.../monaco/vs/vs/language/...`.
 
 **Known limitation, accepted deliberately.** Monaco has no RTL support — there
 is an open issue reporting the editor renders invisible inside a `dir="rtl"`

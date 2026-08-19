@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE Console — Visual direction</title>
+<meta name="description" content="A design-direction document that demonstrates itself. How Console's desktop should look: surface and depth, light, a living wallpaper, motion, type, colour, an AI layer with restraint, and three complete looks — every proposal as a live specimen.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme");
+    if(t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  }catch(e){}
+})();
+</script>
+<style>
+/* ============================================================
+   MagnaVERSE Console — Visual direction
+   Light is the bare :root palette. Dark is redefined three ways
+   so an explicit toggle beats the media query in both directions.
+   ============================================================ */
+:root{
+  /* --- ground --- */
+  --bg:#EDEFF4;
+  --ground-1:#F8F9FC; --ground-2:#DFE3EC;
+  --wash-1:rgba(91,79,224,.10); --wash-2:rgba(215,25,32,.07);
+
+  /* --- the elevation ladder: five surfaces, one meaning each --- */
+  --e0:transparent;              /* ground — the wallpaper */
+  --e1:#E5E8EF;                  /* inlay — sunk into a body */
+  --e2:#F4F6FA;                  /* panel — cards, rails */
+  --e3:#FFFFFF;                  /* window body */
+  --e4:#FFFFFF;                  /* overlay — menus, dialogs */
+  --glass:rgba(255,255,255,.70); /* the ONLY translucent surface */
+
+  --line:rgba(12,16,26,.12); --line-2:rgba(12,16,26,.22);
+  --rim-top:rgba(255,255,255,.9); --rim-bot:rgba(12,16,26,.06);
+
+  /* --- shadow: always contact + ambient, never one blur --- */
+  --sh-1:0 1px 1px rgba(16,22,38,.05);
+  --sh-2:0 1px 2px rgba(16,22,38,.07), 0 4px 10px rgba(16,22,38,.05);
+  --sh-3:0 2px 4px rgba(16,22,38,.08), 0 14px 34px rgba(16,22,38,.10);
+  --sh-4:0 3px 6px rgba(16,22,38,.10), 0 30px 70px rgba(16,22,38,.16);
+
+  /* --- text --- */
+  --tx:#0D1018; --tx-2:#3D434F; --tx-3:#5F6875; --tx-4:#8B9199;
+
+  /* --- brand: the mark, primary action, destructive confirm. Not a status. --- */
+  --accent:#D71920; --accent-ink:#AE1219; --accent-dim:rgba(215,25,32,.10);
+
+  /* --- semantic: identical in every one of the twelve themes --- */
+  --ok:#0F7B52;    --ok-dim:rgba(15,123,82,.12);
+  --warn:#8A5A0B;  --warn-dim:rgba(138,90,11,.12);
+  --fail:#B01218;  --fail-dim:rgba(176,18,24,.10);
+  --info:#4338CA;  --info-dim:rgba(67,56,202,.10);
+
+  /* --- decorative theme tint: wallpaper, selection, focus ring, pips. Nothing else. --- */
+  --tint:#1F8F86; --tint-dim:rgba(31,143,134,.12);
+
+  /* --- motion scale. Six durations, four curves. Nothing else. --- */
+  --d-state:90ms; --d-move:140ms; --d-panel:200ms;
+  --d-window:280ms; --d-space:420ms; --d-ambient:700ms;
+  --ease-out:cubic-bezier(.22,.61,.36,1);
+  --ease-in:cubic-bezier(.55,.06,.68,.19);
+  --ease-std:cubic-bezier(.4,0,.2,1);
+  --ease-emph:cubic-bezier(.16,1,.3,1);
+
+  --r:8px; --r-lg:14px; --r-xl:20px; --r-pill:99px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ar:"SF Arabic","Segoe UI","Noto Sans Arabic","Geeza Pro",Tahoma,var(--sans);
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --maxw:1320px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#05070C;
+    --ground-1:#0A0F1C; --ground-2:#04060C;
+    --wash-1:rgba(91,79,224,.20); --wash-2:rgba(215,25,32,.12);
+    --e0:transparent; --e1:#0B0F17; --e2:#161B25; --e3:#12161F; --e4:#1D2331;
+    --glass:rgba(19,23,33,.66);
+    --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.22);
+    --rim-top:rgba(255,255,255,.16); --rim-bot:rgba(0,0,0,.4);
+    --sh-1:0 1px 1px rgba(0,0,0,.4);
+    --sh-2:0 1px 2px rgba(0,0,0,.5), 0 4px 10px rgba(0,0,0,.35);
+    --sh-3:0 2px 4px rgba(0,0,0,.5), 0 14px 34px rgba(0,0,0,.45);
+    --sh-4:0 3px 6px rgba(0,0,0,.55), 0 30px 70px rgba(0,0,0,.6);
+    --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#8C93A2; --tx-4:#5A6070;
+    --accent:#D71920; --accent-ink:#FF6167; --accent-dim:rgba(215,25,32,.18);
+    --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);
+    --warn:#E0A33C; --warn-dim:rgba(224,163,60,.14);
+    --fail:#FF6B6B; --fail-dim:rgba(255,107,107,.14);
+    --info:#8B84F5; --info-dim:rgba(139,132,245,.14);
+    --tint:#2FB4A8; --tint-dim:rgba(47,180,168,.14);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#05070C;
+  --ground-1:#0A0F1C; --ground-2:#04060C;
+  --wash-1:rgba(91,79,224,.20); --wash-2:rgba(215,25,32,.12);
+  --e0:transparent; --e1:#0B0F17; --e2:#161B25; --e3:#12161F; --e4:#1D2331;
+  --glass:rgba(19,23,33,.66);
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.22);
+  --rim-top:rgba(255,255,255,.16); --rim-bot:rgba(0,0,0,.4);
+  --sh-1:0 1px 1px rgba(0,0,0,.4);
+  --sh-2:0 1px 2px rgba(0,0,0,.5), 0 4px 10px rgba(0,0,0,.35);
+  --sh-3:0 2px 4px rgba(0,0,0,.5), 0 14px 34px rgba(0,0,0,.45);
+  --sh-4:0 3px 6px rgba(0,0,0,.55), 0 30px 70px rgba(0,0,0,.6);
+  --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#8C93A2; --tx-4:#5A6070;
+  --accent:#D71920; --accent-ink:#FF6167; --accent-dim:rgba(215,25,32,.18);
+  --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);
+  --warn:#E0A33C; --warn-dim:rgba(224,163,60,.14);
+  --fail:#FF6B6B; --fail-dim:rgba(255,107,107,.14);
+  --info:#8B84F5; --info-dim:rgba(139,132,245,.14);
+  --tint:#2FB4A8; --tint-dim:rgba(47,180,168,.14);
+}
+:root[data-theme="light"]{
+  --bg:#EDEFF4;
+  --ground-1:#F8F9FC; --ground-2:#DFE3EC;
+  --wash-1:rgba(91,79,224,.10); --wash-2:rgba(215,25,32,.07);
+  --e0:transparent; --e1:#E5E8EF; --e2:#F4F6FA; --e3:#FFFFFF; --e4:#FFFFFF;
+  --glass:rgba(255,255,255,.70);
+  --line:rgba(12,16,26,.12); --line-2:rgba(12,16,26,.22);
+  --rim-top:rgba(255,255,255,.9); --rim-bot:rgba(12,16,26,.06);
+  --sh-1:0 1px 1px rgba(16,22,38,.05);
+  --sh-2:0 1px 2px rgba(16,22,38,.07), 0 4px 10px rgba(16,22,38,.05);
+  --sh-3:0 2px 4px rgba(16,22,38,.08), 0 14px 34px rgba(16,22,38,.10);
+  --sh-4:0 3px 6px rgba(16,22,38,.10), 0 30px 70px rgba(16,22,38,.16);
+  --tx:#0D1018; --tx-2:#3D434F; --tx-3:#5F6875; --tx-4:#8B9199;
+  --accent:#D71920; --accent-ink:#AE1219; --accent-dim:rgba(215,25,32,.10);
+  --ok:#0F7B52;   --ok-dim:rgba(15,123,82,.12);
+  --warn:#8A5A0B; --warn-dim:rgba(138,90,11,.12);
+  --fail:#B01218; --fail-dim:rgba(176,18,24,.10);
+  --info:#4338CA; --info-dim:rgba(67,56,202,.10);
+  --tint:#1F8F86; --tint-dim:rgba(31,143,134,.12);
+}
+
+/* ============================ base ============================ */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0; max-width:100%; overflow-x:hidden}
+body{
+  background:var(--bg); color:var(--tx); font-family:var(--sans);
+  font-size:15.5px; line-height:1.62; -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(1100px 620px at 10% -8%, var(--wash-1), transparent 62%),
+    radial-gradient(900px 560px at 94% 2%, var(--wash-2), transparent 60%),
+    linear-gradient(168deg, var(--ground-1), var(--ground-2) 82%);
+}
+h1,h2,h3,h4{margin:0; line-height:1.18; letter-spacing:-.022em; font-weight:700}
+p,ul,ol{margin:0}
+a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid transparent}
+a:hover{border-bottom-color:currentColor}
+img,svg,canvas{max-width:100%}
+:focus-visible{outline:2.5px solid var(--info); outline-offset:2px; border-radius:4px}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 clamp(14px,3vw,32px)}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* every animated specimen must die under reduce */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+}
+body[data-motion="off"] *,body[data-motion="off"] *::before,body[data-motion="off"] *::after{
+  animation-duration:.001ms !important; animation-iteration-count:1 !important;
+  transition-duration:.001ms !important;
+}
+
+/* ============================ brand mark ============================ */
+.magna-mark{width:26px; height:auto; flex:none; display:block}
+.magna-mark path{stroke-dasharray:1200; stroke-dashoffset:0}
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark.draw path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark.draw path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200} to{stroke-dashoffset:0}}
+
+/* ============================ top bar ============================ */
+.top{
+  position:sticky; top:0; z-index:80;
+  background:var(--glass); backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  border-bottom:1px solid var(--line);
+}
+.top .wrap{display:flex; align-items:center; gap:12px; min-height:58px; flex-wrap:wrap; padding-block:8px}
+.brand{display:flex; align-items:center; gap:10px; min-width:0}
+.brand .wm{font-weight:700; font-size:14.5px; letter-spacing:-.01em; white-space:nowrap}
+.brand .wm span{color:var(--tx-3); font-weight:500}
+.topkind{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--tx-3); border:1px solid var(--line); border-radius:var(--r-pill); padding:5px 11px; white-space:nowrap;
+}
+.topsp{margin-inline-start:auto}
+.ctl{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.seg{display:flex; gap:2px; background:var(--e1); border:1px solid var(--line); border-radius:var(--r-pill); padding:3px; flex:none}
+.seg button{
+  min-height:36px; min-width:44px; padding:0 12px; border-radius:var(--r-pill); color:var(--tx-3);
+  display:grid; place-items:center; font-size:12px; font-weight:600;
+}
+.seg button:hover{color:var(--tx-2)}
+.seg button[aria-pressed="true"]{background:var(--e3); color:var(--tx); box-shadow:var(--sh-1)}
+.seg svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rmchip{
+  display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.06em; text-transform:uppercase; padding:6px 11px; border-radius:var(--r-pill);
+  border:1px solid var(--line); color:var(--tx-3); min-height:36px;
+}
+.rmchip .d{width:7px;height:7px;border-radius:99px;background:var(--ok);flex:none}
+.rmchip[data-on="1"]{color:var(--warn); border-color:color-mix(in srgb,var(--warn) 40%,transparent); background:var(--warn-dim)}
+.rmchip[data-on="1"] .d{background:var(--warn)}
+@media (max-width:900px){ .topkind{display:none} }
+
+/* ============================ hero ============================ */
+.hero{padding:clamp(38px,6vw,74px) 0 10px}
+.eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--tx-3); margin-bottom:18px}
+.hero h1{font-size:clamp(30px,5.2vw,56px); font-weight:760; max-width:20ch}
+.hero h1 em{font-style:normal; color:var(--accent-ink)}
+.hero .lede{margin-top:20px; max-width:74ch; font-size:clamp(15.5px,1.6vw,18px); color:var(--tx-2)}
+.hero .lede strong{color:var(--tx); font-weight:650}
+.herogrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin-top:30px}
+.hcard{background:var(--e2); border:1px solid var(--line); border-radius:var(--r-lg); padding:15px 17px; box-shadow:var(--sh-1)}
+.hcard .n{font-family:var(--mono); font-size:24px; font-weight:700; letter-spacing:-.02em}
+.hcard .k{margin-top:2px; font-size:12.5px; color:var(--tx-3); line-height:1.4}
+
+/* ============================ section frame ============================ */
+section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
+.sechead{display:flex; gap:16px; align-items:baseline; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:26px}
+.secnum{font-family:var(--mono); font-size:12px; color:var(--tx-4); letter-spacing:.1em; flex:none}
+.sechead h2{font-size:clamp(23px,3.1vw,36px); font-weight:740; max-width:22ch}
+.secintro{margin-top:16px; max-width:78ch; color:var(--tx-2); font-size:16px}
+.secintro + .secintro{margin-top:12px}
+.secintro strong{color:var(--tx); font-weight:650}
+.secintro code,p code,li code,td code{font-family:var(--mono); font-size:.88em; background:var(--e1); border:1px solid var(--line); border-radius:5px; padding:1px 5px}
+
+/* ============================ specimen shell ============================ */
+.spec{
+  margin-top:26px; border:1px solid var(--line); border-radius:var(--r-xl);
+  background:var(--e2); box-shadow:var(--sh-2); overflow:hidden;
+}
+.spec-hd{display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:13px 18px; border-bottom:1px solid var(--line); background:var(--e3)}
+.spec-hd h3{font-size:14.5px; font-weight:680; letter-spacing:-.01em}
+.spec-hd .tag{
+  font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--tx-3); border:1px solid var(--line); border-radius:var(--r-pill); padding:3px 9px; white-space:nowrap;
+}
+.spec-hd .sp{flex:1; min-width:0}
+.spec-bd{padding:18px}
+.spec-note{
+  display:flex; gap:11px; align-items:flex-start; padding:13px 18px; border-top:1px solid var(--line);
+  background:var(--e1); font-size:13px; color:var(--tx-2); line-height:1.55;
+}
+.spec-note .lbl{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--tx-4); flex:none; padding-top:3px; width:74px;
+}
+.spec-note b{color:var(--tx); font-weight:650}
+.cost{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:var(--r-pill); white-space:nowrap}
+.cost.free{color:var(--ok); background:var(--ok-dim); border:1px solid color-mix(in srgb,var(--ok) 32%,transparent)}
+.cost.mid{color:var(--warn); background:var(--warn-dim); border:1px solid color-mix(in srgb,var(--warn) 32%,transparent)}
+.cost.hot{color:var(--fail); background:var(--fail-dim); border:1px solid color-mix(in srgb,var(--fail) 32%,transparent)}
+
+/* buttons used inside specimens */
+.btn{
+  min-height:44px; padding:0 15px; border-radius:var(--r); border:1px solid var(--line);
+  background:var(--e3); color:var(--tx); font-size:13px; font-weight:600;
+  display:inline-flex; align-items:center; gap:8px; box-shadow:var(--sh-1);
+  transition:background var(--d-state) var(--ease-std), border-color var(--d-state) var(--ease-std);
+}
+.btn:hover{background:var(--e1); border-color:var(--line-2)}
+.btn:active{background:var(--e1)}
+.btn.sm{min-height:36px; padding:0 12px; font-size:12.5px}
+.btn.pri{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.pri:hover{background:var(--accent-ink); border-color:var(--accent-ink)}
+.btn[aria-pressed="true"]{background:var(--tx); color:var(--bg); border-color:var(--tx)}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.rng{-webkit-appearance:none; appearance:none; width:100%; height:34px; background:transparent; cursor:pointer}
+.rng::-webkit-slider-runnable-track{height:5px; border-radius:99px; background:var(--e1); border:1px solid var(--line)}
+.rng::-moz-range-track{height:5px; border-radius:99px; background:var(--e1); border:1px solid var(--line)}
+.rng::-webkit-slider-thumb{-webkit-appearance:none; width:22px; height:22px; border-radius:99px; margin-top:-9.5px;
+  background:var(--e3); border:1.5px solid var(--tx-3); box-shadow:var(--sh-1)}
+.rng::-moz-range-thumb{width:22px; height:22px; border-radius:99px; background:var(--e3); border:1.5px solid var(--tx-3)}
+.fieldrow{display:grid; grid-template-columns:minmax(84px,auto) 1fr minmax(52px,auto); gap:10px; align-items:center; font-size:12.5px}
+.fieldrow label{color:var(--tx-2); font-weight:600}
+.fieldrow output{font-family:var(--mono); font-size:12px; color:var(--tx-3); text-align:end; font-variant-numeric:tabular-nums}
+
+/* scroll container for specimens that cannot shrink */
+.hscroll{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; padding-bottom:4px}
+.hscroll > *{min-width:min(680px,100%)}
+
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px}
+.grid3{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px}
+.vs{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px}
+.vs .pane{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--e3); overflow:hidden}
+.vs .pane > h4{
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:700;
+  padding:9px 13px; border-bottom:1px solid var(--line);
+}
+.vs .pane.bad > h4{color:var(--fail); background:var(--fail-dim)}
+.vs .pane.good > h4{color:var(--ok); background:var(--ok-dim)}
+.vs .pane .why{padding:11px 13px; font-size:12.5px; color:var(--tx-2); border-top:1px solid var(--line); line-height:1.5}
+
+/* ============================ nav rail ============================ */
+.toc{
+  position:sticky; top:58px; z-index:70; background:var(--glass);
+  backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
+  border-bottom:1px solid var(--line);
+}
+.toc .wrap{display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; padding-block:6px}
+.toc .wrap::-webkit-scrollbar{display:none}
+.toc a{
+  flex:none; min-height:36px; display:inline-flex; align-items:center; padding:0 11px; border-radius:var(--r-pill);
+  font-size:12.5px; font-weight:600; color:var(--tx-3); white-space:nowrap; border:1px solid transparent;
+}
+.toc a:hover{color:var(--tx); background:var(--e1); border-color:var(--line)}
+.toc a .n{font-family:var(--mono); font-size:10.5px; color:var(--tx-4); margin-inline-end:6px}
+
+/* ============================ §1 depth ============================ */
+.ladder{display:grid; gap:12px}
+.ladder .rung{
+  display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-items:center;
+  border-radius:var(--r-lg); padding:14px 16px; border:1px solid var(--line); position:relative;
+}
+@media (min-width:640px){ .ladder .rung{grid-template-columns:62px minmax(0,1fr) minmax(120px,180px)} }
+.ladder .rung .lv{font-family:var(--mono); font-size:12px; font-weight:700; color:var(--tx-3)}
+.ladder .rung .ds{font-size:13px; color:var(--tx-2); line-height:1.45}
+.ladder .rung .ds b{color:var(--tx); font-weight:650; display:block; font-size:13.5px}
+.ladder .rung .tk{font-family:var(--mono); font-size:10.5px; color:var(--tx-4); line-height:1.5; word-break:break-word}
+.rung.r0{background:transparent; border-style:dashed; box-shadow:none}
+.rung.r1{background:var(--e1); box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
+.rung.r2{background:var(--e2); box-shadow:var(--sh-2), inset 0 1px 0 var(--rim-top)}
+.rung.r3{background:var(--e3); box-shadow:var(--sh-3), inset 0 1px 0 var(--rim-top)}
+.rung.r4{background:var(--e4); box-shadow:var(--sh-4), inset 0 1px 0 var(--rim-top)}
+
+/* exploded stack */
+.stackwrap{position:relative; height:340px; display:grid; place-items:center; overflow:hidden;
+  border-radius:var(--r-lg); border:1px solid var(--line);
+  background:linear-gradient(168deg,var(--ground-1),var(--ground-2))}
+.stack{position:relative; width:min(420px,86%); height:230px; transform-style:preserve-3d;
+  transform:rotateX(52deg) rotateZ(-38deg) scale(var(--stz,.9)); transition:transform var(--d-panel) var(--ease-std)}
+.plane{
+  position:absolute; inset:0; border-radius:12px; border:1px solid var(--line);
+  display:flex; align-items:flex-start; padding:9px 12px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--tx-3);
+  transform:translateZ(calc(var(--i) * var(--sep,26px)));
+  transition:transform var(--d-panel) var(--ease-std);
+}
+.plane.p0{--i:0; background:linear-gradient(140deg,var(--tint-dim),transparent); border-style:dashed}
+.plane.p1{--i:1; background:var(--e2); box-shadow:var(--sh-2)}
+.plane.p2{--i:2; background:var(--e3); box-shadow:var(--sh-3)}
+.plane.p3{--i:3; background:var(--glass); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:var(--sh-3)}
+.plane.p4{--i:4; background:var(--e4); box-shadow:var(--sh-4)}
+
+/* glass budget */
+.gbdemo{border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--line); position:relative; min-height:250px;
+  background:linear-gradient(150deg,#1b2b4d,#3a1f2b 55%,#0d1524)}
+:root[data-theme="light"] .gbdemo{background:linear-gradient(150deg,#c9d6f0,#f0d8dc 55%,#dfe6f5)}
+.gbdemo .gwin{position:absolute; border-radius:12px; border:1px solid rgba(255,255,255,.18); padding:10px 12px;
+  font-size:12px; color:#fff; box-shadow:0 18px 40px rgba(0,0,0,.4)}
+:root[data-theme="light"] .gbdemo .gwin{color:#0D1018; border-color:rgba(12,16,26,.14)}
+.gbdemo[data-mode="all"] .gwin{background:rgba(19,23,33,.5); backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%)}
+:root[data-theme="light"] .gbdemo[data-mode="all"] .gwin{background:rgba(255,255,255,.5)}
+.gbdemo[data-mode="one"] .gwin{background:#12161F}
+:root[data-theme="light"] .gbdemo[data-mode="one"] .gwin{background:#fff}
+.gbdemo[data-mode="one"] .gwin.chrome{background:rgba(19,23,33,.55); backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%)}
+:root[data-theme="light"] .gbdemo[data-mode="one"] .gwin.chrome{background:rgba(255,255,255,.6)}
+.gbcount{position:absolute; inset-inline-end:10px; bottom:10px; font-family:var(--mono); font-size:10.5px;
+  background:rgba(0,0,0,.55); color:#fff; padding:4px 9px; border-radius:var(--r-pill)}
+
+/* ============================ §2 light ============================ */
+.lightlab{border-radius:var(--r-lg); border:1px solid var(--line); overflow:hidden; position:relative; min-height:290px;
+  background:radial-gradient(120% 80% at var(--kx,50%) -18%, color-mix(in srgb,var(--tint) 22%,transparent), transparent 62%),
+             linear-gradient(168deg,var(--ground-1),var(--ground-2))}
+.lw{
+  position:absolute; width:min(255px,44%); border-radius:14px; overflow:hidden; cursor:pointer; text-align:start;
+  background:var(--e3); border:1px solid var(--line); box-shadow:var(--sh-2);
+  transition:box-shadow var(--d-panel) var(--ease-std), transform var(--d-panel) var(--ease-std);
+}
+.lw .bar{display:flex; align-items:center; gap:7px; padding:8px 11px; border-bottom:1px solid var(--line); font-size:12px; font-weight:650}
+.lw .bd{padding:11px; font-size:12px; color:var(--tx-3); line-height:1.5; min-height:74px; position:relative}
+.lw .dots{display:flex; gap:5px}
+.lw .dots i{width:9px; height:9px; border-radius:99px; background:var(--tx-4); display:block}
+.lightlab[data-focus="1"] .lw.a,.lightlab[data-focus="2"] .lw.b{
+  box-shadow:var(--sh-4); z-index:3; border-color:var(--line-2);
+}
+.lightlab[data-focus="1"] .lw.a .bar,.lightlab[data-focus="2"] .lw.b .bar{
+  box-shadow:inset 0 1.5px 0 color-mix(in srgb,var(--tint) 55%,transparent);
+}
+.lightlab[data-lit="1"][data-focus="1"] .lw.a .bd::before,
+.lightlab[data-lit="1"][data-focus="2"] .lw.b .bd::before{
+  content:""; position:absolute; inset:0 0 auto 0; height:96px; pointer-events:none;
+  background:linear-gradient(color-mix(in srgb,var(--tint) 9%,transparent), transparent);
+}
+.lightlab .lw::after{content:""; position:absolute; inset:0; pointer-events:none; background:var(--bg); opacity:.16;
+  transition:opacity var(--d-panel) var(--ease-std)}
+.lightlab[data-focus="1"] .lw.a::after,.lightlab[data-focus="2"] .lw.b::after{opacity:0}
+.lightlab .lw.a{inset-inline-start:6%; top:14%}
+.lightlab .lw.b{inset-inline-end:6%; top:36%}
+.lightlab .keydot{position:absolute; top:6px; inset-inline-start:var(--kx,50%); width:11px; height:11px; margin-inline-start:-5px;
+  border-radius:99px; background:color-mix(in srgb,var(--tint) 80%,#fff); box-shadow:0 0 22px 8px color-mix(in srgb,var(--tint) 40%,transparent)}
+
+/* bloom scale */
+.bloomrow{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px}
+.bloomcell{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--e1); padding:26px 12px 14px;
+  display:grid; place-items:center; gap:16px; text-align:center; position:relative; overflow:hidden}
+.orb{width:52px; height:52px; border-radius:99px; background:var(--e4); border:1px solid var(--line);
+  display:grid; place-items:center; position:relative; z-index:1}
+.orb::before{content:""; position:absolute; inset:-60px; border-radius:99px; z-index:-1;
+  background:radial-gradient(circle, color-mix(in srgb,var(--tint) calc(var(--bloom,0) * 1%), transparent), transparent 62%)}
+.bloomcell .cap{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3)}
+
+/* ============================ §3 wallpaper ============================ */
+.wallbox{position:relative; border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--line); background:#06080F}
+.wallbox canvas{display:block; width:100%; height:auto; aspect-ratio:16/9}
+.wallbox .ov{position:absolute; inset-inline-start:12px; top:10px; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none}
+.wallbox .ov span{font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase;
+  background:rgba(0,0,0,.45); color:#E8EAF0; padding:3px 8px; border-radius:var(--r-pill); backdrop-filter:blur(4px)}
+.wallbox .ov span.alarm{background:rgba(176,18,24,.85); color:#fff}
+.knobs{display:grid; gap:10px; margin-top:14px}
+.cssground{border-radius:var(--r-lg); border:1px solid var(--line); overflow:hidden; aspect-ratio:16/7; position:relative;
+  background:
+    radial-gradient(90% 120% at 76% calc(112% - var(--sun,40%)), hsl(var(--h1,26) 78% 62% / .45), transparent 58%),
+    radial-gradient(70% 90% at 14% 8%, hsl(var(--h2,232) 62% 42% / .5), transparent 60%),
+    linear-gradient(178deg, hsl(var(--h2,232) 48% 14%), hsl(var(--h3,258) 38% 7%) 78%);
+}
+:root[data-theme="light"] .cssground{
+  background:
+    radial-gradient(90% 120% at 76% calc(112% - var(--sun,40%)), hsl(var(--h1,26) 84% 78% / .55), transparent 58%),
+    radial-gradient(70% 90% at 14% 8%, hsl(var(--h2,232) 46% 82% / .6), transparent 60%),
+    linear-gradient(178deg, hsl(38 44% 93%), hsl(var(--h2,232) 26% 84%) 82%);
+}
+.cssground .horizon{position:absolute; inset-inline:0; bottom:calc(var(--sun,40%) * .34); height:1px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tint) 60%,transparent),transparent)}
+.hourout{font-family:var(--mono); font-size:12px; color:var(--tx-3); font-variant-numeric:tabular-nums}
+
+/* ============================ §4 motion ============================ */
+.curvegrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:12px}
+.curve{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--e3); padding:12px; text-align:start;
+  display:grid; gap:9px; width:100%}
+.curve svg{width:100%; height:auto; display:block; background:var(--e1); border-radius:8px; border:1px solid var(--line)}
+.curve .nm{font-size:13px; font-weight:660}
+.curve .vl{font-family:var(--mono); font-size:10.5px; color:var(--tx-3); word-break:break-all}
+.curve .use{font-size:12px; color:var(--tx-2); line-height:1.45}
+.curve .track{height:8px; border-radius:99px; background:var(--e1); border:1px solid var(--line); position:relative; overflow:hidden}
+.curve .track i{position:absolute; inset-block:0; inset-inline-start:0; width:8px; border-radius:99px; background:var(--tint)}
+.curve[data-play="1"] .track i{animation:runTrack var(--dur,280ms) var(--ez) both}
+@keyframes runTrack{from{inset-inline-start:0}to{inset-inline-start:calc(100% - 8px)}}
+
+.durtable{width:100%; border-collapse:collapse; font-size:13px; min-width:520px}
+.durtable th,.durtable td{text-align:start; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+.durtable th{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:700}
+.durtable td.k{font-family:var(--mono); font-size:12px; color:var(--tx); white-space:nowrap}
+.durtable tr:last-child td{border-bottom:0}
+
+.stage{height:190px; position:relative; overflow:hidden; background:linear-gradient(168deg,var(--ground-1),var(--ground-2))}
+.mockwin{position:absolute; inset-inline-start:14%; top:16%; width:min(210px,68%); border-radius:12px; background:var(--e3);
+  border:1px solid var(--line); box-shadow:var(--sh-3); padding:9px 11px; font-size:12px; opacity:0}
+.mockwin .t{font-weight:650; font-size:12px; margin-bottom:5px}
+.mockwin .l{height:6px; border-radius:99px; background:var(--e1); margin-bottom:5px}
+.mockwin .l.s{width:62%}
+.pane.bad .mockwin.play{animation:winBad 520ms cubic-bezier(.2,.9,.3,1.9) both}
+.pane.good .mockwin.play{animation:winGood var(--d-window) var(--ease-emph) both}
+@keyframes winBad{0%{opacity:0;transform:scale(.4) rotate(-9deg) translateY(46px)}60%{opacity:1;transform:scale(1.1) rotate(3deg)}100%{opacity:1;transform:none}}
+@keyframes winGood{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.stage .spawn{position:absolute; inset-inline-start:16%; bottom:12px; width:34px; height:34px; border-radius:10px;
+  background:var(--tint); opacity:.5}
+
+.filmstrip{position:absolute; inset:0; display:flex; width:300%; transition:transform var(--d-space) var(--ease-emph)}
+.filmstrip > div{width:33.3333%; display:grid; place-items:center; font-family:var(--mono); font-size:13px; color:var(--tx-2);
+  border-inline-end:1px solid var(--line)}
+.filmstrip > div:nth-child(1){background:color-mix(in srgb,var(--tint) 12%,transparent)}
+.filmstrip > div:nth-child(2){background:color-mix(in srgb,var(--info) 12%,transparent)}
+.filmstrip > div:nth-child(3){background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.crossfade{position:absolute; inset:0}
+.crossfade > div{position:absolute; inset:0; display:grid; place-items:center; font-family:var(--mono); font-size:13px;
+  color:var(--tx-2); opacity:0; transition:opacity 600ms linear}
+.crossfade > div[data-on="1"]{opacity:1}
+
+.dockdemo{display:flex; gap:9px; align-items:flex-end; justify-content:center; padding:22px 12px 16px; min-height:110px}
+.dtile{width:46px; height:46px; border-radius:13px; border:1px solid var(--line); background:var(--e3); box-shadow:var(--sh-2);
+  display:grid; place-items:center; position:relative; flex:none}
+.dtile .lbl{position:absolute; bottom:calc(100% + 8px); inset-inline-start:50%; transform:translateX(-50%);
+  font-size:11px; white-space:nowrap; background:var(--e4); border:1px solid var(--line); border-radius:6px;
+  padding:3px 7px; opacity:0; pointer-events:none; box-shadow:var(--sh-2)}
+.dockdemo.bad .dtile{transition:transform 180ms cubic-bezier(.2,.9,.3,1.5)}
+.dockdemo.bad .dtile:hover{transform:translateY(-13px) scale(1.16)}
+.dockdemo.good .dtile{transition:transform var(--d-move) var(--ease-out), box-shadow var(--d-move) var(--ease-out)}
+.dockdemo.good .dtile:hover{transform:translateY(-6px) scale(1.06); box-shadow:var(--sh-3)}
+.dockdemo.good .dtile:hover .lbl{opacity:1; transition:opacity var(--d-move) var(--ease-out) 60ms}
+
+.toastzone{position:relative; height:150px; overflow:hidden}
+.toast{position:absolute; inset-inline-end:12px; top:12px; width:min(230px,72%); border-radius:10px; background:var(--e4);
+  border:1px solid var(--line); box-shadow:var(--sh-3); padding:9px 11px; font-size:12px; opacity:0}
+.toast .h{font-weight:650; margin-bottom:2px; display:flex; gap:6px; align-items:center}
+.toast.play.bad{animation:toastBad 700ms cubic-bezier(.2,.9,.3,2) both}
+.toast.play.good{animation:toastGood var(--d-panel) var(--ease-out) both}
+@keyframes toastBad{0%{opacity:0;transform:translateX(140%) scale(.7)}55%{opacity:1;transform:translateX(-14%) scale(1.12)}100%{opacity:1;transform:none}}
+@keyframes toastGood{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toastzone .undock{position:absolute; inset-inline-start:14px; bottom:12px; width:40px; height:40px; border-radius:12px;
+  background:var(--e3); border:1px solid var(--line); display:grid; place-items:center}
+.toastzone .undock .badge{position:absolute; top:-5px; inset-inline-end:-5px; min-width:18px; height:18px; border-radius:99px;
+  background:var(--accent); color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center; opacity:0}
+.toastzone.bad .undock .badge{opacity:1; animation:badgePop 700ms cubic-bezier(.2,.9,.3,2.2) both}
+@keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
+.toastzone.good .undock{box-shadow:0 8px 22px -4px color-mix(in srgb,var(--tint) 55%,transparent); border-color:color-mix(in srgb,var(--tint) 45%,transparent)}
+
+/* ============================ §5 type ============================ */
+.typetable{width:100%; border-collapse:collapse; min-width:560px}
+.typetable th,.typetable td{text-align:start; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
+.typetable th{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:700}
+.typetable td.spec{font-family:var(--mono); font-size:11px; color:var(--tx-3); white-space:nowrap}
+.typetable tr:last-child td{border-bottom:0}
+.t-menubar{font-size:12.5px; font-weight:600; letter-spacing:0}
+.t-wintitle{font-size:12.5px; font-weight:650; letter-spacing:-.005em}
+.t-label{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3)}
+.t-body{font-size:13.5px; font-weight:400; line-height:1.5}
+.t-data{font-family:var(--mono); font-size:13px; font-weight:500; font-variant-numeric:tabular-nums}
+.t-figure{font-size:30px; font-weight:700; letter-spacing:-.025em; line-height:1.05; font-variant-numeric:tabular-nums}
+.t-helper{font-size:11.5px; color:var(--tx-3); line-height:1.45}
+
+.density{border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--e3)}
+.density .drow{display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:10px; align-items:center;
+  min-height:var(--row,28px); padding:0 12px; border-bottom:1px solid var(--line); font-size:13.5px}
+.density .drow:last-child{border-bottom:0}
+.density .drow.hd{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); background:var(--e1)}
+.density .drow .num{font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:13px; text-align:end}
+.density[data-d="comfortable"]{--row:36px}
+.density[data-d="default"]{--row:30px}
+.density[data-d="compact"]{--row:24px}
+
+.bilingual{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px}
+.bilingual .card{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--e3); padding:15px 16px}
+.bilingual .card[dir="rtl"]{font-family:var(--ar)}
+.bilingual .card[dir="rtl"] .b{font-size:1.06em; line-height:1.78}
+.bilingual .card .lb{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--tx-4); margin-bottom:9px}
+.bilingual .card .t{font-size:13.5px; font-weight:650; margin-bottom:6px}
+.bilingual .card .b{font-size:13.5px; color:var(--tx-2); line-height:1.5}
+.bilingual .card .kv{display:flex; align-items:center; gap:8px; margin-top:11px; padding-top:11px; border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--tx-2)}
+.bilingual .card .kv b{color:var(--tx); margin-inline-start:auto; font-weight:650}
+.mirror{display:flex; align-items:center; gap:9px; padding:9px 12px; border:1px solid var(--line); border-radius:var(--r);
+  background:var(--e1); font-size:13px; margin-top:10px}
+.mirror svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.mirror .sp{flex:1}
+
+/* ============================ §6 colour ============================ */
+.swatches{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px}
+.sw{border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--e3)}
+.sw .chip{height:58px; display:grid; place-items:center; font-family:var(--mono); font-size:11px; font-weight:700; color:#fff}
+.sw .meta{padding:10px 12px; font-size:12px}
+.sw .meta .nm{font-weight:650}
+.sw .meta .hex{font-family:var(--mono); font-size:11px; color:var(--tx-3); text-transform:uppercase}
+.sw .meta .use{font-size:11.5px; color:var(--tx-3); margin-top:5px; line-height:1.4}
+
+.ctable{width:100%; border-collapse:collapse; font-size:13px; min-width:560px}
+.ctable th,.ctable td{text-align:start; padding:8px 11px; border-bottom:1px solid var(--line)}
+.ctable th{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:700}
+.ctable td.r{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.ctable .samp{display:inline-block; padding:1px 8px; border-radius:5px; font-weight:600}
+.pass{color:var(--ok); font-weight:700}
+.warnv{color:var(--warn); font-weight:700}
+.failv{color:var(--fail); font-weight:700}
+
+.residency{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.rchip{display:inline-flex; align-items:center; gap:7px; min-height:32px; padding:0 13px; border-radius:var(--r-pill);
+  font-size:12.5px; font-weight:650; font-family:var(--mono); letter-spacing:.02em}
+.rchip.priv{background:var(--ok); color:#fff; border:1px solid var(--ok)}
+:root[data-theme="dark"] .rchip.priv{color:#04120C}
+.rchip.pub{background:transparent; color:var(--warn); border:1.5px dashed var(--warn)}
+.rchip .d{width:7px;height:7px;border-radius:99px;background:currentColor}
+.grayscale{filter:grayscale(1) contrast(1.05)}
+
+.themerow{display:flex; gap:7px; flex-wrap:wrap}
+.tsw{width:44px; height:44px; border-radius:11px; border:1px solid var(--line); position:relative; display:grid; place-items:center}
+.tsw[aria-pressed="true"]{outline:2.5px solid var(--tx); outline-offset:2px}
+.tsw i{width:18px; height:18px; border-radius:6px; display:block}
+
+/* ============================ §7 AI layer ============================ */
+.thinkrow{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px}
+.thinkcell{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--e3); padding:16px; display:grid; gap:12px;
+  justify-items:center; text-align:center}
+.thinkcell .cap{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4)}
+.thinkcell .st{font-size:12.5px; color:var(--tx-2)}
+.mkloop path{stroke-dasharray:1200}
+@media (prefers-reduced-motion: no-preference){
+  body[data-motion="on"] .mkloop.working path{animation:mkLoop 1.9s cubic-bezier(.4,0,.2,1) infinite}
+  body[data-motion="on"] .mkloop.working path:nth-of-type(2){animation-delay:.16s}
+  body[data-motion="on"] .mkloop.closing path{animation:mkLoop .85s cubic-bezier(.4,0,.2,1) infinite}
+  body[data-motion="on"] .mkloop.closing path:nth-of-type(2){animation-delay:.08s}
+}
+@keyframes mkLoop{0%{stroke-dashoffset:1200;opacity:.35}55%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:.35}}
+.thinkorb{width:70px; height:70px; border-radius:99px; background:var(--e1); border:1px solid var(--line);
+  display:grid; place-items:center; position:relative}
+.thinkorb::after{content:""; position:absolute; inset:-30px; border-radius:99px; z-index:-1;
+  background:radial-gradient(circle, color-mix(in srgb,var(--tint) 12%,transparent), transparent 60%)}
+.spinner{width:26px;height:26px;border-radius:99px;border:2.5px solid var(--line);border-top-color:var(--tx-3)}
+@media (prefers-reduced-motion: no-preference){ body[data-motion="on"] .spinner{animation:spin .8s linear infinite} }
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.presence{border:1px solid var(--line); border-radius:var(--r-lg); background:linear-gradient(168deg,var(--ground-1),var(--ground-2));
+  padding:20px 14px 16px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap}
+.ptile{width:52px; height:52px; border-radius:14px; background:var(--e3); border:1px solid var(--line); box-shadow:var(--sh-2);
+  display:grid; place-items:center; position:relative; flex:none}
+.ptile .cnt{position:absolute; top:-5px; inset-inline-end:-5px; min-width:18px; height:18px; padding:0 5px; border-radius:99px;
+  background:var(--accent); color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center}
+.presence[data-mode="light"] .ptile[data-busy="1"]{
+  box-shadow:var(--sh-2), 0 10px 26px -6px color-mix(in srgb,var(--agent,var(--tint)) 70%,transparent);
+  border-color:color-mix(in srgb,var(--agent,var(--tint)) 50%,transparent);
+}
+.presence[data-mode="light"] .ptile[data-busy="1"]::after{
+  content:""; position:absolute; inset-inline:8px; bottom:-7px; height:3px; border-radius:99px;
+  background:var(--agent,var(--tint)); opacity:.85;
+}
+.presence[data-mode="light"] .ptile .cnt[data-activity="1"]{display:none}
+.presence[data-mode="badge"] .ptile .cnt[data-activity="1"]{display:grid}
+
+.sovstrip{border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--e3)}
+.sovstrip .mb{display:flex; align-items:center; gap:10px; padding:0 12px; height:36px; font-size:12.5px; font-weight:600;
+  border-bottom:1px solid var(--line); background:var(--e2)}
+.sovstrip .mb .sp{flex:1}
+.sovstrip .mb .cl{font-family:var(--mono); font-size:12px; color:var(--tx-3); font-variant-numeric:tabular-nums}
+.sovstrip .strip{height:3px; display:flex}
+.sovstrip .strip i{flex:1; background:var(--ok); transition:background var(--d-panel) var(--ease-std)}
+.sovstrip[data-leak="1"] .strip i:nth-child(7){background:var(--warn)}
+.sovstrip[data-leak="1"] .strip i:nth-child(8){background:var(--bg)}
+.sovstrip .cap{padding:10px 12px; font-size:12.5px; color:var(--tx-2)}
+
+.brainuses{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px}
+.brainuse{border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--e3)}
+.brainuse .cv{position:relative; background:#06080F}
+:root[data-theme="light"] .brainuse .cv{background:#0A0F1C}
+.brainuse canvas{display:block; width:100%; height:auto; aspect-ratio:4/3}
+.brainuse .ttl{font-family:var(--mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--tx-3);
+  padding:9px 12px; border-bottom:1px solid var(--line)}
+.brainuse .ds{padding:10px 12px; font-size:12.5px; color:var(--tx-2); line-height:1.45}
+.brainuse .over{position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:14px; color:#E8EAF0}
+.brainuse .over .h{font-size:13.5px; font-weight:650}
+.brainuse .over .p{font-size:12px; opacity:.72; margin-top:4px}
+
+.donts{display:grid; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); gap:14px}
+.dont{border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; background:var(--e3); display:flex; flex-direction:column}
+.dont .hd{display:flex; align-items:center; gap:9px; padding:10px 12px; border-bottom:1px solid var(--line);
+  font-size:13px; font-weight:660}
+.dont .hd .x{width:19px; height:19px; border-radius:5px; background:var(--fail-dim); color:var(--fail);
+  display:grid; place-items:center; font-size:12px; font-weight:800; flex:none}
+.dont .demo{position:relative; height:96px; background:#05070C; overflow:hidden; display:grid; place-items:center}
+.dont .demo canvas{display:block; width:100%; height:100%}
+.dont .demo .idle{font-family:var(--mono); font-size:10.5px; color:#5A6070; letter-spacing:.08em; text-transform:uppercase}
+.dont .body{padding:11px 12px; font-size:12.5px; color:var(--tx-2); line-height:1.5; flex:1}
+.dont .body b{color:var(--tx); font-weight:650}
+.dont .instead{padding:10px 12px; border-top:1px solid var(--line); background:var(--ok-dim); font-size:12.5px; color:var(--tx-2); line-height:1.5}
+.dont .instead b{color:var(--ok); font-weight:700; font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; display:block; margin-bottom:3px}
+.dont .foot{padding:9px 12px; border-top:1px solid var(--line)}
+
+/* ============================ §8 three looks ============================ */
+.looks{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px}
+.look{
+  border:1px solid var(--line); border-radius:var(--r-xl); overflow:hidden; background:var(--e3);
+  box-shadow:var(--sh-2); display:flex; flex-direction:column;
+}
+.look > .hd{padding:14px 16px; border-bottom:1px solid var(--line)}
+.look > .hd h3{font-size:16px; font-weight:700}
+.look > .hd .sub{font-size:12.5px; color:var(--tx-3); margin-top:3px; line-height:1.45}
+.look .palette{display:flex; height:22px}
+.look .palette i{flex:1}
+.look .desk{
+  position:relative; aspect-ratio:16/10; overflow:hidden; isolation:isolate;
+  background:var(--dk-ground);
+  font-family:var(--sans); color:var(--dk-tx);
+}
+.look .desk canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+.look .desk .mbar{
+  position:absolute; inset-inline:0; top:0; height:15%; min-height:20px; z-index:3;
+  display:flex; align-items:center; gap:7px; padding:0 8px; font-size:8px; font-weight:650;
+  background:var(--dk-chrome); border-bottom:1px solid var(--dk-line); color:var(--dk-tx);
+  backdrop-filter:var(--dk-blur,none); -webkit-backdrop-filter:var(--dk-blur,none);
+}
+.look .desk .mbar .sp{flex:1}
+.look .desk .mbar .pill{
+  display:inline-flex; align-items:center; gap:3px; padding:2px 6px; border-radius:99px; font-size:7px;
+  background:color-mix(in srgb,var(--dk-ok) 16%,transparent); color:var(--dk-ok);
+  border:1px solid color-mix(in srgb,var(--dk-ok) 34%,transparent);
+}
+.look .desk .mbar .cl{font-family:var(--mono); font-size:7.5px; opacity:.72}
+.look .desk .sovline{position:absolute; inset-inline:0; top:calc(15% - 1.5px); height:1.5px; z-index:4; background:var(--dk-ok); opacity:.75}
+.look .desk .win{
+  position:absolute; inset-inline-start:8%; top:26%; width:56%; border-radius:var(--dk-r,9px); overflow:hidden; z-index:3;
+  background:var(--dk-surf); border:1px solid var(--dk-line); box-shadow:var(--dk-sh);
+}
+.look .desk .win .wb{
+  height:15px; display:flex; align-items:center; gap:4px; padding:0 6px; font-size:7.5px; font-weight:650;
+  border-bottom:1px solid var(--dk-line); background:var(--dk-bar); box-shadow:inset 0 1px 0 var(--dk-rim);
+}
+.look .desk .win .wb i{width:4.5px; height:4.5px; border-radius:99px; background:var(--dk-tx3); display:block}
+.look .desk .win .wb i.act{background:var(--dk-accent)}
+.look .desk .win .wc{padding:7px; display:grid; gap:4px}
+.look .desk .win .wc .ln{height:4px; border-radius:99px; background:var(--dk-inlay)}
+.look .desk .win .wc .ln.s{width:58%}
+.look .desk .win .wc .fig{font-family:var(--mono); font-size:12px; font-weight:700; color:var(--dk-tx); letter-spacing:-.02em}
+.look .desk .wg{
+  position:absolute; inset-inline-end:5%; top:26%; width:24%; border-radius:calc(var(--dk-r,9px) - 2px); z-index:3;
+  background:var(--dk-panel); border:1px solid var(--dk-line); padding:6px; box-shadow:var(--dk-sh2);
+}
+.look .desk .wg .k{font-family:var(--mono); font-size:6px; letter-spacing:.1em; text-transform:uppercase; color:var(--dk-tx3)}
+.look .desk .wg .v{font-size:11px; font-weight:700; color:var(--dk-ok); margin-top:2px; letter-spacing:-.02em}
+.look .desk .wg .m{font-family:var(--mono); font-size:6.5px; color:var(--dk-tx3); margin-top:2px}
+.look .desk .dock{
+  position:absolute; inset-inline-start:50%; transform:translateX(-50%); bottom:4%; z-index:3;
+  display:flex; gap:4px; padding:4px 5px; border-radius:9px;
+  background:var(--dk-chrome); border:1px solid var(--dk-line); box-shadow:var(--dk-sh2);
+  backdrop-filter:var(--dk-blur,none); -webkit-backdrop-filter:var(--dk-blur,none);
+}
+.look .desk .dock b{width:15px; height:15px; border-radius:5px; background:var(--dk-tile); display:block; position:relative}
+.look .desk .dock b.run::after{content:""; position:absolute; inset-inline:2px; bottom:-3px; height:1.5px; border-radius:99px;
+  background:var(--dk-accent); opacity:.9}
+.look .desk .dicon{position:absolute; z-index:2; width:16%; display:grid; justify-items:center; gap:3px}
+.look .desk .dicon b{width:20px; height:20px; border-radius:6px; background:var(--dk-tile); display:block}
+.look .desk .dicon span{font-size:6.5px; color:var(--dk-tx2); text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.look .traits{padding:13px 16px; display:grid; gap:7px; font-size:12.5px; color:var(--tx-2); flex:1}
+.look .traits .t{display:flex; gap:9px; align-items:flex-start}
+.look .traits .t .kk{font-family:var(--mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--tx-4); width:56px; flex:none; padding-top:2px}
+.look .foot{padding:12px 16px; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.look.pick{border-color:color-mix(in srgb,var(--ok) 55%,transparent); box-shadow:var(--sh-3), 0 0 0 1px color-mix(in srgb,var(--ok) 30%,transparent)}
+.pickflag{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:9.5px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--ok); background:var(--ok-dim); border:1px solid color-mix(in srgb,var(--ok) 36%,transparent);
+  padding:3px 9px; border-radius:var(--r-pill)}
+
+/* look palettes — the same markup, three token sets */
+.look[data-look="quiet"] .desk{
+  --dk-ground:linear-gradient(174deg,#DCDDE0,#C9CBD0 76%); --dk-tx:#16181C; --dk-tx2:#41454D; --dk-tx3:#787D87;
+  --dk-chrome:rgba(250,250,251,.82); --dk-blur:blur(9px) saturate(130%);
+  --dk-surf:#FBFBFC; --dk-panel:#F2F3F5; --dk-inlay:#E2E4E8; --dk-bar:#F5F6F8;
+  --dk-line:rgba(20,24,32,.14); --dk-rim:rgba(255,255,255,.9);
+  --dk-sh:0 1px 2px rgba(18,22,30,.10), 0 10px 26px rgba(18,22,30,.13);
+  --dk-sh2:0 1px 2px rgba(18,22,30,.09), 0 6px 16px rgba(18,22,30,.10);
+  --dk-tile:#B9BDC5; --dk-accent:#D71920; --dk-ok:#12704C; --dk-r:8px;
+}
+:root[data-theme="dark"] .look[data-look="quiet"] .desk,
+:root:not([data-theme="light"]) .look[data-look="quiet"] .desk{
+  --dk-ground:linear-gradient(174deg,#17191D,#0D0E11 78%); --dk-tx:#EFF0F2; --dk-tx2:#B0B4BC; --dk-tx3:#767B85;
+  --dk-chrome:rgba(22,24,28,.78); --dk-surf:#1B1D22; --dk-panel:#212429; --dk-inlay:#2A2E35; --dk-bar:#22252B;
+  --dk-line:rgba(255,255,255,.11); --dk-rim:rgba(255,255,255,.13);
+  --dk-sh:0 2px 4px rgba(0,0,0,.5), 0 14px 34px rgba(0,0,0,.5);
+  --dk-sh2:0 2px 4px rgba(0,0,0,.4), 0 8px 20px rgba(0,0,0,.4);
+  --dk-tile:#3A3E46; --dk-accent:#E8434A; --dk-ok:#48D49C;
+}
+.look[data-look="dusk"] .desk{
+  --dk-ground:linear-gradient(172deg,#F0E6D6,#DCC9AE 62%,#C8B49A 100%); --dk-tx:#241C12; --dk-tx2:#4E4132; --dk-tx3:#867460;
+  --dk-chrome:rgba(255,251,244,.76); --dk-blur:blur(11px) saturate(148%);
+  --dk-surf:#FFFCF6; --dk-panel:#F7F0E4; --dk-inlay:#EADFCC; --dk-bar:#FBF6EC;
+  --dk-line:rgba(70,52,32,.16); --dk-rim:rgba(255,255,255,.92);
+  --dk-sh:0 1px 2px rgba(70,52,32,.12), 0 12px 30px rgba(70,52,32,.16);
+  --dk-sh2:0 1px 2px rgba(70,52,32,.10), 0 6px 16px rgba(70,52,32,.12);
+  --dk-tile:#C8B08A; --dk-accent:#C0561F; --dk-ok:#1F6B4A; --dk-r:10px;
+}
+:root[data-theme="dark"] .look[data-look="dusk"] .desk,
+:root:not([data-theme="light"]) .look[data-look="dusk"] .desk{
+  --dk-ground:linear-gradient(172deg,#2A1D2E,#16172E 52%,#0A0B18 100%); --dk-tx:#F4EEE4; --dk-tx2:#C4B7A6; --dk-tx3:#8C8071;
+  --dk-chrome:rgba(30,24,32,.74); --dk-surf:#1D1922; --dk-panel:#241E28; --dk-inlay:#2E2732; --dk-bar:#251F2A;
+  --dk-line:rgba(255,240,220,.13); --dk-rim:rgba(255,232,200,.16);
+  --dk-sh:0 2px 4px rgba(0,0,0,.5), 0 14px 34px rgba(10,4,16,.55);
+  --dk-sh2:0 2px 4px rgba(0,0,0,.4), 0 8px 20px rgba(10,4,16,.45);
+  --dk-tile:#4A3B44; --dk-accent:#E8873F; --dk-ok:#4FD09A;
+}
+.look[data-look="field"] .desk{
+  --dk-ground:linear-gradient(168deg,#DCE3F0,#C6D0E6 70%,#B6C2DC 100%); --dk-tx:#0C1220; --dk-tx2:#39445C; --dk-tx3:#6C7893;
+  --dk-chrome:rgba(248,250,255,.74); --dk-blur:blur(12px) saturate(160%);
+  --dk-surf:#FAFCFF; --dk-panel:#EEF2FA; --dk-inlay:#DFE6F3; --dk-bar:#F4F7FD;
+  --dk-line:rgba(14,26,52,.14); --dk-rim:rgba(255,255,255,.94);
+  --dk-sh:0 1px 2px rgba(14,26,52,.12), 0 12px 30px rgba(14,26,52,.16);
+  --dk-sh2:0 1px 2px rgba(14,26,52,.10), 0 6px 16px rgba(14,26,52,.12);
+  --dk-tile:#9FB0D0; --dk-accent:#0F7C8C; --dk-ok:#0E6B52; --dk-r:11px;
+}
+:root[data-theme="dark"] .look[data-look="field"] .desk,
+:root:not([data-theme="light"]) .look[data-look="field"] .desk{
+  --dk-ground:radial-gradient(120% 90% at 62% 8%, #101A34, #060A14 62%, #03040A 100%);
+  --dk-tx:#E9EDF6; --dk-tx2:#A5AEC4; --dk-tx3:#69728A;
+  --dk-chrome:rgba(9,13,24,.7); --dk-surf:#080C16; --dk-panel:#0B1120; --dk-inlay:#121A2C; --dk-bar:#0B111E;
+  --dk-line:rgba(150,180,255,.16); --dk-rim:rgba(120,200,230,.20);
+  --dk-sh:0 2px 6px rgba(0,0,0,.6), 0 18px 44px rgba(0,0,0,.66);
+  --dk-sh2:0 2px 4px rgba(0,0,0,.5), 0 10px 24px rgba(0,0,0,.5);
+  --dk-tile:#1B2740; --dk-accent:#35C6D8; --dk-ok:#3FCF95;
+}
+
+/* ============================ effort table ============================ */
+.efftable{width:100%; border-collapse:collapse; font-size:13px; min-width:720px}
+.efftable th,.efftable td{text-align:start; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+.efftable th{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:700;
+  position:sticky; top:0; background:var(--e2)}
+.efftable td:first-child{font-weight:640; color:var(--tx)}
+.efftable tr:last-child td{border-bottom:0}
+.efftable .fx{font-family:var(--mono); font-size:11px; white-space:nowrap}
+
+/* ============================ closing ============================ */
+.verdict{
+  margin-top:28px; border:1.5px solid color-mix(in srgb,var(--ok) 45%,transparent); border-radius:var(--r-xl); overflow:hidden;
+  background:var(--e3); box-shadow:var(--sh-3);
+}
+.verdict .strip{display:flex; align-items:center; gap:9px; padding:11px 20px; background:var(--ok); color:#fff;
+  font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:700}
+:root[data-theme="dark"] .verdict .strip{color:#04120C}
+.verdict .bd{padding:22px 22px 24px}
+.verdict .bd h2{font-size:clamp(21px,2.6vw,29px)}
+.verdict .bd p{margin-top:13px; color:var(--tx-2); max-width:80ch}
+.verdict .bd p strong{color:var(--tx); font-weight:650}
+.verdict ol{margin:18px 0 0; padding-inline-start:20px; display:grid; gap:9px; color:var(--tx-2); font-size:14.5px}
+.verdict ol b{color:var(--tx)}
+
+footer{margin-top:clamp(48px,7vw,86px); border-top:1px solid var(--line); padding:26px 0 60px; color:var(--tx-3); font-size:13px}
+footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
+
+/* ============================ dialog ============================ */
+.sheet{
+  position:fixed; inset:0; z-index:200; display:none; place-items:center; padding:clamp(10px,3vw,32px);
+  background:color-mix(in srgb, var(--bg) 72%, transparent);
+}
+.sheet[data-open="1"]{display:grid}
+.sheet .panel{
+  width:min(1100px,100%); max-height:88vh; overflow:auto; background:var(--e4); border:1px solid var(--line-2);
+  border-radius:var(--r-xl); box-shadow:var(--sh-4);
+}
+.sheet .phd{position:sticky; top:0; z-index:2; display:flex; gap:12px; align-items:center; padding:13px 18px;
+  border-bottom:1px solid var(--line); background:var(--e4)}
+.sheet .phd h3{font-size:15px; flex:1; min-width:0}
+.sheet .pbd{padding:18px}
+.sheet .pbd .look{box-shadow:none; border:0}
+.sheet .pbd .look .desk{aspect-ratio:16/9}
+</style>
+</head>
+<body data-motion="on">
+
+<a class="sr" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="magna-mark draw" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:24px">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wm">Magna<span>VERSE</span></span>
+    </div>
+    <span class="topkind">Console · visual direction</span>
+    <span class="topsp"></span>
+    <div class="ctl">
+      <span class="rmchip" id="rmChip" data-on="0"><span class="d"></span><span id="rmTxt">motion on</span></span>
+      <button class="btn sm" id="motionBtn" aria-pressed="false">Pause all motion</button>
+      <div class="seg" role="group" aria-label="Colour theme">
+        <button type="button" data-theme-set="light" aria-pressed="false" title="Light">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg>
+          <span class="sr">Light</span>
+        </button>
+        <button type="button" data-theme-set="auto" aria-pressed="true" title="Match system">Auto</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a7 7 0 0 0 11.1 11.1Z"/></svg>
+          <span class="sr">Dark</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <div class="wrap">
+    <a href="#depth"><span class="n">01</span>Surface &amp; depth</a>
+    <a href="#light"><span class="n">02</span>Light</a>
+    <a href="#wallpaper"><span class="n">03</span>Wallpaper</a>
+    <a href="#motion"><span class="n">04</span>Motion</a>
+    <a href="#type"><span class="n">05</span>Type &amp; density</a>
+    <a href="#colour"><span class="n">06</span>Colour</a>
+    <a href="#ai"><span class="n">07</span>The AI layer</a>
+    <a href="#looks"><span class="n">08</span>Three looks</a>
+    <a href="#effort"><span class="n">09</span>Effort &amp; risk</a>
+    <a href="#verdict"><span class="n">10</span>What I'd ship</a>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap">
+
+  <section class="hero">
+    <p class="eyebrow">Design direction · nothing here is built</p>
+    <h1>Console already works. This is the argument for how it should <em>look</em>.</h1>
+    <p class="lede">
+      Console has thirty-one apps, four Spaces, a Brain, a dock, a widget rail and twelve themes. What it does
+      not have is a <strong>visual system</strong> — a single set of rules about surface, light, motion and colour
+      that every one of those pieces obeys. Right now depth is decided per component, glass is applied everywhere
+      by default, every window is lit identically, and the durations in the stylesheet run from 90ms to 600ms with
+      no scale behind them.
+    </p>
+    <p class="lede" style="margin-top:14px">
+      This page proposes that system. <strong>Every proposal below is a live specimen</strong> — real HTML, CSS and
+      canvas running in this page, in both themes, so you can look at it rather than read about it. Where something
+      would cost frame budget, it says so in the same box.
+    </p>
+    <div class="herogrid">
+      <div class="hcard"><div class="n tnum">5</div><div class="k">elevation levels, replacing per-component guesses</div></div>
+      <div class="hcard"><div class="n tnum">3</div><div class="k">glass surfaces allowed, down from every panel</div></div>
+      <div class="hcard"><div class="n tnum">6&nbsp;&times;&nbsp;4</div><div class="k">durations &times; easing curves — the whole motion vocabulary</div></div>
+      <div class="hcard"><div class="n tnum">3</div><div class="k">complete looks at the end, rendered live. Pick one.</div></div>
+    </div>
+  </section>
+
+  <!-- ==================== 01 SURFACE & DEPTH ==================== -->
+  <section class="sec" id="depth">
+    <div class="sechead"><span class="secnum">01</span><h2>Surface and depth, as one system</h2></div>
+    <p class="secintro">
+      Console's stylesheet has one <code>--glass</code> token doing five different jobs, and
+      <code>backdrop-filter: saturate(1.5) blur(26px)</code> on the menu bar, the dock, every window, every popover
+      and every widget card. Visually that means everything sits at the same distance from you. Technically it means
+      a dozen simultaneous backdrop snapshots — which is exactly the class of problem that forced the full-viewport
+      blur out of the &#8984;K switcher.
+    </p>
+    <p class="secintro">
+      The fix is not "less glass". It is <strong>giving each level of the stack a fixed identity</strong> — a
+      surface colour, a border, and a shadow that always travel together — and reserving translucency for the one
+      thing translucency should mean: <em>this is floating above the desktop</em>.
+    </p>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>The elevation ladder</h3><span class="sp"></span>
+        <span class="tag">live · both themes</span><span class="cost free">CSS only · 0 frame cost</span>
+      </div>
+      <div class="spec-bd">
+        <div class="ladder">
+          <div class="rung r0"><span class="lv">E0</span><span class="ds"><b>Ground</b>The wallpaper. Nothing else lives here.</span><span class="tk">no surface · no border · no shadow</span></div>
+          <div class="rung r1"><span class="lv">E1</span><span class="ds"><b>Inlay</b>Sunk into a body: inputs, table headers, code blocks, the Terminal viewport.</span><span class="tk">--e1 · inset 0 1px 2px · no outer shadow</span></div>
+          <div class="rung r2"><span class="lv">E2</span><span class="ds"><b>Panel</b>Cards, the widget rail, sidebars, the Agent Feed. Sits <em>inside</em> something.</span><span class="tk">--e2 · 1px --line · --sh-2 + top rim</span></div>
+          <div class="rung r3"><span class="lv">E3</span><span class="ds"><b>Window</b>A window body. Opaque. This is the change.</span><span class="tk">--e3 · 1px --line · --sh-3 + top rim</span></div>
+          <div class="rung r4"><span class="lv">E4</span><span class="ds"><b>Overlay</b>Menus, popovers, the &#8984;K switcher, dialogs. The only place a heavy blur is allowed, and only while open.</span><span class="tk">--e4 · 1px --line-2 · --sh-4 + top rim</span></div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Why</span>
+        <div>Every shadow here is <b>two shadows</b> — a tight contact shadow (1–3px, higher alpha) and a wide ambient
+        shadow (10–70px, low alpha). One blurred drop shadow always reads as a sticker; two read as an object resting
+        on something. And every raised surface carries <code>inset 0 1px 0 var(--rim-top)</code>: light comes from
+        above, so the top edge is brighter than the bottom. Console currently draws a uniform
+        <code>rgba(255,255,255,.10)</code> all the way around, which is why windows look printed rather than placed.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Effort</span>
+        <div><b>Cheap.</b> This is a token rename plus five utility classes. No JS. It <em>removes</em> work from the
+        compositor rather than adding it.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>The stack, exploded</h3><span class="sp"></span>
+        <span class="tag">drag the slider</span><span class="cost free">CSS transform · idle</span>
+      </div>
+      <div class="spec-bd">
+        <div class="stackwrap">
+          <div class="stack" id="stackEl">
+            <div class="plane p0">E0 ground</div>
+            <div class="plane p1">E2 widget rail</div>
+            <div class="plane p2">E3 window body</div>
+            <div class="plane p3">glass chrome — menu bar / dock / title bar</div>
+            <div class="plane p4">E4 overlay</div>
+          </div>
+        </div>
+        <div class="knobs">
+          <div class="fieldrow">
+            <label for="sepRng">Separation</label>
+            <input class="rng" type="range" id="sepRng" min="0" max="64" value="26" step="1">
+            <output id="sepOut">26px</output>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Read it</span>
+        <div>Only one plane in the stack is translucent, and it is not a window body — it is the <b>chrome</b>. The
+        chrome floats over everything and therefore earns its blur; the window body sits <em>in</em> the stack and
+        should be solid, so text on it is crisp and its background does not shift as you drag it across the wallpaper.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>The glassmorphism problem, measured</h3><span class="sp"></span>
+        <button class="btn sm" id="gbToggle" aria-pressed="false">Glass on everything</button>
+      </div>
+      <div class="spec-bd">
+        <div class="gbdemo" id="gbDemo" data-mode="all">
+          <div class="gwin chrome" style="inset-inline:8px; top:8px; height:26px; display:flex; align-items:center; padding-inline:10px">Console &nbsp; Docs</div>
+          <div class="gwin" style="inset-inline-start:6%; top:22%; width:52%; height:46%">Window body — <span id="gbState">translucent</span></div>
+          <div class="gwin" style="inset-inline-end:6%; top:34%; width:30%; height:40%">Widget rail</div>
+          <div class="gwin" style="inset-inline-start:26%; top:52%; width:40%; height:30%">Popover over a window</div>
+          <div class="gwin chrome" style="inset-inline-start:50%; transform:translateX(-50%); bottom:10px; width:52%; height:34px; display:flex; align-items:center; justify-content:center">Dock</div>
+          <div class="gbcount"><span id="gbCount">5</span> backdrop-filter layers</div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Look</span>
+        <div>In "glass on everything", the popover over the window is <b>mud</b> — it is blurring an already-blurred
+        surface, so it has no edge and no colour of its own. That is the actual glassmorphism cliché: not translucency,
+        but <em>uniform</em> translucency, where nothing is nearer than anything else. Toggle it and the same layout
+        gains a stack.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Cost</span>
+        <div><span class="cost hot">every frame</span> Each <code>backdrop-filter</code> layer re-samples the pixels
+        behind it whenever <em>anything</em> under it moves. Five layers over an animating wallpaper is five
+        full-region resamples per frame. Three fixed-position ones over a static ground is nearly free, because the
+        compositor can cache them.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 02 LIGHT ==================== -->
+  <section class="sec" id="light">
+    <div class="sechead"><span class="secnum">02</span><h2>Light — one source, and a window that knows it is focused</h2></div>
+    <p class="secintro">
+      Console has colour but it does not have <strong>light</strong>. The focused window today gets a slightly
+      stronger shadow and a slightly brighter border; that is the whole signal. In a thirty-one-app OS where four
+      windows are open at once, that is not enough to find your place, and it is a wasted opportunity — focus is the
+      one moment where a little colour is earned.
+    </p>
+    <p class="secintro">
+      The proposal is a single <strong>key light</strong> at the top of the viewport that every shadow offset derives
+      from, plus a <strong>focus light</strong> that only the front window receives. Nothing glows. Nothing pulses.
+    </p>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Focused vs idle</h3><span class="sp"></span>
+        <button class="btn sm" id="litBtn" aria-pressed="true">Focus wash on</button>
+        <span class="tag">click a window</span>
+      </div>
+      <div class="spec-bd">
+        <div class="lightlab" id="lightLab" data-focus="1" data-lit="1">
+          <span class="keydot" aria-hidden="true"></span>
+          <button class="lw a" type="button" data-focus-set="1">
+            <span class="bar"><span class="dots"><i></i><i></i><i></i></span> Board Pack — Thursday</span>
+            <span class="bd">Focused. Top hairline at 2&times; alpha in the theme tint, a 96px wash at 9% inside the
+            title area, the tighter contact shadow of &#8209;&#8209;sh&#8209;4, and full saturation.</span>
+          </button>
+          <button class="lw b" type="button" data-focus-set="2">
+            <span class="bar"><span class="dots"><i></i><i></i><i></i></span> Package C2 exposure</span>
+            <span class="bd">Idle. A 16% scrim of the page background sits over the whole window — <em>not</em> a
+            CSS filter, which would create a new compositing layer on every open window.</span>
+          </button>
+        </div>
+        <div class="knobs">
+          <div class="fieldrow">
+            <label for="keyRng">Key light</label>
+            <input class="rng" type="range" id="keyRng" min="0" max="100" value="50" step="1">
+            <output id="keyOut">50%</output>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Spec</span>
+        <div><b>Focused:</b> <code>box-shadow:inset 0 1.5px 0 color-mix(in srgb,var(--tint) 55%,transparent)</code> on
+        the title bar, a <code>linear-gradient</code> wash at 9% over the top 96px, <code>--sh-4</code>.
+        <b>Idle:</b> a <code>::after</code> scrim of <code>var(--bg)</code> at 16%, <code>--sh-2</code>. Both are
+        static CSS driven by the <code>.focused</code> class Console already sets.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Warning</span>
+        <div><span class="cost mid">watch this</span> The obvious implementation of "idle windows are desaturated" is
+        <code>filter: saturate(.88)</code>. Do not. <code>filter</code> on a positioned element promotes it to its own
+        layer <em>and</em> makes it a containing block for its fixed-position descendants — which will break dropdowns
+        inside windows. The scrim overlay costs nothing and cannot break layout.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Bloom, and where it stops being tasteful</h3><span class="sp"></span>
+        <span class="tag">drag to taste</span><span class="cost free">gradient · 0 frame cost</span>
+      </div>
+      <div class="spec-bd">
+        <div class="bloomrow">
+          <div class="bloomcell" style="--bloom:0"><div class="orb" id="bl0"></div><span class="cap">0% — dead</span></div>
+          <div class="bloomcell" id="blLive" style="--bloom:8"><div class="orb"></div><span class="cap"><span id="blOut">8</span>% — live</span></div>
+          <div class="bloomcell" style="--bloom:34"><div class="orb"></div><span class="cap">34% — a toy</span></div>
+        </div>
+        <div class="knobs">
+          <div class="fieldrow">
+            <label for="blRng">Bloom alpha</label>
+            <input class="rng" type="range" id="blRng" min="0" max="40" value="8" step="1">
+            <output id="blOut2">8%</output>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Rule</span>
+        <div>Bloom is allowed in exactly one situation: an element that is <b>emitting</b> — an agent mid-run, the Ask
+        AI orb while thinking, a dock tile whose app is doing work. Never on hover, never on text, never on more than
+        one element at a time. Max 8% alpha, radius at least 2.5&times; the element. Use a
+        <code>radial-gradient</code> on a pseudo-element — <b>never</b> <code>filter:blur()</code>, which is a
+        separate render pass.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Caustics — a slow luminance drift, not water</h3><span class="sp"></span>
+        <button class="btn sm" id="cauBtn" aria-pressed="true">Running</button>
+      </div>
+      <div class="spec-bd">
+        <div class="wallbox"><canvas id="cauCv" width="960" height="540" role="img" aria-label="A slow low-frequency luminance drift across a dark ground"></canvas>
+          <div class="ov"><span id="cauLbl">amplitude 0.06</span></div>
+        </div>
+        <div class="knobs">
+          <div class="fieldrow">
+            <label for="cauRng">Amplitude</label>
+            <input class="rng" type="range" id="cauRng" min="0" max="30" value="6" step="1">
+            <output id="cauOut">0.06</output>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Taste</span>
+        <div>The tasteful version of "caustics" in an OS is not a pool-bottom ripple. It is a very low-frequency
+        luminance variation moving at roughly <b>0.02 px per frame</b> — slow enough that you never catch it moving,
+        present enough that the wallpaper is never flat. Push the slider past ~0.12 and it becomes a lava lamp.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Cost</span>
+        <div><span class="cost mid">every frame</span> This canvas runs at 24fps at half resolution and stops entirely
+        when scrolled out of view. On a full 2560px desktop it should render into a 1&times; offscreen buffer at 12fps
+        and be blitted — or be replaced by the pure-CSS ground in &sect;03 whenever an overlay is animating over it.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 03 WALLPAPER ==================== -->
+  <section class="sec" id="wallpaper">
+    <div class="sechead"><span class="secnum">03</span><h2>The wallpaper as a living system</h2></div>
+    <p class="secintro">
+      Console's wallpaper today is a radial gradient, two drifting blur blobs, a 52px grid, the Magna mark at 16%
+      and a neural canvas. It is already more alive than most desktops. The problem is that none of it
+      <strong>means</strong> anything — it drifts on a timer, not on the state of the machine.
+    </p>
+    <p class="secintro">
+      A desktop that is the front end of a sovereign AI cluster has, sitting unused, the most interesting data source
+      any wallpaper has ever had: GPU load, agent activity, egress, the hour, the prayer times. Three proposals, in
+      increasing cost.
+    </p>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>W1 — The closed field</h3><span class="sp"></span>
+        <span class="tag">canvas · bound to state</span><span class="cost mid">rAF · 20fps · half-res</span>
+      </div>
+      <div class="spec-bd">
+        <div class="wallbox">
+          <canvas id="fieldCv" width="1000" height="562" role="img" aria-label="A generative contour field whose density, turbulence and colour respond to system state"></canvas>
+          <div class="ov">
+            <span id="fLblGpu">GPU 22%</span><span id="fLblAg">3 agents</span>
+            <span id="fLblHr">18:41</span><span id="fLblEg">egress 0 bytes</span>
+          </div>
+        </div>
+        <div class="knobs">
+          <div class="fieldrow"><label for="fGpu">GPU load</label><input class="rng" type="range" id="fGpu" min="0" max="100" value="22"><output id="fGpuO">22%</output></div>
+          <div class="fieldrow"><label for="fAg">Agents</label><input class="rng" type="range" id="fAg" min="0" max="12" value="3"><output id="fAgO">3</output></div>
+          <div class="fieldrow"><label for="fHr">Hour (Riyadh)</label><input class="rng" type="range" id="fHr" min="0" max="23" value="18"><output id="fHrO">18:00</output></div>
+          <div class="fieldrow"><label for="fEg">Egress</label><input class="rng" type="range" id="fEg" min="0" max="1" value="0" step="1"><output id="fEgO">0 bytes</output></div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">The idea</span>
+        <div>Contour lines from a value-noise field, like a survey map of the Tuwaiq escarpment. Four bindings:
+        <b>hour</b> drives hue and the horizon height, <b>GPU load</b> drives turbulence, <b>agent count</b> drives how
+        many contours carry a travelling highlight — and <b>egress</b> drives the one that matters. While egress is
+        zero every contour is a <em>closed loop</em>: nothing leaves the frame. Move the egress slider and one contour
+        opens and runs off the edge. That is Console's central promise, rendered as a picture you can read from across
+        the room, and it beats the <code>Egress today: 0 bytes</code> line in the widget rail because you cannot help
+        seeing it.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Cost</span>
+        <div><span class="cost mid">every frame</span> Honest numbers: at 1000&times;562 half-res this is ~3–5ms per
+        frame in JS. It must run at <b>20fps, not 60</b>, must stop on <code>document.hidden</code>, and must be
+        <b>frozen to a still</b> the moment any window is being dragged or the &#8984;K switcher opens. Budget it as
+        "the wallpaper is a video that pauses whenever the user touches anything".</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Risk</span>
+        <div>Medium. The failure mode is legibility — contours behind desktop icon labels. Mitigation: the field is
+        drawn at 26% opacity over the flat ground, and the top 15% (under the menu bar) and bottom 18% (under the dock)
+        are damped.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>W2 — Girih as light, not as pattern</h3><span class="sp"></span>
+        <span class="tag">offscreen canvas · blitted</span><span class="cost free">drawn once · ~0 per frame</span>
+      </div>
+      <div class="spec-bd">
+        <div class="wallbox">
+          <canvas id="girihCv" width="1000" height="562" role="img" aria-label="A ten-fold girih tessellation rendered as a faint light in the ground, brightening near prayer time"></canvas>
+          <div class="ov"><span id="gLbl">contrast 4%</span><span id="gPrayer">Maghrib 18:41 — 22 min</span></div>
+        </div>
+        <div class="knobs">
+          <div class="fieldrow"><label for="gCon">Contrast</label><input class="rng" type="range" id="gCon" min="0" max="24" value="4"><output id="gConO">4%</output></div>
+          <div class="fieldrow"><label for="gMin">Minutes to Maghrib</label><input class="rng" type="range" id="gMin" min="0" max="60" value="22"><output id="gMinO">22 min</output></div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">The idea</span>
+        <div>Arabic geometry in software almost always goes wrong the same way: the pattern is drawn as
+        <em>lines on the surface</em>, at full contrast, as decoration. Here the tessellation is never a line — it is
+        the <b>shape of a light source inside the ground</b>, at 3–5% contrast. The test for taste: at arm's length on
+        a laptop you should not be able to say for certain whether it is there. It anchors at the qibla-facing corner
+        and rotates one degree per hour. Push the contrast slider to 20% to see exactly what to avoid.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Prayer time</span>
+        <div>The pattern's brightness eases up over the four minutes before each prayer and eases back down after.
+        <b>Ambient, never modal.</b> No toast, no sound, no dialog — the room simply gets slightly warmer. Drag the
+        second slider toward zero.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Cost</span>
+        <div><span class="cost free">idle</span> The tessellation is rasterised <b>once</b> into an offscreen canvas
+        at load and then only transformed. Per-frame cost is a single <code>drawImage</code> — or zero, if you
+        translate a <code>&lt;canvas&gt;</code> element with CSS instead. Best value on this page.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>W3 — The zero-cost ground</h3><span class="sp"></span>
+        <span class="tag">pure CSS · no rAF at all</span><span class="cost free">0 JS per frame</span>
+      </div>
+      <div class="spec-bd">
+        <div class="cssground" id="cssGround"><span class="horizon"></span></div>
+        <div class="knobs">
+          <div class="fieldrow"><label for="cgHr">Riyadh hour</label><input class="rng" type="range" id="cgHr" min="0" max="1439" value="1121"><output id="cgHrO" class="hourout">18:41</output></div>
+        </div>
+        <p style="margin-top:12px; font-size:13px; color:var(--tx-2); line-height:1.55">
+          Four gradients and three custom properties. JS touches it <strong>once a minute</strong> to set
+          <code>--sun</code> and <code>--h1/--h2/--h3</code>, then never again. This is the answer to Console's
+          compositing problem: <strong>whenever an overlay is animating — the &#8984;K switcher, a space switch, a
+          window drag — swap the live wallpaper for this one.</strong> Nobody will notice the swap, and the
+          backdrop-filter layers above it become cacheable.
+        </p>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Riyadh</span>
+        <div>The specifics that make this local rather than generic: the <b>shamal haze</b> — a warm, low-saturation
+        veil that thickens between 14:00 and 18:00; <b>Tuwaiq limestone</b> as the light theme's ground rather than a
+        neutral grey; and the actual colour of a Riyadh dusk, which is a fast magenta-into-indigo, not the slow orange
+        of a coastal sunset. Drag through 17:00–19:00 and watch it turn.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Avoid</span>
+        <div>Camel silhouettes, illustrated dunes, palm trees, mosque domes, and the flag's green used as a UI colour.
+        Every one of those reads as a tourism board. Sovereignty should look like <b>precision and locality</b>, not
+        like iconography.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 04 MOTION ==================== -->
+  <section class="sec" id="motion">
+    <div class="sechead"><span class="secnum">04</span><h2>Motion language</h2></div>
+    <p class="secintro">
+      Console's stylesheet currently contains transitions at .12s, .15s, .18s, .2s and .3s, plus animations at 300ms,
+      180ms and 600ms, and a dock hover on <code>cubic-bezier(.2,.9,.3,1.5)</code> — that trailing <strong>1.5</strong>
+      is an overshoot. Overshoot on a single playful button is charming. Overshoot on a dock holding thirty-one
+      enterprise apps makes the product feel like a toy.
+    </p>
+    <p class="secintro">Six durations. Four curves. Nothing else gets written.</p>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>The scale</h3><span class="sp"></span><span class="tag">click a curve to play it</span></div>
+      <div class="spec-bd">
+        <div class="curvegrid" id="curveGrid"></div>
+        <div class="hscroll" style="margin-top:18px">
+          <table class="durtable">
+            <caption class="sr">Duration scale</caption>
+            <thead><tr><th scope="col">Token</th><th scope="col">ms</th><th scope="col">Used for</th></tr></thead>
+            <tbody>
+              <tr><td class="k">--d-state</td><td class="k">90</td><td>Hover, press, checkbox, focus ring. Anything that must feel instant.</td></tr>
+              <tr><td class="k">--d-move</td><td class="k">140</td><td>Dock hover lift, tooltip, small slide, tab underline.</td></tr>
+              <tr><td class="k">--d-panel</td><td class="k">200</td><td>Popovers, menus, toasts, widget expand, sidebar.</td></tr>
+              <tr><td class="k">--d-window</td><td class="k">280</td><td>Window open, close, minimise, maximise.</td></tr>
+              <tr><td class="k">--d-space</td><td class="k">420</td><td>Space switch, &#8984;K switcher, Mission Control. The only long moves.</td></tr>
+              <tr><td class="k">--d-ambient</td><td class="k">700</td><td>Wallpaper reactions, the settle after agent work, prayer-time warmth.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Rules</span>
+        <div><b>1.</b> An exit is 0.6&times; its enter. <b>2.</b> Longer distance gets a longer duration, never a
+        different curve. <b>3.</b> Animate <code>opacity</code> and <code>transform</code> only — never width, height,
+        top, left, <code>filter</code> or <code>backdrop-filter</code>. <b>4.</b> Stagger is 20ms and caps at six items;
+        the seventh onward arrive together. <b>5.</b> If it happens on every keystroke it gets no animation at all.
+        <b>6.</b> No spring, no overshoot, anywhere in the OS.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Window open — the same event, twice</h3><span class="sp"></span>
+        <button class="btn sm" data-play="win">Play both</button>
+      </div>
+      <div class="spec-bd">
+        <div class="vs" data-pair="win">
+          <div class="pane bad">
+            <h4>Don't</h4>
+            <div class="stage"><span class="spawn"></span>
+              <div class="mockwin"><div class="t">Board Pack</div><div class="l"></div><div class="l s"></div></div>
+            </div>
+            <p class="why">520ms, scale from 0.4, a rotation, and an overshoot past 1.0. It draws attention to itself,
+            it is slower than the app takes to render, and by the third window of the day it is an irritation.</p>
+          </div>
+          <div class="pane good">
+            <h4>Do</h4>
+            <div class="stage"><span class="spawn"></span>
+              <div class="mockwin"><div class="t">Board Pack</div><div class="l"></div><div class="l s"></div></div>
+            </div>
+            <p class="why">280ms, <code>--ease-emph</code>, scale 0.96&rarr;1 with an 8px rise and opacity. No rotation,
+            no overshoot. In the real build, set <code>transform-origin</code> from the icon or dock tile that was
+            clicked, so the window visibly comes <em>from</em> the thing you pressed.</p>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note"><span class="lbl">Effort</span><div><b>Cheap.</b> One keyframe swap, plus four lines of JS
+      to set <code>transform-origin</code> from the click coordinates. <span class="cost free">0 frame cost</span></div></div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Space switch — do you know where you went?</h3><span class="sp"></span>
+        <button class="btn sm" data-play="space">Switch to the next space</button>
+      </div>
+      <div class="spec-bd">
+        <div class="vs">
+          <div class="pane bad">
+            <h4>Don't — 600ms crossfade</h4>
+            <div class="stage"><div class="crossfade" id="cfDemo">
+              <div data-on="1">Delivery</div><div>Build</div><div>Research</div>
+            </div></div>
+            <p class="why">Both spaces are on screen at once and neither is readable. You lose your place, and the
+            switch carries no direction — you cannot tell whether you moved forward or back.</p>
+          </div>
+          <div class="pane good">
+            <h4>Do — 420ms push</h4>
+            <div class="stage"><div class="filmstrip" id="fsDemo">
+              <div>Delivery</div><div>Build</div><div>Research</div>
+            </div></div>
+            <p class="why">The four Spaces are one filmstrip. 420ms on <code>--ease-emph</code>, transform only.
+            Direction tells you where you went, and because it is a single translated container the compositor handles
+            it without repainting either space.</p>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note"><span class="lbl">Note</span><div>This also fixes a real cost: a crossfade needs both
+      spaces rendered and composited simultaneously. A push needs one layer moved. <span class="cost free">cheaper than what is there now</span></div></div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Dock hover</h3><span class="sp"></span><span class="tag">hover the tiles</span>
+      </div>
+      <div class="spec-bd">
+        <div class="vs">
+          <div class="pane bad">
+            <h4>Don't — what Console does today</h4>
+            <div class="dockdemo bad">
+              <span class="dtile"></span><span class="dtile"></span><span class="dtile"></span><span class="dtile"></span><span class="dtile"></span>
+            </div>
+            <p class="why"><code>translateY(-13px) scale(1.16)</code> over 180ms on <code>cubic-bezier(.2,.9,.3,1.5)</code>.
+            The 13px lift knocks the tile out of its own row, and the overshoot means the tile is still settling when
+            your pointer has already moved on to the next one. Across a thirty-one-tile dock it ripples.</p>
+          </div>
+          <div class="pane good">
+            <h4>Do</h4>
+            <div class="dockdemo good">
+              <span class="dtile"><span class="lbl">Brain</span></span><span class="dtile"><span class="lbl">Agents</span></span>
+              <span class="dtile"><span class="lbl">Workflow</span></span><span class="dtile"><span class="lbl">Terminal</span></span>
+              <span class="dtile"><span class="lbl">Files</span></span>
+            </div>
+            <p class="why"><code>translateY(-6px) scale(1.06)</code>, 140ms, <code>--ease-out</code>, no overshoot, plus
+            a shadow step so the tile reads as <em>lifting</em> rather than <em>growing</em>. The information you
+            actually wanted — the name — arrives 60ms later. The motion serves the label; it is not the point.</p>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note"><span class="lbl">Also</span><div>Delete
+      <code>.dk:hover .ico{filter:drop-shadow(0 0 6px var(--cyan))}</code>. A cyan glow on hover is the single most
+      generic sci-fi move in the file, it fights the per-app tile colour, and <code>drop-shadow</code> on hover forces
+      a filter pass on a 50px element thirty-one times a second while you sweep the dock.</div></div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Notification arrival</h3><span class="sp"></span>
+        <button class="btn sm" data-play="toast">Deliver a notification</button>
+      </div>
+      <div class="spec-bd">
+        <div class="vs">
+          <div class="pane bad">
+            <h4>Don't</h4>
+            <div class="stage" style="height:150px"><div class="toastzone bad" id="tzBad">
+              <div class="toast bad"><div class="h">Mail Triage Agent</div>3 vendor mails classified</div>
+              <div class="undock"><span class="badge">3</span></div>
+            </div></div>
+            <p class="why">700ms, a slide from off-screen, an overshoot, and a badge that pops to 1.5&times;. Three
+            separate things demand your eye for the same one fact.</p>
+          </div>
+          <div class="pane good">
+            <h4>Do</h4>
+            <div class="stage" style="height:150px"><div class="toastzone good" id="tzGood">
+              <div class="toast good"><div class="h">Mail Triage Agent</div>3 vendor mails classified</div>
+              <div class="undock"></div>
+            </div></div>
+            <p class="why">200ms, 8px rise, opacity. And <strong>the dock tile it came from gains light</strong> rather
+            than a badge. The badge stays for counts you must clear; it is not the arrival signal. See &sect;07.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 05 TYPE ==================== -->
+  <section class="sec" id="type">
+    <div class="sechead"><span class="secnum">05</span><h2>Typography and density</h2></div>
+    <p class="secintro">
+      An OS type scale is not a website type scale. Almost all of it lives between 11px and 14px, and its job is to
+      stay readable at density, next to numbers, in two writing systems. Console currently uses roughly fourteen
+      distinct sizes between 10px and 26px. That is not a scale, it is a history.
+    </p>
+    <p class="secintro">Seven roles. Six sizes. System stacks only — no webfont, ever, in a product that must run air-gapped.</p>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>The scale, rendered at its real size</h3><span class="sp"></span><span class="cost free">CSS only</span></div>
+      <div class="spec-bd">
+        <div class="hscroll">
+          <table class="typetable">
+            <caption class="sr">OS type scale</caption>
+            <thead><tr><th scope="col">Role</th><th scope="col">Specimen</th><th scope="col">Spec</th></tr></thead>
+            <tbody>
+              <tr><td>Menu bar</td><td class="t-menubar">Console &nbsp; File &nbsp; Edit &nbsp; Window</td><td class="spec">12.5 / 600 / 0 / 1</td></tr>
+              <tr><td>Window title</td><td class="t-wintitle">Package C2 exposure — Board Pack</td><td class="spec">12.5 / 650 / &minus;.005em</td></tr>
+              <tr><td>Section label</td><td class="t-label">Sovereignty</td><td class="spec">mono 10.5 / 600 / .14em / caps</td></tr>
+              <tr><td>Body</td><td class="t-body">Split the rebar order across two vendors. The single-source risk exceeds the unit-rate penalty.</td><td class="spec">13.5 / 400 / 1.5</td></tr>
+              <tr><td>Data</td><td class="t-data">PO 4500219871 &nbsp; SAR 5,320,400 &nbsp; 11 d</td><td class="spec">mono 13 / 500 / tabular</td></tr>
+              <tr><td>Figure</td><td class="t-figure">SAR 5.32M</td><td class="spec">30 / 700 / &minus;.025em / tabular</td></tr>
+              <tr><td>Helper</td><td class="t-helper">at 45 days · LD cap binds past day 67</td><td class="spec">11.5 / 400 / 1.45</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Two rules</span>
+        <div><b>1.</b> <code>font-variant-numeric: tabular-nums</code> on every number in the OS. A live counter whose
+        digits reflow is the single loudest cheapness tell in a desktop product, and Console has live counters in the
+        menu bar, the Sovereignty widget and the Agent Feed. <b>2.</b> At 12px and below, negative letter-spacing goes
+        to zero — tightening small system text costs legibility and buys nothing.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Density is a row height, not a font size</h3><span class="sp"></span>
+        <div class="seg" role="group" aria-label="Density">
+          <button type="button" data-density="comfortable" aria-pressed="false">Comfortable</button>
+          <button type="button" data-density="default" aria-pressed="true">Default</button>
+          <button type="button" data-density="compact" aria-pressed="false">Compact</button>
+        </div>
+      </div>
+      <div class="spec-bd">
+        <div class="density" id="densityDemo" data-d="default">
+          <div class="drow hd"><span>Line item</span><span>Source</span><span class="num">Exposure</span></div>
+          <div class="drow"><span>Rebar — C-deck</span><span>Primavera P6</span><span class="num">1,240,000</span></div>
+          <div class="drow"><span>Rebar — D-deck</span><span>Primavera P6</span><span class="num">982,400</span></div>
+          <div class="drow"><span>PO 4500219871</span><span>SAP S/4HANA</span><span class="num">2,104,000</span></div>
+          <div class="drow"><span>Variation VN-C2-0114</span><span>Company Knowledge</span><span class="num">994,000</span></div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Why</span>
+        <div>Density modes that shrink the type make a dense view <em>less</em> readable exactly when you need it most.
+        Only <code>--row</code> and the horizontal padding change here: 36 / 30 / 24px. Type stays at 13.5. Compact
+        fits 25% more rows and is still comfortable at arm's length.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>The Arabic pairing</h3><span class="sp"></span><span class="tag">live · both directions</span></div>
+      <div class="spec-bd">
+        <div class="bilingual">
+          <div class="card" dir="ltr" lang="en">
+            <div class="lb">Latin — 13.5 / 1.5</div>
+            <div class="t">Package C2 exposure</div>
+            <div class="b">Split the rebar order across two vendors. The single-source risk on Al-Rajhi exceeds the
+            unit-rate penalty of dual-sourcing.</div>
+            <div class="kv"><span>Exposure</span><b>SAR 5,320,400</b></div>
+            <div class="kv" style="border:0; padding-top:0; margin-top:4px"><span>Maghrib</span><b>18:41</b></div>
+          </div>
+          <div class="card" dir="rtl" lang="ar">
+            <div class="lb">Arabic — 1.06em / 1.78</div>
+            <div class="t">انكشاف الحزمة C2</div>
+            <div class="b">تقسيم طلب حديد التسليح على موردين اثنين. مخاطر المصدر الواحد لدى الراجحي تتجاوز غرامة سعر
+            الوحدة الناتجة عن ازدواج المصدر.</div>
+            <div class="kv"><span>الانكشاف</span><b>5,320,400 ر.س</b></div>
+            <div class="kv" style="border:0; padding-top:0; margin-top:4px"><span>المغرب</span><b>١٨:٤١</b></div>
+          </div>
+        </div>
+        <div class="mirror">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+          <span class="sp">Direction icons flip under <code>dir="rtl"</code></span>
+          <span class="t-label">flips</span>
+        </div>
+        <div class="mirror">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          <span class="sp">Object icons do not</span>
+          <span class="t-label">holds</span>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Stack</span>
+        <div><code>"SF Arabic", "Segoe UI", "Noto Sans Arabic", "Geeza Pro", Tahoma</code> — all present on the
+        platforms Console targets, none downloaded. At the same px, Arabic reads about 10% smaller and needs
+        materially more leading; the fix is one rule:
+        <code>:lang(ar){ font-size:1.06em; line-height:1.78 }</code>.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Numbers</span>
+        <div>The question everyone gets wrong. Use <b>Western digits</b> for engineering and financial data even inside
+        Arabic text — that is what Saudi enterprise systems actually do, and it is what a P6 export or a SAP PO number
+        looks like. Keep <b>Arabic-Indic</b> for the Hijri date and prayer times, where it is a cultural rather than a
+        technical figure. Both are shown above.</div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Never</span>
+        <div>Never letter-space Arabic. Never synthesise bold on it. Never put
+        <code>text-transform:uppercase</code> on a container that might hold it — Console's mono section labels do
+        exactly this today and they will need a <code>:lang(ar)</code> escape. Mirroring should be free: use
+        <code>padding-inline-start</code>, <code>margin-inline-end</code> and <code>inset-inline</code> everywhere so
+        RTL is a single attribute, not a stylesheet.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 06 COLOUR ==================== -->
+  <section class="sec" id="colour">
+    <div class="sechead"><span class="secnum">06</span><h2>Colour — three families that must never be confused</h2></div>
+    <p class="secintro">
+      Console's twelve themes each redefine <code>--accent</code> <em>and</em> <code>--cyan</code>. But
+      <code>--cyan</code> is also the hover glow and several data colours, which means picking the "Masonry" theme
+      quietly changes the meaning of a hover. The fix is to split colour into three families and let only one of them
+      be themeable.
+    </p>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>The three families</h3><span class="sp"></span><span class="cost free">token split</span></div>
+      <div class="spec-bd">
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Rule</span>
+        <div><b>Brand</b> (<code>--accent</code>, #D71920, plus the mark's own gradients) appears on the mark, the one
+        primary action in a view, and destructive confirmation. <b>It is never a status colour</b> — a red chip that
+        might mean "Magna" or might mean "failed" is a chip that means nothing. <b>Semantic</b> is identical across all
+        twelve themes. <b>Tint</b> is the only themeable family, and it is allowed on exactly four things: the
+        wallpaper, text selection, the focus ring, and the space pips.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Contrast, computed live in whichever theme you are in</h3><span class="sp"></span>
+        <span class="tag" id="ctxLbl">theme: —</span>
+      </div>
+      <div class="spec-bd">
+        <div class="hscroll">
+          <table class="ctable" id="ctable">
+            <caption class="sr">Computed contrast ratios</caption>
+            <thead><tr><th scope="col">Token</th><th scope="col">On</th><th scope="col">Sample</th><th scope="col">Ratio</th><th scope="col">AA body</th><th scope="col">AA large</th></tr></thead>
+            <tbody id="ctbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Findings</span>
+        <div>These figures are measured from the live stylesheet, not asserted — flip the theme toggle and watch them
+        change. Two known problems in Console today: <b>(a)</b> <code>--tx-3:#787E8D</code> on the dark glass is about
+        4.1:1, which fails AA for body text and it is used for the Agent Feed timestamps and the widget sub-lines;
+        this page raises it to <code>#8C93A2</code>. <b>(b)</b> Brand red on a light desktop ground lands right on the
+        4.5 line — so a separate <code>--accent-ink</code> exists for red <em>text</em>, while
+        <code>--accent</code> stays exact for fills where only the white knockout matters.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Residency should not be a hue</h3><span class="sp"></span>
+        <button class="btn sm" id="gsBtn" aria-pressed="false">Simulate greyscale</button>
+      </div>
+      <div class="spec-bd">
+        <div class="residency" id="resDemo">
+          <span class="rchip priv"><span class="d"></span>PRIVATE</span>
+          <span class="rchip pub"><span class="d"></span>PUBLIC</span>
+          <span style="font-size:13px; color:var(--tx-2); max-width:44ch">Filled vs outlined-and-dashed. The two chips
+          are still distinguishable with no colour at all.</span>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Why</span>
+        <div>Green-means-Private is right, but green also means "ok" everywhere else in the OS, and the twelve themes
+        can shift what green looks like. Carry residency on <b>fill vs outline</b> — the most legally consequential
+        state in the product should survive colour blindness, a projector, a greyscale print of a compliance screenshot,
+        and a theme change. Colour becomes the second cue, not the only one.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>Twelve themes, one set of meanings</h3><span class="sp"></span>
+        <span class="tag">click a tint</span>
+      </div>
+      <div class="spec-bd">
+        <div class="themerow" id="themeRow" role="group" aria-label="Theme tint"></div>
+        <div style="margin-top:16px" class="grid3">
+          <div class="sw"><div class="chip" style="background:var(--tint)">TINT</div><div class="meta"><div class="nm">Decorative</div><div class="use">Changes with the theme. Wallpaper, selection, focus ring, space pips.</div></div></div>
+          <div class="sw"><div class="chip" style="background:var(--ok)">OK</div><div class="meta"><div class="nm">Semantic</div><div class="use">Never changes. Private, healthy, passed.</div></div></div>
+          <div class="sw"><div class="chip" style="background:var(--accent)">BRAND</div><div class="meta"><div class="nm">Magna red</div><div class="use">Never changes. The mark, the primary action, destructive confirm.</div></div></div>
+        </div>
+      </div>
+      <div class="spec-note"><span class="lbl">Effort</span><div><b>Cheap but invasive.</b> The token split itself is
+      trivial; the work is auditing every existing use of <code>--cyan</code> in Console and deciding whether that
+      instance meant "tint" or meant "information". Budget a day of find-and-replace, not a redesign.
+      <span class="cost free">0 frame cost</span></div></div>
+    </div>
+  </section>
+
+  <!-- ==================== 07 AI LAYER ==================== -->
+  <section class="sec" id="ai">
+    <div class="sechead"><span class="secnum">07</span><h2>The AI-futuristic layer, done with restraint</h2></div>
+    <p class="secintro">
+      This is the part most likely to go wrong, so here is the thesis first:
+      <strong>the futurism has to come from behaviour, not from decoration.</strong> A surface that responds to what
+      the machine is actually doing looks more advanced than a surface covered in glowing lines — and it ages, because
+      it is describing something true rather than quoting a film.
+    </p>
+    <p class="secintro">Five moves, then the list of things not to build.</p>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>1 — Thinking has one vocabulary, at every scale</h3><span class="sp"></span><span class="cost free">SVG dashoffset · GPU</span></div>
+      <div class="spec-bd">
+        <div class="thinkrow" id="thinkRow">
+          <div class="thinkcell">
+            <span class="cap">14px — inline</span>
+            <span style="display:inline-flex; align-items:center; gap:8px; font-size:13.5px">
+              <span data-mark="inline" data-size="14" class="mkloop working"></span> reading 12 chunks
+            </span>
+            <span class="st">In a message, a cell, a table row.</span>
+          </div>
+          <div class="thinkcell">
+            <span class="cap">22px — window chrome</span>
+            <span data-mark="chrome" data-size="22" class="mkloop working"></span>
+            <span class="st">This window's agent is working. Replaces a title-bar spinner.</span>
+          </div>
+          <div class="thinkcell">
+            <span class="cap">58px — the orb</span>
+            <span class="thinkorb"><span data-mark="orb" data-size="34" class="mkloop working"></span></span>
+            <span class="st">Ask AI, the companion, the boot screen.</span>
+          </div>
+          <div class="thinkcell">
+            <span class="cap">what to delete</span>
+            <span class="spinner" role="img" aria-label="A generic spinner"></span>
+            <span class="st">Spinners and three bouncing dots say nothing and belong to every other product.</span>
+          </div>
+        </div>
+        <div class="row" style="margin-top:16px">
+          <button class="btn sm" data-think="working" aria-pressed="true">Working</button>
+          <button class="btn sm" data-think="closing" aria-pressed="false">Nearly done</button>
+          <button class="btn sm" data-think="done" aria-pressed="false">Done</button>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">The move</span>
+        <div>It is not just "use the logo instead of a spinner" — the brief already asks for that. It is that
+        <b>the draw speed encodes progress</b>. A slow, even 1.9s loop means working. The loop accelerating to 0.85s
+        means the model is closing out. A single completed draw that then holds means done. Three states, one shape,
+        no text needed, and it reads identically at 14px and at 58px because a two-stroke mark has no detail to lose.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>2 — Agent activity as light, not as a badge</h3><span class="sp"></span>
+        <div class="seg" role="group" aria-label="Activity treatment">
+          <button type="button" data-presence="badge" aria-pressed="false">Badges</button>
+          <button type="button" data-presence="light" aria-pressed="true">Light</button>
+        </div>
+      </div>
+      <div class="spec-bd">
+        <div class="presence" id="presenceDemo" data-mode="light">
+          <span class="ptile" data-busy="1" style="--agent:#3FCF95"><span class="cnt" data-activity="1">•</span></span>
+          <span class="ptile"></span>
+          <span class="ptile" data-busy="1" style="--agent:#8B84F5"><span class="cnt" data-activity="1">•</span></span>
+          <span class="ptile"><span class="cnt">3</span></span>
+          <span class="ptile" data-busy="1" style="--agent:#E0A33C"><span class="cnt" data-activity="1">•</span></span>
+          <span class="ptile"></span>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Split</span>
+        <div>Two different facts are wearing the same red dot in Console today. <b>A count</b> ("3 unread") is a thing
+        you must clear — it earns a badge. <b>Activity</b> ("this agent is running right now") is ambient — it should
+        be a soft under-light in that agent's colour and a brighter top hairline on its window. In the "Badges" mode
+        above, five red dots compete and none of them tells you what is happening. In "Light" mode you can see at a
+        glance that three things are working and one thing wants you.</div>
+      </div>
+      <div class="spec-note"><span class="lbl">Cost</span><div><b>Cheap.</b> A box-shadow and a 3px pseudo-element per
+      running tile. <span class="cost free">0 frame cost</span> — no animation is needed; the light either is or is not.</div></div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd">
+        <h3>3 — Ambient telemetry: the sovereignty strip</h3><span class="sp"></span>
+        <button class="btn sm" id="leakBtn" aria-pressed="false">Simulate a byte leaving</button>
+      </div>
+      <div class="spec-bd">
+        <div class="sovstrip" id="sovStrip" data-leak="0">
+          <div class="mb">
+            <span>Console</span><span style="color:var(--tx-3); font-weight:600">Docs</span>
+            <span class="sp"></span>
+            <span class="pill"><span style="width:6px;height:6px;border-radius:99px;background:currentColor"></span>Private</span>
+            <span class="cl">18:41</span>
+          </div>
+          <div class="strip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="cap" id="sovCap">Twelve segments, one per five minutes of the last hour. Unbroken green means every
+          token of inference and every byte of storage stayed inside <span class="mono">magna-riyadh-dc1</span>.</p>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">The move</span>
+        <div>Console already shows <code>Egress today: 0 bytes</code> in a widget. Widgets can be closed, and a number
+        that is always zero stops being read. A <b>3px strip along the bottom edge of the menu bar</b> cannot be
+        closed, costs no space, and shows <em>history</em> rather than a total — you can see when something happened,
+        not just that it did. A gap in the green is the most alarming thing that can appear on this desktop, and it
+        appears without a dialog.</div>
+      </div>
+      <div class="spec-note"><span class="lbl">Cost</span><div><b>Cheap.</b> Twelve divs, updated once every five
+      minutes. <span class="cost free">0 frame cost</span></div></div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>4 — The Brain graph as the aesthetic signature</h3><span class="sp"></span><span class="cost mid">one engine, three placements</span></div>
+      <div class="spec-bd">
+        <div class="brainuses">
+          <div class="brainuse">
+            <div class="ttl">Placement A — the Research ground</div>
+            <div class="cv"><canvas data-brain="wall" width="480" height="360" role="img" aria-label="The knowledge graph rendered very faintly as a wallpaper"></canvas></div>
+            <div class="ds">4% opacity, drifting at 0.02px/frame. Only on the Research space, so it means "you are
+            in the space where the corpus lives".</div>
+          </div>
+          <div class="brainuse">
+            <div class="ttl">Placement B — empty state</div>
+            <div class="cv">
+              <canvas data-brain="empty" width="480" height="360" role="img" aria-label="The knowledge graph as an empty-state illustration"></canvas>
+              <div class="over"><div><div class="h">No documents yet</div><div class="p">Connect a source to start the graph</div></div></div>
+            </div>
+            <div class="ds">The same engine at 22%. An empty state that shows you the shape of what will fill it.</div>
+          </div>
+          <div class="brainuse">
+            <div class="ttl">Placement C — retrieval in progress</div>
+            <div class="cv">
+              <canvas data-brain="load" width="480" height="360" role="img" aria-label="The knowledge graph lighting up the nodes currently being retrieved"></canvas>
+              <div class="over" style="align-items:end; justify-items:start; text-align:start">
+                <div><div class="h" id="brainLoadN">reading 4 of 12</div><div class="p">Subcontract GC-8 · PO 4500219871</div></div>
+              </div>
+            </div>
+            <div class="ds"><b>The one that earns its keep.</b> While a RAG answer is composing, the nodes actually
+            being read light up in sequence. A spinner becomes information.</div>
+          </div>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Cost</span>
+        <div><span class="cost mid">every frame</span> One shared engine, one node array, three draw modes. It must be
+        <b>one</b> engine — three separate graph canvases running simultaneously is how you melt a laptop. In the real
+        build: the wallpaper placement redraws at 8fps, the empty state redraws only on resize, and the loading
+        placement runs at 30fps only while a request is in flight. All three stop via IntersectionObserver, as they do
+        on this page.</div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>5 — The settle</h3><span class="sp"></span><button class="btn sm" id="settleBtn">Finish a batch of agent work</button></div>
+      <div class="spec-bd">
+        <div class="lightlab" id="settleLab" data-focus="1" data-lit="1" style="min-height:200px; transition:filter var(--d-ambient) var(--ease-std)">
+          <span class="keydot" aria-hidden="true"></span>
+          <button class="lw a" type="button" style="top:22%"><span class="bar"><span class="dots"><i></i><i></i><i></i></span> Agents</span>
+          <span class="bd">Press the button. Four agents just finished a run.</span></button>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">The move</span>
+        <div>When a batch of background work completes, the whole desktop's ambient light rises about 3% and returns
+        over 700ms. You <b>feel</b> that something finished without reading anything, and it is the only place in the
+        OS where the entire screen responds at once — which is what makes it legible as "everything is done" rather
+        than "one thing happened".</div>
+      </div>
+      <div class="spec-note"><span class="lbl">Cost</span><div><span class="cost mid">one-off</span> A single
+      <code>opacity</code> transition on one wallpaper overlay div, 700ms, once per batch. Do <b>not</b> implement it
+      as a <code>filter:brightness()</code> on the desktop root — that repaints every window underneath.</div></div>
+    </div>
+
+    <h3 style="margin-top:38px; font-size:19px">The clichés, and what to do instead</h3>
+    <p class="secintro" style="margin-top:12px">
+      Every one of these is off by default. Press "run" to see four seconds of it, then it stops on its own — which is
+      also an honest demonstration of what each one costs.
+    </p>
+    <div class="donts" style="margin-top:18px" id="dontsGrid"></div>
+  </section>
+
+  <!-- ==================== 08 THREE LOOKS ==================== -->
+  <section class="sec" id="looks">
+    <div class="sechead"><span class="secnum">08</span><h2>Three complete looks</h2></div>
+    <p class="secintro">
+      Everything above is a system, and a system can wear more than one face. Here are three coherent directions,
+      rendered live from the <em>same markup</em> with three different token sets — which is itself the point: if the
+      system is right, the look is a swap, not a rebuild. Each responds to this page's light/dark toggle.
+    </p>
+    <div class="looks" id="looksGrid">
+
+      <article class="look" data-look="quiet">
+        <div class="hd">
+          <h3>1 · Quiet Instrument</h3>
+          <p class="sub">Graphite and bone. No hue anywhere except the mark and semantic state. Reads like a
+          measuring device.</p>
+        </div>
+        <div class="palette" aria-hidden="true"><i style="background:#0D0E11"></i><i style="background:#22252B"></i><i style="background:#4A4F58"></i><i style="background:#B9BDC5"></i><i style="background:#D71920"></i><i style="background:#12704C"></i></div>
+        <div class="desk" data-desk="quiet">
+          <canvas data-look-cv="quiet" width="640" height="400" aria-hidden="true"></canvas>
+          <div class="mbar"><span>Console</span><span style="opacity:.6">Docs</span><span class="sp"></span><span class="pill">Private</span><span class="cl">18:41</span></div>
+          <span class="sovline"></span>
+          <div class="dicon" style="inset-inline-start:3%; top:22%"><b></b><span>Brain</span></div>
+          <div class="dicon" style="inset-inline-start:3%; top:44%"><b></b><span>Agents</span></div>
+          <div class="win"><div class="wb"><i class="act"></i><i></i><i></i><span>Package C2</span></div>
+            <div class="wc"><span class="fig">SAR 5.32M</span><span class="ln"></span><span class="ln s"></span><span class="ln"></span></div></div>
+          <div class="wg"><div class="k">Sovereignty</div><div class="v">Private</div><div class="m">0 bytes egress</div></div>
+          <div class="dock"><b class="run"></b><b></b><b class="run"></b><b></b><b></b><b></b></div>
+        </div>
+        <div class="traits">
+          <div class="t"><span class="kk">Ground</span><span>A vertical luminance and a noise texture. No hue at all.</span></div>
+          <div class="t"><span class="kk">Chrome</span><span>Opaque. Blur only on the menu bar and dock.</span></div>
+          <div class="t"><span class="kk">Dock</span><span>No magnification. Running apps get a 1.5px underline, nothing else.</span></div>
+          <div class="t"><span class="kk">Reads as</span><span>A Bloomberg terminal designed by someone with taste.</span></div>
+          <div class="t"><span class="kk">Downside</span><span>Conservative in a demo. It will not win a screenshot fight.</span></div>
+        </div>
+        <div class="foot"><span class="cost free">lowest cost · lowest risk</span><button class="btn sm" data-expand="quiet">See it larger</button></div>
+      </article>
+
+      <article class="look pick" data-look="dusk">
+        <div class="hd">
+          <h3>2 · Riyadh Dusk <span class="pickflag">my pick</span></h3>
+          <p class="sub">Limestone, indigo, date-green, dusk amber. The ground carries the identity so the chrome
+          does not have to.</p>
+        </div>
+        <div class="palette" aria-hidden="true"><i style="background:#0A0B18"></i><i style="background:#2A1D2E"></i><i style="background:#C0561F"></i><i style="background:#E8873F"></i><i style="background:#DCC9AE"></i><i style="background:#1F6B4A"></i></div>
+        <div class="desk" data-desk="dusk">
+          <canvas data-look-cv="dusk" width="640" height="400" aria-hidden="true"></canvas>
+          <div class="mbar"><span>Console</span><span style="opacity:.6">Docs</span><span class="sp"></span><span class="pill">Private</span><span class="cl">18:41</span></div>
+          <span class="sovline"></span>
+          <div class="dicon" style="inset-inline-start:3%; top:22%"><b></b><span>Brain</span></div>
+          <div class="dicon" style="inset-inline-start:3%; top:44%"><b></b><span>Agents</span></div>
+          <div class="win"><div class="wb"><i class="act"></i><i></i><i></i><span>Package C2</span></div>
+            <div class="wc"><span class="fig">SAR 5.32M</span><span class="ln"></span><span class="ln s"></span><span class="ln"></span></div></div>
+          <div class="wg"><div class="k">Sovereignty</div><div class="v">Private</div><div class="m">0 bytes egress</div></div>
+          <div class="dock"><b class="run"></b><b></b><b class="run"></b><b></b><b></b><b></b></div>
+        </div>
+        <div class="traits">
+          <div class="t"><span class="kk">Ground</span><span>The solar-tracking horizon of W3 plus the girih light of W2.</span></div>
+          <div class="t"><span class="kk">Chrome</span><span>Warm glass — but only on the three floating surfaces.</span></div>
+          <div class="t"><span class="kk">Dock</span><span>Warm tiles, 6px lift, accent underline on running apps.</span></div>
+          <div class="t"><span class="kk">Reads as</span><span>Local, sovereign, and expensive. Nothing else looks like it.</span></div>
+          <div class="t"><span class="kk">Downside</span><span>Needs the girih engine and a solar model. Two days, not two hours.</span></div>
+        </div>
+        <div class="foot"><span class="cost mid">medium cost · medium risk</span><button class="btn sm" data-expand="dusk">See it larger</button></div>
+      </article>
+
+      <article class="look" data-look="field">
+        <div class="hd">
+          <h3>3 · Deep Field</h3>
+          <p class="sub">Near-black indigo, low-chroma cyan, the Brain graph as the ground. The "AI" one, and the
+          one closest to the cliff edge.</p>
+        </div>
+        <div class="palette" aria-hidden="true"><i style="background:#03040A"></i><i style="background:#0B1120"></i><i style="background:#1B2740"></i><i style="background:#35C6D8"></i><i style="background:#8B84F5"></i><i style="background:#3FCF95"></i></div>
+        <div class="desk" data-desk="field">
+          <canvas data-look-cv="field" width="640" height="400" aria-hidden="true"></canvas>
+          <div class="mbar"><span>Console</span><span style="opacity:.6">Docs</span><span class="sp"></span><span class="pill">Private</span><span class="cl">18:41</span></div>
+          <span class="sovline"></span>
+          <div class="dicon" style="inset-inline-start:3%; top:22%"><b></b><span>Brain</span></div>
+          <div class="dicon" style="inset-inline-start:3%; top:44%"><b></b><span>Agents</span></div>
+          <div class="win"><div class="wb"><i class="act"></i><i></i><i></i><span>Package C2</span></div>
+            <div class="wc"><span class="fig">SAR 5.32M</span><span class="ln"></span><span class="ln s"></span><span class="ln"></span></div></div>
+          <div class="wg"><div class="k">Sovereignty</div><div class="v">Private</div><div class="m">0 bytes egress</div></div>
+          <div class="dock"><b class="run"></b><b></b><b class="run"></b><b></b><b></b><b></b></div>
+        </div>
+        <div class="traits">
+          <div class="t"><span class="kk">Ground</span><span>The knowledge graph itself, at 6%, drifting.</span></div>
+          <div class="t"><span class="kk">Chrome</span><span>Darker than the ground, so windows read as cut-outs rather than panels.</span></div>
+          <div class="t"><span class="kk">Dock</span><span>Minimal, nearly invisible until hovered.</span></div>
+          <div class="t"><span class="kk">Reads as</span><span>A research instrument. Photographs extremely well.</span></div>
+          <div class="t"><span class="kk">Downside</span><span>Hardest to keep legible, most expensive per frame, and one bad decision away from every AI landing page of the last three years.</span></div>
+        </div>
+        <div class="foot"><span class="cost hot">highest cost · highest risk</span><button class="btn sm" data-expand="field">See it larger</button></div>
+      </article>
+    </div>
+    <p class="secintro" style="margin-top:20px">
+      All three light and dark variants are live — flip the theme toggle in the header and every one of them changes,
+      because they are token sets over one system rather than three separate designs.
+    </p>
+  </section>
+
+  <!-- ==================== 09 EFFORT ==================== -->
+  <section class="sec" id="effort">
+    <div class="sechead"><span class="secnum">09</span><h2>Effort, risk and frame budget — all of it in one table</h2></div>
+    <p class="secintro">
+      Console already has a compositing problem: a full-viewport <code>backdrop-filter</code> under animating layers
+      had to be pulled out of the &#8984;K switcher. Every proposal on this page is scored against that. "Every frame"
+      means it costs you something continuously; treat those as a budget with a hard ceiling of
+      <strong>two simultaneous rAF surfaces on the desktop</strong>.
+    </p>
+    <div class="spec">
+      <div class="spec-hd"><h3>The whole proposal, costed</h3><span class="sp"></span><span class="tag">honest numbers</span></div>
+      <div class="spec-bd">
+        <div class="hscroll">
+          <table class="efftable">
+            <caption class="sr">Effort and risk per proposal</caption>
+            <thead><tr><th scope="col">Proposal</th><th scope="col">Effort</th><th scope="col">Runs</th><th scope="col">Frame cost</th><th scope="col">Risk</th></tr></thead>
+            <tbody>
+              <tr><td>Elevation ladder (E0–E4)</td><td class="fx">~half a day</td><td>never</td><td><span class="cost free">0</span></td><td>None. Reduces compositor work.</td></tr>
+              <tr><td>Opaque window bodies, glass on 3 surfaces</td><td class="fx">~1 day audit</td><td>never</td><td><span class="cost free">negative</span></td><td>Low. Some screens will look flatter until the focus light lands too.</td></tr>
+              <tr><td>Two-part shadows + top rim light</td><td class="fx">~2 hours</td><td>never</td><td><span class="cost free">0</span></td><td>None.</td></tr>
+              <tr><td>Focus light on the front window</td><td class="fx">~2 hours</td><td>on focus change</td><td><span class="cost free">0</span></td><td>Low — <em>if</em> the idle state is a scrim, not a <code>filter</code>.</td></tr>
+              <tr><td>Bloom on emitting elements</td><td class="fx">~1 hour</td><td>never</td><td><span class="cost free">0</span></td><td>Low. Needs discipline: one at a time, 8% ceiling.</td></tr>
+              <tr><td>W1 — the closed field wallpaper</td><td class="fx">~3 days</td><td>20fps, half-res</td><td><span class="cost mid">3–5ms</span></td><td>Medium. Must freeze during drags and overlays. Icon-label legibility needs testing.</td></tr>
+              <tr><td>W2 — girih as light</td><td class="fx">~2 days</td><td>drawn once</td><td><span class="cost free">~0</span></td><td>Low technically. The risk is taste — get the contrast wrong and it is wallpaper-shop wallpaper.</td></tr>
+              <tr><td>W3 — CSS ground + solar model</td><td class="fx">~1 day</td><td>1&times;/minute</td><td><span class="cost free">0</span></td><td>None. Ship this one first; it is also the fallback for everything else.</td></tr>
+              <tr><td>Motion scale (6 durations, 4 curves)</td><td class="fx">~1 day sweep</td><td>on interaction</td><td><span class="cost free">negative</span></td><td>Low. Removing the dock overshoot may feel "less fun" for a week.</td></tr>
+              <tr><td>Space switch: crossfade &rarr; push</td><td class="fx">~half a day</td><td>420ms per switch</td><td><span class="cost free">cheaper</span></td><td>Low. One layer moved instead of two composited.</td></tr>
+              <tr><td>Type scale + tabular numerals</td><td class="fx">~1 day</td><td>never</td><td><span class="cost free">0</span></td><td>None.</td></tr>
+              <tr><td>Arabic pairing + logical properties</td><td class="fx">~3 days</td><td>never</td><td><span class="cost free">0</span></td><td>Medium — the work is finding every hard-coded <code>left</code>/<code>right</code> in 13,000 lines.</td></tr>
+              <tr><td>Colour family split (brand / semantic / tint)</td><td class="fx">~1 day</td><td>never</td><td><span class="cost free">0</span></td><td>Low but invasive. Every <code>--cyan</code> use needs a decision.</td></tr>
+              <tr><td>Residency as fill-vs-outline</td><td class="fx">~2 hours</td><td>never</td><td><span class="cost free">0</span></td><td>None. Pure accessibility win.</td></tr>
+              <tr><td>Mark-as-thinking, three speeds</td><td class="fx">~half a day</td><td>while pending</td><td><span class="cost free">GPU only</span></td><td>None — <code>stroke-dashoffset</code> compositor-side.</td></tr>
+              <tr><td>Agent activity as light</td><td class="fx">~half a day</td><td>never</td><td><span class="cost free">0</span></td><td>Low. Needs a product decision on what still deserves a badge.</td></tr>
+              <tr><td>Sovereignty strip in the menu bar</td><td class="fx">~half a day</td><td>1&times;/5 min</td><td><span class="cost free">0</span></td><td>None. Highest signal per pixel on this page.</td></tr>
+              <tr><td>Brain graph engine, three placements</td><td class="fx">~4 days</td><td>8 / 0 / 30fps</td><td><span class="cost mid">2–6ms</span></td><td>Medium. Must be <b>one</b> engine. Three live canvases is the melt scenario.</td></tr>
+              <tr><td>The settle</td><td class="fx">~1 hour</td><td>700ms per batch</td><td><span class="cost free">~0</span></td><td>None, if it is an opacity transition on one overlay div.</td></tr>
+              <tr><td>Three looks as swappable token sets</td><td class="fx">~2 days</td><td>never</td><td><span class="cost free">0</span></td><td>Low. This is what the twelve themes should have been.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="spec-note">
+        <span class="lbl">Ceiling</span>
+        <div><b>Two rAF surfaces on the desktop, maximum</b>, and neither of them may be under a
+        <code>backdrop-filter</code> while it animates. In practice: the wallpaper is one, and whatever the focused app
+        is drawing is the other. Everything else — dock, chrome, widgets, indicators — is static CSS. Every specimen
+        on this page follows that rule and stops itself via <code>IntersectionObserver</code> when scrolled away, which
+        is the same mechanism the real build should use per-space.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 10 VERDICT ==================== -->
+  <section class="sec" id="verdict">
+    <div class="sechead"><span class="secnum">10</span><h2>What I would ship, and in what order</h2></div>
+    <div class="verdict">
+      <div class="strip">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        Recommendation
+      </div>
+      <div class="bd">
+        <h2>Riyadh Dusk — wearing Quiet Instrument's chrome rules.</h2>
+        <p>
+          Of the three, <strong>Deep Field is the one that will win the meeting and lose the year.</strong> It is the
+          most photogenic and it is also the direction that every AI product on earth is already walking toward; in
+          eighteen months it will read as dated, and it is the most expensive to run. Keep it, but scope it to the
+          <strong>Research space only</strong>, where the Brain graph as a ground is literally descriptive rather than
+          decorative.
+        </p>
+        <p>
+          <strong>Quiet Instrument is right about the chrome and wrong about the ground.</strong> Opaque window bodies,
+          three glass surfaces, no springs, no hover glows, a dock that does not bounce — all of that should be
+          adopted wholesale. But a ground with no hue gives Console nothing that a well-made internal tool does not
+          already have.
+        </p>
+        <p>
+          So: <strong>Riyadh Dusk</strong>. The chrome is quiet and disciplined; the identity lives in the ground,
+          where it costs nothing to be beautiful and where it can carry real state. It is the only one of the three
+          that a competitor cannot ship next month, because it is built from something they do not have — a machine in
+          Riyadh, an hour, a prayer time, and an egress figure that is zero.
+        </p>
+        <ol>
+          <li><b>Week 1 — free wins.</b> Elevation ladder, two-part shadows, top rim light, opaque window bodies,
+          the motion scale sweep, tabular numerals, the residency fill/outline change, and the sovereignty strip.
+          None of it costs a frame and all of it is visible immediately.</li>
+          <li><b>Week 2 — light and ground.</b> The focus light, the colour family split, and W3, the CSS ground with
+          the solar model. At this point the desktop already looks like a different product.</li>
+          <li><b>Week 3–4 — the identity.</b> W2, girih-as-light, drawn once into an offscreen canvas. Then the
+          mark-as-thinking at three speeds and agent activity as light.</li>
+          <li><b>Later, and only with a frame budget in hand.</b> W1, the closed field — the strongest single idea on
+          this page and the one most likely to be built badly. It needs the freeze-on-interaction machinery before it
+          needs the art.</li>
+          <li><b>Deliberately last.</b> The Arabic sweep. It is three days of unglamorous find-and-replace across
+          13,000 lines and it will feel like nothing shipped — but the product is for Saudi Arabia and every day it is
+          deferred, more hard-coded <code>left</code> values are written.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>What I deliberately did not propose</h3><span class="sp"></span></div>
+      <div class="spec-bd">
+        <ul style="display:grid; gap:11px; margin:0; padding-inline-start:20px; color:var(--tx-2); font-size:14px">
+          <li><b>Any new feature.</b> The forty-one ideas in the backlog are all functional; not one of them is about
+          how the thing looks. This page stays strictly in the visual layer, and none of it overlaps that list.</li>
+          <li><b>A thirteenth theme.</b> The twelve that exist are layouts plus an accent, which is a different axis
+          from a <em>look</em>. Adding more accents does not fix that; splitting brand from tint does.</li>
+          <li><b>Replacing the traffic-light buttons</b> with something branded. They are borrowed macOS colours and
+          they are slightly off-brand — and they are also the one control every user already knows. Not worth it.</li>
+          <li><b>3D window transforms, tilt, or more parallax.</b> Console already has holographic 3-plane parallax.
+          Adding depth theatre on top of a depth system that is not yet coherent would make it worse, not better.</li>
+          <li><b>A sound design layer.</b> Real, and out of scope for a page about looking.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="spec-hd"><h3>Things I would flag before anyone builds this</h3><span class="sp"></span><span class="tag">found while using Console</span></div>
+      <div class="spec-bd">
+        <ul style="display:grid; gap:11px; margin:0; padding-inline-start:20px; color:var(--tx-2); font-size:14px">
+          <li><b>Light theme is not finished.</b> Switch Console to light and open Docs: the desktop, dock and widget
+          rail invert correctly, but the document surface stays dark. Several app bodies are hard-coded rather than
+          tokenised. Any visual system is worthless until that is true in both themes — this should be fixed before
+          any of the above.</li>
+          <li><b>The wallpaper loses all identity in light mode.</b> Dark gets the glow, the grid, the mark and the
+          neural field; light gets a pale grey gradient. Light users currently get a different, worse product.</li>
+          <li><b>The twelve themes only set <code>--bg</code>, <code>--accent</code> and <code>--cyan</code>.</b> The
+          surfaces, lines and shadows stay dark-tuned, so several themes have windows that do not belong to their own
+          background. The elevation ladder fixes this by making surfaces derive from the ground.</li>
+          <li><b><code>--tx-3</code> at <code>#787E8D</code> fails AA on the dark glass</b> and it is carrying Agent
+          Feed timestamps, widget sub-lines and icon labels. One hex change.</li>
+          <li><b>The cyan hover <code>drop-shadow</code></b> on dock, menu-bar and tab icons is a filter pass on every
+          hovered icon, it is off-brand, and its colour is themeable — so what a hover <em>means</em> changes with the
+          theme.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:22px">
+      <defs>
+        <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+        </linearGradient>
+        <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+        </linearGradient>
+      </defs>
+      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>MagnaVERSE Console — visual direction. Every specimen on this page is live HTML, CSS and canvas.
+    Nothing here is built in the product yet.</span>
+  </div>
+</footer>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTtl" data-open="0">
+  <div class="panel">
+    <div class="phd">
+      <h3 id="sheetTtl">Look</h3>
+      <button class="btn sm" id="sheetClose">Close <span aria-hidden="true">&nbsp;Esc</span></button>
+    </div>
+    <div class="pbd" id="sheetBody"></div>
+  </div>
+</div>
+@@SPLIT@@
