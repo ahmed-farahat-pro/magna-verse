@@ -4067,6 +4067,24 @@ function dockPinned(){
         saveDock(DOCK_PINNED.slice());
         return DOCK_PINNED.slice();
       }
+      /* Additive migration. The two checks above only fire on an exact match
+         with a known old default, so anyone who had ever rearranged their dock
+         kept a saved list forever and never saw an app added to the default
+         afterwards — which is why Code did not show up. This inserts each new
+         id once, records that it has been offered, and then leaves it alone, so
+         removing it afterwards sticks. */
+      var seen = store.get("mv7.dockadd", ""), changed = false;
+      ["code"].forEach(function(id){
+        if(seen.split(",").indexOf(id) >= 0) return;
+        if(v.indexOf(id) < 0 && APPS[id]){
+          var at = v.indexOf("brain");
+          v.splice(at >= 0 ? at + 1 : Math.min(2, v.length), 0, id);
+          changed = true;
+        }
+        seen = seen ? seen + "," + id : id;
+      });
+      if(changed) saveDock(v);
+      store.set("mv7.dockadd", seen);
       return v;
     }
   }catch(e){}
