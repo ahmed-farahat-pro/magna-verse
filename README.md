@@ -3,8 +3,16 @@
 Seven interactive prototypes, a functional map, and a before/after review for
 `app.stag.magna.ai` (build 1.0.491).
 
-**Pure static frontend.** No backend, no build step, no dependencies. Every file is a
-self-contained HTML page with dummy data held in `localStorage`. Deploys to Vercel as-is.
+**Pure static frontend.** No backend, no build step. Every page is a self-contained HTML file
+with dummy data in `localStorage`. Deploys to Vercel as-is.
+
+**Third-party code is MIT only, and self-hosted where it matters.** Monaco Editor (MIT) is
+vendored under `vendor/monaco/` rather than loaded from a CDN, because Console's Sovereignty
+widget reads `Egress today: 0 bytes` and a CDN script tag would make that false. Editor.js
+(Apache-2.0) and the Google Fonts links (OFL) were removed; the Docs editor is now hand-built with
+no dependency. The three remaining CDN libraries — frappe-gantt, LuckyExcel, PptxGenJS — are all
+MIT but still load from jsDelivr; vendoring them is the next step. See
+[open-source-stack.html](open-source-stack.html) for every licence, read from its own LICENSE file.
 
 ---
 

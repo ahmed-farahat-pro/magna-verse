@@ -4,10 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MagnaVERSE — Desktop Wireframes</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;overflow-x:hidden}
+body{font-family:system-ui,sans-serif;background:#08080a;color:#f2f3f6;overflow-x:hidden}
 .hero{padding:50px 40px 30px;text-align:center}
 .hero h1{font-size:38px;font-weight:800;letter-spacing:-.03em;
   background:linear-gradient(135deg,#0EA5B7,#43E0A6,#7C6BFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
@@ -72,13 +71,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
 .ico-trash{background:rgba(239,68,68,.15)}.ico-trash svg{stroke:#EF4444}
 
 /* ===== MINI TERMINAL ===== */
-.mini-term{font-family:'Roboto Mono',monospace;font-size:10px;line-height:1.6;padding:8px;border-radius:8px}
+.mini-term{font-family:monospace;font-size:10px;line-height:1.6;padding:8px;border-radius:8px}
 .mini-term .prompt{opacity:.5}
 .mini-term .cmd{font-weight:500}
 .mini-term .out{opacity:.6}
 
 /* ===== MINI CODE ===== */
-.mini-code{font-family:'Roboto Mono',monospace;font-size:9.5px;line-height:1.5}
+.mini-code{font-family:monospace;font-size:9.5px;line-height:1.5}
 .mini-code .kw{font-weight:600}
 
 /* ===== 1. LIQUID GLASS ===== */
@@ -144,14 +143,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
     repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(255,255,255,.008) 2px,rgba(255,255,255,.008) 4px);
   pointer-events:none;z-index:0}
 .f-carbon .menubar{background:#1a1a1e;border-bottom:2px solid #FF3D00;position:relative;z-index:1}
-.f-carbon .menubar .app-name{color:#FF3D00;font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.f-carbon .menubar .app-name{color:#FF3D00;font-family:monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
 .f-carbon .menubar .stripe{width:3px;height:14px;background:#FF3D00;border-radius:1px;flex-shrink:0}
 .f-carbon .dock{background:#1a1a1e;border:1px solid rgba(255,61,0,.15);position:relative;z-index:1}
 .f-carbon .dock i{background:rgba(255,61,0,.06);border:1px solid rgba(255,61,0,.1)}
 .f-carbon .widget{background:#1a1a1e;border:1px solid rgba(255,61,0,.12);position:relative;z-index:1}
-.f-carbon .widget .w-head span{color:rgba(255,61,0,.5);font-family:'Roboto Mono',monospace;letter-spacing:.08em}
-.f-carbon .widget .w-big{color:#FF3D00;font-family:'Roboto Mono',monospace}
-.f-carbon .widget .w-sub{color:#555;font-family:'Roboto Mono',monospace;font-size:9.5px}
+.f-carbon .widget .w-head span{color:rgba(255,61,0,.5);font-family:monospace;letter-spacing:.08em}
+.f-carbon .widget .w-big{color:#FF3D00;font-family:monospace}
+.f-carbon .widget .w-sub{color:#555;font-family:monospace;font-size:9.5px}
 .f-carbon .widget .w-bar{background:rgba(255,61,0,.08)}
 .f-carbon .widget .w-bar i{background:linear-gradient(90deg,#FF3D00,#FF6D00)}
 .f-carbon .window{background:#1a1a1e;border:1px solid rgba(255,61,0,.12)}
@@ -160,8 +159,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
 .f-carbon .win-bar .dots i:first-child{background:#FF3D00}
 .f-carbon .win-bar .dots i:nth-child(2){background:#FF6D00}
 .f-carbon .win-bar .dots i:last-child{background:#28C840}
-.f-carbon .win-bar .title{color:#FF3D00;font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.04em}
-.f-carbon .icon .label{color:rgba(255,255,255,.45);font-family:'Roboto Mono',monospace;font-size:9.5px}
+.f-carbon .win-bar .title{color:#FF3D00;font-family:monospace;font-size:10px;letter-spacing:.04em}
+.f-carbon .icon .label{color:rgba(255,255,255,.45);font-family:monospace;font-size:9.5px}
 .f-carbon .mini-term{background:#0d0d0f;border:1px solid rgba(255,61,0,.1)}
 
 /* ===== 4. NEBULA COSMIC ===== */
@@ -216,12 +215,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
 /* ===== 6. MONOCHROME LUXE ===== */
 .f-luxe{background:#000}
 .f-luxe .menubar{border-bottom:1px solid rgba(201,168,76,.15)}
-.f-luxe .menubar .app-name{color:rgba(201,168,76,.5);font-family:'Playfair Display',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.f-luxe .menubar .app-name{color:rgba(201,168,76,.5);font-family:serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
 .f-luxe .dock{border:1px solid rgba(201,168,76,.1)}
 .f-luxe .dock i{background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.08)}
 .f-luxe .widget{border:1px solid rgba(201,168,76,.08);background:rgba(201,168,76,.015)}
-.f-luxe .widget .w-head span{color:rgba(201,168,76,.4);font-family:'Playfair Display',serif;letter-spacing:.12em}
-.f-luxe .widget .w-big{color:#C9A84C;font-family:'Playfair Display',serif}
+.f-luxe .widget .w-head span{color:rgba(201,168,76,.4);font-family:serif;letter-spacing:.12em}
+.f-luxe .widget .w-big{color:#C9A84C;font-family:serif}
 .f-luxe .widget .w-sub{color:rgba(255,255,255,.25)}
 .f-luxe .widget .w-bar i{background:#C9A84C}
 .f-luxe .window{background:rgba(201,168,76,.02);border:1px solid rgba(201,168,76,.1)}
@@ -230,7 +229,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
 .f-luxe .win-bar .dots i:first-child{background:rgba(201,168,76,.3)}
 .f-luxe .win-bar .dots i:nth-child(2){background:rgba(201,168,76,.2)}
 .f-luxe .win-bar .dots i:last-child{background:#C9A84C}
-.f-luxe .win-bar .title{color:rgba(201,168,76,.5);font-family:'Playfair Display',serif;font-size:10.5px;letter-spacing:.08em}
+.f-luxe .win-bar .title{color:rgba(201,168,76,.5);font-family:serif;font-size:10.5px;letter-spacing:.08em}
 .f-luxe .icon .label{color:rgba(255,255,255,.35);font-size:10px;letter-spacing:.02em}
 
 /* ===== 7. SYNTHWAVE ===== */
@@ -483,7 +482,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
         <div class="stripe"></div><div class="stripe"></div>
         <span class="app-name">MagnaVERSE</span>
         <div class="spacer"></div>
-        <div class="status-right"><span style="font-family:'Roboto Mono',monospace;color:rgba(255,61,0,.5);font-size:9px;letter-spacing:.06em">SYS:OK</span><span style="font-family:'Roboto Mono',monospace;color:#FF3D00;font-size:9px">08:14:33</span></div>
+        <div class="status-right"><span style="font-family:monospace;color:rgba(255,61,0,.5);font-size:9px;letter-spacing:.06em">SYS:OK</span><span style="font-family:monospace;color:#FF3D00;font-size:9px">08:14:33</span></div>
       </div>
       <div class="desk-body">
         <div class="icon-area">
@@ -516,28 +515,28 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
           <div class="widget">
             <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF3D00"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>SYS STATUS</span></div>
             <div class="w-big">PRIVATE</div>
-            <div class="w-sub" style="font-family:'Roboto Mono',monospace">0 bytes egress · 0 violations</div>
+            <div class="w-sub" style="font-family:monospace">0 bytes egress · 0 violations</div>
             <div class="w-bar" style="background:rgba(255,61,0,.08)"><i style="width:100%;background:#FF3D00"></i></div>
           </div>
           <div class="widget">
             <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF6D00"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>EXPOSURE</span></div>
             <div class="w-big">SAR 5.32M</div>
-            <div class="w-sub" style="font-family:'Roboto Mono',monospace">DAY 45 · LD CAP: DAY 67</div>
+            <div class="w-sub" style="font-family:monospace">DAY 45 · LD CAP: DAY 67</div>
             <div class="w-bar" style="background:rgba(255,61,0,.08)"><i style="width:67%;background:linear-gradient(90deg,#FF3D00,#FF6D00)"></i></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div class="widget" style="text-align:center">
-              <div class="w-sub" style="font-family:'Roboto Mono',monospace;color:rgba(255,61,0,.4);letter-spacing:.08em;font-size:8px">CPU</div>
+              <div class="w-sub" style="font-family:monospace;color:rgba(255,61,0,.4);letter-spacing:.08em;font-size:8px">CPU</div>
               <div class="w-big" style="font-size:20px">21%</div>
             </div>
             <div class="widget" style="text-align:center">
-              <div class="w-sub" style="font-family:'Roboto Mono',monospace;color:rgba(255,61,0,.4);letter-spacing:.08em;font-size:8px">GPU</div>
+              <div class="w-sub" style="font-family:monospace;color:rgba(255,61,0,.4);letter-spacing:.08em;font-size:8px">GPU</div>
               <div class="w-big" style="font-size:20px">2/8</div>
             </div>
           </div>
           <div class="widget">
             <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF3D00"><circle cx="12" cy="12" r="3"/></svg><span>BRAIN</span></div>
-            <div class="w-sub" style="font-family:'Roboto Mono',monospace">12 NODES · 3 UNRESOLVED</div>
+            <div class="w-sub" style="font-family:monospace">12 NODES · 3 UNRESOLVED</div>
             <div class="w-bar" style="background:rgba(255,61,0,.08)"><i style="width:94%;background:linear-gradient(90deg,#FF3D00,#FF6D00)"></i></div>
           </div>
         </div>
@@ -704,7 +703,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
           <div class="window" style="top:24px;left:48px;width:460px;height:340px;z-index:5">
             <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">Chat</div></div>
             <div class="win-body">
-              <div style="font-family:'Playfair Display',serif;font-size:16px;color:rgba(201,168,76,.7);font-weight:600;margin-bottom:10px">C2 Exposure Position</div>
+              <div style="font-family:serif;font-size:16px;color:rgba(201,168,76,.7);font-weight:600;margin-bottom:10px">C2 Exposure Position</div>
               <div style="width:30px;height:1px;background:#C9A84C;opacity:.3;margin-bottom:10px"></div>
               <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.7">
                 At 45 days the exposure stands at <span style="color:#C9A84C;font-weight:600">SAR 5.32 million</span>. The liquidated damages cap under GC-8 clause 8.4 does not become the binding constraint until day 67.

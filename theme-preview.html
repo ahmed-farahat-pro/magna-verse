@@ -4,11 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MagnaVERSE — Theme Directions</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;overflow-x:hidden}
+body{font-family:system-ui,sans-serif;background:#08080a;color:#f2f3f6;overflow-x:hidden}
 .hero{padding:60px 40px 40px;text-align:center;
   background:linear-gradient(180deg,rgba(14,165,183,.08) 0%,transparent 100%)}
 .hero h1{font-size:42px;font-weight:800;letter-spacing:-.03em;
@@ -87,17 +86,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
 .carbon .mock-bar{height:32px;display:flex;align-items:center;padding:0 12px;gap:12px;
   background:#1a1a1e;border-bottom:2px solid #FF3D00;position:relative;z-index:1}
 .carbon .mock-bar .stripe{width:3px;height:16px;background:#FF3D00;border-radius:2px}
-.carbon .mock-bar span{font-size:10px;font-family:'Roboto Mono',monospace;color:#FF3D00;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.carbon .mock-bar span{font-size:10px;font-family:monospace;color:#FF3D00;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
 .carbon .mock-content{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1}
 .carbon .gauge{background:#1a1a1e;border:1px solid rgba(255,61,0,.2);border-radius:12px;padding:16px;position:relative;overflow:hidden}
 .carbon .gauge::after{content:"";position:absolute;top:0;left:0;width:var(--pct,60%);height:3px;background:linear-gradient(90deg,#FF3D00,#FF6D00);border-radius:0 2px 2px 0}
-.carbon .gauge h3{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,61,0,.6);font-family:'Roboto Mono',monospace;margin-bottom:6px}
-.carbon .gauge .big{font-size:22px;font-weight:800;color:#FF3D00;font-family:'Roboto Mono',monospace}
-.carbon .gauge .sm{font-size:10px;color:#666;margin-top:2px;font-family:'Roboto Mono',monospace}
+.carbon .gauge h3{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,61,0,.6);font-family:monospace;margin-bottom:6px}
+.carbon .gauge .big{font-size:22px;font-weight:800;color:#FF3D00;font-family:monospace}
+.carbon .gauge .sm{font-size:10px;color:#666;margin-top:2px;font-family:monospace}
 .carbon .telemetry{display:flex;gap:16px;margin-top:12px}
 .carbon .telem-item{flex:1;background:#1a1a1e;border:1px solid rgba(255,61,0,.15);border-radius:8px;padding:10px;text-align:center}
-.carbon .telem-item .val{font-size:16px;font-weight:700;color:#FF3D00;font-family:'Roboto Mono',monospace}
-.carbon .telem-item .lbl{font-size:8px;color:#555;text-transform:uppercase;letter-spacing:.1em;margin-top:2px;font-family:'Roboto Mono',monospace}
+.carbon .telem-item .val{font-size:16px;font-weight:700;color:#FF3D00;font-family:monospace}
+.carbon .telem-item .lbl{font-size:8px;color:#555;text-transform:uppercase;letter-spacing:.1em;margin-top:2px;font-family:monospace}
 
 /* ========== 4. NEBULA COSMIC ========== */
 .nebula{background:#0a0a1a;position:relative;overflow:hidden}
@@ -147,12 +146,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;o
 .luxe .mock-bar .dot{width:10px;height:10px;border-radius:50%}
 .luxe .mock-bar .dot.r{background:#333}.luxe .mock-bar .dot.y{background:#333}.luxe .mock-bar .dot.g{background:#C9A84C}
 .luxe .mock-bar span{font-size:10px;font-weight:600;color:rgba(201,168,76,.5);letter-spacing:.12em;
-  text-transform:uppercase;font-family:'Playfair Display',serif;margin-left:auto}
+  text-transform:uppercase;font-family:serif;margin-left:auto}
 .luxe .mock-content{padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .luxe .luxe-card{border:1px solid rgba(201,168,76,.12);border-radius:0;padding:18px;background:rgba(201,168,76,.02)}
 .luxe .luxe-card h3{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:rgba(201,168,76,.4);
-  font-family:'Playfair Display',serif;font-weight:600;margin-bottom:8px}
-.luxe .luxe-card .big{font-size:28px;font-weight:700;color:#C9A84C;font-family:'Playfair Display',serif}
+  font-family:serif;font-weight:600;margin-bottom:8px}
+.luxe .luxe-card .big{font-size:28px;font-weight:700;color:#C9A84C;font-family:serif}
 .luxe .luxe-card .sm{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;font-weight:400}
 .luxe .luxe-line{width:40px;height:1px;background:#C9A84C;margin:12px 0;opacity:.3}
 

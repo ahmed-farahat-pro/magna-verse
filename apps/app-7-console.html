@@ -1733,6 +1733,10 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 .fi .sz{font-family:var(--mono);font-size:10px;color:var(--tx-4);flex:none}
 .cd-right{flex:1;min-width:0;display:flex;flex-direction:column}
 .cd-editor{flex:1;min-height:0;overflow:auto;background:rgba(0,0,0,.24);padding:12px 0}
+/* Monaco measures its own box, so the slot must be a sized, unpadded container */
+.cd-editor:has(.monaco-editor){padding:0;overflow:hidden}
+.cd-editor .monaco-editor{position:absolute;inset:0}
+.cd-editor{position:relative}
 :root[data-theme="light"] .cd-editor{background:rgba(248,249,252,.7)}
 .cd-editor pre{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--tx-2)}
 .cd-editor .ln{display:flex}
@@ -3687,6 +3691,7 @@ function applyTheme(t){
     if(cur) cur.dark = (t !== "light");
   }
   $("#themeBtn").innerHTML = ico(t === "light" ? "i-sun" : "i-moon","sm");
+  try{ document.dispatchEvent(new CustomEvent("mv:theme",{detail:t})); }catch(e){}
 }
 applyTheme(store.get("mv7.themeMode","dark"));
 $("#themeBtn").addEventListener("click", function(){
@@ -4287,6 +4292,9 @@ function focusWin(id){
 }
 function closeWin(id){
   var w = winById(id); if(!w) return;
+  /* Monaco holds workers and DOM listeners — let it go with the window */
+  try{ if(w.__ed){ w.__ed.dispose(); w.__ed = null; } }catch(e){}
+  if(w.__edTheme){ document.removeEventListener("mv:theme", w.__edTheme); w.__edTheme = null; }
   mtlOut(w);
   var n = w.node;
   if(!n.classList.contains("dissolving")) n.classList.add("closing");
@@ -6398,6 +6406,7 @@ function applyThemeById(id){
   store.set("mv7.layout",theme.layout);
   store.set("mv7.theme",id);
   renderIcons();
+  try{ document.dispatchEvent(new CustomEvent("mv:theme",{detail:id})); }catch(e){}
 }
 function openThemePicker(){
   var grid=$("#tpGrid"),cur=store.get("mv7.theme","grid");
@@ -8630,6 +8639,91 @@ MOUNT.code = function(body, w){
     return '<div class="devframe desktop"><div class="bar"><i></i><i></i><i></i></div>'+
            '<iframe sandbox="allow-scripts"'+srcdoc+'></iframe></div>';
   }
+  /* ================= Monaco (vendored, MIT) =================
+     The Code window used to be a read-only <pre> with hand-rolled colouring.
+     Monaco is loaded from vendor/monaco rather than a CDN: Console's own
+     Sovereignty widget reads "Egress today: 0 bytes", and a CDN script tag
+     would make that false the moment this window opened. It is fetched lazily
+     the first time Code is opened, so the OS still boots without it, and it
+     degrades back to the <pre> if the vendor folder is missing.
+
+     dir="ltr" is pinned on the editor host. Monaco has no RTL support (there is
+     an open issue where the editor renders invisible inside dir="rtl"), but
+     source code reads left-to-right in an Arabic UI anyway — only the viewport
+     is pinned, the window chrome around it stays RTL-capable. */
+  var MONACO = { state:"idle", queue:[] };
+  function monacoFlush(m){ var q = MONACO.queue; MONACO.queue = []; 
+    q.forEach(function(cb){ try{ cb(m); }catch(e){} }); }
+  function monacoReady(cb){
+    if(MONACO.state === "ready")  return cb(window.monaco);
+    if(MONACO.state === "failed") return cb(null);
+    MONACO.queue.push(cb);
+    if(MONACO.state === "loading") return;
+    MONACO.state = "loading";
+    var base = "../vendor/monaco/vs";
+    var sc = document.createElement("script");
+    sc.src = base + "/loader.js";
+    sc.onerror = function(){ MONACO.state = "failed"; monacoFlush(null); };
+    sc.onload = function(){
+      try{
+        window.require.config({ paths:{ vs: base } });
+        window.require(["vs/editor/editor.main"], function(){
+          try{
+            window.monaco.editor.defineTheme("magna-dark", { base:"vs-dark", inherit:true, rules:[],
+              colors:{ "editor.background":"#0F131B", "editorGutter.background":"#0F131B",
+                       "editorLineNumber.foreground":"#4C5262", "editor.lineHighlightBackground":"#161C27",
+                       "editorIndentGuide.background1":"#1E2432" } });
+            window.monaco.editor.defineTheme("magna-light", { base:"vs", inherit:true, rules:[],
+              colors:{ "editor.background":"#FFFFFF", "editorGutter.background":"#FFFFFF",
+                       "editorLineNumber.foreground":"#9AA3B2", "editor.lineHighlightBackground":"#F2F4F7" } });
+          }catch(e){}
+          MONACO.state = "ready"; monacoFlush(window.monaco);
+        }, function(){ MONACO.state = "failed"; monacoFlush(null); });
+      }catch(e){ MONACO.state = "failed"; monacoFlush(null); }
+    };
+    document.head.appendChild(sc);
+  }
+  var MONACO_LANG = { js:"javascript", jsx:"javascript", ts:"typescript", tsx:"typescript",
+    html:"html", htm:"html", css:"css", md:"markdown", py:"python", sql:"sql", json:"json",
+    sh:"shell", bash:"shell", yml:"yaml", yaml:"yaml", xml:"xml", java:"java",
+    c:"cpp", cpp:"cpp", h:"cpp" };
+  function langFor(name, t){
+    var ext = String(name || "").split(".").pop().toLowerCase();
+    return MONACO_LANG[ext] || MONACO_LANG[String(t || "").toLowerCase()] || "plaintext";
+  }
+  function isLightTheme(){
+    var a = document.documentElement.getAttribute("data-theme");
+    if(a === "light") return true;
+    if(a === "dark")  return false;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  }
+  /* one editor per window, disposed when the window closes */
+  function mountEditor(code, name, t){
+    var slot = $(".cd-editor", host); if(!slot) return;
+    slot.setAttribute("dir", "ltr");
+    monacoReady(function(m){
+      if(!$(".cd-editor", host)) return;          /* window closed while loading */
+      if(!m){
+        slot.innerHTML = "<pre>" + codeLines(code) + "</pre>";
+        return;
+      }
+      slot.innerHTML = "";
+      try{ if(w.__ed){ w.__ed.dispose(); w.__ed = null; } }catch(e){}
+      w.__ed = m.editor.create(slot, {
+        value: code, language: langFor(name, t),
+        theme: isLightTheme() ? "magna-light" : "magna-dark",
+        automaticLayout: true, fontSize: 12.5, lineHeight: 20,
+        fontFamily: 'ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace',
+        minimap:{ enabled:false }, scrollBeyondLastLine:false, renderWhitespace:"none",
+        smoothScrolling:true, padding:{ top:10, bottom:10 }, tabSize:2,
+        scrollbar:{ verticalScrollbarSize:9, horizontalScrollbarSize:9 }
+      });
+      if(!w.__edTheme){
+        w.__edTheme = function(){ try{ m.editor.setTheme(isLightTheme() ? "magna-light" : "magna-dark"); }catch(e){} };
+        document.addEventListener("mv:theme", w.__edTheme);
+      }
+    });
+  }
   function shell(crumb, files, editor, previewHTML, term){
     host.innerHTML =
       '<div class="cd-crumb">'+crumb+'</div>'+
@@ -8679,6 +8773,7 @@ MOUNT.code = function(body, w){
       deviceFrame(html),
       TERM_OK
     );
+    mountEditor(f.code, f.n, f.t);
   }
   function drawLocal(tree){
     if(!tree) return drawWelcome();
@@ -8706,6 +8801,7 @@ MOUNT.code = function(body, w){
         '<div class="w">files stayed in this browser tab — no upload, no server</div>'+
         (isHTML ? '<div><span class="p">›</span> rendering '+esc(f.name)+' in the preview pane</div>' : "")
       );
+      mountEditor(text.slice(0, 40000), f.name, null);
     };
     reader.onerror = function(){ host.innerHTML = '<div class="empty-msg">Could not read that file.</div>'; };
     if(f.file) reader.readAsText(f.file); else host.innerHTML = '<div class="empty-msg">No file handle.</div>';
@@ -11213,6 +11309,7 @@ function NGraph(host, opts){
   }
   function zoomAt(px, py, nk){
     nk = clamp(nk, MINK, MAXK);
+    G._touched = true;
     var cx = (px - G.tx) / G.k, cy = (py - G.ty) / G.k;
     G.k = nk; G.tx = px - cx*nk; G.ty = py - cy*nk;
     apply();
@@ -11233,7 +11330,8 @@ function NGraph(host, opts){
   G.fit = function(pad){
     pad = pad == null ? 34 : pad;
     var r = host.getBoundingClientRect();
-    if(!r.width || !r.height) return;
+    if(!r.width || !r.height){ G._needFit = true; return; }   /* window not laid out yet */
+    G._needFit = false; G._fitAt = r.width; G._touched = false;
     var b = G.bounds();
     var k = clamp(Math.min((r.width-pad*2)/b.w, (r.height-pad*2)/b.h), MINK, 1.15);
     G.k = k;
@@ -11619,6 +11717,7 @@ function NGraph(host, opts){
     }
     if(P.id !== e.pointerId || !P.mode) return;
     if(P.mode === "pan"){
+      G._touched = true;
       G.tx = P.ox + (e.clientX - P.sx); G.ty = P.oy + (e.clientY - P.sy); apply(); return;
     }
     if(P.mode === "node"){
@@ -11736,7 +11835,8 @@ function NGraph(host, opts){
       e.preventDefault(); e.stopPropagation();
       G.sel = G.nodes.map(function(n){ return n.id; }); paintSel(); return;
     }
-    if(e.key.indexOf("Arrow") === 0 && G.sel.length && !G.ro){
+    /* Ctrl+arrow is the OS space switcher — never swallow it here */
+    if(e.key.indexOf("Arrow") === 0 && G.sel.length && !G.ro && !e.ctrlKey && !e.metaKey && !e.altKey){
       e.preventDefault(); e.stopPropagation();
       var step = e.shiftKey ? 40 : 8;
       var dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
@@ -11797,6 +11897,22 @@ function NGraph(host, opts){
       var inp = qa.querySelector("[data-qain]"); if(inp){ inp.value = ""; inp.focus(); }
     }
   });
+  /* The window this canvas lives in can be maximised, restored or resized long
+     after the graph was laid out. Re-frame it — but only while the view is
+     still the one Fit produced, so a deliberate zoom is never yanked away. */
+  if(window.ResizeObserver){
+    var rzT = 0;
+    new ResizeObserver(function(){
+      clearTimeout(rzT);
+      rzT = setTimeout(function(){
+        var r = host.getBoundingClientRect();
+        if(!r.width || !r.height) return;
+        if(G._needFit){ G.fit(); return; }
+        if(!G._touched && G._fitAt && Math.abs(r.width - G._fitAt) > G._fitAt * 0.18){ G.fit(); return; }
+        drawMini();
+      }, 90);
+    }).observe(host);
+  }
   G.qa = qa;
   G.apply = apply;
   G.reroute = reroute;

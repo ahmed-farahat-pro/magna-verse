@@ -4,163 +4,367 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MagnaVERSE Docs</title>
+<!--
+  Block editor, hand-built, zero dependencies.
+
+  This used to run on Editor.js. Editor.js is Apache-2.0 (not MIT, despite the
+  common assumption — it moved ISC → Apache-2.0 in 2018 and a request to
+  relicense to MIT was declined), and it was loaded from a public CDN, which
+  contradicts Console's own "Egress today: 0 bytes" promise and meant this
+  window failed to load in an air-gapped demo. Rewritten in place so the file
+  matches the rest of the product: one file, no network, no licence question.
+-->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0B0E13;--surface:#131820;--surface-2:#1A202A;--tx:#F2F3F6;--tx-2:#B4B9C6;--tx-3:#787E8D;
-  --tx-4:#4C5262;--accent:#D71920;--cyan:#0EA5B7;--r:10px;
+  --tx-4:#4C5262;--accent:#D71920;--cyan:#0EA5B7;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.15);
+  --r:10px;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
   --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,monospace}
+@media (prefers-color-scheme:light){
+  :root{--bg:#FFFFFF;--surface:#F7F8FA;--surface-2:#EEF1F5;--tx:#0F141A;--tx-2:#4C5766;--tx-3:#7B8798;
+    --tx-4:#9AA3B2;--line:rgba(16,22,30,.10);--line-2:rgba(16,22,30,.18)}
+}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:var(--sans)}
-#app{display:flex;flex-direction:column;height:100vh}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 .toolbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--surface);
-  border-bottom:1px solid rgba(255,255,255,.08);flex:none}
+  border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
 .toolbar h1{font-size:14px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:7px}
 .toolbar h1 svg{width:18px;height:18px;stroke:var(--cyan);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.toolbar .sep{width:1px;height:20px;background:rgba(255,255,255,.1)}
-.toolbar button{padding:5px 12px;border-radius:6px;font-size:12px;color:var(--tx-2);background:transparent;
-  border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .15s}
-.toolbar button:hover{background:rgba(255,255,255,.06);color:var(--tx);border-color:rgba(255,255,255,.15)}
-.toolbar button.primary{background:var(--cyan);color:#000;border-color:var(--cyan);font-weight:600}
-.toolbar button.primary:hover{background:#12B5C9}
-.editor-wrap{flex:1;min-height:0;overflow-y:auto;display:flex;justify-content:center;padding:32px 20px}
-#editorjs{width:100%;max-width:720px}
-/* Editor.js dark theme overrides */
-.codex-editor__redactor{padding-bottom:100px!important}
-.ce-block__content{max-width:100%!important}
-.ce-toolbar__content{max-width:100%!important}
-.ce-header{color:var(--tx)!important}
-.cdx-block{color:var(--tx-2)!important}
-.ce-paragraph{color:var(--tx-2)!important;line-height:1.7}
-.ce-toolbar__plus,.ce-toolbar__settings-btn{color:var(--tx-3)!important;background:var(--surface-2)!important;
-  border:1px solid rgba(255,255,255,.08)!important;border-radius:6px!important}
-.ce-toolbar__plus:hover,.ce-toolbar__settings-btn:hover{background:rgba(255,255,255,.1)!important;color:var(--tx)!important}
-.ce-inline-toolbar{background:var(--surface)!important;border:1px solid rgba(255,255,255,.1)!important;
-  border-radius:8px!important;box-shadow:0 8px 24px rgba(0,0,0,.4)!important}
-.ce-inline-tool{color:var(--tx-2)!important}
-.ce-inline-tool:hover{color:var(--cyan)!important}
-.ce-conversion-toolbar{background:var(--surface)!important;border:1px solid rgba(255,255,255,.1)!important;
-  border-radius:8px!important}
-.ce-conversion-tool{color:var(--tx-2)!important}
-.ce-conversion-tool:hover{color:var(--cyan)!important}
-.ce-settings__button{color:var(--tx-2)!important}
-.ce-settings__button:hover{background:rgba(255,255,255,.06)!important;color:var(--tx)!important}
-.ce-popover{background:var(--surface)!important;border:1px solid rgba(255,255,255,.1)!important;
-  border-radius:10px!important;box-shadow:0 12px 32px rgba(0,0,0,.5)!important}
-.ce-popover-item__title{color:var(--tx-2)!important}
-.ce-popover-item:hover{background:rgba(255,255,255,.06)!important}
-.ce-popover-item--active{background:rgba(14,165,183,.12)!important}
-.ce-inline-block{background:var(--surface-2)!important;border:1px solid rgba(255,255,255,.08)!important;
-  border-radius:8px!important}
-.cdx-marker{background:rgba(14,165,183,.2)!important;color:var(--tx)!important}
-blockquote{border-left:3px solid var(--cyan)!important;color:var(--tx-2)!important;padding-left:16px}
-.code-block{background:var(--surface-2)!important;border:1px solid rgba(255,255,255,.08)!important;
-  border-radius:8px!important;padding:12px 16px!important;font-family:var(--mono)!important;
-  font-size:13px!important;color:var(--tx-2)!important}
-.delimiter{color:var(--tx-4)!important}
+.toolbar .sep{width:1px;height:20px;background:var(--line-2)}
+.toolbar button{min-height:32px;padding:5px 12px;border-radius:6px;font-size:12px;color:var(--tx-2);
+  background:transparent;border:1px solid var(--line);cursor:pointer;font-family:inherit;transition:all .15s}
+.toolbar button:hover{background:var(--surface-2);color:var(--tx);border-color:var(--line-2)}
+.toolbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.editor-wrap{flex:1;min-height:0;overflow-y:auto;display:flex;justify-content:center;padding:32px 20px 120px}
+.doc{width:100%;max-width:720px}
+
+/* ---- blocks ---- */
+.blk{position:relative;margin:0 0 10px;padding-left:30px}
+.blk .handle{position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:5px;display:grid;
+  place-items:center;color:var(--tx-4);opacity:0;cursor:grab;background:transparent;border:1px solid transparent}
+.blk:hover .handle,.blk:focus-within .handle{opacity:1}
+.blk .handle:hover{background:var(--surface-2);border-color:var(--line);color:var(--tx-2)}
+.blk .handle:focus-visible{opacity:1;outline:2px solid var(--cyan);outline-offset:1px}
+.blk .handle svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+[contenteditable]{outline:none}
+[contenteditable]:focus-visible{outline:none}
+.blk[data-t="h1"] .c{font-size:30px;font-weight:750;letter-spacing:-.025em;color:var(--tx);line-height:1.2;margin:18px 0 4px}
+.blk[data-t="h2"] .c{font-size:21px;font-weight:700;letter-spacing:-.015em;color:var(--tx);line-height:1.3;margin:16px 0 3px}
+.blk[data-t="h3"] .c{font-size:16.5px;font-weight:670;color:var(--tx);line-height:1.35;margin:12px 0 2px}
+.blk[data-t="p"] .c{font-size:15px;line-height:1.72;color:var(--tx-2)}
+.blk[data-t="quote"] .c{font-size:15.5px;line-height:1.7;color:var(--tx-2);border-left:3px solid var(--cyan);
+  padding-left:16px;font-style:italic}
+.blk[data-t="code"] .c{font-family:var(--mono);font-size:13px;line-height:1.6;color:var(--tx-2);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+  white-space:pre-wrap;overflow-x:auto}
+.blk[data-t="ul"] .c,.blk[data-t="ol"] .c{font-size:15px;line-height:1.72;color:var(--tx-2);padding-left:22px}
+.blk[data-t="ul"] .c{list-style:disc}
+.blk[data-t="ol"] .c{list-style:decimal}
+.blk .c[data-empty]:empty::before{content:attr(data-empty);color:var(--tx-4);pointer-events:none}
+.blk[data-t="hr"]{padding-left:30px}
+.blk[data-t="hr"] .c{height:1px;background:var(--line-2);margin:22px 0}
+mark{background:rgba(14,165,183,.24);color:var(--tx);border-radius:3px;padding:0 2px}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:4px;padding:1px 5px}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:420px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;color:var(--tx-2)}
+th{background:var(--surface-2);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700}
+td:nth-child(n+2){font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+
+/* ---- slash menu ---- */
+.slash{position:absolute;z-index:40;min-width:230px;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.45);padding:5px;display:none}
+.slash.on{display:block}
+.slash b{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-4);
+  padding:7px 9px 4px;font-family:var(--mono)}
+.slash button{display:flex;width:100%;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;
+  border:0;background:transparent;color:var(--tx-2);font:inherit;font-size:13px;cursor:pointer;text-align:left}
+.slash button:hover,.slash button.on{background:var(--surface-2);color:var(--tx)}
+.slash button:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
+.slash button i{font-family:var(--mono);font-size:10px;color:var(--tx-4);margin-left:auto;font-style:normal}
+.hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;
+  color:var(--tx-4);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:640px){
+  .editor-wrap{padding:18px 12px 120px}
+  .blk{padding-left:0}
+  .blk .handle{display:none}
+  .hint{display:none}
+}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="toolbar">
     <h1>
-      <svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></svg>
       MagnaVERSE Docs
     </h1>
     <div class="sep"></div>
-    <button onclick="saveDoc()">Save</button>
-    <button onclick="exportHTML()">Export HTML</button>
-    <button onclick="exportMD()">Export Markdown</button>
+    <button type="button" data-act="bold" title="Bold (Cmd/Ctrl+B)"><b>B</b></button>
+    <button type="button" data-act="italic" title="Italic (Cmd/Ctrl+I)"><i>I</i></button>
+    <button type="button" data-act="mark" title="Highlight">Highlight</button>
+    <button type="button" data-act="code" title="Inline code">Code</button>
+    <div class="sep"></div>
+    <button type="button" data-act="save">Save</button>
+    <button type="button" data-act="html">Export HTML</button>
+    <button type="button" data-act="md">Export Markdown</button>
     <div style="flex:1"></div>
     <span id="status" style="font-size:11px;color:var(--tx-3);font-family:var(--mono)">Ready</span>
   </div>
   <div class="editor-wrap">
-    <div id="editorjs"></div>
+    <div class="doc" id="doc"></div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/simple-image@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest"></script>
+<div class="slash" id="slash" role="listbox" aria-label="Insert block"></div>
+<div class="hint">Type <b>/</b> for blocks · ⌘B bold · ⌘I italic · Enter for a new block</div>
+
 <script>
-var editor;
-window.onload = function(){
-  editor = new EditorJS({
-    holder: "editorjs",
-    placeholder: "Start writing your document...",
-    tools: {
-      header: { class: Header, config: { levels: [1,2,3,4], defaultLevel: 2 } },
-      list: { class: List, inlineToolbar: true },
-      marker: { class: Marker },
-      inlineCode: { class: InlineCode },
-      delimiter: { class: Delimiter },
-      table: { class: Table, inlineToolbar: true },
-      image: { class: SimpleImage, config: { placeholder: "Paste image URL..." } }
-    },
-    data: {
-      blocks: [
-        {type:"header",data:{text:"Project Status Report",level:1}},
-        {type:"paragraph",data:{text:"This document outlines the current status of Package C2 rebar delivery and the associated exposure calculations. All figures are sourced from SAP S/4HANA and Primavera P6."}},
-        {type:"header",data:{text:"Key Metrics",level:2}},
-        {type:"table",data:{withHeadings:true,content:[
-          ["Metric","Value","Status"],
-          ["Ordered","1,240 t","—"],
-          ["Delivered","742 t","Behind"],
-          ["Exposure","SAR 5.32M","Critical"],
-          ["Days late","11","On critical path"]
-        ]}},
-        {type:"delimiter",data:{}},
-        {type:"header",data:{text:"Recommendation",level:2}},
-        {type:"paragraph",data:{text:"Split the rebar order across two vendors. The single-source risk on Al-Rajhi exceeds the unit-rate penalty of dual-sourcing by SAR 280K."}},
-        {type:"list",data:{style:"unordered",items:["Approve dual-source procurement","Notify Al-Rajhi of order reduction","Update Baseline r7 in P6"]}}
-      ]
-    },
-    onReady: function(){ document.getElementById("status").textContent = "Loaded"; }
-  });
-};
-function saveDoc(){
-  editor.save().then(function(data){
-    document.getElementById("status").textContent = "Saved at " + new Date().toLocaleTimeString();
-    localStorage.setItem("magnaverse-doc", JSON.stringify(data));
+"use strict";
+var $ = function(s,r){ return (r||document).querySelector(s); };
+var doc = $("#doc"), statusEl = $("#status"), slash = $("#slash");
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function say(m){ statusEl.textContent = m; clearTimeout(say.t);
+  say.t = setTimeout(function(){ statusEl.textContent = "Ready"; }, 2200); }
+
+var TYPES = [
+  {t:"p",     label:"Text",          key:"text"},
+  {t:"h1",    label:"Heading 1",     key:"h1"},
+  {t:"h2",    label:"Heading 2",     key:"h2"},
+  {t:"h3",    label:"Heading 3",     key:"h3"},
+  {t:"ul",    label:"Bulleted list", key:"bullet"},
+  {t:"ol",    label:"Numbered list", key:"number"},
+  {t:"quote", label:"Quote",         key:"quote"},
+  {t:"code",  label:"Code",          key:"code"},
+  {t:"table", label:"Table",         key:"table"},
+  {t:"hr",    label:"Divider",       key:"divider"}
+];
+
+/* ---- the starting document ---- */
+var SEED = [
+  {t:"h1",   html:"Project Status Report"},
+  {t:"p",    html:"This document outlines the current status of Package C2 rebar delivery and the associated exposure calculations. All figures are sourced from <mark>SAP S/4HANA</mark> and <mark>Primavera P6</mark>."},
+  {t:"h2",   html:"Key Metrics"},
+  {t:"table",rows:[["Metric","Value","Status"],["Ordered","1,240 t","—"],["Delivered","742 t","Behind"],
+                   ["Exposure","SAR 5.32M","Critical"],["Days late","11","On critical path"]]},
+  {t:"hr"},
+  {t:"h2",   html:"Recommendation"},
+  {t:"p",    html:"Split the rebar order across two vendors. The single-source risk on Al-Rajhi exceeds the unit-rate penalty of dual-sourcing by <code>SAR 280K</code>."},
+  {t:"ul",   items:["Approve dual-source procurement","Notify Al-Rajhi of order reduction","Update Baseline r7 in P6"]}
+];
+
+function blockEl(b){
+  var w = document.createElement("div");
+  w.className = "blk"; w.setAttribute("data-t", b.t);
+  var h = document.createElement("button");
+  h.type = "button"; h.className = "handle"; h.title = "Change block type";
+  h.setAttribute("aria-label","Change block type");
+  h.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 8h14M5 16h14"/></svg>';
+  h.addEventListener("click", function(e){ e.stopPropagation(); openSlash(w); });
+  w.appendChild(h);
+
+  var c;
+  if(b.t === "table"){
+    c = document.createElement("div"); c.className = "c tblwrap";
+    var rows = b.rows || [["","",""],["","",""]];
+    c.innerHTML = "<table><thead><tr>" + rows[0].map(function(x){ return "<th>"+esc(x)+"</th>"; }).join("") +
+      "</tr></thead><tbody>" + rows.slice(1).map(function(r){
+        return "<tr>" + r.map(function(x){ return '<td contenteditable="true">'+esc(x)+"</td>"; }).join("") + "</tr>";
+      }).join("") + "</tbody></table>";
+    c.querySelectorAll("th").forEach(function(th){ th.setAttribute("contenteditable","true"); });
+  } else if(b.t === "hr"){
+    c = document.createElement("div"); c.className = "c"; c.setAttribute("aria-hidden","true");
+  } else if(b.t === "ul" || b.t === "ol"){
+    c = document.createElement(b.t === "ul" ? "ul" : "ol");
+    c.className = "c"; c.setAttribute("contenteditable","true");
+    (b.items || [""]).forEach(function(it){
+      var li = document.createElement("li"); li.innerHTML = it || ""; c.appendChild(li); });
+  } else {
+    c = document.createElement("div"); c.className = "c";
+    c.setAttribute("contenteditable","true");
+    c.setAttribute("data-empty", b.t === "p" ? "Type / for blocks…" : "Heading");
+    c.innerHTML = b.html || "";
+  }
+  w.appendChild(c);
+  return w;
+}
+function render(list){
+  doc.innerHTML = "";
+  list.forEach(function(b){ doc.appendChild(blockEl(b)); });
+}
+render(SEED);
+
+/* ---- slash menu ---- */
+var slashTarget = null, slashIdx = 0;
+function openSlash(blk){
+  slashTarget = blk; slashIdx = 0;
+  slash.innerHTML = "<b>Turn into</b>" + TYPES.map(function(t,i){
+    return '<button type="button" role="option" data-t="'+t.t+'"'+(i===0?' class="on"':'')+'>'+
+           esc(t.label)+"<i>"+esc(t.key)+"</i></button>"; }).join("");
+  var r = blk.getBoundingClientRect();
+  slash.style.left = Math.min(r.left, window.innerWidth - 250) + "px";
+  slash.style.top  = Math.min(r.bottom + 6, window.innerHeight - 340) + "px";
+  slash.classList.add("on");
+}
+function closeSlash(){ slash.classList.remove("on"); slashTarget = null; }
+slash.addEventListener("click", function(e){
+  var b = e.target.closest("button[data-t]"); if(!b || !slashTarget) return;
+  convert(slashTarget, b.getAttribute("data-t")); closeSlash();
+});
+function convert(blk, t){
+  var c = $(".c", blk);
+  var html = (c && c.getAttribute("contenteditable")) ? c.innerHTML : "";
+  var items = blk.getAttribute("data-t") === "ul" || blk.getAttribute("data-t") === "ol"
+    ? Array.prototype.map.call(blk.querySelectorAll("li"), function(li){ return li.innerHTML; }) : null;
+  var fresh = blockEl(
+    t === "table" ? {t:t} :
+    (t === "ul" || t === "ol") ? {t:t, items: items || [html.replace(/<[^>]+>/g,"")]} :
+    {t:t, html: items ? items.join(", ") : html});
+  blk.parentNode.replaceChild(fresh, blk);
+  var f = $(".c[contenteditable]", fresh); if(f) f.focus();
+  say("Changed to " + t);
+}
+
+/* ---- keyboard ---- */
+doc.addEventListener("keydown", function(e){
+  var blk = e.target.closest(".blk"); if(!blk) return;
+  var t = blk.getAttribute("data-t");
+  if(e.key === "/" && t !== "table" && $(".c",blk).textContent.trim() === ""){
+    e.preventDefault(); openSlash(blk); return;
+  }
+  if(e.key === "Enter" && !e.shiftKey && t !== "table" && t !== "code" && t !== "ul" && t !== "ol"){
+    e.preventDefault();
+    var nb = blockEl({t:"p", html:""});
+    blk.parentNode.insertBefore(nb, blk.nextSibling);
+    $(".c", nb).focus(); return;
+  }
+  if(e.key === "Backspace" && t !== "table"){
+    var c = $(".c", blk);
+    if(c && c.getAttribute("contenteditable") && c.textContent === "" && doc.children.length > 1){
+      e.preventDefault();
+      var prev = blk.previousElementSibling; blk.remove();
+      if(prev){ var pc = $(".c[contenteditable]", prev); if(pc){ pc.focus();
+        var sel = getSelection(), rg = document.createRange();
+        rg.selectNodeContents(pc); rg.collapse(false); sel.removeAllRanges(); sel.addRange(rg); } }
+    }
+  }
+});
+document.addEventListener("keydown", function(e){
+  if(slash.classList.contains("on")){
+    var opts = slash.querySelectorAll("button[data-t]");
+    if(e.key === "Escape"){ e.preventDefault(); closeSlash(); return; }
+    if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+      e.preventDefault();
+      slashIdx = (slashIdx + (e.key === "ArrowDown" ? 1 : -1) + opts.length) % opts.length;
+      opts.forEach(function(o,i){ o.classList.toggle("on", i === slashIdx); });
+      opts[slashIdx].scrollIntoView({block:"nearest"}); return;
+    }
+    if(e.key === "Enter"){ e.preventDefault(); opts[slashIdx].click(); return; }
+  }
+  var mod = e.metaKey || e.ctrlKey; if(!mod) return;
+  var k = e.key.toLowerCase();
+  if(k === "b"){ e.preventDefault(); document.execCommand("bold"); }
+  else if(k === "i"){ e.preventDefault(); document.execCommand("italic"); }
+  else if(k === "s"){ e.preventDefault(); doSave(); }
+});
+document.addEventListener("click", function(e){
+  if(!e.target.closest("#slash") && !e.target.closest(".handle")) closeSlash();
+});
+
+/* ---- toolbar ---- */
+function wrapSel(tag){
+  var sel = getSelection(); if(!sel.rangeCount || sel.isCollapsed){ say("Select some text first"); return; }
+  var r = sel.getRangeAt(0), n = document.createElement(tag);
+  try { n.appendChild(r.extractContents()); r.insertNode(n); sel.removeAllRanges(); }
+  catch(err){ say("Cannot format across blocks"); }
+}
+document.querySelector(".toolbar").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-act]"); if(!b) return;
+  var a = b.getAttribute("data-act");
+  if(a === "bold") document.execCommand("bold");
+  else if(a === "italic") document.execCommand("italic");
+  else if(a === "mark") wrapSel("mark");
+  else if(a === "code") wrapSel("code");
+  else if(a === "save") doSave();
+  else if(a === "html") exportAs("html");
+  else if(a === "md") exportAs("md");
+});
+
+/* ---- serialise ---- */
+function readDoc(){
+  return Array.prototype.map.call(doc.children, function(blk){
+    var t = blk.getAttribute("data-t"), c = $(".c", blk);
+    if(t === "table"){
+      return {t:t, rows: Array.prototype.map.call(blk.querySelectorAll("tr"), function(tr){
+        return Array.prototype.map.call(tr.children, function(td){ return td.textContent; }); })};
+    }
+    if(t === "ul" || t === "ol"){
+      return {t:t, items: Array.prototype.map.call(blk.querySelectorAll("li"), function(li){ return li.innerHTML; })};
+    }
+    if(t === "hr") return {t:t};
+    return {t:t, html: c ? c.innerHTML : ""};
   });
 }
-function exportHTML(){
-  editor.save().then(function(data){
-    var html = "<!DOCTYPE html><html><head><title>MagnaVERSE Doc</title></head><body>";
-    data.blocks.forEach(function(b){
-      if(b.type==="header") html += "<h"+b.data.level+">"+b.data.text+"</h"+b.data.level+">";
-      else if(b.type==="paragraph") html += "<p>"+b.data.text+"</p>";
-      else if(b.type==="list"){
-        var tag = b.data.style==="ordered" ? "ol" : "ul";
-        html += "<"+tag+">"+b.data.items.map(function(i){return "<li>"+i+"</li>"}).join("")+"</"+tag+">";
-      }
-    });
-    html += "</body></html>";
-    var blob = new Blob([html],{type:"text/html"});
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = "magnaverse-doc.html"; a.click();
-  });
+function toHTML(list){
+  return list.map(function(b){
+    if(b.t === "hr") return "<hr>";
+    if(b.t === "table") return "<table>" + b.rows.map(function(r,i){
+      return "<tr>" + r.map(function(x){ return i===0 ? "<th>"+esc(x)+"</th>" : "<td>"+esc(x)+"</td>"; }).join("") + "</tr>";
+    }).join("") + "</table>";
+    if(b.t === "ul" || b.t === "ol") return "<"+b.t+">" + b.items.map(function(i){ return "<li>"+i+"</li>"; }).join("") + "</"+b.t+">";
+    if(b.t === "quote") return "<blockquote>"+b.html+"</blockquote>";
+    if(b.t === "code")  return "<pre><code>"+esc(b.html.replace(/<[^>]+>/g,""))+"</code></pre>";
+    if(b.t === "p")     return "<p>"+b.html+"</p>";
+    return "<"+b.t+">"+b.html+"</"+b.t+">";
+  }).join("\n");
 }
-function exportMD(){
-  editor.save().then(function(data){
-    var md = "";
-    data.blocks.forEach(function(b){
-      if(b.type==="header") md += "#".repeat(b.data.level)+" "+b.data.text+"\n\n";
-      else if(b.type==="paragraph") md += b.data.text+"\n\n";
-      else if(b.type==="list"){
-        b.data.items.forEach(function(i){md+= "- "+i+"\n"});
-        md += "\n";
-      }
-    });
-    var blob = new Blob([md],{type:"text/markdown"});
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = "magnaverse-doc.md"; a.click();
-  });
+function toMD(list){
+  return list.map(function(b){
+    var txt = function(h){ return String(h||"")
+      .replace(/<mark>(.*?)<\/mark>/gi,"==$1==").replace(/<code>(.*?)<\/code>/gi,"`$1`")
+      .replace(/<(b|strong)>(.*?)<\/\1>/gi,"**$2**").replace(/<(i|em)>(.*?)<\/\1>/gi,"*$2*")
+      .replace(/<[^>]+>/g,"").trim(); };
+    if(b.t === "hr") return "---";
+    if(b.t === "h1") return "# "+txt(b.html);
+    if(b.t === "h2") return "## "+txt(b.html);
+    if(b.t === "h3") return "### "+txt(b.html);
+    if(b.t === "quote") return "> "+txt(b.html);
+    if(b.t === "code") return "```\n"+txt(b.html)+"\n```";
+    if(b.t === "ul") return b.items.map(function(i){ return "- "+txt(i); }).join("\n");
+    if(b.t === "ol") return b.items.map(function(i,n){ return (n+1)+". "+txt(i); }).join("\n");
+    if(b.t === "table"){
+      var r = b.rows;
+      return "| "+r[0].join(" | ")+" |\n|"+r[0].map(function(){ return "---"; }).join("|")+"|\n" +
+        r.slice(1).map(function(x){ return "| "+x.join(" | ")+" |"; }).join("\n");
+    }
+    return txt(b.html);
+  }).filter(Boolean).join("\n\n");
 }
+function download(name, text, mime){
+  var b = new Blob([text], {type:mime}), u = URL.createObjectURL(b);
+  var a = document.createElement("a"); a.href = u; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
+}
+function doSave(){
+  try { localStorage.setItem("mv.docs.doc", JSON.stringify(readDoc())); say("Saved locally"); }
+  catch(e){ say("Could not save"); }
+}
+function exportAs(kind){
+  var list = readDoc();
+  if(kind === "html") download("magna-doc.html", toHTML(list), "text/html");
+  else download("magna-doc.md", toMD(list), "text/markdown");
+  say("Exported " + kind.toUpperCase());
+}
+try {
+  var saved = localStorage.getItem("mv.docs.doc");
+  if(saved) render(JSON.parse(saved));
+} catch(e){ /* keep the seed document */ }
 </script>
 </body>
 </html>
