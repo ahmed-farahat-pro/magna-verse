@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MagnaVERSE — Desktop Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#08080a;color:#f2f3f6;overflow-x:hidden}
+.hero{padding:50px 40px 30px;text-align:center}
+.hero h1{font-size:38px;font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(135deg,#0EA5B7,#43E0A6,#7C6BFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.hero p{font-size:15px;color:#9a9aa2;max-width:560px;margin:0 auto}
+.frames{display:flex;flex-direction:column;gap:40px;padding:10px 40px 60px;max-width:1200px;margin:0 auto}
+.frame-label{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.frame-label .num{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:700;flex-shrink:0}
+.frame-label h2{font-size:20px;font-weight:700}
+.frame-label p{font-size:12px;color:#9a9aa2}
+.frame{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);height:720px;position:relative}
+
+/* ===== SHARED DESKTOP STRUCTURE ===== */
+.desktop{width:100%;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.menubar{height:28px;display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0;z-index:10}
+.menubar .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.menubar .dot.r{background:#FF5F57}.menubar .dot.y{background:#FEBC2E}.menubar .dot.g{background:#28C840}
+.menubar .app-name{font-size:11px;font-weight:600}
+.menubar .spacer{flex:1}
+.menubar .menu-items{display:flex;gap:12px}
+.menubar .menu-items span{font-size:10.5px;opacity:.5;cursor:default}
+.menubar .status-right{display:flex;gap:10px;align-items:center}
+.menubar .status-right span{font-size:10px;opacity:.4}
+.desk-body{flex:1;display:flex;position:relative;overflow:hidden}
+.icon-area{flex:1;padding:20px;position:relative}
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,90px);gap:12px;align-content:start}
+.icon{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .15s}
+.icon:hover{transform:translateY(-3px)}
+.icon .ico-box{width:52px;height:52px;border-radius:14px;display:grid;place-items:center}
+.icon .ico-box svg{width:24px;height:24px}
+.icon .label{font-size:10.5px;text-align:center;line-height:1.2}
+.widget-area{width:280px;flex-shrink:0;padding:20px 16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.widget{border-radius:14px;padding:16px;position:relative;overflow:hidden}
+.widget .w-head{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.widget .w-head svg{width:14px;height:14px}
+.widget .w-head span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.widget .w-big{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.widget .w-sub{font-size:10.5px;margin-top:4px;line-height:1.4}
+.widget .w-bar{height:4px;border-radius:2px;margin-top:10px;overflow:hidden;background:rgba(255,255,255,.06)}
+.widget .w-bar i{display:block;height:100%;border-radius:2px}
+.window{position:absolute;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.win-bar{height:32px;display:flex;align-items:center;padding:0 10px;gap:8px;flex-shrink:0}
+.win-bar .dots{display:flex;gap:5px}
+.win-bar .dots i{width:10px;height:10px;border-radius:50%}
+.win-bar .title{font-size:11px;font-weight:600;flex:1;text-align:center}
+.win-body{flex:1;overflow:hidden;padding:14px}
+.dock-wrap{height:56px;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:10}
+.dock{display:flex;gap:6px;border-radius:16px;padding:6px 12px}
+.dock i{width:32px;height:32px;border-radius:9px;display:block}
+
+/* ===== ICON COLORS ===== */
+.ico-chat{background:rgba(240,53,60,.15)}.ico-chat svg{stroke:#F0353C}
+.ico-brain{background:rgba(67,224,166,.15)}.ico-brain svg{stroke:#43E0A6}
+.ico-code{background:rgba(124,107,255,.15)}.ico-code svg{stroke:#7C6BFF}
+.ico-browser{background:rgba(44,197,216,.15)}.ico-browser svg{stroke:#2CC5D8}
+.ico-files{background:rgba(91,148,255,.15)}.ico-files svg{stroke:#5B94FF}
+.ico-word{background:rgba(96,165,250,.15)}.ico-word svg{stroke:#60A5FA}
+.ico-ppt{background:rgba(245,158,11,.15)}.ico-ppt svg{stroke:#F59E0B}
+.ico-term{background:rgba(61,220,151,.15)}.ico-term svg{stroke:#3DDC97}
+.ico-mail{background:rgba(240,119,182,.15)}.ico-mail svg{stroke:#F077B6}
+.ico-agents{background:rgba(91,148,255,.15)}.ico-agents svg{stroke:#5B94FF}
+.ico-gear{background:rgba(110,116,130,.15)}.ico-gear svg{stroke:#6E7482}
+.ico-trash{background:rgba(239,68,68,.15)}.ico-trash svg{stroke:#EF4444}
+
+/* ===== MINI TERMINAL ===== */
+.mini-term{font-family:'Roboto Mono',monospace;font-size:10px;line-height:1.6;padding:8px;border-radius:8px}
+.mini-term .prompt{opacity:.5}
+.mini-term .cmd{font-weight:500}
+.mini-term .out{opacity:.6}
+
+/* ===== MINI CODE ===== */
+.mini-code{font-family:'Roboto Mono',monospace;font-size:9.5px;line-height:1.5}
+.mini-code .kw{font-weight:600}
+
+/* ===== 1. LIQUID GLASS ===== */
+.f-liquid{background:#0a0a0f}
+.f-liquid .menubar{background:rgba(255,255,255,.04);backdrop-filter:blur(40px) saturate(1.8);border-bottom:1px solid rgba(255,255,255,.06)}
+.f-liquid .menubar .app-name{color:rgba(255,255,255,.6)}
+.f-liquid .dock{background:rgba(255,255,255,.06);backdrop-filter:blur(40px) saturate(1.8);border:1px solid rgba(255,255,255,.06)}
+.f-liquid .dock i{background:rgba(255,255,255,.05)}
+.f-liquid .widget{background:rgba(255,255,255,.04);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.f-liquid .widget .w-head span{color:rgba(255,255,255,.4)}
+.f-liquid .widget .w-big{color:#fff}
+.f-liquid .widget .w-sub{color:rgba(255,255,255,.35)}
+.f-liquid .widget .w-bar i{background:linear-gradient(90deg,#0EA5B7,#43E0A6)}
+.f-liquid .window{background:rgba(255,255,255,.04);backdrop-filter:blur(30px) saturate(1.6);border:1px solid rgba(255,255,255,.08)}
+.f-liquid .win-bar{background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.f-liquid .win-bar .dots i{background:rgba(255,255,255,.1)}
+.f-liquid .win-bar .dots i:first-child{background:#FF5F57}
+.f-liquid .win-bar .dots i:nth-child(2){background:#FEBC2E}
+.f-liquid .win-bar .dots i:last-child{background:#28C840}
+.f-liquid .win-bar .title{color:rgba(255,255,255,.6)}
+.f-liquid .icon .label{color:rgba(255,255,255,.6)}
+.f-liquid::before{content:"";position:absolute;top:-60px;right:-60px;width:240px;height:240px;
+  background:conic-gradient(from 180deg,rgba(14,165,183,.12),rgba(124,107,255,.12),rgba(240,53,60,.08),rgba(14,165,183,.12));
+  filter:blur(60px);border-radius:50%;pointer-events:none;z-index:0}
+
+/* ===== 2. AURORA BOREALIS ===== */
+.f-aurora{background:#050510}
+.f-aurora .menubar{background:linear-gradient(90deg,rgba(16,185,129,.1),rgba(59,130,246,.1),rgba(168,85,247,.1));
+  border-bottom:1px solid rgba(255,255,255,.04);position:relative}
+.f-aurora .menubar::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,#10B981,#3B82F6,#A855F7,#EC4899,#10B981);background-size:200% 100%;
+  animation:aShift 4s linear infinite;opacity:.15}
+@keyframes aShift{0%{background-position:0% 0}100%{background-position:200% 0}}
+.f-aurora .menubar .app-name{color:rgba(255,255,255,.5);position:relative;z-index:1}
+.f-aurora .menubar .dot,.f-aurora .menubar .menu-items span,.f-aurora .menubar .status-right span{position:relative;z-index:1}
+.f-aurora .aurora-glow{position:absolute;top:0;left:0;right:0;height:180px;
+  background:linear-gradient(180deg,rgba(16,185,129,.1),rgba(59,130,246,.06),rgba(168,85,247,.04),transparent);
+  filter:blur(40px);pointer-events:none;animation:aPulse 3s ease-in-out infinite alternate}
+@keyframes aPulse{0%{opacity:.5}100%{opacity:1}}
+.f-aurora .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.8}}
+.f-aurora .dock{background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.04)}
+.f-aurora .dock i{background:rgba(255,255,255,.04)}
+.f-aurora .widget{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);backdrop-filter:blur(16px)}
+.f-aurora .widget .w-head span{color:rgba(16,185,129,.6)}
+.f-aurora .widget .w-big{background:linear-gradient(135deg,#10B981,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.f-aurora .widget .w-sub{color:rgba(255,255,255,.3)}
+.f-aurora .widget .w-bar i{background:linear-gradient(90deg,#10B981,#3B82F6)}
+.f-aurora .window{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);backdrop-filter:blur(16px)}
+.f-aurora .win-bar{background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.04)}
+.f-aurora .win-bar .dots i{background:rgba(255,255,255,.08)}
+.f-aurora .win-bar .dots i:first-child{background:#FF5F57}
+.f-aurora .win-bar .dots i:nth-child(2){background:#FEBC2E}
+.f-aurora .win-bar .dots i:last-child{background:#28C840}
+.f-aurora .win-bar .title{color:rgba(255,255,255,.5)}
+.f-aurora .icon .label{color:rgba(255,255,255,.5)}
+
+/* ===== 3. CARBON HYPERCAR ===== */
+.f-carbon{background:#111113}
+.f-carbon::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.008) 2px,rgba(255,255,255,.008) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(255,255,255,.008) 2px,rgba(255,255,255,.008) 4px);
+  pointer-events:none;z-index:0}
+.f-carbon .menubar{background:#1a1a1e;border-bottom:2px solid #FF3D00;position:relative;z-index:1}
+.f-carbon .menubar .app-name{color:#FF3D00;font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.f-carbon .menubar .stripe{width:3px;height:14px;background:#FF3D00;border-radius:1px;flex-shrink:0}
+.f-carbon .dock{background:#1a1a1e;border:1px solid rgba(255,61,0,.15);position:relative;z-index:1}
+.f-carbon .dock i{background:rgba(255,61,0,.06);border:1px solid rgba(255,61,0,.1)}
+.f-carbon .widget{background:#1a1a1e;border:1px solid rgba(255,61,0,.12);position:relative;z-index:1}
+.f-carbon .widget .w-head span{color:rgba(255,61,0,.5);font-family:'Roboto Mono',monospace;letter-spacing:.08em}
+.f-carbon .widget .w-big{color:#FF3D00;font-family:'Roboto Mono',monospace}
+.f-carbon .widget .w-sub{color:#555;font-family:'Roboto Mono',monospace;font-size:9.5px}
+.f-carbon .widget .w-bar{background:rgba(255,61,0,.08)}
+.f-carbon .widget .w-bar i{background:linear-gradient(90deg,#FF3D00,#FF6D00)}
+.f-carbon .window{background:#1a1a1e;border:1px solid rgba(255,61,0,.12)}
+.f-carbon .win-bar{background:#151517;border-bottom:2px solid rgba(255,61,0,.2)}
+.f-carbon .win-bar .dots i{background:rgba(255,61,0,.15)}
+.f-carbon .win-bar .dots i:first-child{background:#FF3D00}
+.f-carbon .win-bar .dots i:nth-child(2){background:#FF6D00}
+.f-carbon .win-bar .dots i:last-child{background:#28C840}
+.f-carbon .win-bar .title{color:#FF3D00;font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.04em}
+.f-carbon .icon .label{color:rgba(255,255,255,.45);font-family:'Roboto Mono',monospace;font-size:9.5px}
+.f-carbon .mini-term{background:#0d0d0f;border:1px solid rgba(255,61,0,.1)}
+
+/* ===== 4. NEBULA COSMIC ===== */
+.f-nebula{background:#0a0a1a}
+.f-nebula::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at 15% 25%,rgba(124,107,255,.12),transparent 45%),
+    radial-gradient(ellipse at 85% 55%,rgba(14,165,183,.1),transparent 45%),
+    radial-gradient(ellipse at 50% 90%,rgba(245,158,11,.06),transparent 35%);
+  filter:blur(50px);pointer-events:none;z-index:0;animation:nDrift 6s ease-in-out infinite alternate}
+@keyframes nDrift{0%{transform:translate(0,0)}100%{transform:translate(8px,-6px)}}
+.f-nebula .menubar{background:rgba(255,255,255,.025);backdrop-filter:blur(20px);border-bottom:1px solid rgba(124,107,255,.1);position:relative;z-index:1}
+.f-nebula .menubar .app-name{color:rgba(255,255,255,.5)}
+.f-nebula .dock{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(124,107,255,.08);position:relative;z-index:1}
+.f-nebula .dock i{background:rgba(124,107,255,.06);border:1px solid rgba(124,107,255,.08)}
+.f-nebula .widget{background:rgba(255,255,255,.025);border:1px solid rgba(124,107,255,.08);backdrop-filter:blur(16px);position:relative;z-index:1}
+.f-nebula .widget .w-head span{color:rgba(124,107,255,.6)}
+.f-nebula .widget .w-big{background:linear-gradient(135deg,#7C6BFF,#0EA5B7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.f-nebula .widget .w-sub{color:rgba(255,255,255,.3)}
+.f-nebula .widget .w-bar i{background:linear-gradient(90deg,#7C6BFF,#0EA5B7)}
+.f-nebula .window{background:rgba(255,255,255,.025);border:1px solid rgba(124,107,255,.08);backdrop-filter:blur(16px);position:relative;z-index:1}
+.f-nebula .win-bar{background:rgba(124,107,255,.04);border-bottom:1px solid rgba(124,107,255,.06)}
+.f-nebula .win-bar .dots i{background:rgba(124,107,255,.12)}
+.f-nebula .win-bar .dots i:first-child{background:#FF5F57}
+.f-nebula .win-bar .dots i:nth-child(2]{background:#FEBC2E}
+.f-nebula .win-bar .dots i:last-child{background:#28C840}
+.f-nebula .win-bar .title{color:rgba(255,255,255,.5)}
+.f-nebula .icon .label{color:rgba(255,255,255,.5)}
+
+/* ===== 5. NEO-BRUTALIST ===== */
+.f-brutalist{background:#E8E4DE}
+.f-brutalist .menubar{background:#fff;border-bottom:3px solid #111}
+.f-brutalist .menubar .app-name{color:#111;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.f-brutalist .dock{background:#fff;border:3px solid #111;box-shadow:5px 5px 0 #111}
+.f-brutalist .dock i{background:#f5f5f5;border:2px solid #111;border-radius:6px}
+.f-brutalist .widget{background:#fff;border:3px solid #111;box-shadow:5px 5px 0 #111}
+.f-brutalist .widget .w-head span{color:#111;font-weight:800;letter-spacing:.08em}
+.f-brutalist .widget .w-big{color:#FF3366}
+.f-brutalist .widget .w-sub{color:#666;font-weight:600}
+.f-brutalist .widget .w-bar{background:#eee;border:1px solid #ddd}
+.f-brutalist .widget .w-bar i{background:#00FF88}
+.f-brutalist .window{background:#fff;border:3px solid #111;box-shadow:6px 6px 0 #111}
+.f-brutalist .win-bar{background:#f5f5f5;border-bottom:3px solid #111}
+.f-brutalist .win-bar .dots i{border:2px solid #111}
+.f-brutalist .win-bar .dots i:first-child{background:#FF3366}
+.f-brutalist .win-bar .dots i:nth-child(2){background:#FFD600}
+.f-brutalist .win-bar .dots i:last-child{background:#00FF88}
+.f-brutalist .win-bar .title{color:#111;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.f-brutalist .icon .label{color:#111;font-weight:700;font-size:10px}
+.f-brutalist .icon .ico-box{border:2px solid #111}
+.f-brutalist .mini-term{background:#fff;border:2px solid #111;color:#111}
+
+/* ===== 6. MONOCHROME LUXE ===== */
+.f-luxe{background:#000}
+.f-luxe .menubar{border-bottom:1px solid rgba(201,168,76,.15)}
+.f-luxe .menubar .app-name{color:rgba(201,168,76,.5);font-family:'Playfair Display',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.f-luxe .dock{border:1px solid rgba(201,168,76,.1)}
+.f-luxe .dock i{background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.08)}
+.f-luxe .widget{border:1px solid rgba(201,168,76,.08);background:rgba(201,168,76,.015)}
+.f-luxe .widget .w-head span{color:rgba(201,168,76,.4);font-family:'Playfair Display',serif;letter-spacing:.12em}
+.f-luxe .widget .w-big{color:#C9A84C;font-family:'Playfair Display',serif}
+.f-luxe .widget .w-sub{color:rgba(255,255,255,.25)}
+.f-luxe .widget .w-bar i{background:#C9A84C}
+.f-luxe .window{background:rgba(201,168,76,.02);border:1px solid rgba(201,168,76,.1)}
+.f-luxe .win-bar{border-bottom:1px solid rgba(201,168,76,.08)}
+.f-luxe .win-bar .dots i{background:rgba(201,168,76,.15)}
+.f-luxe .win-bar .dots i:first-child{background:rgba(201,168,76,.3)}
+.f-luxe .win-bar .dots i:nth-child(2){background:rgba(201,168,76,.2)}
+.f-luxe .win-bar .dots i:last-child{background:#C9A84C}
+.f-luxe .win-bar .title{color:rgba(201,168,76,.5);font-family:'Playfair Display',serif;font-size:10.5px;letter-spacing:.08em}
+.f-luxe .icon .label{color:rgba(255,255,255,.35);font-size:10px;letter-spacing:.02em}
+
+/* ===== 7. SYNTHWAVE ===== */
+.f-synth{background:#1a0a2e}
+.f-synth::after{content:"";position:absolute;bottom:56px;left:0;right:0;height:140px;
+  background-image:repeating-linear-gradient(90deg,rgba(255,45,149,.12) 0px,transparent 1px,transparent 40px),
+    repeating-linear-gradient(0deg,rgba(255,45,149,.12) 0px,transparent 1px,transparent 40px);
+  transform:perspective(200px) rotateX(55deg);transform-origin:bottom;opacity:.3;pointer-events:none;z-index:0}
+.f-synth .menubar{background:linear-gradient(90deg,rgba(255,45,149,.08),rgba(0,240,255,.08));
+  border-bottom:2px solid rgba(255,45,149,.3);position:relative;z-index:1}
+.f-synth .menubar .app-name{color:#FF2D95;text-shadow:0 0 8px rgba(255,45,149,.4);font-weight:700}
+.f-synth .dock{background:rgba(255,45,149,.06);border:1px solid rgba(255,45,149,.15);
+  box-shadow:0 0 20px rgba(255,45,149,.08);position:relative;z-index:1}
+.f-synth .dock i{background:rgba(255,45,149,.06);border:1px solid rgba(255,45,149,.1)}
+.f-synth .widget{background:rgba(255,45,149,.04);border:1px solid rgba(255,45,149,.12);
+  box-shadow:0 0 16px rgba(255,45,149,.06);position:relative;z-index:1}
+.f-synth .widget .w-head span{color:#00F0FF;text-shadow:0 0 6px rgba(0,240,255,.3)}
+.f-synth .widget .w-big{background:linear-gradient(135deg,#FF2D95,#00F0FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 6px rgba(255,45,149,.25))}
+.f-synth .widget .w-sub{color:rgba(255,255,255,.3)}
+.f-synth .widget .w-bar i{background:linear-gradient(90deg,#FF2D95,#00F0FF)}
+.f-synth .window{background:rgba(255,45,149,.03);border:1px solid rgba(255,45,149,.12);
+  box-shadow:0 0 24px rgba(255,45,149,.06);position:relative;z-index:1}
+.f-synth .win-bar{background:linear-gradient(90deg,rgba(255,45,149,.06),rgba(0,240,255,.04));
+  border-bottom:1px solid rgba(255,45,149,.1)}
+.f-synth .win-bar .dots i{box-shadow:0 0 4px currentColor}
+.f-synth .win-bar .dots i:first-child{background:#FF2D95;color:#FF2D95}
+.f-synth .win-bar .dots i:nth-child(2){background:#FFD600;color:#FFD600}
+.f-synth .win-bar .dots i:last-child{background:#00F0FF;color:#00F0FF}
+.f-synth .win-bar .title{color:#FF2D95;text-shadow:0 0 6px rgba(255,45,149,.3)}
+.f-synth .icon .label{color:rgba(255,255,255,.5);text-shadow:0 0 4px rgba(255,45,149,.2)}
+
+/* ===== 8. MATERIAL YOU 3 ===== */
+.f-material{background:#1C1B1F}
+.f-material .menubar{background:#2B2930;border-bottom:1px solid rgba(255,255,255,.04)}
+.f-material .menubar .app-name{color:rgba(255,255,255,.6)}
+.f-material .dock{background:#2B2930;border:1px solid rgba(255,255,255,.04);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.f-material .dock i{background:rgba(208,188,255,.08)}
+.f-material .widget{background:#2B2930;border:1px solid rgba(255,255,255,.03);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.f-material .widget .w-head span{color:rgba(208,188,255,.5)}
+.f-material .widget .w-big{color:#D0BCFF}
+.f-material .widget .w-sub{color:rgba(255,255,255,.3)}
+.f-material .widget .w-bar i{background:#D0BCFF}
+.f-material .window{background:#2B2930;border:1px solid rgba(255,255,255,.03);box-shadow:0 4px 16px rgba(0,0,0,.4);border-radius:16px}
+.f-material .win-bar{background:#36343B;border-radius:16px 16px 0 0}
+.f-material .win-bar .dots i{background:rgba(208,188,255,.15)}
+.f-material .win-bar .dots i:first-child{background:#F2B8B5}
+.f-material .win-bar .dots i:nth-child(2){background:#F7D88A}
+.f-material .win-bar .dots i:last-child{background:#A8DAB5}
+.f-material .win-bar .title{color:rgba(255,255,255,.6)}
+.f-material .icon .label{color:rgba(255,255,255,.5)}
+.f-material .icon .ico-box{border-radius:16px}
+.f-material .chip{display:inline-block;padding:4px 10px;border-radius:8px;font-size:9.5px;font-weight:500;
+  background:rgba(208,188,255,.1);color:#D0BCFF;border:1px solid rgba(208,188,255,.15);margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Desktop Wireframes</h1>
+  <p>Full home screen layouts — menu bar, desktop icons, widgets, floating windows, dock — for each theme.</p>
+</div>
+
+<div class="frames">
+
+<!-- ==================== 1. LIQUID GLASS ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(14,165,183,.15);color:#0EA5B7">01</div>
+    <div><h2>Liquid Glass</h2><p>iOS 26 — heavy blur, translucent layers, prismatic edges</p></div>
+  </div>
+  <div class="frame f-liquid">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="menu-items"><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span></div>
+        <div class="spacer"></div>
+        <div class="status-right">
+          <span>🔒 Private</span>
+          <span>08:14 AST</span>
+          <span>Ahmad F.</span>
+        </div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-browser"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div class="label">Browser</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+            <div class="icon"><div class="ico-box ico-word"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="label">Word</div></div>
+            <div class="icon"><div class="ico-box ico-ppt"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="label">Slides</div></div>
+            <div class="icon"><div class="ico-box ico-term"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><div class="label">Terminal</div></div>
+            <div class="icon"><div class="ico-box ico-mail"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="label">Mail</div></div>
+            <div class="icon"><div class="ico-box ico-agents"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="label">Agents</div></div>
+            <div class="icon"><div class="ico-box ico-gear"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="label">Settings</div></div>
+            <div class="icon"><div class="ico-box ico-trash"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><div class="label">Trash</div></div>
+          </div>
+          <!-- FLOATING WINDOW: Chat -->
+          <div class="window" style="top:30px;left:60px;width:440px;height:340px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">Chat — Kimi K2 Instruct</div></div>
+            <div class="win-body" style="display:flex;flex-direction:column;gap:10px">
+              <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px;font-size:11px;color:rgba(255,255,255,.5);line-height:1.5">
+                At 45 days the exposure on C2 is <b style="color:#43E0A6">SAR 5.32 million</b>. The LD cap does not protect you — it only bites past day 67.
+              </div>
+              <div style="background:rgba(14,165,183,.06);border:1px solid rgba(14,165,183,.1);border-radius:10px;padding:10px;font-size:11px;color:rgba(255,255,255,.5);line-height:1.5;margin-left:40px">
+                What about splitting the rebar across two vendors?
+              </div>
+              <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px;font-size:11px;color:rgba(255,255,255,.5);line-height:1.5">
+                On 14 Aug the single-source risk on Al-Rajhi exceeded the unit-rate penalty. Recommendation: approve the split.
+              </div>
+              <div style="margin-top:auto;display:flex;gap:8px">
+                <div style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.3)">Message Console…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#43E0A6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Sovereignty</span></div>
+            <div class="w-big">Private</div>
+            <div class="w-sub">Riyadh DC-1 · 8×H200<br>Egress: <b style="color:#43E0A6">0 bytes</b></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#F0B44E"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Exposure</span></div>
+            <div class="w-big">SAR 5.32M</div>
+            <div class="w-sub">Day 45 · LD cap binds past day 67</div>
+            <div class="w-bar"><i style="width:67%"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#0EA5B7"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg><span>Brain Activity</span></div>
+            <div class="w-big">12 nodes</div>
+            <div class="w-sub">3 threads unresolved · Last ingest 08:14</div>
+            <div class="w-bar"><i style="width:94%;background:linear-gradient(90deg,#0EA5B7,#43E0A6)"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#5B94FF"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Waiting on you</span></div>
+            <div class="w-big">5</div>
+            <div class="w-sub">approvals pending</div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 2. AURORA BOREALIS ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(16,185,129,.15);color:#10B981">02</div>
+    <div><h2>Aurora Borealis</h2><p>Animated aurora bands, starfield, ethereal glow</p></div>
+  </div>
+  <div class="frame f-aurora">
+    <div class="desktop">
+      <div class="aurora-glow"></div>
+      <div class="star" style="top:12%;left:18%;animation-delay:0s"></div>
+      <div class="star" style="top:28%;left:72%;animation-delay:.5s"></div>
+      <div class="star" style="top:45%;left:35%;animation-delay:1s"></div>
+      <div class="star" style="top:18%;left:88%;animation-delay:.3s"></div>
+      <div class="star" style="top:65%;left:22%;animation-delay:.7s"></div>
+      <div class="star" style="top:52%;left:60%;animation-delay:1.2s"></div>
+      <div class="star" style="top:75%;left:48%;animation-delay:.9s"></div>
+      <div class="star" style="top:38%;left:10%;animation-delay:.4s"></div>
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="menu-items"><span>File</span><span>Edit</span><span>View</span><span>Window</span></div>
+        <div class="spacer"></div>
+        <div class="status-right"><span>🔒 Private</span><span>08:14</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+            <div class="icon"><div class="ico-box ico-word"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="label">Word</div></div>
+            <div class="icon"><div class="ico-box ico-ppt"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="label">Slides</div></div>
+            <div class="icon"><div class="ico-box ico-term"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><div class="label">Terminal</div></div>
+            <div class="icon"><div class="ico-box ico-mail"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="label">Mail</div></div>
+            <div class="icon"><div class="ico-box ico-agents"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="label">Agents</div></div>
+            <div class="icon"><div class="ico-box ico-gear"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="label">Settings</div></div>
+          </div>
+          <div class="window" style="top:20px;left:40px;width:460px;height:360px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">Brain — Graph View</div></div>
+            <div class="win-body" style="position:relative;overflow:hidden">
+              <svg width="100%" height="100%" style="position:absolute;inset:0">
+                <defs><pattern id="ag" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r=".8" fill="rgba(255,255,255,.06)"/></pattern></defs>
+                <rect width="100%" height="100%" fill="url(#ag)"/>
+                <line x1="20%" y1="30%" x2="45%" y2="50%" stroke="rgba(16,185,129,.3)" stroke-width="1.5"/>
+                <line x1="45%" y1="50%" x2="70%" y2="35%" stroke="rgba(59,130,246,.3)" stroke-width="1.5"/>
+                <line x1="45%" y1="50%" x2="60%" y2="75%" stroke="rgba(168,85,247,.3)" stroke-width="1.5"/>
+                <line x1="20%" y1="30%" x2="15%" y2="65%" stroke="rgba(16,185,129,.2)" stroke-width="1"/>
+                <line x1="70%" y1="35%" x2="80%" y2="60%" stroke="rgba(59,130,246,.2)" stroke-width="1"/>
+                <circle cx="20%" cy="30%" r="6" fill="#10B981" opacity=".8"/><circle cx="45%" cy="50%" r="8" fill="#3B82F6" opacity=".8"/>
+                <circle cx="70%" cy="35%" r="5" fill="#A855F7" opacity=".8"/><circle cx="60%" cy="75%" r="4" fill="#EC4899" opacity=".7"/>
+                <circle cx="15%" cy="65%" r="3.5" fill="#10B981" opacity=".5"/><circle cx="80%" cy="60%" r="4" fill="#3B82F6" opacity=".5"/>
+                <text x="20%" y="30%" dy="16" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8" font-family="Inter">C2 Package</text>
+                <text x="45%" y="50%" dy="18" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8" font-family="Inter">RYD-M3</text>
+                <text x="70%" y="35%" dy="14" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8" font-family="Inter">Exposure</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#10B981"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Sovereignty</span></div>
+            <div class="w-big">Private</div>
+            <div class="w-sub">Riyadh DC-1 · 0 egress</div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#F0B44E"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>Exposure</span></div>
+            <div class="w-big">SAR 5.32M</div>
+            <div class="w-sub">Day 45</div>
+            <div class="w-bar"><i style="width:67%"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#10B981"><circle cx="12" cy="12" r="3"/></svg><span>Brain</span></div>
+            <div class="w-big">12 nodes</div>
+            <div class="w-sub">3 threads unresolved</div>
+            <div class="w-bar"><i style="width:94%;background:linear-gradient(90deg,#10B981,#3B82F6)"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#A855F7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Approvals</span></div>
+            <div class="w-big">5</div>
+            <div class="w-sub">pending</div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 3. CARBON HYPERCAR ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(255,61,0,.15);color:#FF3D00">03</div>
+    <div><h2>Carbon Hypercar</h2><p>Carbon weave, red telemetry, gauge widgets, monospace</p></div>
+  </div>
+  <div class="frame f-carbon">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="stripe"></div><div class="stripe"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="spacer"></div>
+        <div class="status-right"><span style="font-family:'Roboto Mono',monospace;color:rgba(255,61,0,.5);font-size:9px;letter-spacing:.06em">SYS:OK</span><span style="font-family:'Roboto Mono',monospace;color:#FF3D00;font-size:9px">08:14:33</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-term"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><div class="label">Terminal</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+          </div>
+          <!-- TERMINAL WINDOW -->
+          <div class="window" style="top:20px;left:40px;width:480px;height:320px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">TERMINAL — magna-riyadh-dc1</div></div>
+            <div class="win-body" style="background:#0d0d0f">
+              <div class="mini-term">
+                <div><span class="prompt">ahmad@dc1</span> <span class="cmd">~/exposure-model</span></div>
+                <div class="out">$ npm run dev</div>
+                <div class="out" style="color:#FF3D00">  VITE v5.4.2  ready in 340ms</div>
+                <div class="out">  ➜  Local:   http://localhost:5173/</div>
+                <div class="out">  ➜  Network: http://192.168.1.42:5173/</div>
+                <div style="margin-top:6px"><span class="prompt">ahmad@dc1</span> <span class="cmd">~/exposure-model</span> <span class="out">$ cat calc.js | head -20</span></div>
+                <div class="out" style="margin-top:4px"><span class="kw" style="color:#FF3D00">const</span> PACKAGE_VALUE = 41800000;</div>
+                <div class="out"><span class="kw" style="color:#FF3D00">const</span> LD_RATE = 0.0015;</div>
+                <div class="out"><span class="kw" style="color:#FF3D00">const</span> STANDBY_DAY = 94000;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF3D00"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>SYS STATUS</span></div>
+            <div class="w-big">PRIVATE</div>
+            <div class="w-sub" style="font-family:'Roboto Mono',monospace">0 bytes egress · 0 violations</div>
+            <div class="w-bar" style="background:rgba(255,61,0,.08)"><i style="width:100%;background:#FF3D00"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF6D00"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>EXPOSURE</span></div>
+            <div class="w-big">SAR 5.32M</div>
+            <div class="w-sub" style="font-family:'Roboto Mono',monospace">DAY 45 · LD CAP: DAY 67</div>
+            <div class="w-bar" style="background:rgba(255,61,0,.08)"><i style="width:67%;background:linear-gradient(90deg,#FF3D00,#FF6D00)"></i></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="widget" style="text-align:center">
+              <div class="w-sub" style="font-family:'Roboto Mono',monospace;color:rgba(255,61,0,.4);letter-spacing:.08em;font-size:8px">CPU</div>
+              <div class="w-big" style="font-size:20px">21%</div>
+            </div>
+            <div class="widget" style="text-align:center">
+              <div class="w-sub" style="font-family:'Roboto Mono',monospace;color:rgba(255,61,0,.4);letter-spacing:.08em;font-size:8px">GPU</div>
+              <div class="w-big" style="font-size:20px">2/8</div>
+            </div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF3D00"><circle cx="12" cy="12" r="3"/></svg><span>BRAIN</span></div>
+            <div class="w-sub" style="font-family:'Roboto Mono',monospace">12 NODES · 3 UNRESOLVED</div>
+            <div class="w-bar" style="background:rgba(255,61,0,.08)"><i style="width:94%;background:linear-gradient(90deg,#FF3D00,#FF6D00)"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 4. NEBULA COSMIC ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(124,107,255,.15);color:#7C6BFF">04</div>
+    <div><h2>Nebula Cosmic</h2><p>Gradient meshes, constellation dots, colored tinted glass</p></div>
+  </div>
+  <div class="frame f-nebula">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="spacer"></div>
+        <div class="status-right"><span>🔒 Private</span><span>08:14</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+            <div class="icon"><div class="ico-box ico-ppt"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="label">Slides</div></div>
+          </div>
+          <!-- WORD EDITOR WINDOW -->
+          <div class="window" style="top:20px;left:50px;width:500px;height:380px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">Word — Variation Notice Draft</div></div>
+            <div class="win-body" style="padding:0">
+              <div style="display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid rgba(124,107,255,.06);flex-wrap:wrap">
+                <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(124,107,255,.06);color:rgba(255,255,255,.4)">B</span>
+                <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(124,107,255,.06);color:rgba(255,255,255,.4)"><i>I</i></span>
+                <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(124,107,255,.06);color:rgba(255,255,255,.4)"><u>U</u></span>
+                <span style="width:1px;height:16px;background:rgba(124,107,255,.1);margin:0 4px"></span>
+                <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(124,107,255,.06);color:rgba(255,255,255,.4)">H1</span>
+                <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(124,107,255,.06);color:rgba(255,255,255,.4)">H2</span>
+              </div>
+              <div style="padding:20px 28px;font-size:13px;color:rgba(255,255,255,.5);line-height:1.8">
+                <div style="font-size:18px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:8px">Variation Notice VN-C2-0114</div>
+                <p>To: Al-Rajhi Steel — Khalid Al-Rashid</p>
+                <p>Re: Schedule impact on PO 4500219871</p>
+                <p style="margin-top:10px">Dear Khalid,</p>
+                <p>Following the revised delivery dates communicated on 03 August, we formally note the schedule impact on Package C2 rebar-fixing activities. Per GC-8 clause 8.4…</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#7C6BFF"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Sovereignty</span></div>
+            <div class="w-big">Private</div>
+            <div class="w-sub">Riyadh DC-1 · 0 egress</div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#F0B44E"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>Exposure</span></div>
+            <div class="w-big">SAR 5.32M</div>
+            <div class="w-sub">Day 45</div>
+            <div class="w-bar"><i style="width:67%;background:linear-gradient(90deg,#7C6BFF,#0EA5B7)"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#7C6BFF"><circle cx="12" cy="12" r="3"/></svg><span>Brain</span></div>
+            <div class="w-big">12 nodes</div>
+            <div class="w-sub">3 threads unresolved</div>
+            <div class="w-bar"><i style="width:94%;background:linear-gradient(90deg,#7C6BFF,#0EA5B7)"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 5. NEO-BRUTALIST ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(255,51,102,.15);color:#FF3366">05</div>
+    <div><h2>Neo-Brutalist</h2><p>Thick borders, flat neon, bold type, offset shadows</p></div>
+  </div>
+  <div class="frame f-brutalist">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="spacer"></div>
+        <div class="status-right"><span style="font-weight:800;color:#111;font-size:9px">PRIVATE ✓</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+            <div class="icon"><div class="ico-box ico-term"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><div class="label">Terminal</div></div>
+          </div>
+          <!-- BRUTALIST WINDOW -->
+          <div class="window" style="top:24px;left:48px;width:460px;height:340px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">CHAT — C2 EXPOSURE</div></div>
+            <div class="win-body" style="background:#fff">
+              <div style="background:#f5f5f5;border:2px solid #111;border-radius:0;padding:10px;font-size:11px;color:#111;line-height:1.5;margin-bottom:8px">
+                At 45 days the exposure on C2 is <b style="color:#FF3366">SAR 5.32 million</b>. The LD cap does not protect you.
+              </div>
+              <div style="background:#FFD600;border:2px solid #111;border-radius:0;padding:8px 12px;font-size:11px;color:#111;font-weight:700;display:inline-block">
+                ⚠ AT RISK
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:#00FF88"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>SOVEREIGNTY</span></div>
+            <div class="w-big" style="color:#00FF88">PRIVATE</div>
+            <div class="w-sub" style="color:#666;font-weight:700">0 bytes egress</div>
+            <div style="display:inline-block;background:#00FF88;color:#111;font-size:8px;font-weight:800;padding:2px 6px;margin-top:6px;border:2px solid #111">✓ SECURE</div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:#FF3366"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>EXPOSURE</span></div>
+            <div class="w-big" style="color:#FF3366">SAR 5.32M</div>
+            <div class="w-sub" style="color:#666;font-weight:700">DAY 45</div>
+            <div style="display:inline-block;background:#FF3366;color:#fff;font-size:8px;font-weight:800;padding:2px 6px;margin-top:6px;border:2px solid #111">⚠ AT RISK</div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:#111"><circle cx="12" cy="12" r="3"/></svg><span>BRAIN</span></div>
+            <div class="w-big" style="color:#111">12 NODES</div>
+            <div class="w-sub" style="color:#666;font-weight:700">3 UNRESOLVED</div>
+            <div style="display:inline-block;background:#FFD600;color:#111;font-size:8px;font-weight:800;padding:2px 6px;margin-top:6px;border:2px solid #111">LIVE</div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 6. MONOCHROME LUXE ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(201,168,76,.15);color:#C9A84C">06</div>
+    <div><h2>Monochrome Luxe</h2><p>Black + gold, Playfair serif, ultra-thin, executive</p></div>
+  </div>
+  <div class="frame f-luxe">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="spacer"></div>
+        <div class="status-right"><span>Private</span><span style="color:rgba(201,168,76,.4)">08:14</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box" style="background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box" style="background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box" style="background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box" style="background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+          </div>
+          <div class="window" style="top:24px;left:48px;width:460px;height:340px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">Chat</div></div>
+            <div class="win-body">
+              <div style="font-family:'Playfair Display',serif;font-size:16px;color:rgba(201,168,76,.7);font-weight:600;margin-bottom:10px">C2 Exposure Position</div>
+              <div style="width:30px;height:1px;background:#C9A84C;opacity:.3;margin-bottom:10px"></div>
+              <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.7">
+                At 45 days the exposure stands at <span style="color:#C9A84C;font-weight:600">SAR 5.32 million</span>. The liquidated damages cap under GC-8 clause 8.4 does not become the binding constraint until day 67.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#C9A84C"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Sovereignty</span></div>
+            <div class="w-big">Private</div>
+            <div style="width:30px;height:1px;background:#C9A84C;opacity:.2;margin:6px 0"></div>
+            <div class="w-sub">Riyadh DC-1 · Zero egress</div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#C9A84C"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>Exposure</span></div>
+            <div class="w-big">5.32M</div>
+            <div style="width:30px;height:1px;background:#C9A84C;opacity:.2;margin:6px 0"></div>
+            <div class="w-sub">Saudi Riyals · Day 45</div>
+            <div class="w-bar"><i style="width:67%;background:#C9A84C"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#C9A84C"><circle cx="12" cy="12" r="3"/></svg><span>Brain</span></div>
+            <div class="w-big">12</div>
+            <div style="width:30px;height:1px;background:#C9A84C;opacity:.2;margin:6px 0"></div>
+            <div class="w-sub">Indexed nodes · 3 unresolved</div>
+            <div class="w-bar"><i style="width:94%;background:#C9A84C"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 7. SYNTHWAVE ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(255,45,149,.15);color:#FF2D95">07</div>
+    <div><h2>Synthwave</h2><p>Neon magenta/cyan, chrome, perspective grid</p></div>
+  </div>
+  <div class="frame f-synth">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="spacer"></div>
+        <div class="status-right"><span>🔒 Private</span><span>08:14</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-term"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><div class="label">Terminal</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+          </div>
+          <div class="window" style="top:20px;left:44px;width:480px;height:360px;z-index:5">
+            <div class="win-bar"><div class="dots"><i></i><i></i><i></i></div><div class="title">CHAT — NEON TERMINAL</div></div>
+            <div class="win-body">
+              <div style="background:rgba(255,45,149,.04);border:1px solid rgba(255,45,149,.1);border-radius:10px;padding:12px;font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">
+                Exposure at 45 days: <span style="color:#FF2D95;text-shadow:0 0 6px rgba(255,45,149,.4);font-weight:700">SAR 5.32M</span>
+              </div>
+              <div style="margin-top:12px;display:inline-block;padding:6px 14px;border-radius:8px;font-size:10px;font-weight:700;
+                background:linear-gradient(180deg,#FF2D95,#9B1B5A);color:#fff;
+                box-shadow:0 2px 8px rgba(255,45,149,.3),inset 0 1px 0 rgba(255,255,255,.2)">VIEW DETAILS</div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF2D95"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>SOVEREIGNTY</span></div>
+            <div class="w-big">PRIVATE</div>
+            <div class="w-sub">Riyadh DC-1 · 0 egress</div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#00F0FF"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>EXPOSURE</span></div>
+            <div class="w-big">SAR 5.32M</div>
+            <div class="w-sub">Day 45</div>
+            <div class="w-bar"><i style="width:67%;background:linear-gradient(90deg,#FF2D95,#00F0FF)"></i></div>
+          </div>
+          <div class="widget">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#FF2D95"><circle cx="12" cy="12" r="3"/></svg><span>BRAIN</span></div>
+            <div class="w-big">12 NODES</div>
+            <div class="w-sub">3 unresolved</div>
+            <div class="w-bar"><i style="width:94%;background:linear-gradient(90deg,#FF2D95,#00F0FF)"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 8. MATERIAL YOU 3 ==================== -->
+<div>
+  <div class="frame-label">
+    <div class="num" style="background:rgba(208,188,255,.15);color:#D0BCFF">08</div>
+    <div><h2>Material You 3</h2><p>Dynamic color, 28px radius, tonal surfaces, FAB</p></div>
+  </div>
+  <div class="frame f-material">
+    <div class="desktop">
+      <div class="menubar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="app-name">MagnaVERSE</span>
+        <div class="spacer"></div>
+        <div class="status-right"><span>Private</span><span>08:14</span></div>
+      </div>
+      <div class="desk-body">
+        <div class="icon-area">
+          <div class="icon-grid">
+            <div class="icon"><div class="ico-box ico-chat"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="label">Chat</div></div>
+            <div class="icon"><div class="ico-box ico-brain"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-7.07-15.07l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4m-15.07 7.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg></div><div class="label">Brain</div></div>
+            <div class="icon"><div class="ico-box ico-code"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="label">Code</div></div>
+            <div class="icon"><div class="ico-box ico-files"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="label">Files</div></div>
+            <div class="icon"><div class="ico-box ico-ppt"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="label">Slides</div></div>
+            <div class="icon"><div class="ico-box ico-term"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div><div class="label">Terminal</div></div>
+          </div>
+          <div class="window" style="top:20px;left:44px;width:480px;height:360px;z-index:5;border-radius:16px">
+            <div class="win-bar" style="border-radius:16px 16px 0 0"><div class="dots"><i></i><i></i><i></i></div><div class="title">Chat — Kimi K2 Instruct</div></div>
+            <div class="win-body">
+              <div style="background:rgba(208,188,255,.04);border-radius:16px;padding:14px;font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">
+                Exposure at 45 days: <span style="color:#D0BCFF;font-weight:600">SAR 5.32M</span>
+              </div>
+              <div style="margin-top:12px;display:inline-block;padding:6px 16px;border-radius:8px;font-size:10px;font-weight:500;
+                background:rgba(208,188,255,.12);color:#D0BCFF;border:1px solid rgba(208,188,255,.15)">View Details</div>
+            </div>
+          </div>
+          <!-- FAB -->
+          <div style="position:absolute;bottom:80px;right:300px;width:48px;height:48px;border-radius:14px;
+            background:#D0BCFF;display:grid;place-items:center;z-index:6;box-shadow:0 4px 12px rgba(0,0,0,.4)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1C1B1F" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+        </div>
+        <div class="widget-area">
+          <div class="widget" style="border-radius:20px">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#A8DAB5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Sovereignty</span></div>
+            <div class="w-big">Private</div>
+            <div class="w-sub">Riyadh DC-1 · 0 egress</div>
+            <div class="chip" style="background:rgba(168,218,181,.1);color:#A8DAB5;border-color:rgba(168,218,181,.15)">✓ Secure</div>
+          </div>
+          <div class="widget" style="border-radius:20px">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#F7D88A"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>Exposure</span></div>
+            <div class="w-big">5.32M</div>
+            <div class="w-sub">SAR · Day 45</div>
+            <div class="chip" style="background:rgba(247,216,138,.1);color:#F7D88A;border-color:rgba(247,216,138,.15)">⚠ At Risk</div>
+            <div class="w-bar"><i style="width:67%;background:#D0BCFF"></i></div>
+          </div>
+          <div class="widget" style="border-radius:20px">
+            <div class="w-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#D0BCFF"><circle cx="12" cy="12" r="3"/></svg><span>Brain</span></div>
+            <div class="w-big">12 nodes</div>
+            <div class="w-sub">3 unresolved threads</div>
+            <div class="w-bar"><i style="width:94%;background:#D0BCFF"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="dock-wrap"><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:20px 40px 60px;color:#666;font-size:13px">
+  Each wireframe shows the same home screen — menu bar, desktop icons, widgets, floating window, dock.<br>
+  Pick a number to apply it as the full Console OS theme.
+</div>
+
+</body>
+</html>

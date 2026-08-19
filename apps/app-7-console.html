@@ -4455,9 +4455,26 @@ $("#deskSwitch").addEventListener("click", function(e){
   var t = e.target.closest("[data-dsdot]"); if(t) dsSel(+t.getAttribute("data-dsdot"));
   else if(e.target.id === "deskSwitch") dsOpen(false);
 });
+/* A trackpad fires 30-60 wheel events for one two-finger swipe. Stepping once
+   per event raced the selection across the whole rail and kept interrupting the
+   .5s card transition, which is what read as "scrolls but glitches". Accumulate
+   the delta, step once per threshold, then cool down. stopPropagation matters
+   too: without it the same swipe also reached the OS gesture handler below and
+   changed the space behind the overlay. */
+var dsWheel = { acc:0, until:0, last:0 };
 $("#deskSwitch").addEventListener("wheel", function(e){
   e.preventDefault();
-  dsMove(e.deltaY !== 0 ? Math.sign(e.deltaY) : Math.sign(e.deltaX));
+  e.stopPropagation();
+  var now = performance.now();
+  if(now - dsWheel.last > 200) dsWheel.acc = 0;   /* a pause means a new gesture */
+  dsWheel.last = now;
+  if(now < dsWheel.until) return;                 /* still cooling down */
+  var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  dsWheel.acc += d;
+  if(Math.abs(dsWheel.acc) < 90) return;          /* below the step threshold */
+  dsMove(dsWheel.acc > 0 ? 1 : -1);
+  dsWheel.acc = 0;
+  dsWheel.until = now + 280;                      /* at most one card per 280ms */
 }, {passive:false});
 var dsTouch = null;
 $("#deskSwitch").addEventListener("touchstart", function(e){
@@ -4497,6 +4514,7 @@ $("#mission").addEventListener("dblclick", function(e){
 var wheelLock = false;
 window.addEventListener("wheel", function(e){
   if(!document.body.matches('[data-stage="os"]')) return;
+  if(DESK.on) return;                                   /* switcher is modal — it owns the gesture */
   if(e.target.closest(".win-body")) return;             /* let app content scroll */
   /* vertical: two-finger swipe up opens Mission Control, down closes it */
   if(Math.abs(e.deltaY) >= 64 && Math.abs(e.deltaY) > Math.abs(e.deltaX)){
@@ -4522,12 +4540,12 @@ window.addEventListener("wheel", function(e){
    window bar closes it (the mobile "swipe to dismiss") */
 var tStart = null;
 document.addEventListener("touchstart", function(e){
-  if(e.touches.length !== 1) return;
+  if(e.touches.length !== 1 || DESK.on) return;
   tStart = { x:e.touches[0].clientX, y:e.touches[0].clientY,
              bar: e.target.closest("[data-bar]"), onWall: !e.target.closest(".win") };
 }, {passive:true});
 document.addEventListener("touchend", function(e){
-  if(!tStart || !e.changedTouches.length) return;
+  if(!tStart || !e.changedTouches.length || DESK.on){ tStart = null; return; }
   var dx = e.changedTouches[0].clientX - tStart.x, dy = e.changedTouches[0].clientY - tStart.y;
   if(tStart.bar && dy > 70 && Math.abs(dx) < 60){
     closeWin(+tStart.bar.closest(".win").getAttribute("data-win"));
