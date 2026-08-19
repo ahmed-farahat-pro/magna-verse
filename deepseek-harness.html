@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DeepSeek Harness — what it is, and how it would run MagnaVERSE Console</title>
+<meta name="description" content="A plain-language explainer of DeepSeek Harness (dsh): what an agent harness is, why 'everything is a plugin' matters, the turn and tool pipelines, and exactly how it would be integrated into MagnaVERSE Console.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px; --topbar:58px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+    --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+    --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+    --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+    --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+    --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+    --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+    --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+    --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+  --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+  --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+  --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+  --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0; max-width:100%; overflow-x:hidden}
+html{scroll-behavior:smooth; scroll-padding-top:calc(var(--topbar) + 14px)}
+body{background:var(--bg); color:var(--tx); font-family:var(--sans); font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal-bright); outline-offset:2px; border-radius:4px}
+button{font:inherit; cursor:pointer}
+h1,h2,h3,h4{text-wrap:balance; line-height:1.24; margin:0}
+p{margin:0 0 14px}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-3); padding:.12em .38em; border-radius:5px; word-break:break-word}
+b,strong{font-weight:650}
+
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+@media (max-width:560px){ .wrap{padding:0 16px} }
+
+/* ---------- brand mark ---------- */
+.magna-mark{width:28px; height:auto; display:block; flex:none}
+.magna-mark path{ stroke-dasharray:1200; stroke-dashoffset:0; }
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{ animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both; }
+  .magna-mark path:nth-of-type(2){ animation-delay:.18s; }
+}
+@keyframes mgDraw{ from{ stroke-dashoffset:1200 } to{ stroke-dashoffset:0 } }
+
+/* ---------- top bar ---------- */
+.top{position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:saturate(1.6) blur(14px); border-bottom:1px solid var(--line)}
+.top-in{max-width:1080px; margin:0 auto; padding:0 24px; height:var(--topbar); display:flex; align-items:center; gap:12px}
+@media (max-width:560px){ .top-in{padding:0 12px} }
+.brand{display:flex; align-items:center; gap:10px; min-width:0}
+.brand .wm{font-weight:650; font-size:15px; letter-spacing:-.01em; white-space:nowrap}
+.brand .wm span{color:var(--tx-4); font-weight:650}
+.topnav{display:flex; gap:2px; margin-left:auto; overflow-x:auto; scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.topnav a{color:var(--tx-3); font-size:13px; padding:8px 9px; border-radius:8px; white-space:nowrap; min-height:44px; display:inline-flex; align-items:center}
+.topnav a:hover{background:var(--surface-2); color:var(--tx); text-decoration:none}
+@media (max-width:1023px){ .topnav{display:none} }
+.seg{display:flex; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; margin-left:auto; flex:none}
+@media (min-width:1024px){ .seg{margin-left:10px} }
+.seg button{min-width:44px; min-height:44px; padding:0 10px; border:0; background:transparent; color:var(--tx-3); font-size:12px; border-radius:7px}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--tx); box-shadow:var(--shadow-sm)}
+.menub{display:none; min-width:44px; min-height:44px; align-items:center; justify-content:center; border:1px solid var(--line); background:var(--surface-2); color:var(--tx); border-radius:9px; flex:none}
+@media (max-width:1023px){ .menub{display:inline-flex} }
+
+.scrim{position:fixed; inset:0; z-index:70; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .18s ease}
+.scrim.on{opacity:1; pointer-events:auto}
+.drawer{position:fixed; z-index:71; inset:0 0 0 auto; width:min(320px,86vw); background:var(--surface); border-left:1px solid var(--line); transform:translateX(102%); visibility:hidden; transition:transform .22s cubic-bezier(.2,.8,.2,1), visibility 0s linear .22s; overflow-y:auto; padding:14px}
+.drawer.on{transform:none; visibility:visible; transition:transform .22s cubic-bezier(.2,.8,.2,1), visibility 0s}
+.drawer .drawer-h{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--tx-4); margin:6px 4px 10px}
+.drawer a{display:block; color:var(--tx-2); padding:11px 10px; border-radius:9px; font-size:14.5px; min-height:44px}
+.drawer a:hover{background:var(--surface-2); text-decoration:none}
+.drawer .closeb{width:100%; min-height:44px; margin-top:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--tx); border-radius:9px}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 28px; border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:650; margin-bottom:12px}
+.hero h1{font-size:clamp(28px,5.4vw,46px); letter-spacing:-.025em; margin-bottom:14px}
+.hero .lede{font-size:clamp(16px,2.2vw,19px); color:var(--tx-2); max-width:62ch}
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; margin-top:24px}
+.facts div{background:var(--surface); padding:13px 14px}
+.facts dt{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-4); font-weight:650}
+.facts dd{margin:3px 0 0; font-size:14.5px; font-weight:600; color:var(--tx)}
+.facts dd small{display:block; font-weight:400; color:var(--tx-3); font-size:12px; margin-top:2px}
+
+/* ---------- sections ---------- */
+section{padding:44px 0; border-bottom:1px solid var(--line)}
+.sec-n{font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.04em}
+h2{font-size:clamp(22px,3.6vw,31px); letter-spacing:-.02em; margin:6px 0 12px}
+h3{font-size:clamp(17px,2.4vw,20px); letter-spacing:-.012em; margin:30px 0 10px}
+h4{font-size:15.5px; margin:22px 0 8px; color:var(--tx)}
+.sub{color:var(--tx-3); max-width:70ch; font-size:16.5px}
+.body{max-width:72ch}
+.body p{color:var(--tx-2)}
+ul,ol{max-width:72ch; color:var(--tx-2); padding-left:22px; margin:0 0 14px}
+li{margin:0 0 7px}
+
+/* ---------- badges ---------- */
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:650; letter-spacing:.02em; padding:3px 8px; border-radius:999px; border:1px solid; vertical-align:middle; white-space:nowrap}
+.badge.v{color:var(--green); border-color:color-mix(in srgb,var(--green) 40%,transparent); background:var(--green-dim)}
+.badge.p{color:var(--violet); border-color:color-mix(in srgb,var(--violet) 40%,transparent); background:var(--violet-dim)}
+.badge.u{color:var(--amber); border-color:color-mix(in srgb,var(--amber) 40%,transparent); background:var(--amber-dim)}
+.badge::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor}
+
+/* ---------- callouts ---------- */
+.note{border:1px solid var(--line); border-left:3px solid var(--tx-4); border-radius:var(--r); background:var(--surface-2); padding:14px 16px; margin:18px 0; max-width:78ch}
+.note p:last-child{margin-bottom:0}
+.note .t{font-weight:650; font-size:14px; margin-bottom:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.note.warn{border-left-color:var(--amber); background:var(--amber-dim)}
+.note.hon{border-left-color:var(--accent); background:var(--accent-dim)}
+.note.ok{border-left-color:var(--green); background:var(--green-dim)}
+.note.mag{border-left-color:var(--signal); background:var(--signal-dim)}
+
+/* ---------- cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px; margin:20px 0}
+.card{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:16px 17px}
+.card h4{margin:0 0 7px; font-size:15.5px}
+.card p{color:var(--tx-3); font-size:14.2px; margin:0 0 9px}
+.card p:last-child{margin-bottom:0}
+.card .idx{font-family:var(--mono); font-size:11px; color:var(--tx-4); display:block; margin-bottom:7px}
+
+/* ---------- table ---------- */
+.tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); margin:18px 0; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:14.2px}
+th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--tx-2)}
+th{font-size:11.5px; text-transform:uppercase; letter-spacing:.055em; color:var(--tx-4); font-weight:650; background:var(--surface-2); position:sticky; top:0}
+tbody tr:last-child td{border-bottom:0}
+td b{color:var(--tx)}
+
+/* ---------- code ---------- */
+.codeblk{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface-2); margin:16px 0; overflow:hidden}
+.codebar{display:flex; align-items:center; gap:10px; padding:6px 7px 6px 14px; border-bottom:1px solid var(--line); background:var(--surface-3)}
+.codebar .fn{font-family:var(--mono); font-size:11.5px; color:var(--tx-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0}
+.copyb{min-height:44px; min-width:66px; padding:0 12px; border:1px solid var(--line-2); background:var(--surface); color:var(--tx-2); border-radius:8px; font-size:12px; font-weight:600; flex:none}
+.copyb:hover{color:var(--tx)}
+.copyb[data-done="1"]{color:var(--green); border-color:color-mix(in srgb,var(--green) 45%,transparent)}
+.codeblk pre{margin:0; padding:14px; overflow-x:auto; -webkit-overflow-scrolling:touch; max-height:640px; overflow-y:auto}
+.codeblk code{background:none; padding:0; font-size:12.6px; line-height:1.62; display:block; white-space:pre; color:var(--tx-2)}
+@media (max-width:560px){ .codeblk code{font-size:11.6px} }
+
+/* ---------- figures ---------- */
+figure{margin:22px 0}
+.figscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:14px}
+.figscroll > svg{display:block; height:auto}
+figcaption{font-size:13.2px; color:var(--tx-3); margin-top:10px; max-width:78ch}
+figcaption b{color:var(--tx-2)}
+.legend{display:flex; flex-wrap:wrap; gap:8px 16px; margin:12px 0 0; font-size:12.4px; color:var(--tx-3)}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.legend i{width:13px; height:13px; border-radius:4px; display:inline-block; flex:none}
+
+/* svg text helpers */
+.dg-t{font-family:var(--sans); font-size:12.5px; fill:var(--tx)}
+.dg-s{font-family:var(--sans); font-size:11px; fill:var(--tx-3)}
+.dg-m{font-family:var(--mono); font-size:12px; fill:var(--tx)}
+.dg-ms{font-family:var(--mono); font-size:10.5px; fill:var(--tx-3)}
+.dg-h{font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.07em; fill:var(--tx-4)}
+
+/* ---------- steps ---------- */
+.stage{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:17px 18px; margin:14px 0}
+.stage .hd{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin-bottom:9px}
+.stage .hd .w{font-family:var(--mono); font-size:11.5px; color:var(--accent); font-weight:650; letter-spacing:.03em}
+.stage .hd h3,.stage .hd h4{margin:0; font-size:15.5px}
+.stage ul{margin:0; padding-left:20px}
+.stage li{font-size:14.4px}
+
+footer{padding:36px 0 56px; color:var(--tx-4); font-size:13.4px}
+footer .fbrand{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.skip{position:absolute; left:-9999px}
+.skip:focus{left:12px; top:12px; z-index:99; background:var(--surface); color:var(--tx); padding:11px 15px; border:1px solid var(--line-2); border-radius:9px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="wm">Magna<span>VERSE</span></div>
+    </div>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#harness">Harness</a>
+      <a href="#plugin">Plugin idea</a>
+      <a href="#turn">Turn flow</a>
+      <a href="#dispatch">Dispatch</a>
+      <a href="#tools">Tool pipeline</a>
+      <a href="#seams">Seams</a>
+      <a href="#magna">5 integrations</a>
+      <a href="#html">Meets the HTML</a>
+      <a href="#risk">Risks</a>
+      <a href="#adopt">Adoption</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="system" aria-pressed="true">Auto</button>
+      <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+    </div>
+    <button type="button" class="menub" id="menub" aria-expanded="false" aria-controls="drawer" aria-label="Open section menu">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="Sections" aria-hidden="true">
+  <p class="drawer-h">On this page</p>
+  <a href="#harness">1 · What an agent harness is</a>
+  <a href="#repo">2 · The repository, verified</a>
+  <a href="#plugin">3 · Everything is a plugin</a>
+  <a href="#turn">4 · The turn flow</a>
+  <a href="#dispatch">5 · Dispatch modes and waterfalls</a>
+  <a href="#tools">6 · The tool pipeline</a>
+  <a href="#seams">7 · Capability seams</a>
+  <a href="#magna">8 · Five Magna integrations</a>
+  <a href="#html">9 · How it meets the HTML</a>
+  <a href="#risk">10 · Why it matters, and the risks</a>
+  <a href="#adopt">11 · A staged adoption path</a>
+  <a href="#sources">12 · Sources and gaps</a>
+  <button type="button" class="closeb" data-close-drawer>Close</button>
+</nav>
+
+<main id="main">
+
+<div class="wrap">
+<div class="hero">
+  <div class="eyebrow">Technology brief · for Magna</div>
+  <h1>DeepSeek Harness, explained from zero — and how it would actually run MagnaVERSE Console</h1>
+  <p class="lede">This page answers three questions. What is an agent harness, and why do you need one at all? What makes <code>dsh</code> different from every other one? And what would it really take to put it under Console — not in theory, but in files, ports and processes.</p>
+  <dl class="facts">
+    <div><dt>Project</dt><dd>deepseek-harness<small>DeepSeek AI</small></dd></div>
+    <div><dt>Licence</dt><dd>MIT<small>Permissive. No copyleft.</small></dd></div>
+    <div><dt>Created</dt><dd>13 Aug 2026<small>~6 days old</small></dd></div>
+    <div><dt>Language</dt><dd>TypeScript<small>Runs on Node.js</small></dd></div>
+    <div><dt>Stars</dt><dd>~165,000<small>Read this as attention, not maturity</small></dd></div>
+    <div><dt>Status</dt><dd style="color:var(--amber)">Developer preview<small>Breaking changes promised</small></dd></div>
+  </dl>
+</div>
+</div>
+
+<section id="harness">
+<div class="wrap">
+  <div class="sec-n">01</div>
+  <h2>What an agent harness is, in plain language</h2>
+  <p class="sub">Start here. If you already know the difference between a model API and an agent runtime, skip to section 3.</p>
+
+  <div class="body">
+    <h3>A model API is a single question and a single answer</h3>
+    <p>When you call a model over HTTP, you send some text and you get some text back. The model has no memory of the call afterwards. It cannot open a file. It cannot run a command. It cannot ask you for permission. It cannot continue tomorrow from where it stopped today. It is a function: text in, text out.</p>
+    <p>That is enough for a chatbot. It is not enough for anything in Console.</p>
+
+    <h3>An agent is a loop around that call</h3>
+    <p>Take one of Console&rsquo;s own examples. The <b>PO Slippage Watch</b> agent checks every open purchase order against the live Primavera P6 baseline. To do that, something has to:</p>
+    <ul>
+      <li>read the P6 snapshot &mdash; that is a <b>tool call</b>, not text generation;</li>
+      <li>read the SAP purchase orders &mdash; another tool call, to a different system;</li>
+      <li>notice that the answer needs a third lookup, and call the model <i>again</i> with what it just learned;</li>
+      <li>stop before it writes anything, and <b>ask a human</b>;</li>
+      <li>write down every step, so that tomorrow someone can ask &ldquo;why did it say that?&rdquo; and get a real answer;</li>
+      <li>survive a browser refresh, a laptop closing, and a server restart.</li>
+    </ul>
+    <p>The model does none of that. The model only decides <i>what</i> it wants to do next. Everything else &mdash; running the tool, enforcing the permission, keeping the log, resuming the work &mdash; is done by the program that wraps the model.</p>
+
+    <div class="note">
+      <div class="t">The definition</div>
+      <p>An <b>agent harness</b> is that wrapping program. It owns the loop: call the model, read what it asked for, run the tools, feed the results back, decide whether to stop, and record all of it. Claude Code is a harness. Codex CLI is a harness. <code>dsh</code> is a harness. The model is the engine; the harness is the whole car.</p>
+    </div>
+
+    <h3>Why you do not want to write one yourself</h3>
+    <p>Every team that starts down this road writes the same five thousand lines twice. Streaming and re-assembling partial responses. Running several tools at once without them corrupting each other. Cancelling a run half-way through. Compacting a conversation that outgrew the context window. Retrying only the failures that are worth retrying. Making the transcript replayable, so that the audit trail and the screen agree.</p>
+    <p>None of that is your product. All of it is required before your product works. A harness is the part you should adopt rather than build &mdash; provided you can still control the parts that <i>are</i> your product: which model, which network, which data, and who says yes.</p>
+    <p>That last sentence is the whole reason <code>dsh</code> is worth this page.</p>
+  </div>
+</div>
+</section>
+
+<section id="repo">
+<div class="wrap">
+  <div class="sec-n">02</div>
+  <h2>The repository, and the honest health warning</h2>
+  <p class="sub">Every fact in this section came from the repository itself or the GitHub API, on 19 Aug 2026.</p>
+
+  <div class="body">
+    <p>DeepSeek Harness (<code>dsh</code>) is an open-source agent harness from DeepSeek AI. Its one-line description is literally <b>&ldquo;DeepSeek Harness: Everything is a Plugin.&rdquo;</b> It is written in TypeScript, it is <b>MIT licensed</b>, and it is powered by a plugin framework called <b>Cordis</b>.</p>
+    <p>You can run it today with one command:</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">terminal &mdash; from the project README</span><button type="button" class="copyb">Copy</button></div>
+<pre><code># needs Node.js installed
+npx @deepseek-ai/dsh web
+
+# starts the Web UI, served at http://127.0.0.1:3080 by default</code></pre>
+  </div>
+
+  <div class="body">
+    <p>Or from a checkout of the source:</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">terminal &mdash; run from source</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>git clone https://github.com/deepseek-ai/deepseek-harness.git
+cd deepseek-harness
+pnpm install
+pnpm run build
+pnpm dsh web</code></pre>
+  </div>
+
+  <div class="note warn">
+    <div class="t"><span class="badge v">Verified</span> Read this before anyone gets excited</div>
+    <p>The project&rsquo;s own README says it plainly: <b>DeepSeek Harness is currently in <i>developer preview</i> and is iterating rapidly. THERE WILL BE COMPATIBILITY-BREAKING CHANGES.</b> The repository was created on <b>13 August 2026</b>. At the time of writing it is six days old.</p>
+    <p>The ~165,000 stars are a measure of how many people are watching, not of how many production systems depend on it. Treat every interface on this page as something that can change without warning. Section 11 turns that into a plan instead of a reason to stop.</p>
+  </div>
+
+  <div class="body">
+    <p>The MIT licence, on the other hand, is the best news in this document. MIT places no obligation on Magna beyond keeping the copyright notice. There is no copyleft, no source-disclosure requirement, and no restriction on shipping it inside a commercial, self-hosted product that you sell to a customer. Third-party dependency licences are disclosed separately in the project&rsquo;s <code>THIRD_PARTY_NOTICES.md</code>, which a licence audit should still read.</p>
+  </div>
+</div>
+</section>
+
+<section id="plugin">
+<div class="wrap">
+  <div class="sec-n">03</div>
+  <h2>The one idea that makes <code>dsh</code> different: everything is a plugin</h2>
+  <p class="sub">This is the section that decides whether <code>dsh</code> is interesting to Magna. Everything else follows from it.</p>
+
+  <div class="body">
+    <h3>The usual shape, and why it hurts</h3>
+    <p>Most agent frameworks have a <b>core</b> and then <b>extensions</b>. The core owns the loop, the model call, the tool runner and the log. Extensions are allowed to attach at the few places the core author thought of. When you need something the core author did not think of &mdash; say, &ldquo;refuse any tool whose data would leave Saudi Arabia&rdquo; &mdash; you have three bad options: submit a patch upstream and wait, fork the project and maintain it forever, or monkey-patch it at runtime and pray.</p>
+    <p><code>dsh</code> does not have that shape. Its architecture document says it directly:</p>
+    <div class="note ok">
+      <div class="t"><span class="badge v">Verified &mdash; architecture.md</span></div>
+      <p>&ldquo;Every part of the product is a plugin, including the model adapter, the tool registry, the session log, and the agent loop itself, so every part is replaceable from configuration. <b>There is no privileged core to patch</b>: you extend <code>dsh</code> by mounting a plugin beside the others, and registrations are effects that unwind when their plugin unloads.&rdquo;</p>
+    </div>
+    <p>Read that once more with Magna&rsquo;s constraints in mind. The model adapter is a plugin, so the model is swappable &mdash; that is Console&rsquo;s four on-prem models. The filesystem provider is a plugin, so where files live is swappable. The sandbox is a plugin, so where commands run is swappable. Nobody had to anticipate Saudi data residency for it to be expressible.</p>
+  </div>
+
+  <h3>Cordis in five ideas</h3>
+  <p class="sub">Cordis is the plugin framework underneath <code>dsh</code>. Its primer states five ideas. Here they are, each followed by what it means for you.</p>
+
+  <div class="cards">
+    <div class="card">
+      <span class="idx">Idea 1</span>
+      <h4>A plugin is an object that implements <code>Service</code></h4>
+      <p><b>The rule.</b> A plugin can simply be a function with optional <code>inject</code> and <code>apply(ctx)</code> fields, or a <code>Service</code> subclass whose lifecycle Cordis mounts into the current context.</p>
+      <p><b>What it means.</b> A plugin is an ordinary TypeScript file. There is no base class you must inherit, no manifest ceremony. A Magna policy is one file with an <code>apply</code> function.</p>
+    </div>
+    <div class="card">
+      <span class="idx">Idea 2</span>
+      <h4>A context is a repository of services</h4>
+      <p><b>The rule.</b> A service claims a stable key such as <code>ctx.tools</code>, <code>ctx.llm</code> or <code>ctx.sessions</code>. Other plugins find services <i>by key</i>, instead of importing a concrete implementation.</p>
+      <p><b>What it means.</b> The Bash tool does not import &ldquo;the local filesystem&rdquo;. It asks for <code>ctx.fs</code>. If you register a different <code>ctx.fs</code>, Bash silently starts working against your filesystem. Nobody edits Bash.</p>
+    </div>
+    <div class="card">
+      <span class="idx">Idea 3</span>
+      <h4>Declare dependencies with <code>inject</code></h4>
+      <p><b>The rule.</b> A plugin that names the services it requires waits until those services exist. Load order is expressed through service requirements rather than manual boot sequencing.</p>
+      <p><b>What it means.</b> You never write startup ordering code. <code>export const inject = ['tools', 'approval']</code> and your plugin activates at the right moment, and deactivates cleanly if those services go away.</p>
+    </div>
+    <div class="card">
+      <span class="idx">Idea 4</span>
+      <h4>Typed events for communication</h4>
+      <p><b>The rule.</b> Services declare event names through TypeScript declaration merging, then dispatch them as <code>emit</code>, <code>waterfall</code>, <code>parallel</code> or <code>serial</code> &mdash; depending on whether listeners observe, wrap, fan out, or run in order.</p>
+      <p><b>What it means.</b> The extension points are typed, named and catalogued. Your compiler tells you when one changes &mdash; which matters a great deal in a developer preview.</p>
+    </div>
+    <div class="card">
+      <span class="idx">Idea 5</span>
+      <h4>Registrations are reversible effects</h4>
+      <p><b>The rule.</b> Prompt sections, tool schemas, adapters, providers and listeners are installed through <code>ctx.effect()</code> or <code>ctx.on()</code>, so reload and teardown unwind them predictably. Every registration returns its exact disposer.</p>
+      <p><b>What it means.</b> This is the quiet one that matters most. Turning a capability <b>off</b> is a real operation, not a hope. A tenant that loses its licence, a connector that must be cut at 02:00, a residency mode that must remove every network tool &mdash; those become one disposer call, not a restart.</p>
+    </div>
+  </div>
+
+  <h3>How a running <code>dsh</code> is composed: profiles, bundles, patches</h3>
+  <div class="body">
+    <p>A running <code>dsh</code> is a <b>plugin tree</b> that is assembled at start-up from ordered layers. Three words carry the whole system, and the architecture document defines each of them:</p>
+    <ul>
+      <li>A <b>profile</b> is a named composition stored in the Harness home. It lists the bundles it stacks, holds any out-of-tree plugins it installs, and keeps the user&rsquo;s own <code>cordis.patch.yml</code>. <code>web</code> and <code>headless</code> ship as templates.</li>
+      <li>A <b>bundle</b> is a distribution format for configuration rows and the code they mount, so whatever it inserts <b>stays patchable by the layers above it</b>.</li>
+      <li>A <b>patch</b> targets a row by its id and either replaces that row&rsquo;s whole configuration, or inserts new rows.</li>
+    </ul>
+    <p>Layers apply to an empty entry list in a fixed order: each bundle in the profile&rsquo;s listed order, then the profile&rsquo;s <code>cordis.patch.yml</code>, then the home-level one, then any <code>--patch</code> overlay given on the command line.</p>
+  </div>
+
+  <figure>
+    <div class="figscroll">
+      <svg viewBox="0 0 900 452" width="900" role="img" aria-labelledby="dg1t dg1d">
+        <title id="dg1t">Layered composition of a running dsh</title>
+        <desc id="dg1d">Six layers applied in order from dsh-base at the bottom through bundles, a proposed Magna sovereign bundle, the profile patch file, the home patch file and a command-line patch overlay, producing the plugin tree that boots.</desc>
+        <defs>
+          <marker id="d1arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--tx-4)"/>
+          </marker>
+        </defs>
+        <text class="dg-h" x="0" y="14">HOW A RUNNING dsh IS COMPOSED</text>
+
+        <!-- order arrow -->
+        <line x1="26" y1="40" x2="26" y2="392" stroke="var(--tx-4)" stroke-width="1.5" marker-end="url(#d1arrow)"/>
+        <text class="dg-s" transform="translate(18,300) rotate(-90)" text-anchor="start">applied in this order &rarr;</text>
+
+        <g>
+          <!-- L1 -->
+          <rect x="48" y="36" width="590" height="54" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-m" x="62" y="58" font-weight="600">dsh-base</text>
+          <text class="dg-s" x="62" y="76">model adapters · tools · persistence · sandbox and approval policy · settings · credentials · telemetry</text>
+          <text class="dg-s" x="652" y="62" fill="var(--tx-4)">bundle &mdash; first layer of every profile</text>
+
+          <!-- L2 -->
+          <rect x="48" y="98" width="590" height="46" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-m" x="62" y="120" font-weight="600">dsh-web-app</text>
+          <text class="dg-s" x="62" y="136">adds the browser application (the alternative, dsh-headless, adds a one-shot runner with no server)</text>
+          <text class="dg-s" x="652" y="124" fill="var(--tx-4)">bundle</text>
+
+          <!-- L3 magna -->
+          <rect x="48" y="152" width="590" height="54" rx="9" fill="var(--signal-dim)" stroke="var(--signal)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="62" y="174" font-weight="600" fill="var(--signal)">magna-sovereign</text>
+          <text class="dg-s" x="62" y="192">Riyadh model adapter · approval bridge · residency guard · MCP servers · skills · overnight jobs</text>
+          <text class="dg-s" x="652" y="178" fill="var(--signal)">proposed &mdash; Magna&rsquo;s own bundle</text>
+
+          <!-- L4 -->
+          <rect x="48" y="214" width="590" height="42" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-m" x="62" y="240">profile · cordis.patch.yml</text>
+          <text class="dg-s" x="652" y="240" fill="var(--tx-4)">patch layer</text>
+
+          <!-- L5 -->
+          <rect x="48" y="264" width="590" height="42" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-m" x="62" y="290">home · cordis.patch.yml</text>
+          <text class="dg-s" x="652" y="290" fill="var(--tx-4)">patch layer</text>
+
+          <!-- L6 -->
+          <rect x="48" y="314" width="590" height="42" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-m" x="62" y="340">--patch overlay</text>
+          <text class="dg-s" x="652" y="340" fill="var(--tx-4)">one run only</text>
+        </g>
+
+        <!-- result -->
+        <rect x="48" y="374" width="590" height="56" rx="9" fill="var(--green-dim)" stroke="var(--green)"/>
+        <text class="dg-t" x="62" y="398" font-weight="650" fill="var(--green)">= the plugin tree that boots</text>
+        <text class="dg-ms" x="62" y="418">dsh --profile web --dump-config    prints every row; any row can be replaced by a patch</text>
+      </svg>
+    </div>
+    <figcaption><b>Diagram 1 &mdash; layered composition.</b> Each layer can replace a row that a lower layer inserted, by id. Nothing is sealed. The dashed blue layer is the one Magna would write; everything else ships with the project. Source: <code>docs/architecture.md</code>, &ldquo;Profiles and bundles&rdquo;.</figcaption>
+  </figure>
+
+  <div class="note mag">
+    <div class="t">Why this is a big deal for a sovereign product</div>
+    <p>Magna&rsquo;s requirements are not features you add. They are <b>substitutions you make</b>: this model instead of that one, this filesystem instead of that one, this sandbox instead of that one, this permission-asker instead of that one.</p>
+    <p>In a framework with a privileged core, a substitution means a fork &mdash; and a fork means you inherit the maintenance of a project you did not write. In <code>dsh</code>, a substitution is a configuration row. You keep receiving upstream releases while running a product that shares almost no code path with the default one. That is the difference between adopting a library and adopting a liability.</p>
+  </div>
+</div>
+</section>
+
+<section id="turn">
+<div class="wrap">
+  <div class="sec-n">04</div>
+  <h2>The turn flow &mdash; what actually happens when someone presses Enter</h2>
+  <p class="sub">This is the sequence Console&rsquo;s chat, agents and automations would all run through. Learn two words first.</p>
+
+  <div class="body">
+    <div class="note ok">
+      <div class="t"><span class="badge v">Verified &mdash; architecture.md</span> Step and turn</div>
+      <p>A <b>step</b> is one model request plus the tools it calls.<br>
+      A <b>turn</b> is zero or more steps. It opens before its first input is claimed, and closes once nothing is owed.</p>
+    </div>
+    <p>A simple question &mdash; &ldquo;what is our exposure on RYD-M3?&rdquo; &mdash; may be one turn of one step. A real Console task is one turn of many steps: the model asks for the P6 snapshot (step 1), reads it and asks for the SAP purchase orders (step 2), reads those and writes the answer (step 3). One turn. Three model requests. Six tool calls.</p>
+    <p>Why the distinction matters to you: <b>the turn is the unit a human recognises</b> (&ldquo;I asked, it answered&rdquo;), and <b>the step is the unit that costs money and can be intercepted</b>. Console&rsquo;s cost meter counts steps. Console&rsquo;s approval bar interrupts inside a step. A turn that was rejected before its first step still gets recorded, so the log shows the attempt.</p>
+  </div>
+
+  <figure>
+    <div class="figscroll">
+      <svg viewBox="0 0 690 1000" width="690" role="img" aria-labelledby="dg2t dg2d">
+        <title id="dg2t">The dsh turn and step sequence</title>
+        <desc id="dg2d">A turn opens with turn/start, claims input, assembles the prompt, then runs agent/pre-step. Inside a step the sequence is step/start, user/message, derive history, agent/request, llm/stream, assistant chunks, assistant message, tool calls, the three tools events, tool results and step/end. Steps repeat while work is owed, then agent/turn-stopping runs and turn/end closes the turn.</desc>
+        <defs>
+          <marker id="d2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--tx-4)"/></marker>
+          <marker id="d2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--amber)"/></marker>
+        </defs>
+        <text class="dg-h" x="0" y="14">ONE TURN, FROM ENTER TO FINISHED</text>
+
+        <!-- step container -->
+        <rect x="76" y="232" width="412" height="614" rx="12" fill="none" stroke="var(--tx-4)" stroke-dasharray="6 5"/>
+        <text class="dg-h" x="86" y="250" fill="var(--tx-4)">ONE STEP</text>
+
+        <!-- rows -->
+        <g>
+          <rect x="96" y="46" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="63" font-weight="600">turn/start</text>
+          <text class="dg-ms" x="110" y="78">the turn opens</text>
+          <text class="dg-ms" x="456" y="63" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="92" width="372" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="110" y="109">claim the input</text>
+          <text class="dg-ms" x="110" y="124">next-step input plus one queued message</text>
+
+          <rect x="96" y="138" width="372" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="110" y="155">assemble the prompt</text>
+          <text class="dg-ms" x="110" y="170">prompt sections + tool schemas from plugins</text>
+
+          <rect x="96" y="184" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="201" font-weight="600" fill="var(--violet)">agent/pre-step</text>
+          <text class="dg-ms" x="110" y="216">reject the input, or enter(messages)</text>
+          <text class="dg-ms" x="456" y="201" text-anchor="end" fill="var(--violet)">waterfall</text>
+        </g>
+
+        <g>
+          <rect x="96" y="264" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="281" font-weight="600">step/start</text>
+          <text class="dg-ms" x="456" y="281" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="310" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="327" font-weight="600">user/message</text>
+          <text class="dg-ms" x="110" y="342">one per entered message</text>
+          <text class="dg-ms" x="456" y="327" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="356" width="372" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="110" y="373">derive model history</text>
+          <text class="dg-ms" x="110" y="388">projected from the session log</text>
+
+          <rect x="96" y="402" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="419" font-weight="600" fill="var(--violet)">agent/request</text>
+          <text class="dg-ms" x="110" y="434">shape the request before it is sent</text>
+          <text class="dg-ms" x="456" y="419" text-anchor="end" fill="var(--violet)">waterfall</text>
+
+          <rect x="96" y="448" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="465" font-weight="600" fill="var(--violet)">llm/stream</text>
+          <text class="dg-ms" x="110" y="480">the model call itself</text>
+          <text class="dg-ms" x="456" y="465" text-anchor="end" fill="var(--violet)">waterfall</text>
+
+          <rect x="96" y="494" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="511" font-weight="600">assistant/chunk &times; many</text>
+          <text class="dg-ms" x="110" y="526">token-level deltas, kept for replay</text>
+          <text class="dg-ms" x="456" y="511" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="540" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="557" font-weight="600">assistant/message</text>
+          <text class="dg-ms" x="110" y="572">the assembled reply, with usage</text>
+          <text class="dg-ms" x="456" y="557" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="586" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="603" font-weight="600">tool/call &times; many</text>
+          <text class="dg-ms" x="110" y="618">logged BEFORE the tool runs</text>
+          <text class="dg-ms" x="456" y="603" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="632" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="649" font-weight="600" fill="var(--violet)">tools/pre-execute</text>
+          <text class="dg-ms" x="110" y="664">allow &middot; deny &middot; ask &mdash; Console&rsquo;s bar</text>
+          <text class="dg-ms" x="456" y="649" text-anchor="end" fill="var(--violet)">waterfall</text>
+
+          <rect x="96" y="678" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="695" font-weight="600" fill="var(--violet)">tools/execute</text>
+          <text class="dg-ms" x="110" y="710">wraps the tool body &mdash; timeout, retry, metrics</text>
+          <text class="dg-ms" x="456" y="695" text-anchor="end" fill="var(--violet)">waterfall</text>
+
+          <rect x="96" y="724" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="741" font-weight="600" fill="var(--violet)">tools/post-execute</text>
+          <text class="dg-ms" x="110" y="756">accept &middot; replace &middot; add context &middot; block</text>
+          <text class="dg-ms" x="456" y="741" text-anchor="end" fill="var(--violet)">waterfall</text>
+
+          <rect x="96" y="770" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="787" font-weight="600">tool/result &times; many</text>
+          <text class="dg-ms" x="110" y="802">the single model-facing outcome</text>
+          <text class="dg-ms" x="456" y="787" text-anchor="end" fill="var(--teal)">durable</text>
+
+          <rect x="96" y="810" width="372" height="30" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="829" font-weight="600">step/end</text>
+          <text class="dg-ms" x="456" y="822" text-anchor="end" fill="var(--teal)">durable</text>
+        </g>
+
+        <!-- loop back -->
+        <path d="M 88 840 L 56 840 L 56 276 L 88 276" fill="none" stroke="var(--amber)" stroke-width="1.6" marker-end="url(#d2b)"/>
+        <text class="dg-s" x="96" y="868" fill="var(--amber)">tools owe another request, or new input arrived &rarr; claim &rarr; run another step</text>
+
+        <g>
+          <rect x="96" y="884" width="372" height="38" rx="8" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+          <text class="dg-m" x="110" y="901" font-weight="600" fill="var(--violet)">agent/turn-stopping</text>
+          <text class="dg-ms" x="110" y="916">the terminal checkpoint &mdash; no next()</text>
+          <text class="dg-ms" x="456" y="901" text-anchor="end" fill="var(--violet)">serial</text>
+
+          <rect x="96" y="932" width="372" height="38" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text class="dg-m" x="110" y="949" font-weight="600">turn/end</text>
+          <text class="dg-ms" x="110" y="964">the turn closes; nothing is owed</text>
+          <text class="dg-ms" x="456" y="949" text-anchor="end" fill="var(--teal)">durable</text>
+        </g>
+
+        <!-- side notes -->
+        <line x1="468" y1="203" x2="500" y2="203" stroke="var(--tx-4)" stroke-width="1"/>
+        <text class="dg-ms" x="506" y="196">a rejected first claim still</text>
+        <text class="dg-ms" x="506" y="210">closes a durable turn that</text>
+        <text class="dg-ms" x="506" y="224">spent no step</text>
+
+        <line x1="468" y1="651" x2="500" y2="651" stroke="var(--tx-4)" stroke-width="1"/>
+        <text class="dg-ms" x="506" y="644">return without next()</text>
+        <text class="dg-ms" x="506" y="658">to deny; call next()</text>
+        <text class="dg-ms" x="506" y="672">to delegate</text>
+
+        <line x1="468" y1="789" x2="500" y2="789" stroke="var(--tx-4)" stroke-width="1"/>
+        <text class="dg-ms" x="506" y="782">everything the model</text>
+        <text class="dg-ms" x="506" y="796">will see later must</text>
+        <text class="dg-ms" x="506" y="810">exist as a logged event</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--teal-dim); border:1px solid var(--teal)"></i> Durable session event &mdash; written to the log, survives a reload</span>
+      <span><i style="background:var(--violet-dim); border:1px dashed var(--violet)"></i> Live extension point &mdash; where a Magna plugin listens</span>
+      <span><i style="background:var(--surface-2); border:1px solid var(--line-2)"></i> Internal work &mdash; no event</span>
+    </div>
+    <figcaption><b>Diagram 2 &mdash; the turn and step sequence.</b> Redrawn from the exact sequence in <code>docs/architecture.md</code> (&ldquo;Turn flow&rdquo;) and <code>docs/agent-lifecycle.md</code>. The architecture document states which are which: <b>turn/&#42;, step/&#42;, user/message, assistant/&#42; and tool/&#42; are durable session events</b>; the rest are live extension points. <code>agent/pre-step</code>, <code>agent/request</code>, <code>llm/stream</code> and the three <code>tools/&#42;</code> events are <b>waterfalls</b>, whose listeners must call <code>next()</code> to delegate; <code>agent/turn-stopping</code> is <b>serial</b> and has no <code>next()</code>.</figcaption>
+  </figure>
+
+  <div class="body">
+    <h3>The session log is the single source of truth</h3>
+    <p>One sentence from the architecture document is worth memorising, because it is the reason this design can be audited:</p>
+    <div class="note ok">
+      <div class="t"><span class="badge v">Verified &mdash; architecture.md</span></div>
+      <p><b>&ldquo;Model-visible means logged.&rdquo;</b> Anything that reaches a model request must be reconstructable from the log, and a runtime invariant asserts it.</p>
+    </div>
+    <p>The conversation the model sees is not a variable in memory. It is <i>projected</i> from the append-only log by a function the document calls <code>deriveMessages()</code>. Fork, resume, transcripts, telemetry and persistence all derive from that same stream.</p>
+    <p>For Magna this is the difference between a demo and a regulated system. If a claim was made, the exact bytes that produced it are on disk, in order, with the tool calls that fed them. Console already promises &ldquo;Brain node ids behind every claim&rdquo;. This is the runtime that can actually keep that promise, because there is no other place for context to hide.</p>
+  </div>
+</div>
+</section>
+
+<section id="dispatch">
+<div class="wrap">
+  <div class="sec-n">05</div>
+  <h2>Dispatch modes, and the waterfall &mdash; the mechanism that lets Magna insert policy</h2>
+  <p class="sub">Four ways an event can be delivered. Only one of them can say &ldquo;no&rdquo;, and that one is the one you will use most.</p>
+
+  <div class="body">
+    <p>In Cordis, every event declares how it is dispatched. The mode is part of the event&rsquo;s public contract &mdash; it is not something a listener chooses. The primer gives this table:</p>
+  </div>
+
+  <div class="tscroll">
+    <table>
+      <caption class="skip">Cordis dispatch modes</caption>
+      <thead><tr><th>Mode</th><th>Awaited?</th><th>Dispatch order</th><th>Has a return value?</th><th>In plain words</th></tr></thead>
+      <tbody>
+        <tr><td><code>emit</code></td><td>No</td><td>listeners observe in registration order</td><td>No</td><td><b>Tell everyone.</b> Nobody can change anything or block. Used for notifications.</td></tr>
+        <tr><td><code>waterfall</code></td><td>No</td><td>listeners observe in registration order</td><td>Yes</td><td><b>Pass it along a chain.</b> Each listener may change the result, or stop the chain. This is where policy lives.</td></tr>
+        <tr><td><code>parallel</code></td><td>Yes</td><td>all listeners observe in parallel</td><td>No</td><td><b>Everyone at once</b>, and wait for all of them.</td></tr>
+        <tr><td><code>serial</code></td><td>Yes</td><td>listeners observe in registration order</td><td>Yes</td><td><b>One after another</b>, awaited, and a value comes back.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What a waterfall actually is</h3>
+  <div class="body">
+    <div class="note ok">
+      <div class="t"><span class="badge v">Verified &mdash; cordis-primer.md</span></div>
+      <p><code>ctx.waterfall</code> is <b>around-middleware</b>. A listener receives <code>(...args, next)</code>. <b>Call <code>next()</code> to delegate</b> the possibly-wrapped result to the next service; <b>return without <code>next()</code> to short-circuit</b>. Values propagate through <code>next()</code>&rsquo;s return value.</p>
+      <p>The primer adds the design rule: &ldquo;For single-decision events, short-circuiting <i>is</i> the design. A policy listener can return without <code>next()</code> when it owns the decision, while a listener that only annotates or observes must delegate.&rdquo;</p>
+    </div>
+    <p>If you have used Express or Koa middleware, you already know this shape. If you have not, here is the whole idea in six lines:</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">the waterfall shape &mdash; two behaviours, one function</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>ctx.on('tools/pre-execute', async (exec, next) =&gt; {
+
+  // 1 — NOT MY DECISION: delegate. Whatever the rest of the chain
+  //     decides becomes the answer. This is the polite default.
+  if (!isWrite(exec)) return next()
+
+  // 2 — MY DECISION: return WITHOUT calling next().
+  //     The chain stops here. Nothing downstream can undo it.
+  return { kind: 'deny', reason: 'Rejected in the Console approval bar.' }
+})</code></pre>
+  </div>
+
+  <div class="note mag">
+    <div class="t">Why this is the answer to &ldquo;how do we add our rules without forking?&rdquo;</div>
+    <p>Magna&rsquo;s rules are almost all <i>decisions about someone else&rsquo;s action</i>. &ldquo;This write needs a human.&rdquo; &ldquo;This tool would leave the country, so it does not run.&rdquo; &ldquo;This agent is at autonomy level 2, so it may read but not send.&rdquo;</p>
+    <p>A waterfall listener is exactly that: a function that sits in front of an action it did not write, and either steps aside or refuses. You do not modify the Bash tool to add an approval. You do not modify the SAP connector to add residency. You register one listener, and it applies to <b>every</b> tool, including tools that did not exist when you wrote the rule &mdash; including tools a customer installs from the Marketplace tomorrow.</p>
+    <p>One more detail from the primer that you will need: <code>{ prepend: true }</code> puts your listener <i>before</i> ordinary registrations. Use it only when your rule must genuinely run first.</p>
+  </div>
+</div>
+</section>
+
+<section id="tools">
+<div class="wrap">
+  <div class="sec-n">06</div>
+  <h2>The tool pipeline &mdash; where Console&rsquo;s approval bar plugs in</h2>
+  <p class="sub">Every tool call, from every agent, in every session, goes through this one path. That is what makes a single rule enforceable everywhere.</p>
+
+  <figure>
+    <div class="figscroll">
+      <svg viewBox="0 0 880 636" width="880" role="img" aria-labelledby="dg3t dg3d">
+        <title id="dg3t">The dsh tool execution pipeline with the approval waterfall</title>
+        <desc id="dg3d">A tool call is logged, then passes through the tools/pre-execute waterfall which can allow, deny or ask. Ask goes to the approval service, where only allowed-once proceeds. Monotonic guards run next and can only deny. Then the tools/execute around-waterfall wraps the tool body, tools/post-execute can accept, replace or block, finalizeContent runs, tools/result observes the frozen outcome, and tool/result is appended to the session log.</desc>
+        <defs>
+          <marker id="d3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--tx-4)"/></marker>
+          <marker id="d3r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--red)"/></marker>
+          <marker id="d3g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--green)"/></marker>
+        </defs>
+        <text class="dg-h" x="0" y="14">ONE TOOL CALL, END TO END</text>
+
+        <!-- main spine arrows -->
+        <g stroke="var(--tx-4)" stroke-width="1.4" marker-end="url(#d3a)" fill="none">
+          <line x1="440" y1="86" x2="440" y2="100"/>
+          <line x1="440" y1="148" x2="440" y2="162"/>
+          <line x1="440" y1="210" x2="440" y2="224"/>
+          <line x1="440" y1="272" x2="440" y2="286"/>
+          <line x1="440" y1="334" x2="440" y2="348"/>
+          <line x1="440" y1="396" x2="440" y2="410"/>
+          <line x1="440" y1="458" x2="440" y2="472"/>
+          <line x1="440" y1="520" x2="440" y2="534"/>
+        </g>
+
+        <!-- main column -->
+        <rect x="280" y="40" width="320" height="46" rx="9" fill="var(--teal-dim)" stroke="var(--teal)"/>
+        <text class="dg-m" x="294" y="59" font-weight="600">tool/call</text>
+        <text class="dg-ms" x="294" y="76">durable &mdash; logged before execution</text>
+
+        <rect x="280" y="102" width="320" height="46" rx="9" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+        <text class="dg-m" x="294" y="121" font-weight="600" fill="var(--violet)">tools/pre-execute</text>
+        <text class="dg-ms" x="294" y="138">waterfall &mdash; allow &middot; deny &middot; ask</text>
+
+        <rect x="280" y="164" width="320" height="46" rx="9" fill="var(--surface-3)" stroke="var(--violet)"/>
+        <text class="dg-m" x="294" y="183" font-weight="600">monotonic guards</text>
+        <text class="dg-ms" x="294" y="200">deny or abstain &mdash; no guard can re-allow</text>
+
+        <rect x="280" y="226" width="320" height="46" rx="9" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+        <text class="dg-m" x="294" y="245" font-weight="600" fill="var(--violet)">tools/execute</text>
+        <text class="dg-ms" x="294" y="262">around-waterfall &mdash; timeout, retry, metrics</text>
+
+        <rect x="280" y="288" width="320" height="46" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="294" y="307">the tool&rsquo;s own execute() body</text>
+        <text class="dg-ms" x="294" y="324">Bash, Read, Edit, an MCP tool, a Magna tool</text>
+
+        <rect x="280" y="350" width="320" height="46" rx="9" fill="var(--violet-dim)" stroke="var(--violet)" stroke-dasharray="5 4"/>
+        <text class="dg-m" x="294" y="369" font-weight="600" fill="var(--violet)">tools/post-execute</text>
+        <text class="dg-ms" x="294" y="386">waterfall &mdash; accept &middot; replace &middot; add context &middot; block</text>
+
+        <rect x="280" y="412" width="320" height="46" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="294" y="431">finalizeContent()</text>
+        <text class="dg-ms" x="294" y="448">the tool&rsquo;s own last-mile content transform</text>
+
+        <rect x="280" y="474" width="320" height="46" rx="9" fill="var(--surface-3)" stroke="var(--violet)"/>
+        <text class="dg-m" x="294" y="493" font-weight="600">tools/result</text>
+        <text class="dg-ms" x="294" y="510">emit &mdash; frozen, authoritative, cannot be changed</text>
+
+        <rect x="280" y="536" width="320" height="46" rx="9" fill="var(--teal-dim)" stroke="var(--teal)"/>
+        <text class="dg-m" x="294" y="555" font-weight="600">tool/result</text>
+        <text class="dg-ms" x="294" y="572">durable &mdash; the one outcome the model sees</text>
+
+        <!-- ask branch -->
+        <rect x="660" y="92" width="200" height="64" rx="9" fill="var(--amber-dim)" stroke="var(--amber)"/>
+        <text class="dg-m" x="672" y="112" font-weight="600" fill="var(--amber)">ctx.approval</text>
+        <text class="dg-ms" x="672" y="128">one-shot human question.</text>
+        <text class="dg-ms" x="672" y="144">No answerer = deny.</text>
+        <path d="M 600 118 L 660 118" fill="none" stroke="var(--amber)" stroke-width="1.4" marker-end="url(#d3a)"/>
+        <text class="dg-ms" x="614" y="110" fill="var(--amber)">ask</text>
+
+        <path d="M 700 156 L 700 187 L 604 187" fill="none" stroke="var(--green)" stroke-width="1.5" marker-end="url(#d3g)"/>
+        <text class="dg-ms" x="706" y="176" fill="var(--green)">allowed-once</text>
+
+        <!-- denied -->
+        <rect x="660" y="230" width="200" height="56" rx="9" fill="var(--red-dim)" stroke="var(--red)"/>
+        <text class="dg-m" x="672" y="250" font-weight="600" fill="var(--red)">denied</text>
+        <text class="dg-ms" x="672" y="268">the tool body is skipped</text>
+
+        <path d="M 600 132 L 638 132 L 638 250 L 656 250" fill="none" stroke="var(--red)" stroke-width="1.4" marker-end="url(#d3r)"/>
+        <text class="dg-ms" x="606" y="146" fill="var(--red)">deny</text>
+        <path d="M 600 200 L 620 200 L 620 268 L 656 268" fill="none" stroke="var(--red)" stroke-width="1.4" marker-end="url(#d3r)"/>
+        <path d="M 668 156 L 668 226" fill="none" stroke="var(--red)" stroke-width="1.4" marker-end="url(#d3r)"/>
+        <text class="dg-ms" x="856" y="206" text-anchor="end" fill="var(--red)">rejected, cancelled,</text>
+        <text class="dg-ms" x="856" y="220" text-anchor="end" fill="var(--red)">or unavailable</text>
+
+        <path d="M 760 286 L 760 373 L 604 373" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#d3r)"/>
+        <text class="dg-ms" x="752" y="338" text-anchor="end" fill="var(--red)">a denial is still a result</text>
+
+        <!-- left annotations -->
+        <g>
+          <line x1="214" y1="125" x2="276" y2="125" stroke="var(--signal)" stroke-width="1"/>
+          <text class="dg-ms" x="206" y="112" text-anchor="end" fill="var(--signal)">Console&rsquo;s approval bar</text>
+          <text class="dg-ms" x="206" y="126" text-anchor="end" fill="var(--signal)">listens here and returns</text>
+          <text class="dg-ms" x="206" y="140" text-anchor="end" fill="var(--signal)">{ kind: 'ask' }</text>
+
+          <line x1="214" y1="187" x2="276" y2="187" stroke="var(--signal)" stroke-width="1"/>
+          <text class="dg-ms" x="206" y="181" text-anchor="end" fill="var(--signal)">the residency guard sits here &mdash;</text>
+          <text class="dg-ms" x="206" y="195" text-anchor="end" fill="var(--signal)">nothing downstream can undo it</text>
+
+          <line x1="214" y1="373" x2="276" y2="373" stroke="var(--signal)" stroke-width="1"/>
+          <text class="dg-ms" x="206" y="367" text-anchor="end" fill="var(--signal)">redact a result, or block it</text>
+          <text class="dg-ms" x="206" y="381" text-anchor="end" fill="var(--signal)">with corrective feedback</text>
+
+          <line x1="214" y1="497" x2="276" y2="497" stroke="var(--signal)" stroke-width="1"/>
+          <text class="dg-ms" x="206" y="491" text-anchor="end" fill="var(--signal)">the residency receipt is</text>
+          <text class="dg-ms" x="206" y="505" text-anchor="end" fill="var(--signal)">written from here</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption><b>Diagram 3 &mdash; the tool execution pipeline.</b> Redrawn from <code>docs/tool-execution-pipeline.md</code> and <code>docs/subsystems/tools.md</code>. Blue notes on the left are <span class="badge p">Proposed</span> Magna placements; everything in the flow itself is <span class="badge v">Verified</span>.</figcaption>
+  </figure>
+
+  <h3>Three properties of this pipeline you should hold on to</h3>
+  <div class="cards">
+    <div class="card">
+      <span class="idx">Property 1</span>
+      <h4>Approval fails closed</h4>
+      <p>The approval outcome type is closed: <code>allowed-once</code>, <code>rejected</code>, <code>cancelled</code>, <code>unavailable</code>. <b>Only <code>allowed-once</code> proceeds.</b> A missing, non-owning, throwing or non-conforming answerer becomes <code>unavailable</code> &mdash; which denies.</p>
+      <p>Console&rsquo;s promise is &ldquo;nothing irreversible happens without your yes&rdquo;. Here, silence is a no. That is the correct default and it is the shipped one.</p>
+    </div>
+    <div class="card">
+      <span class="idx">Property 2</span>
+      <h4>Guards can only reduce permission</h4>
+      <p>A <code>ToolGuard</code> returns either a denial reason or <code>undefined</code>. There is no &ldquo;allow&rdquo; return value at all. The docs say why: &ldquo;because guards have no allow result, listener ordering cannot turn a denial back into permission.&rdquo;</p>
+      <p>So a residency rule written as a guard cannot be defeated by a later plugin, a Marketplace install, or a badly ordered configuration. It is not a convention. It is a type.</p>
+    </div>
+    <div class="card">
+      <span class="idx">Property 3</span>
+      <h4>Arguments cannot be rewritten</h4>
+      <p>The pre-execute decision type deliberately has no &ldquo;rewrite the input&rdquo; option. The docs give the reason: &ldquo;arguments are already logged and presented &hellip; history, audit, UI and execution must agree.&rdquo;</p>
+      <p>You cannot quietly change what a tool was asked to do. You can only allow it, refuse it, or ask a human. For an auditable system, that restriction is a feature.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="seams">
+<div class="wrap">
+  <div class="sec-n">07</div>
+  <h2>Capability seams &mdash; the part that makes sovereignty a configuration change</h2>
+  <p class="sub">If you remember one technical concept from this page, make it this one.</p>
+
+  <div class="body">
+    <div class="note ok">
+      <div class="t"><span class="badge v">Verified &mdash; architecture.md</span> The definition</div>
+      <p>A <b>seam</b> is a swappable capability with three roles: a <b>Service Definition</b> declaring the interface, a <b>Service Provider</b> implementing it, and a <b>Consumer</b> using it &mdash; commonly a model-facing tool. A package may combine roles, but <b>one role alone is not a seam</b>; adding a capability means designing all three.</p>
+    </div>
+    <p>Now the sentence that should make a sovereign-cloud company sit up. It is the project&rsquo;s own example, not mine:</p>
+    <div class="note ok">
+      <div class="t"><span class="badge v">Verified &mdash; architecture.md</span></div>
+      <p>&ldquo;Seams are why one provider swap changes the whole product. <b>Filesystem and subprocess providers share one execution world, so pointing them at a remote sandbox moves Bash, PTY, and LSP with them, with no provider forks.</b>&rdquo;</p>
+    </div>
+    <p>Read it slowly. The Bash tool does not know where the shell runs. The terminal does not know where the terminal is. The code-navigation tool does not know which machine holds the code. They all ask <code>ctx.fs</code> and <code>ctx.subprocess</code>. Replace those two providers and every one of those tools relocates &mdash; without a single line changing inside any tool.</p>
+    <p>The project already ships proof of this. There is an <code>e2b</code> package that owns one shared remote Linux sandbox handle, and two providers &mdash; <code>fs-e2b</code> and <code>subprocess-e2b</code> &mdash; that inhabit that same runtime. It is the identical manoeuvre Magna needs, aimed at a different destination.</p>
+  </div>
+
+  <figure>
+    <div class="figscroll">
+      <svg viewBox="0 0 900 478" width="900" role="img" aria-labelledby="dg4t dg4d">
+        <title id="dg4t">A capability seam and the sovereign provider swap</title>
+        <desc id="dg4d">Model-facing tools such as Read, Write, Edit, Bash, the PTY terminal and LSP navigation are consumers. They call the service definitions ctx.fs and ctx.subprocess by key. Three provider sets can sit behind those definitions: the default local providers, the shipped E2B remote sandbox providers, and a proposed Magna Riyadh pair. Swapping the provider relocates every consumer at once.</desc>
+        <defs>
+          <marker id="d4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--tx-4)"/></marker>
+          <marker id="d4s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--signal)"/></marker>
+        </defs>
+        <text class="dg-h" x="24" y="22">CONSUMERS &mdash; MODEL-FACING TOOLS</text>
+        <text class="dg-h" x="300" y="22">SERVICE DEFINITION</text>
+        <text class="dg-h" x="616" y="22">SERVICE PROVIDERS &mdash; PICK ONE</text>
+
+        <!-- consumers -->
+        <g>
+          <rect x="24" y="64" width="200" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="38" y="82">Read / Write / Edit</text>
+          <text class="dg-ms" x="38" y="96">tool-fs</text>
+
+          <rect x="24" y="114" width="200" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="38" y="132">Bash</text>
+          <text class="dg-ms" x="38" y="146">tool-bash &rarr; ctx.shell</text>
+
+          <rect x="24" y="164" width="200" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="38" y="182">Terminal (persistent PTY)</text>
+          <text class="dg-ms" x="38" y="196">tool-terminal &rarr; ctx.terminals</text>
+
+          <rect x="24" y="214" width="200" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text class="dg-t" x="38" y="232">Code navigation</text>
+          <text class="dg-ms" x="38" y="246">tool-lsp &rarr; ctx.lsp</text>
+        </g>
+
+        <g stroke="var(--tx-4)" stroke-width="1.3" fill="none" marker-end="url(#d4a)">
+          <path d="M 224 84 L 262 84 L 262 112 L 296 112"/>
+          <path d="M 224 134 L 262 134 L 262 118 L 296 118"/>
+          <path d="M 224 184 L 254 184 L 254 204 L 296 204"/>
+          <path d="M 224 234 L 254 234 L 254 210 L 296 210"/>
+        </g>
+        <text class="dg-ms" x="24" y="308">asked for by key,</text>
+        <text class="dg-ms" x="24" y="322">never imported &mdash; so</text>
+        <text class="dg-ms" x="24" y="336">no tool needs editing</text>
+
+        <!-- seam -->
+        <rect x="300" y="84" width="240" height="56" rx="10" fill="var(--teal-dim)" stroke="var(--teal)"/>
+        <text class="dg-m" x="314" y="106" font-weight="600" fill="var(--teal)">ctx.fs</text>
+        <text class="dg-ms" x="314" y="126">filesystem provider seam</text>
+
+        <rect x="300" y="176" width="240" height="56" rx="10" fill="var(--teal-dim)" stroke="var(--teal)"/>
+        <text class="dg-m" x="314" y="198" font-weight="600" fill="var(--teal)">ctx.subprocess</text>
+        <text class="dg-ms" x="314" y="218">subprocess seam</text>
+
+        <text class="dg-ms" x="300" y="256">One execution world. Both must point</text>
+        <text class="dg-ms" x="300" y="270">at the same place, or tools disagree.</text>
+
+        <g stroke="var(--tx-4)" stroke-width="1.3" fill="none" marker-end="url(#d4a)">
+          <path d="M 540 104 L 578 104 L 578 86 L 612 86"/>
+          <path d="M 540 204 L 578 204 L 578 212 L 612 212"/>
+        </g>
+
+        <!-- providers -->
+        <rect x="616" y="52" width="260" height="86" rx="10" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text class="dg-ms" x="630" y="72" fill="var(--tx-4)">DEFAULT</text>
+        <text class="dg-m" x="630" y="92">fs-local</text>
+        <text class="dg-m" x="630" y="110">subprocess-local</text>
+        <text class="dg-ms" x="630" y="128">this machine</text>
+
+        <rect x="616" y="150" width="260" height="102" rx="10" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text class="dg-ms" x="630" y="170" fill="var(--tx-4)">SHIPPED ALTERNATIVE</text>
+        <text class="dg-m" x="630" y="190">fs-e2b</text>
+        <text class="dg-m" x="630" y="208">subprocess-e2b</text>
+        <text class="dg-ms" x="630" y="226">one shared remote Linux runtime,</text>
+        <text class="dg-ms" x="630" y="240">owned by ctx.e2b</text>
+
+        <rect x="616" y="264" width="260" height="118" rx="10" fill="var(--signal-dim)" stroke="var(--signal)" stroke-dasharray="5 4"/>
+        <text class="dg-ms" x="630" y="284" fill="var(--signal)">PROPOSED &mdash; MAGNA</text>
+        <text class="dg-m" x="630" y="304" fill="var(--signal)">fs-riyadh</text>
+        <text class="dg-m" x="630" y="322" fill="var(--signal)">subprocess-riyadh</text>
+        <text class="dg-ms" x="630" y="340" fill="var(--signal)">magna-riyadh-dc1 &middot; sa-riyadh-1</text>
+        <text class="dg-ms" x="630" y="354" fill="var(--signal)">no path out of the network</text>
+        <text class="dg-ms" x="630" y="368" fill="var(--signal)">exists for these tools to use</text>
+
+        <path d="M 540 216 L 578 216 L 578 320 L 612 320" fill="none" stroke="var(--signal)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#d4s)"/>
+
+        <rect x="24" y="394" width="852" height="72" rx="10" fill="var(--green-dim)" stroke="var(--green)"/>
+        <text class="dg-t" x="40" y="418" font-weight="650" fill="var(--green)">Change the provider row, and Read, Write, Edit, Bash, the terminal and code navigation all relocate together.</text>
+        <text class="dg-ms" x="40" y="438">Not one tool is edited. Not one package is forked.</text>
+        <text class="dg-ms" x="40" y="454">The product becomes on-premise because the seam moved, not because the tools changed.</text>
+      </svg>
+    </div>
+    <figcaption><b>Diagram 4 &mdash; a capability seam, and the sovereign swap.</b> The default and E2B provider sets are <span class="badge v">Verified</span> from the capability-seam catalogue. The Riyadh pair is <span class="badge p">Proposed</span> &mdash; it does not exist; it is what Magna would write.</figcaption>
+  </figure>
+
+  <div class="body">
+    <h3>The seams that exist today</h3>
+    <p>The project publishes a catalogue of every service, its role, its owner and its implementations. These are the ones that matter to Console. All of them are <span class="badge v">Verified</span> from that catalogue.</p>
+  </div>
+
+  <div class="tscroll">
+    <table>
+      <caption class="skip">Capability seams relevant to MagnaVERSE Console</caption>
+      <thead><tr><th>Seam</th><th>What it decides</th><th>What Magna would put behind it</th></tr></thead>
+      <tbody>
+        <tr><td><code>ctx.llm</code></td><td>Which model answers, and how the stream is read</td><td>The four Riyadh models: Kimi K2 Instruct, DeepSeek V3.1, Qwen 3 235B, NVIDIA Nemotron 120B</td></tr>
+        <tr><td><code>ctx.fs</code></td><td>Where files are read and written</td><td>The cluster&rsquo;s storage &mdash; never the operator&rsquo;s laptop</td></tr>
+        <tr><td><code>ctx.subprocess</code></td><td>Where processes are spawned</td><td>The cluster. Moves Bash, PTY and LSP with it</td></tr>
+        <tr><td><code>ctx.shell</code></td><td>Which executor runs a shell command</td><td>A sandboxed executor with the Magna workspace root</td></tr>
+        <tr><td><code>ctx.sandbox</code> / <code>ctx.sandboxPolicy</code></td><td>How a spawned process is confined, and to which root</td><td>One home for the deployment default &mdash; so files and commands cannot confine to different roots</td></tr>
+        <tr><td><code>ctx.approval</code></td><td>Who answers &ldquo;may this proceed?&rdquo;</td><td>Console&rsquo;s approval bar</td></tr>
+        <tr><td><code>ctx.web</code></td><td>Which search and fetch providers exist at all</td><td>On the Private tier: none. That is the residency guarantee, expressed by composition</td></tr>
+        <tr><td><code>ctx.sessionPersistence</code></td><td>Where the session log is stored (JSONL or SQLite backends ship)</td><td>Encrypted storage inside the DC, with Magna&rsquo;s retention rules</td></tr>
+        <tr><td><code>ctx.sessionTelemetry</code></td><td>The one place session records leave the process</td><td>Point it at Magna&rsquo;s own collector, or leave it uncomposed</td></tr>
+        <tr><td><code>ctx.credentials</code></td><td>Where secrets live and how they are resolved</td><td>Console&rsquo;s Keys &amp; vault. Configuration carries references; providers own values</td></tr>
+        <tr><td><code>ctx.skills</code></td><td>Where skills are discovered</td><td>Console&rsquo;s installed skills: <code>clause-finder</code>, <code>ar-en-brief</code>, <code>p6-slip-report</code></td></tr>
+        <tr><td><code>ctx.jobs</code></td><td>Background work: register, list, read, kill</td><td>Console&rsquo;s Automations, running overnight</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note mag">
+    <div class="t">The Magna version of the sentence</div>
+    <p>Point <code>ctx.fs</code> and <code>ctx.subprocess</code> at the Riyadh cluster, compose no <code>ctx.web</code> provider on the Private tier, and register the four on-premise models on <code>ctx.llm</code>. The whole product is now on-premise. Bash still works. The terminal still works. Code navigation still works. Every tool a customer installs from the Marketplace tomorrow is on-premise too, automatically, because it can only reach the world through seams you already own.</p>
+    <p>That is what &ldquo;Egress today: 0 bytes&rdquo; would mean if it were a measurement instead of a label.</p>
+  </div>
+</div>
+</section>
+
+<section id="magna">
+<div class="wrap">
+  <div class="sec-n">08</div>
+  <h2>Five concrete Magna integrations</h2>
+  <p class="sub">Each one is tied to something Console already does. Each one is a file. Read the badges: <span class="badge v">Verified</span> means the interface is documented in the repository; <span class="badge p">Proposed</span> means it is my design and does not exist yet.</p>
+
+  <div class="body">
+    <h3>First, the shape every plugin has</h3>
+    <p>All five follow the same pattern, which I took from a real plugin in the repository (<code>packages/context/time-context</code>). Learn this once and the rest is detail.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">the anatomy of a dsh plugin &mdash; pattern verified from repository source</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>import type { Context } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
+
+// 1. A name. Loader diagnostics use it; session events can be attributed to it.
+export const name = 'magna-example'
+
+// 2. What this plugin needs. Cordis waits until these services exist,
+//    and unloads this plugin cleanly if they go away. No boot ordering code.
+export const inject = ['tools', 'approval']
+
+// 3. Typed, validated configuration. Bad values fail the plugin load,
+//    not the first request at 03:00.
+export interface Config { region: string }
+export const Config: z&lt;Config&gt; = z.object({ region: z.string().required() })
+
+// 4. The body. Everything registered here is an EFFECT: it returns a
+//    disposer, and it unwinds when this plugin unloads.
+export function apply(ctx: Context, config: Config): void {
+  // ctx.on(...)        listen to a typed event
+  // ctx.tools.register(...)   add a tool
+  // ctx.llm.registerAdapter(...)  add a model
+}</code></pre>
+  </div>
+
+  <div class="body">
+    <p>And plugins are mounted by a configuration file. This is the whole composition language:</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">cordis.yml &mdash; row shape verified from the mcp-client package README</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>- id: magna-example       # the row id — a patch layer can replace this row
+  name: '@magna/dsh-example'
+  config:
+    region: sa-riyadh-1</code></pre>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <h3>1 &mdash; The on-premise model adapter <span class="badge p">Proposed, on a verified interface</span></h3>
+  <div class="body">
+    <p><b>Console today:</b> the Models window lists Kimi K2 Instruct, DeepSeek V3.1, Qwen 3 235B and NVIDIA Nemotron 120B, all on <code>magna-riyadh-dc1 &middot; 8&times;H200</code>, plus a router that sends short factual questions to Nemotron, Arabic drafting to Qwen 3, and code and SQL to DeepSeek.</p>
+    <p><b>In <code>dsh</code>:</b> a model provider is registered on <code>ctx.llm</code>. The interface is an abstract class <code>LlmAdapter</code> with exactly one required method, <code>stream()</code>. That is verified. What is below it is my implementation sketch.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">packages/magna-llm-riyadh/src/index.ts</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>import type { Context } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
+import { LlmAdapter, attributionHeaders } from '@deepseek-ai/dsh-llm'
+import type { GenerateOptions, StreamChunk, LlmProviderInfo } from '@deepseek-ai/dsh-llm'
+
+export const name = 'magna-llm-riyadh'
+export const inject = ['llm']                    // wait for ctx.llm
+
+export interface Config { baseUrl: string }
+export const Config: z&lt;Config&gt; = z.object({ baseUrl: z.string().required() })
+
+class RiyadhAdapter extends LlmAdapter {
+  constructor(private readonly baseUrl: string) { super() }
+
+  providerInfo(provider: string): LlmProviderInfo {
+    return { id: provider, name: 'Magna Riyadh DC-1' }
+  }
+
+  // The ONLY required method. It yields the harness's raw chunk protocol.
+  async *stream(options: GenerateOptions): AsyncIterable&lt;StreamChunk&gt; {
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      signal: options.signal,                    // adapters MUST honour this
+      headers: { 'content-type': 'application/json', ...attributionHeaders() },
+      body: JSON.stringify(toWire(options)),     // your OpenAI-compatible payload
+    })
+
+    // translate the server-sent events into the harness vocabulary:
+    //   block-start / text-delta / reasoning-delta / tool-call-delta / block-end
+    for await (const sse of readServerSentEvents(res)) yield* translate(sse)
+
+    // CONTRACT, verified in docs/subsystems/llm-streaming.md:
+    //   usage comes BEFORE finish, and NOTHING comes after finish.
+    yield { type: 'usage',  usage: countTokens() }
+    yield { type: 'finish', reason: 'stop' }
+  }
+}
+
+export function apply(ctx: Context, config: Config): void {
+  // One adapter instance can serve several provider routes.
+  // Registration is all-or-nothing and is disposed with the plugin.
+  ctx.llm.registerAdapter(
+    ['magna-kimi-k2', 'magna-deepseek-v31', 'magna-qwen3', 'magna-nemotron'],
+    new RiyadhAdapter(config.baseUrl),
+  )
+}</code></pre>
+  </div>
+
+  <div class="note ok">
+    <div class="t"><span class="badge v">Verified</span> Adapter rules you must obey, from the docs</div>
+    <p>&bull; <b>Usage before finish, nothing after finish.</b><br>
+       &bull; <b>Tool-call arguments stay raw JSON strings end to end</b> &mdash; a provider that returns parsed objects must re-stringify at <code>block-end</code>.<br>
+       &bull; <b>One adapter call is one provider attempt.</b> Adapters disable library retries; recovery happens at the agent level in a new durable turn.<br>
+       &bull; <b>Context overflow has one canonical code</b> (<code>CONTEXT_WINDOW_EXCEEDED</code>). Consumers route on the code, never on provider text.<br>
+       &bull; <b>An empty completion is a retryable error, not a silent success.</b></p>
+    <p>Those five rules are exactly the class of bug a team discovers three months into writing their own harness. Here they are written down and enforced by the type system.</p>
+  </div>
+
+  <div class="note">
+    <div class="t">The cheap first version</div>
+    <p>If Magna&rsquo;s cluster already exposes an OpenAI-compatible endpoint (vLLM, SGLang and TGI all do), you may not need to write an adapter at all on day one. The project&rsquo;s own Python SDK guide documents <code>DEEPSEEK_BASE_URL</code> for &ldquo;an OpenAI-compatible proxy rather than the default DeepSeek endpoint&rdquo;, and the Web UI&rsquo;s model settings page covers &ldquo;custom OpenAI-compatible endpoints&rdquo;. Point the shipped adapter at Riyadh, prove the loop, and write a native adapter later when you want Magna-specific routing and cost metering. <span class="badge v">Verified that the option exists</span> &mdash; I have not tested it.</p>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <h3>2 &mdash; Console&rsquo;s approval bar, as a <code>tools/pre-execute</code> waterfall <span class="badge p">Proposed, on a verified interface</span></h3>
+  <div class="body">
+    <p><b>Console today:</b> an OS-wide approval bar. Any app about to write something calls one function, which shows one bar with a title, a detail line, Cancel and a confirm button. The design note in Console&rsquo;s own source says it is &ldquo;the thing that makes &lsquo;nothing irreversible happens without your yes&rsquo; true by construction rather than per-feature.&rdquo;</p>
+    <p><b>In <code>dsh</code>:</b> that is two listeners. The first decides <i>which</i> calls need a human. The second <i>is</i> the human channel. Splitting them this way matters, because the approval service writes a durable <code>approval/asked</code> + <code>approval/decided</code> audit pair &mdash; which a plain deny would not.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">packages/magna-approval-bar/src/index.ts</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>import type { Context } from '@deepseek-ai/cordis'
+import type { ToolExecution, PreToolDecision } from '@deepseek-ai/dsh-tools'
+import type { ApprovalRequest, ApprovalOutcome } from '@deepseek-ai/dsh-user-approval'
+
+export const name = 'magna-approval-bar'
+export const inject = ['tools', 'approval', 'agents']
+
+export function apply(ctx: Context, config: Config): void {
+
+  // ---- A. WHICH calls need a human? -------------------------------------
+  ctx.on('tools/pre-execute', async (exec, next): Promise&lt;PreToolDecision&gt; =&gt; {
+
+    // Reads are free. Delegate — let the rest of the chain decide.
+    if (!isWrite(exec)) return next()
+
+    // Autonomy level 3 agents on an allow-listed tool: also delegate.
+    if (autonomyOf(exec.agent) &gt;= 3 &amp;&amp; config.allowList.includes(exec.name)) {
+      return next()
+    }
+
+    // Everything else asks. 'ask' runs ONLY after the approval service
+    // answers 'allowed-once'; every other outcome denies.
+    return { kind: 'ask', reason: describeWrite(exec) }
+  })
+
+  // ---- B. WHO answers? Console's bar. -----------------------------------
+  ctx.on('approval/request', async (req: ApprovalRequest, next): Promise&lt;ApprovalOutcome&gt; =&gt; {
+    // Only answer for agents this bridge owns; otherwise delegate.
+    if (!ownsAgent(req.agent)) return next()
+
+    // Push the question to the browser over the open WebSocket and wait.
+    // req.callId names the tool call Console already streamed, so the bar
+    // attaches to that card instead of rendering a second copy.
+    const answer = await consoleBar.ask({
+      sessionId: req.agent.session.id,
+      callId:    req.callId,
+      toolName:  req.toolName,
+      reason:    req.reason,
+      signal:    req.signal,      // aborting withdraws the question
+    })
+
+    return answer === 'approve' ? 'allowed-once' : 'rejected'
+  })
+
+  // ---- C. Nothing else is needed. ---------------------------------------
+  // If this plugin unloads, both listeners unwind, no answerer remains,
+  // and every ask resolves 'unavailable' — which DENIES. Fail-closed by
+  // construction, not by a flag somebody might forget to set.
+}</code></pre>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <h4>What you get for free</h4>
+      <p>The audit pair on the session log. The per-session policy: <code>ask</code> delegates to answerers, <code>never</code> deterministically rejects without asking anyone &mdash; which is exactly what an unattended overnight run should use.</p>
+      <p>And the guarantee that a listener registered later, even with <code>prepend</code>, cannot bypass the <code>never</code> policy, because it is enforced inside the service before dispatch.</p>
+    </div>
+    <div class="card">
+      <h4>What you must build</h4>
+      <p><code>consoleBar.ask()</code>. That is the browser bridge, and it is the real work &mdash; see section 9. Everything above it is twenty lines.</p>
+      <p>Also <code>isWrite()</code>. Console already has this knowledge in its connector permission lists (<code>po:read</code> allowed, <code>po:write</code> denied). Move that table into the plugin.</p>
+    </div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <h3>3 &mdash; The residency guard and the receipt <span class="badge p">Proposed, on a verified interface</span></h3>
+  <div class="body">
+    <p><b>Console today:</b> a Sovereignty widget reading <code>Egress today: 0 bytes</code>, a Private and a Public tier, and a residency receipt attached to individual answers.</p>
+    <p><b>In <code>dsh</code>:</b> two pieces. A <b>guard</b> for enforcement, because a guard can only ever reduce permission. And a <code>tools/result</code> observer for the receipt, because that is where the frozen, authoritative outcome appears.</p>
+    <p>Note the order of preference. <b>The strongest form of this rule is not a guard at all &mdash; it is composition.</b> If the Private tier composes no <code>ctx.web</code> provider, the fetch and search tools do not exist, so there is nothing to deny. The guard is the second line, for tools that arrive later.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">packages/magna-residency/src/index.ts</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>import type { Context } from '@deepseek-ai/cordis'
+import type { ToolExecution, ToolExecutionResult } from '@deepseek-ai/dsh-tools'
+
+export const name = 'magna-residency'
+export const inject = ['tools', 'sessions']
+
+export function apply(ctx: Context, config: Config): void {
+
+  // ---- 1. ENFORCE ------------------------------------------------------
+  // A ToolGuard returns a denial reason, or undefined to abstain.
+  // There is NO allow return value: nothing downstream can re-permit it.
+  ctx.tools.guard((exec: Readonly&lt;ToolExecution&gt;) =&gt; {
+    const destination = residencyOf(exec.name)          // your tool → provider map
+
+    if (destination === 'in-country') return undefined  // abstain, stay allowed
+
+    return `Residency policy: ${exec.name} would send data to ${destination}. `
+         + `The Private tier permits 0 bytes of egress. Use an in-country `
+         + `equivalent, or switch this session to the Public tier.`
+  })
+
+  // ---- 2. RECORD -------------------------------------------------------
+  // tools/result carries the frozen, lossless final outcome. Observers
+  // cannot change it — which is exactly what you want in an audit path.
+  ctx.on('tools/result', (exec, result: Readonly&lt;ToolExecutionResult&gt;) =&gt; {
+    exec.agent?.session.append('magna/residency-receipt', {
+      callId:      exec.callId,
+      tool:        exec.name,
+      provider:    providerOf(exec.name),
+      region:      config.region,          // 'sa-riyadh-1'
+      egressBytes: 0,
+      failed:      result.isError,
+    })
+  })
+}</code></pre>
+  </div>
+
+  <div class="note warn">
+    <div class="t">Two things this design has to respect</div>
+    <p><b>Adding a durable event is a declared step, not an ad-hoc write.</b> The architecture map says: to add durable session state, <b>extend <code>SessionEventMap</code></b>, then render and replay from the log. <code>magna/residency-receipt</code> above assumes that declaration exists. <span class="badge v">Verified requirement</span>.</p>
+    <p><b>A receipt is log-only, not model-visible.</b> Because &ldquo;model-visible means logged&rdquo;, the reverse is not true: appending an event does not put it in the model&rsquo;s context. That is the behaviour you want here &mdash; the receipt is for the human and the auditor, and it should not consume tokens. If you ever <i>do</i> want the model to know, that is a different mechanism (<code>agent.inject()</code>).</p>
+  </div>
+
+  <div class="note hon">
+    <div class="t">Where I would push back on the label</div>
+    <p><code>Egress today: 0 bytes</code> is currently text in a prototype. Under <code>dsh</code> it could become a measurement &mdash; but only if the counting happens at the seam that actually touches the network, not at the tool name. A tool called <code>read_local_file</code> that quietly resolves a remote URL would pass a name-based check. So the residency map must be derived from <b>which provider serves the call</b>, and the honest version of the widget reads its number from the session log, not from a counter in the browser.</p>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <h3>4 &mdash; Console&rsquo;s MCP servers, skills and slash commands</h3>
+  <div class="body">
+    <p><b>Console today:</b> a Marketplace with MCP servers (<code>sap-po-lookup</code>, <code>p6-schedule</code>, <code>confluence</code>, <code>github-mcp</code>, <code>zatca-einvoice</code>), skills (<code>clause-finder</code>, <code>ar-en-brief</code>, <code>p6-slip-report</code>), and a command palette.</p>
+    <p><b>In <code>dsh</code>:</b> the MCP part needs <b>no code at all</b>. There is a shipped plugin, <code>@deepseek-ai/dsh-mcp-client</code>, and one instance per server in <code>cordis.yml</code>. This is <span class="badge v">verified from that package&rsquo;s README</span>, including the config field names.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">cordis.yml &mdash; Console&rsquo;s MCP servers, verified config shape</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>- id: mcp-sap
+  name: '@deepseek-ai/dsh-mcp-client'
+  config:
+    serverName: sap                       # namespace for this server's tool names
+    transport: streamable-http
+    url: http://sap-mcp.magna-riyadh-dc1.internal/mcp
+    headers:
+      Authorization: !!js `Bearer ${process.env.MAGNA_SAP_TOKEN}`
+    reconnect:
+      enabled: true
+
+- id: mcp-p6
+  name: '@deepseek-ai/dsh-mcp-client'
+  config:
+    serverName: p6
+    transport: streamable-http
+    url: http://p6-mcp.magna-riyadh-dc1.internal/mcp
+
+# The model now sees:  mcp__sap__po_read,  mcp__p6__activity_read, …
+# Server-qualified names, so two servers can both publish "search"
+# without colliding. Names are a pure function of (serverName, rawName).</code></pre>
+  </div>
+
+  <div class="body">
+    <p>Skills and slash commands are a few lines each. <code>ctx.skills.registerProvider</code> and <code>ctx.commands.register</code> are both documented; the exact provider object below is simplified &mdash; <code>list(options)</code> is named in the package README, the loading method name I did not verify.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">packages/magna-catalog/src/index.ts</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>import type { Context } from '@deepseek-ai/cordis'
+
+export const name = 'magna-catalog'
+export const inject = ['skills', 'commands']
+
+export function apply(ctx: Context, config: Config): void {
+
+  // ---- Console's installed skills become model-invocable skills --------
+  ctx.skills.registerProvider(({ signal, invalidate }) =&gt; ({
+    name: 'magna-marketplace',
+    async list() {
+      // clause-finder, ar-en-brief, p6-slip-report, minutes-to-actions …
+      const installed = await magnaCatalog.installedSkills({ signal })
+      return installed.map(toSkillSummary)
+    },
+  }))
+
+  // ---- Console's "/" commands run WITHOUT spending a model turn --------
+  ctx.commands.register({
+    name: 'residency',
+    description: 'Show where this session ran and how many bytes left the network.',
+    handler: ({ agent }) =&gt; ({
+      kind: 'success',
+      text: renderResidencyReceipt(agent.session),   // read from the log
+    }),
+  })
+
+  ctx.commands.register({
+    name: 'tier',
+    description: 'Switch this session between the Private and Public tiers.',
+    input: { hint: 'private | public' },
+    handler: async ({ agent, rawInput, signal }) =&gt; {
+      const tier = rawInput.trim()
+      if (tier !== 'private' &amp;&amp; tier !== 'public') {
+        return { kind: 'error', text: 'Use /tier private or /tier public.' }
+      }
+      await setTier(agent, tier, signal)
+      return { kind: 'success', text: `This session is now on the ${tier} tier.` }
+    },
+  })
+}</code></pre>
+  </div>
+
+  <div class="note">
+    <div class="t">Why &ldquo;without a model turn&rdquo; matters</div>
+    <p>A command handler runs directly against the receiving agent. It does not become a message, it does not cost tokens, and it cannot be misread by the model. <code>/residency</code> in Console should be instant and exact. This is the mechanism that makes it so.</p>
+    <p>The lifecycle is still logged &mdash; <code>command/run</code> before the handler and <code>command/done</code> after &mdash; so the audit trail sees it even though the model does not.</p>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <h3>5 &mdash; Overnight agents on <code>ctx.jobs</code> <span class="badge p">Proposed, on a verified interface</span></h3>
+  <div class="body">
+    <p><b>Console today:</b> three Automations &mdash; &ldquo;P6 slip heartbeat&rdquo; daily at 06:00 AST, &ldquo;Board pack scheduler&rdquo; Thursdays 07:00, &ldquo;Vendor duplicate sweep&rdquo; weekly &mdash; and a &ldquo;while you were away&rdquo; summary at sign-in.</p>
+    <p><b>In <code>dsh</code>:</b> <code>ctx.jobs</code> is the background-work registry. A producer declares a kind, a label, an owner and a <code>run()</code> that returns three hooks. The runtime owns identity, access and lifecycle; the producer owns the actual work.</p>
+  </div>
+
+  <div class="codeblk">
+    <div class="codebar"><span class="fn">packages/magna-automations/src/index.ts</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>import type { Context } from '@deepseek-ai/cordis'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { JobHooks, JobOutcome } from '@deepseek-ai/dsh-jobs'
+
+export const name = 'magna-automations'
+export const inject = ['jobs', 'agents', 'sessions', 'commands']
+
+export function apply(ctx: Context, config: Config): void {
+
+  function startAutomation(agent: Agent, spec: AutomationSpec) {
+    const abort = new AbortController()
+
+    return ctx.jobs.start({
+      kind:  'magna-automation',   // extends JobKindMap; also the id prefix
+      label: spec.name,            // "P6 slip heartbeat" — one model-facing line
+      owner: agent,                // access is fenced by this agent's session id,
+                                   // and disposing the agent cancels and awaits it
+      run: (): JobHooks =&gt; {
+        const work = runAutomation(spec, abort.signal)
+        return {
+          // must be synchronous, idempotent, and eventually settle done
+          cancel: (reason) =&gt; abort.abort(reason),
+          // resolves only after resources are RELEASED, not when work ends
+          done: work.then((o): JobOutcome =&gt; ({
+            status: o.ok ? 'completed' : 'failed',
+            detail: o.summary,           // "3 activities slipping &gt; 5 days"
+          })),
+          // present = a streaming job; absent = final output only
+          readOutput: () =&gt; work.drainSinceLast(),
+        }
+      },
+    })
+  }
+
+  // ---- "While you were away" ------------------------------------------
+  // At sign-in, Console asks for the night's jobs and renders the digest.
+  // Nothing needs to be invented: the snapshots and the session log
+  // already hold status, detail, startedAt and finishedAt.
+  ctx.commands.register({
+    name: 'digest',
+    description: 'What ran while you were away.',
+    handler: ({ agent }) =&gt; ({ kind: 'success', text: renderDigest(agent) }),
+  })
+}</code></pre>
+  </div>
+
+  <div class="note warn">
+    <div class="t">The overnight design decision you must make deliberately</div>
+    <p>An unattended job has no human to answer the approval bar. Under the shipped semantics, an <code>ask</code> with no answerer resolves <code>unavailable</code>, which denies. That is safe but silent &mdash; the job simply fails at 03:00 and nobody knows why.</p>
+    <p>The better shape, and the one the harness gives you a name for: run overnight sessions under the <code>never</code> approval policy, so every ask is <b>deterministically rejected</b> rather than left hanging. Then the automations are read-only by construction, they queue their proposed writes, and the human approves the batch in the morning. That is exactly what Console&rsquo;s automations already claim &mdash; &ldquo;puts the deck in your drafts &mdash; never sends it.&rdquo; The runtime can now make that claim true rather than aspirational. <span class="badge p">My recommendation</span>, on a <span class="badge v">verified policy</span>.</p>
+  </div>
+</div>
+</section>
+
+<section id="html">
+<div class="wrap">
+  <div class="sec-n">09</div>
+  <h2>How this actually meets the HTML</h2>
+  <p class="sub">The question you asked. Here is the honest answer, before the diagram.</p>
+
+  <div class="note hon">
+    <div class="t">The framing that has to run through this whole section</div>
+    <p><b>MagnaVERSE Console is a static HTML prototype with no backend.</b> One file, opened in a browser. Every agent, every approval, every model answer in it is simulated in JavaScript.</p>
+    <p><b><code>dsh</code> is a Node.js process.</b> It reads files, spawns processes, holds an append-only log on disk, and talks to model endpoints over the network. A browser cannot do any of those things.</p>
+    <p>So integration is <b>not</b> &ldquo;add a script tag to <code>app-7-console.html</code>&rdquo;. There is no version of this where the harness runs inside the page. Integration means: <b>a process appears</b>, and Console stops simulating and starts asking that process. Everything below is about where that process lives and how the page talks to it.</p>
+  </div>
+
+  <figure>
+    <div class="figscroll">
+      <svg viewBox="0 0 980 566" width="980" role="img" aria-labelledby="dg5t dg5d">
+        <title id="dg5t">Console, dsh and the Riyadh cluster</title>
+        <desc id="dg5d">Three zones. The browser runs Console's static HTML. A single Node.js dsh process runs the plugin tree, the session log and the agent loop, and serves Console over HTTP and WebSocket on localhost port 3080. The dsh process talks to the Riyadh data centre, which holds the model endpoints, the embedding model, the MCP servers and the enterprise systems. The Vercel deployment is unchanged and stays a static demo.</desc>
+        <defs>
+          <marker id="d5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--signal)"/></marker>
+          <marker id="d5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--teal)"/></marker>
+        </defs>
+
+        <!-- zones -->
+        <rect x="16" y="40" width="236" height="404" rx="14" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text class="dg-h" x="30" y="24">THE BROWSER</text>
+        <text class="dg-ms" x="30" y="62" fill="var(--tx-4)">the operator&rsquo;s laptop</text>
+
+        <rect x="372" y="40" width="256" height="404" rx="14" fill="var(--violet-dim)" stroke="var(--violet)"/>
+        <text class="dg-h" x="386" y="24" fill="var(--violet)">ONE NODE.JS PROCESS &mdash; dsh</text>
+        <text class="dg-ms" x="386" y="62" fill="var(--violet)">runs where the GPUs are</text>
+
+        <rect x="716" y="40" width="248" height="404" rx="14" fill="var(--teal-dim)" stroke="var(--teal)"/>
+        <text class="dg-h" x="730" y="24" fill="var(--teal)">MAGNA RIYADH DC-1</text>
+        <text class="dg-ms" x="730" y="62" fill="var(--teal)">sa-riyadh-1 &middot; nothing leaves</text>
+
+        <!-- browser contents -->
+        <rect x="28" y="76" width="212" height="58" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="40" y="96" font-weight="650">MagnaVERSE Console</text>
+        <text class="dg-ms" x="40" y="112">app-7-console.html</text>
+        <text class="dg-ms" x="40" y="126">one static file, no build step</text>
+
+        <rect x="28" y="146" width="212" height="44" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="40" y="166">Windows, Brain, Code</text>
+        <text class="dg-ms" x="40" y="181">unchanged &mdash; still your UI</text>
+
+        <rect x="28" y="202" width="212" height="44" rx="8" fill="var(--signal-dim)" stroke="var(--signal)"/>
+        <text class="dg-t" x="40" y="222" fill="var(--signal)">the approval bar</text>
+        <text class="dg-ms" x="40" y="237" fill="var(--signal)">now answers a real question</text>
+
+        <rect x="28" y="258" width="212" height="44" rx="8" fill="var(--signal-dim)" stroke="var(--signal)"/>
+        <text class="dg-t" x="40" y="278" fill="var(--signal)">the sovereignty widget</text>
+        <text class="dg-ms" x="40" y="293" fill="var(--signal)">now reads the session log</text>
+
+        <rect x="28" y="314" width="212" height="44" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="40" y="334">the transcript</text>
+        <text class="dg-ms" x="40" y="349">rendered from session/event</text>
+
+        <!-- link A-B -->
+        <path d="M 256 150 L 364 150" fill="none" stroke="var(--signal)" stroke-width="1.8" marker-end="url(#d5a)"/>
+        <path d="M 364 250 L 256 250" fill="none" stroke="var(--signal)" stroke-width="1.8" marker-end="url(#d5a)"/>
+        <text class="dg-ms" x="310" y="112" text-anchor="middle" fill="var(--signal)">HTTP + WebSocket</text>
+        <text class="dg-ms" x="310" y="126" text-anchor="middle" fill="var(--signal)">127.0.0.1:3080</text>
+        <text class="dg-ms" x="310" y="180" text-anchor="middle" fill="var(--signal)">prompts, approvals,</text>
+        <text class="dg-ms" x="310" y="194" text-anchor="middle" fill="var(--signal)">commands &rarr;</text>
+        <text class="dg-ms" x="310" y="284" text-anchor="middle" fill="var(--signal)">&larr; session/event,</text>
+        <text class="dg-ms" x="310" y="298" text-anchor="middle" fill="var(--signal)">tokens, tool cards,</text>
+        <text class="dg-ms" x="310" y="312" text-anchor="middle" fill="var(--signal)">approval questions</text>
+
+        <!-- dsh contents -->
+        <rect x="384" y="76" width="232" height="58" rx="8" fill="var(--surface)" stroke="var(--signal)" stroke-dasharray="5 4"/>
+        <text class="dg-t" x="396" y="96" font-weight="650" fill="var(--signal)">magna-console-bridge</text>
+        <text class="dg-ms" x="396" y="112" fill="var(--signal)">serves Console&rsquo;s HTML, holds the</text>
+        <text class="dg-ms" x="396" y="126" fill="var(--signal)">socket, answers approval/request</text>
+
+        <rect x="384" y="146" width="232" height="44" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-m" x="396" y="166">ctx.webServer</text>
+        <text class="dg-ms" x="396" y="181">named-route registry</text>
+
+        <rect x="384" y="202" width="232" height="58" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="396" y="222" font-weight="650">the plugin tree</text>
+        <text class="dg-ms" x="396" y="238">dsh-base + dsh-web-app +</text>
+        <text class="dg-ms" x="396" y="252">magna-sovereign</text>
+
+        <rect x="384" y="272" width="232" height="44" rx="8" fill="var(--teal-dim)" stroke="var(--teal)"/>
+        <text class="dg-t" x="396" y="292" font-weight="650">the session log</text>
+        <text class="dg-ms" x="396" y="307">append-only &middot; the only truth</text>
+
+        <rect x="384" y="328" width="232" height="44" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="396" y="348">the agent loop</text>
+        <text class="dg-ms" x="396" y="363">turns, steps, tools</text>
+
+        <rect x="384" y="384" width="232" height="44" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="396" y="404">ctx.fs &middot; ctx.subprocess</text>
+        <text class="dg-ms" x="396" y="419">pointed at the cluster</text>
+
+        <!-- link B-C -->
+        <path d="M 632 200 L 708 200" fill="none" stroke="var(--teal)" stroke-width="1.8" marker-end="url(#d5b)"/>
+        <text class="dg-ms" x="670" y="182" text-anchor="middle" fill="var(--teal)">in-country</text>
+        <text class="dg-ms" x="670" y="228" text-anchor="middle" fill="var(--teal)">only</text>
+
+        <!-- cluster contents -->
+        <rect x="728" y="76" width="224" height="72" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="740" y="96" font-weight="650">4 models &middot; 8&times;H200</text>
+        <text class="dg-ms" x="740" y="112">Kimi K2 Instruct &middot; DeepSeek V3.1</text>
+        <text class="dg-ms" x="740" y="126">Qwen 3 235B &middot; Nemotron 120B</text>
+        <text class="dg-ms" x="740" y="140">reached through ctx.llm</text>
+
+        <rect x="728" y="160" width="224" height="44" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="740" y="180">bge-m3 embeddings</text>
+        <text class="dg-ms" x="740" y="195">the Brain index</text>
+
+        <rect x="728" y="216" width="224" height="58" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="740" y="236" font-weight="650">MCP servers</text>
+        <text class="dg-ms" x="740" y="252">sap-po-lookup &middot; p6-schedule</text>
+        <text class="dg-ms" x="740" y="266">confluence &middot; zatca-einvoice</text>
+
+        <rect x="728" y="286" width="224" height="72" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="740" y="306" font-weight="650">enterprise systems</text>
+        <text class="dg-ms" x="740" y="322">SAP S/4HANA &middot; Primavera P6</text>
+        <text class="dg-ms" x="740" y="336">Confluence &middot; Jira &middot; Outlook</text>
+        <text class="dg-ms" x="740" y="350">GitHub &middot; GitLab (self-managed)</text>
+
+        <rect x="728" y="370" width="224" height="58" rx="8" fill="var(--surface)" stroke="var(--line-2)"/>
+        <text class="dg-t" x="740" y="390" font-weight="650">the sandbox</text>
+        <text class="dg-ms" x="740" y="406">where Bash, the PTY and LSP</text>
+        <text class="dg-ms" x="740" y="420">actually run</text>
+
+        <!-- vercel note -->
+        <rect x="16" y="470" width="948" height="66" rx="12" fill="var(--amber-dim)" stroke="var(--amber)"/>
+        <text class="dg-t" x="32" y="494" font-weight="650" fill="var(--amber)">The Vercel deployment: nothing changes.</text>
+        <text class="dg-ms" x="32" y="512">It stays exactly what it is today &mdash; a static demo with simulated answers, reachable from anywhere, useful for showing the product.</text>
+        <text class="dg-ms" x="32" y="526">The real thing runs inside the customer&rsquo;s network, next to the GPUs. Two deployments of the same HTML file, doing two different jobs.</text>
+      </svg>
+    </div>
+    <figcaption><b>Diagram 5 &mdash; the integration architecture.</b> The port and the process are <span class="badge v">Verified</span> (<code>npx @deepseek-ai/dsh web</code> serves the Web UI at <code>http://127.0.0.1:3080</code> by default, and <code>ctx.webServer</code> is documented as a named-route registry that web-transport plugins register their own routes on). The <code>magna-console-bridge</code> plugin is <span class="badge p">Proposed</span>.</figcaption>
+  </figure>
+
+  <h3>The four realistic options, and their trade-offs</h3>
+
+  <div class="stage">
+    <div class="hd"><span class="w">OPTION A</span><h4>Use <code>dsh</code>&rsquo;s own Web UI, and do not integrate at all yet</h4></div>
+    <ul>
+      <li><b>What it is.</b> <code>npx @deepseek-ai/dsh web</code>, open <code>127.0.0.1:3080</code>, point the model settings at Riyadh. Console is not involved.</li>
+      <li><b>For.</b> Zero engineering. You learn what the harness actually does in an afternoon, with real tool calls against real repositories. Every claim on this page becomes something you have watched happen.</li>
+      <li><b>Against.</b> It is not your product. No windows, no sovereignty widget, no Marketplace, no Arabic, no Magna brand. Nothing here is reusable as product code.</li>
+      <li><b>Verdict.</b> Do this <b>this week</b>. It is a spike, not an option for the product.</li>
+    </ul>
+  </div>
+
+  <div class="stage">
+    <div class="hd"><span class="w">OPTION B</span><h4>Console stays a static file; a Magna plugin inside <code>dsh</code> serves it and talks to it</h4></div>
+    <ul>
+      <li><b>What it is.</b> Write one plugin, <code>magna-console-bridge</code>. It registers routes on <code>ctx.webServer</code> that (1) serve <code>app-7-console.html</code> and (2) open a WebSocket. Over that socket it streams <code>session/event</code> to the browser and carries approval questions back. The <code>approval/request</code> answerer from integration 2 lives in this same plugin.</li>
+      <li><b>For.</b> Console&rsquo;s HTML stays a single self-contained file, which is the whole reason it is easy to work on. The approval answerer is <b>in the same process as the tool pipeline</b>, which is what the seam requires. You can build it incrementally &mdash; wire the transcript first, the approval bar second, the residency widget third &mdash; and Console keeps working in demo mode for everything not yet wired.</li>
+      <li><b>Against.</b> You depend on <code>ctx.webServer</code> and the event shapes, which are developer-preview surfaces. You must handle authentication yourself. Console must learn to render from a real event stream, which is genuine front-end work.</li>
+      <li><b>Verdict.</b> <b>This is what I would build.</b> Reasons below.</li>
+    </ul>
+  </div>
+
+  <div class="stage">
+    <div class="hd"><span class="w">OPTION C</span><h4>Rebuild Console <i>as</i> a <code>dsh</code> client bundle</h4></div>
+    <ul>
+      <li><b>What it is.</b> Console stops being a static file and becomes part of the harness&rsquo;s own web application &mdash; its screens registered through the client-module system, its chat surfaces registered as conversation nodes, its settings as settings cards. The architecture map lists all of these as documented extension points.</li>
+      <li><b>For.</b> The highest fidelity. Hot reload, the harness&rsquo;s own streaming, no bridge to maintain, and Magna features appear inside the harness&rsquo;s UI conventions instead of beside them.</li>
+      <li><b>Against.</b> It is a rewrite, and it couples Magna&rsquo;s release cycle to a six-day-old project that has promised breaking changes. Console&rsquo;s window manager, RTL work and brand system would have to be rebuilt inside someone else&rsquo;s application shell.</li>
+      <li><b>Verdict.</b> Not now. Revisit once the preview ends and the client-module surface has been stable for a couple of releases.</li>
+    </ul>
+  </div>
+
+  <div class="stage">
+    <div class="hd"><span class="w">OPTION D</span><h4>Drive <code>dsh</code> from a Magna backend through the SDK</h4></div>
+    <ul>
+      <li><b>What it is.</b> Magna writes its own API. That API drives a harness runtime as a subprocess over stdio JSON-RPC, using the published TypeScript SDK (<code>@deepseek-ai/dsh-sdk-client</code>) or the Python SDK (<code>pip install deepseek-harness-sdk</code>). Console talks only to Magna&rsquo;s API and never sees <code>dsh</code>.</li>
+      <li><b>For.</b> The loosest coupling. A breaking change upstream costs you one adapter, not your product. It is the natural shape for multi-tenant SaaS, and for batch work that no human is watching.</li>
+      <li><b>Against, and this one is decisive.</b> The SDK client&rsquo;s own README lists, under known limitations: <b>&ldquo;Client&rarr;server notifications and server&rarr;client requests are unimplemented on both wire ends; the transport carries them for future approval flows.&rdquo;</b> In plain words: <b>the harness cannot currently ask a question back through the SDK wire.</b> There is also no mid-turn cancel. An approval bar in a browser cannot be answered this way today.</li>
+      <li><b>Verdict.</b> Right for <b>overnight and batch</b> work, where the approval policy is <code>never</code> and nobody is being asked anything. Wrong for the interactive product, until those wire methods land.</li>
+    </ul>
+  </div>
+
+  <div class="note mag">
+    <div class="t">The recommendation, and the reasoning</div>
+    <p><b>Option A this week. Option B for the product. Option D for the automations. Option C reconsidered in six months.</b></p>
+    <p>The deciding argument is the approval bar, because it is Console&rsquo;s most important promise. An approval answerer is a Cordis listener &mdash; it lives inside the harness process, beside the tool pipeline, and it must return an outcome synchronously enough to hold the tool call open. If Magna&rsquo;s own API sits between the browser and the harness (Option D), that question has no way home today; the SDK README says so explicitly. Option B keeps the answerer in-process and gives it a direct socket to the human. Everything else &mdash; residency, MCP, skills, jobs &mdash; works under either option; approval is what chooses.</p>
+    <p>The second argument is reversibility. Option B is one plugin and one WebSocket. If the harness turns out to be the wrong bet in six months, you delete a plugin and Console reverts to what it is today. Option C would leave you with a rewrite you could not undo.</p>
+  </div>
+
+  <h3>What Console&rsquo;s own code would have to change</h3>
+  <div class="tscroll">
+    <table>
+      <caption class="skip">Changes required inside app-7-console.html</caption>
+      <thead><tr><th>Console feature today</th><th>What replaces the simulation</th><th>Size of the change</th></tr></thead>
+      <tbody>
+        <tr><td>Chat answers written by JavaScript</td><td>Render from the <code>session/event</code> stream: <code>assistant/chunk</code> for live text, <code>assistant/message</code> when it settles</td><td><b>Medium.</b> A new renderer, but the existing message components stay</td></tr>
+        <tr><td><code>requestApproval(w, opts)</code> shows a bar and resolves locally</td><td>Same bar, same visual language &mdash; but the promise it returns now resolves an <code>approval/request</code> in the harness</td><td><b>Small.</b> One function&rsquo;s body. This is the payoff for having centralised it</td></tr>
+        <tr><td>Tool activity drawn from a script</td><td><code>tool/call</code> renders the pending card, <code>tool/result</code> renders the completed one &mdash; the tool definitions supply the presentation</td><td><b>Medium</b></td></tr>
+        <tr><td><code>Egress today: 0 bytes</code> as a literal string</td><td>Counted from residency receipts in the log</td><td><b>Small</b>, once integration 3 exists</td></tr>
+        <tr><td>Model picker and router as UI state</td><td>Provider and model routes resolved from <code>ctx.llm</code>; the router becomes a plugin that picks the route per request</td><td><b>Medium</b></td></tr>
+        <tr><td>Automations that pretend to have run</td><td><code>ctx.jobs</code> snapshots: status, detail, started, finished</td><td><b>Small</b></td></tr>
+        <tr><td>Windows, themes, Arabic, Brain graph, Monaco, notifications</td><td><b>Nothing changes.</b> None of it is the harness&rsquo;s business</td><td><b>None</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<section id="risk">
+<div class="wrap">
+  <div class="sec-n">10</div>
+  <h2>Why this is notable &mdash; and what could go wrong</h2>
+  <p class="sub">Both halves, honestly. A brief that only contains the good half is a sales document, not a technical one.</p>
+
+  <h3>Six things that are genuinely good</h3>
+  <div class="cards">
+    <div class="card">
+      <h4>MIT, with no strings</h4>
+      <p>Magna sells a self-hosted product to customers. That combination defeats most reassuring arguments about copyleft. MIT does not care: keep the notice, ship what you like, change what you like, do not disclose your source. For a company shipping a sovereign deliverable, this is the licence you want.</p>
+    </div>
+    <div class="card">
+      <h4>No privileged core</h4>
+      <p>The model adapter, the tool registry, the session log and the agent loop are all plugins. Every substitution Magna needs is a configuration row rather than a fork. You keep taking upstream releases while running a product whose important code paths are your own.</p>
+    </div>
+    <div class="card">
+      <h4>Reversible effects</h4>
+      <p>Every registration returns its exact disposer. Turning a capability off is an operation, not a restart and a hope. For per-tenant licensing, emergency connector shutdown, and residency modes that must genuinely remove tools, this is the difference between a policy and a promise.</p>
+    </div>
+    <div class="card">
+      <h4>The log is the context</h4>
+      <p>&ldquo;Model-visible means logged&rdquo;, enforced by a runtime invariant. There is no hidden place for context to live. Every answer can be reconstructed from disk, in order, with the tool calls that produced it. This is the property a regulated customer will ask about, and most agent stacks cannot answer.</p>
+    </div>
+    <div class="card">
+      <h4>Composition that is inspectable</h4>
+      <p>Profiles stack bundles, patches replace rows by id, and <code>dsh --profile web --dump-config</code> prints the exact tree that boots. &ldquo;What is running in production?&rdquo; has a command-line answer. That is unusual and it is worth a lot during an incident.</p>
+    </div>
+    <div class="card">
+      <h4>Batteries you would otherwise build</h4>
+      <p>MCP client, skills, subagents, workflows, compaction, background jobs, sandbox policy, permission presets, LSP, PTY terminals, JSONL and SQLite session backends, OpenTelemetry. Each of those is weeks of work you do not do.</p>
+    </div>
+  </div>
+
+  <h3>Six things that could go wrong</h3>
+  <div class="cards">
+    <div class="card">
+      <h4>1 &middot; Developer preview means what it says</h4>
+      <p>The README promises compatibility-breaking changes, in capital letters. Interfaces on this page will move. Plan for a version pin, a paid upgrade budget every few months, and a test suite that fails loudly rather than silently.</p>
+    </div>
+    <div class="card">
+      <h4>2 &middot; The project is six days old</h4>
+      <p>Created 13 August 2026. There is no track record, no long-lived security history, no body of production war stories. The star count measures curiosity. Do not confuse it with a maturity signal, and do not let anyone else in the building confuse it either.</p>
+    </div>
+    <div class="card">
+      <h4>3 &middot; You adopt Cordis too</h4>
+      <p>Choosing <code>dsh</code> means choosing a whole programming paradigm: contexts, services, injection, typed events, effects. That is a real learning curve for a team used to plain Node. It is also a second dependency whose future you do not control. Budget training, and expect the first two Magna plugins to be slow.</p>
+    </div>
+    <div class="card">
+      <h4>4 &middot; The interactive gap is real</h4>
+      <p>The SDK cannot yet carry a server-to-client question or a mid-turn cancel. That is not a theoretical limitation &mdash; it directly constrains the architecture, as section 9 shows. If your plan depends on driving the harness from a Magna backend while a human approves in a browser, that plan does not work today.</p>
+    </div>
+    <div class="card">
+      <h4>5 &middot; Sovereignty is a composition discipline, not a switch</h4>
+      <p>Nothing in <code>dsh</code> stops you from composing a plugin that phones home. The guarantee comes from what you <i>do not</i> compose, plus guards for what arrives later. That discipline has to be enforced in CI &mdash; a build that fails when the Private profile&rsquo;s dumped config contains a network provider &mdash; or it will erode within a year.</p>
+    </div>
+    <div class="card">
+      <h4>6 &middot; It is a DeepSeek project</h4>
+      <p>Worth stating plainly for a Saudi enterprise buyer: this is open source under MIT and runs entirely on your hardware, so no data goes to DeepSeek. But the governance, the roadmap and the release cadence belong to one vendor. Some customers will ask. Have the answer ready, and have the fork-and-freeze plan ready too &mdash; MIT makes that possible.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="adopt">
+<div class="wrap">
+  <div class="sec-n">11</div>
+  <h2>A staged adoption path</h2>
+  <p class="sub">Nothing here commits Magna to anything until stage 3. That is deliberate.</p>
+
+  <div class="stage">
+    <div class="hd"><span class="w">WEEK 1</span><h3>Prove it runs, on your hardware, with your models</h3></div>
+    <ul>
+      <li>Run <code>npx @deepseek-ai/dsh web</code> on one machine inside the DC. Open <code>127.0.0.1:3080</code>.</li>
+      <li>Point the model settings at a Riyadh endpoint. Try the shipped adapter with a custom OpenAI-compatible endpoint before writing any code.</li>
+      <li>Give it a real task on a real repository. Watch the tool calls. Watch the approval prompts.</li>
+      <li>Run <code>dsh --profile web --dump-config</code> and read the tree. This is the single most useful hour in the whole evaluation.</li>
+      <li><b>Exit test:</b> can one engineer explain the turn and the tool pipeline to a colleague, from what they watched rather than from this page?</li>
+    </ul>
+  </div>
+
+  <div class="stage">
+    <div class="hd"><span class="w">WEEKS 2&ndash;3</span><h3>Write two plugins and find out what it costs</h3></div>
+    <ul>
+      <li><b>Plugin one:</b> the residency guard from integration 3. It is about thirty lines and it exercises the guard interface, the configuration schema and the effect lifecycle.</li>
+      <li><b>Plugin two:</b> one MCP server from Console&rsquo;s Marketplace &mdash; <code>p6-schedule</code> is the obvious candidate &mdash; wired through <code>dsh-mcp-client</code>. This is configuration only, so it measures how much you get without writing code.</li>
+      <li>Deliberately break something: unload a plugin mid-session and confirm its registrations really unwind.</li>
+      <li><b>Exit test:</b> a written estimate, in days, for the <code>magna-console-bridge</code> plugin. If nobody can produce that number, you have not learned enough yet.</li>
+    </ul>
+  </div>
+
+  <div class="stage">
+    <div class="hd"><span class="w">MONTH 2</span><h3>The pilot: one Console window, one real workflow, ten users</h3></div>
+    <ul>
+      <li>Build <code>magna-console-bridge</code>. Wire exactly one Console surface to it &mdash; I would choose the chat window, because it exercises streaming, tools and approval together.</li>
+      <li>Everything else in Console stays in demo mode. Users should be able to tell which is which.</li>
+      <li>Pick one workflow with a real owner. &ldquo;P6 slip heartbeat&rdquo; is a good pilot: read-only, valuable, and its failure mode is a missed alert rather than a wrong write.</li>
+      <li>Pin the exact version. Read every release note. Keep a written log of every breaking change and what it cost to absorb.</li>
+      <li><b>Exit test:</b> after four weeks, is the total cost of upstream churn under one engineer-day per week? If not, stop and reassess &mdash; that number will not improve by itself.</li>
+    </ul>
+  </div>
+
+  <div class="stage">
+    <div class="hd"><span class="w">BEFORE PRODUCTION</span><h3>Nine things that must be true</h3></div>
+    <ul>
+      <li><b>1.</b> The developer-preview warning is gone from the README, or Magna has accepted a named owner for absorbing breaking changes indefinitely.</li>
+      <li><b>2.</b> A CI gate fails the build if the Private profile&rsquo;s dumped configuration contains any provider that can reach the public internet.</li>
+      <li><b>3.</b> A security review of the sandbox and approval path, done by someone who did not write the plugins.</li>
+      <li><b>4.</b> A licence audit of the full dependency tree, from <code>THIRD_PARTY_NOTICES.md</code> outwards &mdash; the same gate the rest of the stack already passes.</li>
+      <li><b>5.</b> The session log has a retention, encryption and export policy, agreed with legal. It contains everything, which is its strength and its risk.</li>
+      <li><b>6.</b> A tested restore: kill the process mid-turn, restart, and confirm the session resumes from the log with nothing invented.</li>
+      <li><b>7.</b> Load and cost figures from a real week, not a demo. Steps, tokens, and SAR.</li>
+      <li><b>8.</b> An exit plan written down. Under MIT you may fork and freeze; know in advance which version you would freeze at and who would maintain it.</li>
+      <li><b>9.</b> Arabic and RTL verified end to end &mdash; not just in Console&rsquo;s UI, but in tool results, file paths and the transcript renderer.</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<section id="sources">
+<div class="wrap">
+  <div class="sec-n">12</div>
+  <h2>Sources, and what I could not verify</h2>
+  <p class="sub">Everything on this page is one of three things. Here is which.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption class="skip">Claim provenance</caption>
+      <thead><tr><th>Claim</th><th>Status</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>MIT licence, TypeScript, created 13 Aug 2026, ~165k stars, topics <code>ai-agents</code> / <code>cordis</code> / <code>dsh</code> / <code>dsh-plugin</code></td><td><span class="badge v">Verified</span></td><td>GitHub API, 19 Aug 2026</td></tr>
+        <tr><td>Developer preview; compatibility-breaking changes promised</td><td><span class="badge v">Verified</span></td><td><code>README.md</code></td></tr>
+        <tr><td><code>npx @deepseek-ai/dsh web</code>; Web UI on <code>http://127.0.0.1:3080</code> by default</td><td><span class="badge v">Verified</span></td><td><code>README.md</code>, <code>docs/user/guide/index.md</code></td></tr>
+        <tr><td>Cordis&rsquo;s five ideas; the dispatch-mode table; waterfall <code>next()</code> semantics; <code>prepend: true</code></td><td><span class="badge v">Verified</span></td><td><code>docs/cordis-primer.md</code></td></tr>
+        <tr><td>Profiles, bundles, patch layer order, <code>dsh-base</code> / <code>dsh-web-app</code> / <code>dsh-headless</code>, <code>--dump-config</code></td><td><span class="badge v">Verified</span></td><td><code>docs/architecture.md</code></td></tr>
+        <tr><td>The turn sequence; step vs turn; which events are durable vs live; which are waterfalls</td><td><span class="badge v">Verified</span></td><td><code>docs/architecture.md</code>, <code>docs/agent-lifecycle.md</code></td></tr>
+        <tr><td>&ldquo;Model-visible means logged&rdquo;; <code>deriveMessages()</code>; extend <code>SessionEventMap</code> for durable state</td><td><span class="badge v">Verified</span></td><td><code>docs/architecture.md</code></td></tr>
+        <tr><td>The tool pipeline; <code>PreToolDecision</code> and <code>PostToolDecision</code>; monotonic guards with no allow result; arguments cannot be rewritten</td><td><span class="badge v">Verified</span></td><td><code>docs/tool-execution-pipeline.md</code>, <code>docs/subsystems/tools.md</code></td></tr>
+        <tr><td>Approval outcomes and fail-closed behaviour; <code>ask</code> / <code>never</code> policy; the <code>approval/asked</code> + <code>approval/decided</code> audit pair</td><td><span class="badge v">Verified</span></td><td><code>docs/subsystems/approval.md</code></td></tr>
+        <tr><td>Seams: definition / provider / consumer; fs and subprocess share one execution world; the E2B provider pair</td><td><span class="badge v">Verified</span></td><td><code>docs/architecture.md</code>, <code>docs/capability-seams.md</code></td></tr>
+        <tr><td><code>LlmAdapter</code>, <code>registerAdapter()</code>, <code>StreamChunk</code>, and the five adapter contract rules</td><td><span class="badge v">Verified</span></td><td><code>docs/subsystems/llm-streaming.md</code></td></tr>
+        <tr><td>The plugin file shape: <code>name</code>, <code>inject</code>, <code>Config</code>, <code>apply(ctx, config)</code>; <code>ctx.tools.register(defineTool(&hellip;))</code></td><td><span class="badge v">Verified</span></td><td>Repository source: <code>packages/context/time-context</code>, <code>packages/todo/tool-todo</code></td></tr>
+        <tr><td><code>dsh-mcp-client</code> config fields and the <code>mcp__&lt;server&gt;__&lt;tool&gt;</code> naming</td><td><span class="badge v">Verified</span></td><td><code>packages/mcp/mcp-client/README.md</code></td></tr>
+        <tr><td><code>ctx.commands</code> and <code>ctx.jobs</code> interfaces; <code>ctx.skills.registerProvider</code></td><td><span class="badge v">Verified</span></td><td><code>docs/subsystems/commands.md</code>, <code>jobs.md</code>, <code>packages/skill/skill/README.md</code></td></tr>
+        <tr><td>SDK limitations: no server&rarr;client requests, no mid-turn cancel; Python SDK and <code>DEEPSEEK_BASE_URL</code></td><td><span class="badge v">Verified</span></td><td><code>packages/sdk/client/README.md</code>, <code>docs/user/guide/python-sdk.md</code></td></tr>
+        <tr><td>Every Magna plugin on this page: <code>magna-llm-riyadh</code>, <code>magna-approval-bar</code>, <code>magna-residency</code>, <code>magna-catalog</code>, <code>magna-automations</code>, <code>magna-console-bridge</code></td><td><span class="badge p">Proposed</span></td><td>My design. None of these exist. The interfaces they use are verified; the code is illustrative and has not been compiled or run</td></tr>
+        <tr><td>The <code>fs-riyadh</code> / <code>subprocess-riyadh</code> provider pair</td><td><span class="badge p">Proposed</span></td><td>My design, by analogy with the shipped E2B pair</td></tr>
+        <tr><td>Estimates of effort, and the recommendation in section 9</td><td><span class="badge p">Proposed</span></td><td>My judgement, from reading the documentation. Not measured</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What I could not verify</h3>
+  <div class="body">
+    <ul>
+      <li><b>I did not run it.</b> Nothing on this page was executed. Every behavioural claim comes from documentation and source reading. Stage 1 of the adoption path exists precisely to close this gap.</li>
+      <li><b>Console&rsquo;s bridge is unproven.</b> I confirmed that <code>ctx.webServer</code> is &ldquo;a plain <code>node:http</code> carrier: named-route registry, index transform taps, and the static dist fallback&rdquo; and that &ldquo;web-transport plugins register their own routes&rdquo;. I did not verify how a third-party plugin serves its own HTML file, or what authentication exists on those routes.</li>
+      <li><b>The skill provider object shape is simplified.</b> <code>registerProvider</code> and the awaited <code>list(options)</code> call are documented; I did not verify the exact name and signature of the loading method, so treat that part of integration 4 as a sketch.</li>
+      <li><b>Performance, memory and concurrency are unknown.</b> There are no published figures, and a six-day-old project has none worth trusting anyway.</li>
+      <li><b>Arabic and RTL behaviour inside the harness is untested</b> &mdash; tool results, file paths, transcript direction. Given Magna&rsquo;s market this deserves its own investigation and is not something to assume.</li>
+      <li><b>Windows support is partial.</b> The Python SDK guide notes that its persistent PTY backend requires a POSIX terminal substrate, so that composition does not support Windows agents. What that means for the wider product on Windows, I did not establish.</li>
+      <li><b>This project postdates my training data.</b> Everything here was read from the repository during this task. Where the documentation did not say something, I left it out or marked it, rather than filling the gap from memory.</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    <div class="t">Where to read next, in order</div>
+    <p><b>1.</b> <code>docs/cordis-primer.md</code> &mdash; four pages, and it unlocks everything else.<br>
+       <b>2.</b> <code>docs/architecture.md</code> &mdash; the turn flow and the &ldquo;where new behaviour goes&rdquo; table.<br>
+       <b>3.</b> <code>docs/tool-execution-pipeline.md</code> &mdash; one diagram, and it is the one Magna cares about most.<br>
+       <b>4.</b> <code>docs/capability-seams.md</code> &mdash; the catalogue of every seam and its implementations.<br>
+       <b>5.</b> <code>packages/context/time-context/src/index.ts</code> &mdash; the smallest complete real plugin. Read it line by line.</p>
+  </div>
+</div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fbrand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:22px">
+        <defs>
+          <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:var(--tx-3); font-weight:600">Magna<span style="color:var(--tx-4)">VERSE</span></span>
+    </div>
+    <p>Technology brief prepared 19 August 2026. Sources: the <code>deepseek-ai/deepseek-harness</code> repository documentation and source, and the GitHub API. Console references are to <code>apps/app-7-console.html</code> in this repository.</p>
+    <p>Claims are labelled <span class="badge v">Verified</span> or <span class="badge p">Proposed</span> throughout. Where the documentation was silent, this page says so rather than guessing.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- theme ---- */
+  var root = document.documentElement;
+  var btns = Array.prototype.slice.call(document.querySelectorAll("[data-theme-set]"));
+  function readTheme(){
+    try{ return localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system"; }
+    catch(e){ return "system"; }
+  }
+  function applyTheme(mode){
+    if(mode === "light" || mode === "dark"){ root.setAttribute("data-theme", mode); }
+    else{ root.removeAttribute("data-theme"); }
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-set") === mode)); });
+  }
+  function writeTheme(mode){
+    try{ localStorage.setItem("mv-theme", mode); localStorage.setItem("mv.theme", mode); }catch(e){}
+  }
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var m = b.getAttribute("data-theme-set");
+      applyTheme(m); writeTheme(m);
+    });
+  });
+  applyTheme(readTheme());
+
+  /* ---- copy buttons ---- */
+  Array.prototype.slice.call(document.querySelectorAll(".copyb")).forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var blk = btn.closest(".codeblk");
+      var code = blk ? blk.querySelector("code") : null;
+      if(!code) return;
+      var text = code.textContent;
+      var done = function(){
+        var old = btn.textContent;
+        btn.textContent = "Copied";
+        btn.setAttribute("data-done","1");
+        window.setTimeout(function(){ btn.textContent = old || "Copy"; btn.removeAttribute("data-done"); }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done, function(){ fallback(text, done); });
+      }else{ fallback(text, done); }
+    });
+  });
+  function fallback(text, done){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly","");
+    ta.style.position = "fixed"; ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); done(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  /* ---- mobile drawer ---- */
+  var menub  = document.getElementById("menub");
+  var drawer = document.getElementById("drawer");
+  var scrim  = document.getElementById("scrim");
+  var lastFocus = null;
+
+  function openDrawer(){
+    lastFocus = document.activeElement;
+    scrim.hidden = false;
+    window.requestAnimationFrame(function(){ scrim.classList.add("on"); });
+    drawer.classList.add("on");
+    drawer.setAttribute("aria-hidden","false");
+    menub.setAttribute("aria-expanded","true");
+    var first = drawer.querySelector("a");
+    if(first) first.focus();
+    document.addEventListener("keydown", onKey, true);
+  }
+  function closeDrawer(){
+    scrim.classList.remove("on");
+    drawer.classList.remove("on");
+    drawer.setAttribute("aria-hidden","true");
+    menub.setAttribute("aria-expanded","false");
+    document.removeEventListener("keydown", onKey, true);
+    window.setTimeout(function(){ if(!drawer.classList.contains("on")) scrim.hidden = true; }, 220);
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function onKey(e){
+    if(e.key === "Escape"){ e.preventDefault(); closeDrawer(); return; }
+    if(e.key !== "Tab") return;
+    var items = drawer.querySelectorAll("a, button");
+    if(!items.length) return;
+    var first = items[0], last = items[items.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+  if(menub){ menub.addEventListener("click", function(){ drawer.classList.contains("on") ? closeDrawer() : openDrawer(); }); }
+  if(scrim){ scrim.addEventListener("click", closeDrawer); }
+  Array.prototype.slice.call(drawer.querySelectorAll("a")).forEach(function(a){
+    a.addEventListener("click", closeDrawer);
+  });
+  var closeBtn = drawer.querySelector("[data-close-drawer]");
+  if(closeBtn) closeBtn.addEventListener("click", closeDrawer);
+})();
+</script>
+</body>
+</html>
