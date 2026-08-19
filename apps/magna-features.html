@@ -150,6 +150,7 @@
     <a href="#knowledge">Knowledge</a>
     <a href="#widgets">Widgets</a>
     <a href="#neural">Neural Layer</a>
+    <a href="#laptop">Laptop &amp; Trackpad</a>
     <a href="#shortcuts">Shortcuts</a>
   </div>
 </nav>
@@ -972,6 +973,93 @@
 
 <div class="divider"><hr></div>
 
+<!-- ════════════════════════════════════════════════════════════════════════ LAPTOP -->
+<section class="section" id="laptop">
+  <div class="section-hd">
+    <div class="label">15</div>
+    <h2>Laptop &amp; Trackpad Integration</h2>
+    <p class="desc">The OS talks to your actual hardware — camera presence, real notifications, real files on disk, the real clipboard, and macOS-grade trackpad gestures.</p>
+  </div>
+  <div class="grid">
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">✨</div>
+      <h3>Materialization</h3>
+      <p>Apps open by particles flying from their dock tile and assembling into the window (16 glowing particles, ~400ms, staggered). Closing dissolves the window — particles fly back to the dock. Fully disabled under reduced-motion, toggleable as "Motion FX" in Control Centre.</p>
+      <ul><li>16 cyan/green particles per open, randomised arcs</li><li>Window scales in with a brightness flash</li><li>Close = dissolve + reverse particle flight</li><li>CC toggle: Motion FX</li></ul>
+      <span class="tag ui">Visual</span>
+    </div>
+    <div class="card" data-accent="red">
+      <div class="icon ic-red">🛡</div>
+      <h3>Walk-Away Lock</h3>
+      <p>Turn on "Presence lock" in Control Centre and the camera watches for you — entirely on-device (32×24 luminance frames diffed locally, nothing uploaded). Walk away for 30 seconds and the OS locks behind a blur veil with a PIN pad. Come back, enter the PIN (demo: 2026), and it tells you exactly what agents did while you were gone.</p>
+      <ul><li>On-device motion-based presence detection</li><li>30s absence → blur veil + PIN pad lock</li><li>Agents keep running while locked</li><li>Unlock summary: "you missed N agent events"</li></ul>
+      <span class="tag sec">Security</span>
+    </div>
+    <div class="card" data-accent="green">
+      <div class="icon ic-green">👁</div>
+      <h3>Look-Away Pause</h3>
+      <p>Mid voice conversation and you step away? The AI pauses politely — speech pauses, listening stops, the status reads "Paused — stepped away". Walk back and it resumes exactly where it left off: "Back — listening".</p>
+      <ul><li>speechSynthesis pause/resume</li><li>Recognition stops while absent</li><li>Auto-resume ~600ms after return</li><li>Requires Presence lock camera</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="purple">
+      <div class="icon ic-purple">🔥</div>
+      <h3>Attention Heatmap</h3>
+      <p>The OS samples which app holds your focus every 5 seconds (focused window's app, or desktop). The dwell distribution is persisted and feeds the Behaviour brain — the Behaviour graph's status line reads "attention: Chat 46% · Brain 23% · Sheets 12%".</p>
+      <ul><li>5-second dwell sampling, persisted</li><li>Feeds the Behaviour graph hint line</li><li>Pauses when tab is hidden</li><li>100% local — no camera required</li></ul>
+      <span class="tag ai">AI</span>
+    </div>
+    <div class="card" data-accent="gold">
+      <div class="icon ic-gold">🔔</div>
+      <h3>Native Notifications</h3>
+      <p>Agent events pop as real macOS/Windows notifications even when the tab is backgrounded — via the browser Notification API. Clicking one focuses the window. Toggle "Native alerts" in Control Centre (asks permission once).</p>
+      <ul><li>Fires only when the tab is hidden</li><li>Click → focus the Console</li><li>Tagged so they stack, not spam</li><li>CC toggle: Native alerts</li></ul>
+      <span class="tag os">OS Core</span>
+    </div>
+    <div class="card" data-accent="blue">
+      <div class="icon ic-blue">💾</div>
+      <h3>Real File Open / Save</h3>
+      <p>The VFS bridges to your real disk through the File System Access API. Word and Sheets get "Open…" and "To disk" toolbar buttons; Files gets "Open from Mac…". Open a real .csv into Sheets, edit it, and write it straight back to disk. Browsers without the API fall back to upload/download.</p>
+      <ul><li>Word: Open… reads real .txt/.md/.html into VFS</li><li>Word: To disk writes a real .html file</li><li>Sheets: Open CSV… parses into a live grid</li><li>Sheets: To disk writes a real .csv</li><li>Files: Open from Mac… imports any text file</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="cyan">
+      <div class="icon ic-cyan">📋</div>
+      <h3>Clipboard Bridge</h3>
+      <p>Right-click any file → "Copy to Mac clipboard" puts its name + plain-text content in the real system clipboard (graceful fallback for Safari). Paste into the desktop: real files on the clipboard import into the VFS; long pasted text (40+ chars) becomes a dated note on the desktop.</p>
+      <ul><li>Copy out: real clipboard write + fallback</li><li>Paste in: clipboard files → VFS imports</li><li>Long text → auto-dated markdown note</li><li>Smart-routed with a shimmer on the Files dock icon</li></ul>
+      <span class="tag data">Data</span>
+    </div>
+    <div class="card" data-accent="pink">
+      <div class="icon ic-pink">👆</div>
+      <h3>Force-Click Peek</h3>
+      <p>Force-click (firm trackpad press) or press-and-hold any desktop file for 430ms → a glass preview card blooms at the cursor: document text, a 4×4 sheet grid, folder contents. Release to dismiss — or release on click to open it. Dragging cancels the peek; the card follows the pointer.</p>
+      <ul><li>PointerEvent.pressure &gt; 0.55 = instant peek</li><li>430ms hold fallback on any device</li><li>Per-format previews (txt/doc/xlsx/folder)</li><li>Release-swallow so the peek never mis-opens</li></ul>
+      <span class="tag ui">UI</span>
+    </div>
+    <div class="card wide" data-accent="sky">
+      <div class="left">
+        <div class="icon ic-sky">🖱</div>
+        <h3>Trackpad Gestures — the macOS set</h3>
+        <p>The Console now understands the gestures your hands already know. All of them are documented in the ? cheat sheet under "Trackpad &amp; laptop".</p>
+        <ul><li><b>Two-finger horizontal swipe</b> on the desktop → switch spaces (deltaX accumulation with cooldown, ignores scrolls inside apps)</li>
+        <li><b>Pinch closed</b> on the desktop → Mission Control opens</li>
+        <li><b>Pinch open</b> → Mission Control closes</li></ul>
+      </div>
+      <div class="right">
+        <h3 style="margin-bottom:10px">And one magic trick</h3>
+        <ul><li><b>Shake the pointer</b> — 5+ direction reversals within 800ms → undo the last file deletion (restores from Trash instantly, with a toast)</li>
+        <li>Undo stack holds the last 10 deletions from desktop, context menu, and Files</li>
+        <li>Delete toasts now hint: "shake the pointer to undo"</li>
+        <li>Pinch tracking only fires on the empty desktop — never while dragging icons or windows</li></ul>
+      </div>
+      <span class="tag ui">UI</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
 <!-- ════════════════════════════════════════════════════════════════════════ SHORTCUTS -->
 <section class="section" id="shortcuts">
   <div class="section-hd">
@@ -998,7 +1086,7 @@
     <div class="card" data-accent="gold">
       <div class="icon ic-gold">📁</div>
       <h3>Icons &amp; Files</h3>
-      <ul><li><b>Single click</b> — Open app / file</li><li><b>Right-click</b> — Context menu</li><li><b>Drag → orb</b> — Smart-route file</li><li><b>Delete</b> — Trash selection</li></ul>
+      <ul><li><b>Single click</b> — Open app / file</li><li><b>Right-click</b> — Context menu</li><li><b>Force-click / hold</b> — Peek preview</li><li><b>Drag → orb</b> — Smart-route file</li><li><b>Shake pointer</b> — Undo last delete</li><li><b>Delete</b> — Trash selection</li></ul>
     </div>
     <div class="card" data-accent="pink">
       <div class="icon ic-pink">🪟</div>
