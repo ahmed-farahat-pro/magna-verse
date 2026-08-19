@@ -1,0 +1,2459 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Astrolabe / Suhail — two theme packages for MagnaVERSE Console</title>
+<meta name="description" content="Two complete, shippable theme packages for MagnaVERSE Console: icon language, colour tokens, type scale, motion, the AI layer, and drop-in cssD/cssL for the THEMES array.">
+<style>
+/* ============================================================
+   PAGE CHROME — the document's own theme.
+   Namespaced --p-* so it can NEVER collide with the two themes
+   being previewed, which live entirely under .tm[data-mode].
+   ============================================================ */
+:root{
+  --p-bg:#F4F5F7; --p-bg-2:#FFFFFF; --p-bg-3:#EAECF0; --p-bg-4:#E1E4E9;
+  --p-fg:#0E1116; --p-fg-2:#3C424E; --p-fg-3:#5E6674; --p-fg-4:#8A929E;
+  --p-line:#D5D9E0; --p-line-2:#BFC5CE;
+  --p-accent:#1E50C8; --p-accent-2:#2FB44A; --p-red:#C5251E;
+  --p-ok:#0E7A50; --p-warn:#8A5D0B;
+  --p-shadow:0 1px 2px rgba(14,17,22,.05), 0 12px 34px rgba(14,17,22,.07);
+  --p-shadow-lg:0 2px 6px rgba(14,17,22,.06), 0 28px 64px rgba(14,17,22,.12);
+  --p-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --p-mono:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --p-ar:"SF Arabic","Segoe UI","Noto Sans Arabic","Geeza Pro",Tahoma,sans-serif;
+  --p-max:1580px;
+  --p-r:12px; --p-r-sm:8px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --p-bg:#0D1014; --p-bg-2:#14181E; --p-bg-3:#1A1F26; --p-bg-4:#222831;
+    --p-fg:#EDEFF3; --p-fg-2:#AEB5C1; --p-fg-3:#828B99; --p-fg-4:#5C6472;
+    --p-line:#252B34; --p-line-2:#333B46;
+    --p-accent:#6C9BFF; --p-accent-2:#4CD06A; --p-red:#FF5A52;
+    --p-ok:#35D08A; --p-warn:#E3A33A;
+    --p-shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(0,0,0,.42);
+    --p-shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 28px 64px rgba(0,0,0,.55);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --p-bg:#0D1014; --p-bg-2:#14181E; --p-bg-3:#1A1F26; --p-bg-4:#222831;
+  --p-fg:#EDEFF3; --p-fg-2:#AEB5C1; --p-fg-3:#828B99; --p-fg-4:#5C6472;
+  --p-line:#252B34; --p-line-2:#333B46;
+  --p-accent:#6C9BFF; --p-accent-2:#4CD06A; --p-red:#FF5A52;
+  --p-ok:#35D08A; --p-warn:#E3A33A;
+  --p-shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(0,0,0,.42);
+  --p-shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 28px 64px rgba(0,0,0,.55);
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --p-bg:#F4F5F7; --p-bg-2:#FFFFFF; --p-bg-3:#EAECF0; --p-bg-4:#E1E4E9;
+  --p-fg:#0E1116; --p-fg-2:#3C424E; --p-fg-3:#5E6674; --p-fg-4:#8A929E;
+  --p-line:#D5D9E0; --p-line-2:#BFC5CE;
+  --p-accent:#1E50C8; --p-accent-2:#2FB44A; --p-red:#C5251E;
+  --p-ok:#0E7A50; --p-warn:#8A5D0B;
+  --p-shadow:0 1px 2px rgba(14,17,22,.05), 0 12px 34px rgba(14,17,22,.07);
+  --p-shadow-lg:0 2px 6px rgba(14,17,22,.06), 0 28px 64px rgba(14,17,22,.12);
+  color-scheme:light;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{
+  margin:0; background:var(--p-bg); color:var(--p-fg);
+  font-family:var(--p-sans); font-size:16px; line-height:1.62;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; overflow-x:clip;
+}
+img,svg{max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--p-accent)}
+:focus-visible{outline:2.5px solid var(--p-accent); outline-offset:3px; border-radius:5px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- layout ---------- */
+.wrap{max-width:var(--p-max);margin:0 auto;padding:0 clamp(14px,3.4vw,48px)}
+section{padding:clamp(44px,6vw,84px) 0;border-top:1px solid var(--p-line)}
+section:first-of-type{border-top:0}
+h1,h2,h3,h4{margin:0;line-height:1.16;letter-spacing:-.021em;font-weight:660}
+h1{font-size:clamp(30px,5.2vw,58px);letter-spacing:-.032em}
+h2{font-size:clamp(23px,3.1vw,36px);letter-spacing:-.026em}
+h3{font-size:clamp(17px,1.9vw,22px)}
+h4{font-size:15px;letter-spacing:-.012em}
+h3.ttl,h2.ttl{font-size:15px;letter-spacing:-.012em;font-weight:640}
+p{margin:0 0 1em;max-width:76ch;color:var(--p-fg-2)}
+p.lede{font-size:clamp(16px,1.55vw,19.5px);color:var(--p-fg-2);line-height:1.62}
+strong,b{color:var(--p-fg);font-weight:640}
+code{font-family:var(--p-mono);font-size:.87em;background:var(--p-bg-3);
+  border:1px solid var(--p-line);border-radius:5px;padding:.1em .38em;color:var(--p-fg);
+  overflow-wrap:anywhere}
+.eyebrow{font-family:var(--p-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--p-fg-3);margin:0 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--p-line);min-width:20px}
+.sechd{margin-bottom:clamp(22px,3vw,38px)}
+.note{font-size:13.5px;color:var(--p-fg-3);line-height:1.6}
+.hr{height:1px;background:var(--p-line);margin:34px 0;border:0}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--p-bg) 88%,transparent);
+  border-bottom:1px solid var(--p-line);backdrop-filter:blur(14px) saturate(1.3)}
+.topbar-in{max-width:var(--p-max);margin:0 auto;padding:8px clamp(14px,3.4vw,48px);
+  display:flex;align-items:center;gap:14px;min-height:56px;flex-wrap:wrap}
+.brandlock{display:flex;align-items:center;gap:10px;font-weight:640;letter-spacing:-.02em;font-size:15px}
+.brandlock .magna-mark{width:27px;height:auto;flex:none}
+.brandlock .verse{color:var(--p-fg-3);font-weight:520}
+.tb-sp{flex:1;min-width:8px}
+.tb-ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--p-bg-3);border:1px solid var(--p-line);border-radius:999px;padding:3px;gap:2px}
+.seg button{min-height:34px;padding:0 13px;border-radius:999px;font-size:12.5px;font-weight:560;
+  color:var(--p-fg-3);transition:background .13s,color .13s;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--p-bg-2);color:var(--p-fg);box-shadow:0 1px 2px rgba(0,0,0,.09)}
+.seg .lbl{display:none}
+@media(min-width:560px){.seg .lbl{display:inline}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 15px;
+  border-radius:9px;border:1px solid var(--p-line-2);background:var(--p-bg-2);color:var(--p-fg);
+  font-size:13.5px;font-weight:560;transition:background .13s,border-color .13s,transform .1s}
+.btn:hover{background:var(--p-bg-3)}
+.btn:active{transform:translateY(1px)}
+.btn.sm{min-height:34px;padding:0 11px;font-size:12.5px;border-radius:8px}
+.btn.pri{background:var(--p-fg);color:var(--p-bg);border-color:var(--p-fg)}
+.btn.pri:hover{opacity:.88;background:var(--p-fg)}
+.tocbar{border-bottom:1px solid var(--p-line);background:var(--p-bg-2);overflow-x:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tocbar::-webkit-scrollbar{display:none}
+.tocbar-in{max-width:var(--p-max);margin:0 auto;padding:0 clamp(14px,3.4vw,48px);display:flex;gap:2px}
+.tocbar a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;font-size:12.5px;
+  color:var(--p-fg-3);text-decoration:none;white-space:nowrap;font-weight:530;border-bottom:2px solid transparent}
+.tocbar a:hover{color:var(--p-fg);border-bottom-color:var(--p-line-2)}
+
+/* ---------- hero ---------- */
+.hero{padding-top:clamp(38px,5vw,66px)}
+.hero h1{max-width:19ch}
+.hero .sub{font-size:clamp(16px,1.7vw,21px);color:var(--p-fg-2);max-width:70ch;margin-top:18px;line-height:1.56}
+.metaline{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--p-mono);font-size:11px;
+  letter-spacing:.05em;padding:6px 10px;border-radius:6px;border:1px solid var(--p-line);
+  background:var(--p-bg-2);color:var(--p-fg-3)}
+.chip b{color:var(--p-fg);font-weight:600}
+.chip .dot{width:7px;height:7px;border-radius:99px;background:var(--p-ok);flex:none}
+
+/* ---------- grids ---------- */
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(14px,1.9vw,26px)}
+.pair.tight{gap:12px}
+@media(max-width:900px){.pair{grid-template-columns:minmax(0,1fr)}}
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:16px}
+.card{background:var(--p-bg-2);border:1px solid var(--p-line);border-radius:var(--p-r);padding:clamp(16px,2vw,24px)}
+.card.flush{padding:0;overflow:hidden}
+.card h3{margin-bottom:8px}
+.card > p:last-child{margin-bottom:0}
+
+/* theme label strip on comparison cards */
+.thlabel{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--p-line);
+  background:var(--p-bg-3);font-family:var(--p-mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--p-fg-3)}
+.thlabel .key{font-weight:700;color:var(--p-fg);letter-spacing:.1em}
+.thlabel .swatch{width:11px;height:11px;border-radius:3px;flex:none}
+.thlabel.a .swatch{background:#4C86FF}
+.thlabel.b .swatch{background:#2FA79B}
+.thlabel .rt{margin-left:auto;letter-spacing:.06em;text-transform:none;font-size:10.5px}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto;border:1px solid var(--p-line);border-radius:var(--p-r);background:var(--p-bg-2);
+  -webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--p-line);vertical-align:top}
+thead th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--p-fg-3);
+  font-family:var(--p-mono);font-weight:600;background:var(--p-bg-3);position:sticky;top:0;z-index:1}
+tbody tr:last-child td{border-bottom:0}
+td.mono,th.mono{font-family:var(--p-mono);font-size:12px}
+td b{font-weight:620}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--p-mono);font-size:10.5px;
+  padding:2px 7px;border-radius:5px;border:1px solid;white-space:nowrap;font-weight:600}
+.pill.pass{color:var(--p-ok);border-color:color-mix(in srgb,var(--p-ok) 40%,transparent);background:color-mix(in srgb,var(--p-ok) 10%,transparent)}
+.pill.aaa{color:var(--p-ok);border-color:color-mix(in srgb,var(--p-ok) 40%,transparent);background:color-mix(in srgb,var(--p-ok) 14%,transparent)}
+.pill.large{color:var(--p-warn);border-color:color-mix(in srgb,var(--p-warn) 42%,transparent);background:color-mix(in srgb,var(--p-warn) 12%,transparent)}
+.pill.fail{color:var(--p-red);border-color:color-mix(in srgb,var(--p-red) 42%,transparent);background:color-mix(in srgb,var(--p-red) 10%,transparent)}
+.pill.zero{color:var(--p-ok);border-color:color-mix(in srgb,var(--p-ok) 34%,transparent)}
+.pill.low{color:var(--p-fg-3);border-color:var(--p-line-2)}
+.pill.med{color:var(--p-warn);border-color:color-mix(in srgb,var(--p-warn) 42%,transparent)}
+.pill.hi{color:var(--p-red);border-color:color-mix(in srgb,var(--p-red) 42%,transparent)}
+
+/* ---------- code blocks ---------- */
+.codewrap{position:relative;border:1px solid var(--p-line);border-radius:var(--p-r);background:var(--p-bg-2);overflow:hidden}
+.codehd{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid var(--p-line);
+  background:var(--p-bg-3);font-family:var(--p-mono);font-size:11px;color:var(--p-fg-3);letter-spacing:.06em}
+.codehd .fn{color:var(--p-fg);font-weight:600}
+.codehd .sp{flex:1}
+pre{margin:0;padding:14px;overflow:auto;font-family:var(--p-mono);font-size:11.5px;line-height:1.72;
+  color:var(--p-fg-2);-webkit-overflow-scrolling:touch;tab-size:2;
+  white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px}
+pre b{color:var(--p-fg);font-weight:600}
+pre .cm{color:var(--p-fg-4)}
+pre .st{color:var(--p-ok)}
+pre .kw{color:var(--p-accent)}
+
+/* ============================================================
+   THEME MOUNTS — every specimen of a proposed theme lives inside
+   .tm and consumes the SAME token names Console uses. Nothing
+   here reads a --p-* token; nothing outside reads a theme token.
+   ============================================================ */
+.tm{
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,monospace;
+  --ar:"SF Arabic","Segoe UI","Noto Sans Arabic","Geeza Pro",Tahoma,sans-serif;
+  background:var(--bg); color:var(--tx); font-family:var(--sans);
+  position:relative; isolation:isolate;
+}
+.tm *{box-sizing:border-box}
+/* the Magna mark must never be unsized inside a specimen */
+.tm .magna-mark{width:15px;height:auto;flex:none}
+.tm .magna-mark.mk-sm{width:13px}
+.tm .magna-mark.mk-md{width:18px}
+.tm .magna-mark.mk-lg{width:24px}
+
+/* ---------- specimen frame ---------- */
+.spec{border:1px solid var(--p-line);border-radius:var(--p-r);overflow:hidden;background:var(--p-bg-2)}
+.spec .spechd{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--p-line);
+  background:var(--p-bg-3);font-family:var(--p-mono);font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--p-fg-3)}
+.spec .spechd b{color:var(--p-fg);letter-spacing:.09em}
+.spec .spechd .sp{flex:1}
+.spec .specbody{padding:0}
+
+/* ---------- icons ---------- */
+.ic{display:block;fill:none;stroke:currentColor;flex:none}
+.tm-a .ic{stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter}
+.tm-b .ic{stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* stroke weight compensates for size so 16px does not go mushy / 48px does not go spindly */
+.ic[data-s="16"]{width:16px;height:16px}
+.tm-a .ic[data-s="16"]{stroke-width:1.5}
+.tm-b .ic[data-s="16"]{stroke-width:2.05}
+.ic[data-s="24"]{width:24px;height:24px}
+.ic[data-s="48"]{width:48px;height:48px}
+.tm-a .ic[data-s="48"]{stroke-width:1.15}
+.tm-b .ic[data-s="48"]{stroke-width:1.6}
+
+/* containers */
+.icbox{display:grid;place-items:center;flex:none;position:relative}
+.tm-a .icbox{border-radius:2px;border:1px solid var(--glass-line-2);background:var(--glass-2);color:var(--accent)}
+.tm-a .icbox::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:var(--glass-line-2);opacity:.7}
+.tm-b .icbox{border-radius:29%;border:1px solid var(--glass-line);color:var(--accent);
+  background:radial-gradient(120% 110% at 32% 12%, color-mix(in srgb,var(--accent) 26%,transparent), var(--glass-2) 68%);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 14%,transparent), 0 2px 10px color-mix(in srgb,var(--accent) 12%,transparent)}
+
+.icgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:2px;padding:2px;background:var(--glass-line)}
+.iccell{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;
+  padding:16px 6px 12px;background:var(--bg);min-height:104px}
+.iccell .nm{font-size:10.5px;font-family:var(--mono);color:var(--tx-3);letter-spacing:.04em}
+.iccell .ic{color:var(--tx)}
+.iccell.acc .ic{color:var(--accent)}
+
+.icrow{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.icsizes{display:flex;align-items:flex-end;gap:14px}
+.icsizes .u{display:flex;flex-direction:column;align-items:center;gap:7px}
+.icsizes .u .sz{font-family:var(--mono);font-size:9.5px;color:var(--tx-4)}
+
+/* construction grid overlay */
+.icproof{position:relative;width:120px;height:120px;flex:none;background:var(--glass-2);border:1px solid var(--glass-line)}
+.icproof .g{position:absolute;inset:0;opacity:.5}
+.icproof .ic{position:absolute;inset:0;width:120px;height:120px}
+.tm-a .icproof .ic{stroke-width:.62}
+.tm-b .icproof .ic{stroke-width:.79}
+
+/* ---------- swatches ---------- */
+.swgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,132px),1fr));gap:1px;background:var(--p-line)}
+.swcell{background:var(--p-bg-2);padding:0}
+.swchip{height:56px;display:block;border-bottom:1px solid var(--p-line)}
+.swmeta{padding:8px 10px;font-family:var(--p-mono);font-size:10.5px;line-height:1.5}
+.swmeta .tk{color:var(--p-fg);font-weight:600;word-break:break-all}
+.swmeta .hx{color:var(--p-fg-3);text-transform:uppercase}
+
+/* ---------- motion demo ---------- */
+.mdemo{display:grid;gap:0}
+.mstage{position:relative;height:190px;overflow:hidden;background:var(--bg);border-bottom:1px solid var(--glass-line)}
+.mstage.tall{height:216px}
+.mctl{display:flex;align-items:center;gap:9px;padding:10px 13px;flex-wrap:wrap;background:var(--p-bg-2);border-top:1px solid var(--p-line)}
+.mctl .num{font-family:var(--p-mono);font-size:11px;color:var(--p-fg-3);margin-left:auto}
+.playbtn{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 13px;border-radius:8px;
+  border:1px solid var(--p-line-2);background:var(--p-bg-3);font-size:12.5px;font-weight:560;color:var(--p-fg)}
+.playbtn:hover{background:var(--p-bg-4)}
+.playbtn svg{width:13px;height:13px;fill:currentColor}
+
+/* generic mini window used by motion + AI specimens */
+.mwin{position:absolute;border:1px solid var(--glass-line-2);background:var(--glass-2);overflow:hidden}
+.tm-a .mwin{border-radius:var(--r);box-shadow:var(--shadow-win)}
+.tm-b .mwin{border-radius:var(--r-lg);box-shadow:var(--shadow-win)}
+.mwin-bar{height:26px;display:flex;align-items:center;gap:7px;padding:0 9px;border-bottom:1px solid var(--glass-line);
+  font-size:10.5px;color:var(--tx-2);background:var(--chrome)}
+.tm-a .mwin-bar{font-weight:650;letter-spacing:-.005em}
+.tm-b .mwin-bar{font-weight:560}
+.tl{width:8px;height:8px;flex:none}
+.tm-a .tl{border-radius:1px;border:1px solid var(--tx-4)}
+.tm-b .tl{border-radius:99px;background:var(--tx-4)}
+.mwin-body{padding:10px}
+.skel{height:6px;border-radius:99px;background:var(--tx-4);opacity:.4;margin-bottom:7px}
+.tm-a .skel{border-radius:0;height:5px}
+
+/* ---------- mini console ---------- */
+.mc{position:relative;overflow:hidden;height:clamp(300px,40vw,392px);isolation:isolate;background:var(--bg)}
+.mc-wall{position:absolute;inset:0;z-index:0;overflow:hidden}
+.mc-bar{position:absolute;top:0;left:0;right:0;height:26px;z-index:30;display:flex;align-items:center;gap:8px;
+  padding:0 9px;background:var(--chrome);border-bottom:1px solid var(--glass-line);
+  font-size:11px;color:var(--tx-2);backdrop-filter:blur(12px)}
+.tm-a .mc-bar{font-weight:600;letter-spacing:-.004em;font-variant-numeric:tabular-nums}
+.tm-b .mc-bar{font-weight:520}
+.mc-bar .mk{width:15px;height:auto;flex:none}
+.mc-bar .app{color:var(--tx);font-weight:680}
+.tm-b .mc-bar .app{font-weight:620}
+.mc-bar .mi{color:var(--tx-3);display:none}
+@media(min-width:520px){.mc-bar .mi{display:inline}}
+.mc-bar .sp{flex:1}
+.mc-res{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;font-size:10px;color:var(--private)}
+.tm-a .mc-res{border-radius:2px;border:1px solid color-mix(in srgb,var(--private) 40%,transparent);
+  background:var(--private-dim);font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.tm-b .mc-res{border-radius:99px;background:var(--private-dim);letter-spacing:0}
+.mc-res .d{width:5px;height:5px;flex:none;background:currentColor}
+.tm-a .mc-res .d{border-radius:0}
+.tm-b .mc-res .d{border-radius:99px;box-shadow:0 0 6px currentColor}
+.mc-clock{font-family:var(--mono);font-size:10.5px;color:var(--tx-2);font-variant-numeric:tabular-nums}
+
+.mc-icons{position:absolute;top:34px;left:8px;z-index:10;display:grid;
+  grid-template-columns:repeat(2,58px);gap:2px}
+.mc-di{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 2px;cursor:default}
+.tm-a .mc-di{border-radius:2px}
+.tm-b .mc-di{border-radius:10px}
+.mc-di .icbox{width:38px;height:38px}
+.mc-di .lb{font-size:9.5px;color:var(--tx-2);text-align:center;line-height:1.25;max-width:62px}
+.tm-a .mc-di .lb{font-weight:560;letter-spacing:-.002em}
+.tm-b .mc-di .lb{font-weight:480;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+
+.mc-win{position:absolute;z-index:20;left:34%;top:58px;width:min(52%,268px);
+  border:1px solid var(--glass-line-2);background:var(--glass);overflow:hidden;backdrop-filter:var(--blur)}
+.tm-a .mc-win{border-radius:var(--r);box-shadow:var(--shadow-win);background:var(--glass);backdrop-filter:none}
+.tm-b .mc-win{border-radius:var(--r-lg);box-shadow:var(--shadow-win)}
+.mc-win .wb{height:27px;display:flex;align-items:center;gap:7px;padding:0 9px;border-bottom:1px solid var(--glass-line);font-size:10.5px;color:var(--tx-2)}
+.tm-a .mc-win .wb{font-weight:650}
+.mc-win .wc{padding:10px 11px;font-size:10.5px;color:var(--tx-2);line-height:1.6}
+.mc-win .wc .h{color:var(--tx);font-weight:640;font-size:11.5px;display:block;margin-bottom:5px}
+
+.mc-widget{position:absolute;z-index:20;right:8px;top:34px;width:min(30%,150px);min-width:0;
+  border:1px solid var(--glass-line);background:var(--glass);padding:8px 9px;overflow:hidden}
+.tm-a .mc-widget{border-radius:2px;background:var(--glass-2)}
+.tm-b .mc-widget{border-radius:var(--r-lg);backdrop-filter:var(--blur)}
+.mc-widget .k{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-3);font-family:var(--mono);display:block;margin-bottom:5px}
+.mc-widget .v{font-size:16px;color:var(--private);display:block;line-height:1.15}
+.tm-a .mc-widget .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tm-b .mc-widget .v{font-weight:560;letter-spacing:-.02em}
+.mc-widget .s{font-size:9px;color:var(--tx-3);display:block;margin-top:4px;line-height:1.4;overflow-wrap:anywhere}
+.mc-widget .s b{color:var(--tx);font-weight:620}
+
+.mc-dock{position:absolute;z-index:30;left:50%;bottom:8px;transform:translateX(-50%);
+  display:flex;align-items:flex-end;gap:5px;padding:5px;max-width:calc(100% - 18px)}
+.tm-a .mc-dock{border-radius:3px;border:1px solid var(--glass-line);background:var(--chrome);backdrop-filter:blur(14px)}
+.tm-b .mc-dock{border-radius:16px;border:1px solid var(--glass-line);background:var(--chrome);backdrop-filter:blur(16px);
+  box-shadow:0 8px 26px rgba(0,0,0,.3)}
+.mc-dk{position:relative;width:30px;height:30px;transition:transform var(--t-2) var(--e-out)}
+.mc-dk .icbox{width:30px;height:30px}
+.tm-b .mc-dk:hover{transform:translateY(-6px) scale(1.14)}
+.tm-a .mc-dk:hover{transform:translateY(-2px)}
+.mc-dk.run::after{content:"";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%)}
+.tm-a .mc-dk.run::after{width:14px;height:1.5px;background:var(--accent)}
+.tm-b .mc-dk.run::after{width:4px;height:4px;border-radius:99px;background:var(--accent);box-shadow:0 0 7px var(--accent)}
+
+.mc-ask{position:absolute;z-index:30;left:9px;bottom:9px;display:flex;align-items:center;gap:6px;
+  padding:5px 11px 5px 7px;font-size:10.5px;color:var(--tx-2);border:1px solid var(--glass-line-2);background:var(--glass-2)}
+.tm-a .mc-ask{border-radius:2px;font-family:var(--mono);letter-spacing:.02em}
+.tm-b .mc-ask{border-radius:99px;backdrop-filter:var(--blur)}
+.mc-ask .mk{width:14px;height:auto}
+
+/* ---------- misc specimen bits ---------- */
+.tk-list{display:flex;flex-direction:column;gap:0}
+.tk-row{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid var(--p-line);font-size:13px}
+.tk-row:last-child{border-bottom:0}
+.tk-row .sw{width:34px;height:22px;border-radius:5px;border:1px solid var(--p-line-2);flex:none}
+.tk-row .nm{font-family:var(--p-mono);font-size:11.5px;color:var(--p-fg);min-width:112px}
+.tk-row .hx{font-family:var(--p-mono);font-size:11px;color:var(--p-fg-3);text-transform:uppercase}
+.tk-row .ds{color:var(--p-fg-3);font-size:12.5px;margin-left:auto;text-align:right}
+
+.callout{border:1px solid var(--p-line);border-left:3px solid var(--p-accent);border-radius:var(--p-r);
+  background:var(--p-bg-2);padding:15px 18px;margin:20px 0}
+.callout.warn{border-left-color:var(--p-warn)}
+.callout.bad{border-left-color:var(--p-red)}
+.callout.good{border-left-color:var(--p-ok)}
+.callout h4{margin-bottom:6px}
+.callout p:last-child{margin-bottom:0}
+.callout p{font-size:14px}
+
+.rejlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,232px),1fr));gap:10px;list-style:none;padding:0;margin:0}
+.rejlist li{border:1px solid var(--p-line);border-radius:9px;background:var(--p-bg-2);padding:12px 14px;font-size:13px;color:var(--p-fg-2)}
+.rejlist li > b:first-child{display:block;color:var(--p-fg);font-size:13.5px;margin-bottom:3px}
+.rejlist li > b:first-child::before{content:"✕";color:var(--p-red);margin-right:7px;font-weight:700}
+
+footer{border-top:1px solid var(--p-line);padding:36px 0 60px;color:var(--p-fg-3);font-size:13px}
+
+/* 44px tap targets wherever a finger is the pointer, or the screen is a phone */
+@media (pointer:coarse),(max-width:768px){
+  .seg button,.btn,.btn.sm,.playbtn{min-height:44px;padding-left:15px;padding-right:15px}
+  .tocbar a{min-height:48px}
+  .codehd .btn.sm{min-height:44px}
+}
+
+/* ---------- reduced motion: genuinely disable every specimen ----------
+   Not "slower". Off. Loops are removed outright rather than run once at 1ms,
+   because a keyframe that ends on stroke-dashoffset:-1250 run once at 1ms
+   leaves the Magna mark ERASED — and the brand addendum requires that under
+   reduced motion the mark simply appears, fully drawn. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:1ms !important; animation-iteration-count:1 !important;
+    transition-duration:1ms !important; scroll-behavior:auto !important;
+  }
+  .magna-mark path,.wall .v,.d-think,.ai-win,.d-think .hair i,.mdemo *{animation:none !important}
+  .magna-mark path{stroke-dasharray:none !important;stroke-dashoffset:0 !important;opacity:1 !important}
+  .d-think .hair i{transform:scaleX(.62) !important}
+  .d-think{opacity:1 !important}
+}
+html.rm-off *,html.rm-off *::before,html.rm-off *::after{
+  animation-duration:1ms !important;animation-iteration-count:1 !important;transition-duration:1ms !important;
+}
+html.rm-off .magna-mark path,html.rm-off .wall .v,html.rm-off .d-think,
+html.rm-off .ai-win,html.rm-off .d-think .hair i,html.rm-off .mdemo *{animation:none !important}
+html.rm-off .magna-mark path{stroke-dasharray:none !important;stroke-dashoffset:0 !important;opacity:1 !important}
+html.rm-off .d-think .hair i{transform:scaleX(.62) !important}
+</style>
+<style>
+/* ============================================================
+   SPECIMEN CSS — motion, AI layer, typography, wallpapers.
+   Everything animated below is transform/opacity only and is
+   driven by a .run class that JS adds then removes.
+   ============================================================ */
+
+/* ---------- wallpapers ---------- */
+.wall{position:absolute;inset:0;overflow:hidden;z-index:0}
+/* A · calibrated ground: a vertical luminance + a measured hairline grid.
+   Static. Zero per-frame cost. */
+.tm-a .wall{background:linear-gradient(180deg,var(--wall-1) 0%,var(--wall-2) 100%)}
+.tm-a .wall::before{content:"";position:absolute;inset:0;opacity:.55;
+  background-image:linear-gradient(var(--glass-line) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--glass-line) 1px,transparent 1px);
+  background-size:32px 32px}
+.tm-a .wall::after{content:"";position:absolute;inset:0;opacity:.9;
+  background-image:linear-gradient(var(--glass-line-2) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--glass-line-2) 1px,transparent 1px);
+  background-size:256px 256px;opacity:.35}
+/* B · the field: a warm horizon plus two drifting volumes. Compositor-only. */
+.tm-b .wall{background:
+  radial-gradient(120% 78% at 50% 108%, var(--wall-1) 0%, transparent 62%),
+  linear-gradient(180deg,var(--wall-2) 0%, var(--bg) 58%, var(--wall-1) 100%)}
+.tm-b .wall .v{position:absolute;border-radius:50%;filter:blur(28px);will-change:transform}
+.tm-b .wall .v1{width:78%;padding-bottom:78%;left:-16%;top:-30%;
+  background:radial-gradient(circle,var(--wall-glow),transparent 62%)}
+.tm-b .wall .v2{width:64%;padding-bottom:64%;right:-14%;bottom:-26%;
+  background:radial-gradient(circle,var(--glow-cyan),transparent 62%)}
+@media (prefers-reduced-motion:no-preference){
+  .tm-b .wall.live .v1{animation:vDrift 34s var(--e-in-out) infinite alternate}
+  .tm-b .wall.live .v2{animation:vDrift2 42s var(--e-in-out) infinite alternate}
+}
+@keyframes vDrift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(9%,7%,0) scale(1.1)}}
+@keyframes vDrift2{from{transform:translate3d(0,0,0) scale(1.06)}to{transform:translate3d(-8%,-6%,0) scale(1)}}
+.tm .magna-mark.wallmark{position:absolute;left:50%;top:50%;width:44%;transform:translate(-50%,-50%);pointer-events:none}
+.tm .tmount .magna-mark.wallmark{width:24%;left:78%}
+.tm-a .wallmark{opacity:.055}
+.tm-b .wallmark{opacity:.10}
+
+/* ---------- motion specimens ---------- */
+.mstage .field{position:absolute;inset:0}
+.mstage .ground{position:absolute;inset:0}
+/* 1 window open */
+.d-win{position:absolute;left:50%;top:50%;width:min(74%,240px);opacity:0}
+.tm-a .d-win{transform:translate(-50%,calc(-50% + 6px)) scale(.98)}
+.tm-b .d-win{transform:translate(-50%,calc(-50% + 14px)) scale(.94)}
+.mdemo.run .d-win{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tm-a .mdemo.run .d-win{transition:opacity var(--t-3) var(--e-out), transform var(--t-3) var(--e-out)}
+.tm-b .mdemo.run .d-win{transition:opacity var(--t-3) var(--e-out), transform var(--t-3) var(--e-out)}
+/* 2 space switch */
+.d-track{position:absolute;inset:0;display:flex;width:200%}
+.d-space{width:50%;height:100%;flex:none;position:relative;display:grid;place-items:center}
+.d-space .lb{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-3);font-family:var(--mono)}
+.d-space .tile{position:absolute;width:34px;height:34px}
+.mdemo .d-track{transform:translateX(0)}
+.tm-a .mdemo.run .d-track{transform:translateX(-50%);transition:transform var(--t-4) var(--e-in-out)}
+.tm-b .mdemo.run .d-track{transform:translateX(-50%);transition:transform var(--t-4) var(--e-in-out)}
+.tm-b .mdemo.run .d-space .tile{transition:transform var(--t-4) var(--e-out),opacity var(--t-4) var(--e-out)}
+.tm-b .mdemo .d-space .tile{transform:translateY(0) scale(1)}
+.tm-b .mdemo.run .d-space.out .tile{transform:translateY(10px) scale(.9);opacity:.3}
+.d-dots{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
+.d-dots i{width:16px;height:2px;background:var(--tx-4);display:block;transition:background var(--t-2) var(--e-out)}
+.tm-b .d-dots i{width:6px;height:6px;border-radius:99px}
+.mdemo.run .d-dots i:nth-child(1){background:var(--tx-4)}
+.mdemo.run .d-dots i:nth-child(2){background:var(--accent)}
+.mdemo .d-dots i:nth-child(1){background:var(--accent)}
+/* 3 dock hover */
+.d-dock{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:7px;padding:6px}
+.tm-a .d-dock{border:1px solid var(--glass-line);background:var(--chrome);border-radius:3px}
+.tm-b .d-dock{border:1px solid var(--glass-line);background:var(--chrome);border-radius:18px;box-shadow:0 10px 28px rgba(0,0,0,.28)}
+.d-dk{position:relative}
+.d-dk .icbox{width:36px;height:36px;transition:transform var(--t-2) var(--e-out)}
+.d-tip{position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%) scale(.9);opacity:0;
+  white-space:nowrap;font-size:10.5px;padding:3px 8px;color:var(--tx);background:var(--glass-3);
+  border:1px solid var(--glass-line-2);pointer-events:none;transition:opacity var(--t-2) var(--e-out),transform var(--t-2) var(--e-out)}
+.tm-a .d-tip{border-radius:2px;font-family:var(--mono)}
+.tm-b .d-tip{border-radius:99px}
+.mdemo.run .d-dk[data-hot] .icbox{transform:translateY(-3px)}
+.tm-b .mdemo.run .d-dk[data-hot] .icbox{transform:translateY(-13px) scale(1.34)}
+.tm-b .mdemo.run .d-dk[data-near] .icbox{transform:translateY(-5px) scale(1.13)}
+.mdemo.run .d-dk[data-hot] .d-tip{opacity:1;transform:translateX(-50%) scale(1)}
+/* 4 notification */
+.d-note{position:absolute;right:12px;top:12px;width:min(70%,224px);opacity:0;
+  border:1px solid var(--glass-line-2);background:var(--glass-2);padding:9px 11px}
+.tm-a .d-note{border-radius:2px;transform:translateY(-8px)}
+.tm-b .d-note{border-radius:var(--r-lg);transform:translateY(-16px) scale(.96);box-shadow:var(--shadow-pop)}
+.mdemo.run .d-note{opacity:1;transform:translateY(0) scale(1);
+  transition:opacity var(--t-3) var(--e-out),transform var(--t-3) var(--e-out)}
+.d-note .t{font-size:11px;color:var(--tx);display:block;margin-bottom:2px}
+.tm-a .d-note .t{font-weight:650}
+.d-note .s{font-size:10px;color:var(--tx-3);display:block;line-height:1.45}
+.d-note .bar{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--accent)}
+.tm-a .mdemo.run .d-note .bar{width:100%;transition:width 2600ms linear}
+.tm-b .d-note .bar{display:none}
+.tm-b .d-note::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent), 0 0 22px color-mix(in srgb,var(--accent) 20%,transparent);
+  opacity:0;transition:opacity var(--t-4) var(--e-out)}
+.tm-b .mdemo.run .d-note::before{opacity:1}
+/* 5 thinking */
+.d-think{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(80%,270px);text-align:center}
+.d-think .mkrow{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}
+.d-think .magna-mark{width:34px;height:auto}
+.d-think .st{font-size:12px;color:var(--tx-2)}
+.tm-a .d-think .st{font-family:var(--mono);letter-spacing:.03em}
+.d-think .hair{margin-top:12px;height:2px;background:var(--glass-line-2);position:relative;overflow:hidden}
+.tm-b .d-think .hair{border-radius:99px}
+.d-think .hair i{position:absolute;inset:0;background:var(--accent);transform-origin:left center;transform:scaleX(0)}
+.tm-a .mdemo.run .d-think .hair i{animation:hairA 2400ms var(--e-in-out) infinite}
+.tm-b .mdemo.run .d-think .hair i{animation:hairB 2800ms var(--e-in-out) infinite;
+  box-shadow:0 0 12px var(--accent)}
+@keyframes hairA{0%{transform:scaleX(0)}55%{transform:scaleX(.72)}100%{transform:scaleX(.94)}}
+@keyframes hairB{0%{transform:scaleX(0);opacity:.4}50%{transform:scaleX(.6);opacity:1}100%{transform:scaleX(.95);opacity:.55}}
+.magna-mark path{stroke-dasharray:1250;stroke-dashoffset:0}
+.mdemo.run .d-think .magna-mark path{animation:mgLoop var(--mg-dur,2000ms) ease-in-out infinite}
+.mdemo.run .d-think .magna-mark path:nth-of-type(2){animation-delay:calc(var(--mg-dur,2000ms) * .11)}
+@keyframes mgLoop{0%{stroke-dashoffset:1250;opacity:.3}45%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-1250;opacity:.3}}
+.tm-b .mdemo.run .d-think{animation:breathe 4600ms var(--e-in-out) infinite}
+@keyframes breathe{0%,100%{opacity:.86}50%{opacity:1}}
+
+/* ---------- AI layer specimens ---------- */
+.aistage{position:relative;min-height:150px;background:var(--bg);overflow:hidden;padding:16px}
+.aistage.tall{min-height:196px}
+.ai-lbl{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-3);font-family:var(--mono);display:block;margin-bottom:9px}
+.tm-b .ai-lbl{letter-spacing:.06em;text-transform:none;font-family:var(--sans);font-size:11px}
+/* agent presence */
+.ai-win{position:relative;border:1px solid var(--glass-line-2);background:var(--glass-2);padding:11px 13px;overflow:hidden}
+.tm-a .ai-win{border-radius:2px}
+.tm-b .ai-win{border-radius:var(--r-lg)}
+.tm-a .ai-win.busy{box-shadow:inset 2px 0 0 var(--accent)}
+.tm-b .ai-win.busy{box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 46%,transparent),
+  0 0 26px color-mix(in srgb,var(--accent) 22%,transparent)}
+@media (prefers-reduced-motion:no-preference){
+  .tm-b .ai-win.busy.live{animation:rim 3400ms var(--e-in-out) infinite}
+}
+@keyframes rim{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent),0 0 16px color-mix(in srgb,var(--accent) 13%,transparent)}
+  50%{box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 60%,transparent),0 0 34px color-mix(in srgb,var(--accent) 30%,transparent)}}
+.ai-win .ttl{font-size:11.5px;color:var(--tx);display:block;margin-bottom:4px}
+.tm-a .ai-win .ttl{font-weight:650}
+.ai-win .sub{font-size:10.5px;color:var(--tx-3)}
+.ai-agents{display:flex;gap:5px;margin-top:9px}
+.ai-agents .av{width:22px;height:22px;display:grid;place-items:center;font-size:9px;color:var(--tx-2);
+  border:1px solid var(--glass-line-2);background:var(--glass-3)}
+.tm-a .ai-agents .av{border-radius:2px;font-family:var(--mono)}
+.tm-b .ai-agents .av{border-radius:99px}
+.ai-agents .av.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 52%,transparent)}
+.tm-b .ai-agents .av.on{box-shadow:0 0 10px color-mix(in srgb,var(--accent) 40%,transparent)}
+/* telemetry strip */
+.ai-tel{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--glass-line);background:var(--glass-2)}
+.tm-a .ai-tel{border-radius:2px}
+.tm-b .ai-tel{border-radius:var(--r-lg);overflow:hidden}
+.ai-tel .cell{flex:1 1 88px;padding:8px 11px;border-right:1px solid var(--glass-line);min-width:0}
+.ai-tel .cell:last-child{border-right:0}
+.ai-tel .k{display:block;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-3);font-family:var(--mono);margin-bottom:3px;white-space:nowrap}
+.tm-b .ai-tel .k{letter-spacing:.04em;text-transform:none;font-family:var(--sans);font-size:10px}
+.ai-tel .v{display:block;font-size:14px;color:var(--tx);white-space:nowrap}
+.tm-a .ai-tel .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tm-b .ai-tel .v{font-weight:540;letter-spacing:-.015em}
+.ai-tel .v.ok{color:var(--private)}
+.ai-spark{display:block;width:100%;height:16px;margin-top:4px}
+/* retrieval */
+.ai-quote{font-size:12.5px;line-height:1.66;color:var(--tx-2)}
+.ai-cite{position:relative;color:var(--tx);padding:0 1px}
+.tm-a .ai-cite{box-shadow:inset 0 -1px 0 0 var(--accent)}
+.tm-b .ai-cite{border-radius:4px;background:color-mix(in srgb,var(--accent) 15%,transparent);
+  box-shadow:0 0 12px color-mix(in srgb,var(--accent) 16%,transparent)}
+.ai-src{display:inline-flex;align-items:center;justify-content:center;min-width:15px;height:15px;padding:0 3px;
+  font-size:9px;vertical-align:2px;margin-left:2px;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 46%,transparent)}
+.tm-a .ai-src{border-radius:1px;font-family:var(--mono);font-weight:600}
+.tm-b .ai-src{border-radius:99px;background:color-mix(in srgb,var(--accent) 16%,transparent);border-color:transparent}
+.ai-srcs{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.ai-srcrow{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--tx-3);padding:5px 8px;
+  border:1px solid var(--glass-line);background:var(--glass)}
+.tm-a .ai-srcrow{border-radius:2px;font-family:var(--mono)}
+.tm-b .ai-srcrow{border-radius:99px}
+.ai-srcrow .n{color:var(--accent);flex:none}
+.ai-srcrow .sc{margin-left:auto;color:var(--tx-4);flex:none}
+/* brain graph canvas */
+.ai-graph{display:block;width:100%;height:172px;background:transparent}
+.graphwrap{position:relative;background:var(--bg)}
+.graphwrap .cap{position:absolute;left:11px;bottom:9px;font-size:9.5px;color:var(--tx-4);font-family:var(--mono);pointer-events:none}
+
+/* ---------- typography specimens ---------- */
+.tyrow{display:flex;align-items:baseline;gap:14px;padding:11px 15px;border-bottom:1px solid var(--glass-line);flex-wrap:wrap}
+.tyrow:last-child{border-bottom:0}
+.tyrow .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-4);
+  width:112px;flex:none}
+.tyrow .sp{color:var(--tx);min-width:0;flex:1}
+.tyrow .mt{font-family:var(--mono);font-size:9.5px;color:var(--tx-4);white-space:nowrap;margin-left:auto}
+@media(max-width:620px){.tyrow .k{width:100%}.tyrow .mt{margin-left:0}}
+.artest{padding:16px;border-top:1px solid var(--glass-line)}
+.artest[dir="rtl"]{text-align:right}
+.artest .ar{font-family:var(--ar)}
+.densrow{display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--glass-line);
+  font-size:12.5px;color:var(--tx-2)}
+.densrow:last-child{border-bottom:0}
+.densrow .ic{color:var(--tx-3)}
+.densrow .num{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+.tm-a .densrow{height:26px}
+.tm-b .densrow{height:34px;border-bottom-color:transparent;background:linear-gradient(var(--glass) 0 0) padding-box}
+.tm-b .densrow:nth-child(odd){background:color-mix(in srgb,var(--tx) 3%,transparent)}
+
+/* ---------- surface sanity strip ---------- */
+.sf{padding:0;background:var(--bg)}
+.sf-sec{padding:14px 15px;border-bottom:1px solid var(--glass-line)}
+.sf-sec:last-child{border-bottom:0}
+.sf-k{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-4);
+  font-family:var(--mono);margin-bottom:9px}
+.sf-bar{display:flex;align-items:center;gap:9px;height:var(--menubar-h);padding:0 10px;
+  background:var(--chrome);border:1px solid var(--glass-line);font-size:11.5px;color:var(--tx-2)}
+.tm-a .sf-bar{border-radius:2px;font-weight:600;font-variant-numeric:tabular-nums}
+.tm-b .sf-bar{border-radius:10px;font-weight:520;backdrop-filter:var(--blur)}
+.sf-bar .app{color:var(--tx);font-weight:680}
+.sf-bar .sp{flex:1}
+.sf-win{border:1px solid var(--glass-line-2);background:var(--glass);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-win)}
+.tm-b .sf-win{backdrop-filter:var(--blur)}
+.sf-win .wb{display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;
+  border-bottom:1px solid var(--glass-line);background:var(--chrome);font-size:11.5px;color:var(--tx-2)}
+.tm-a .sf-win .wb{font-weight:650}
+.sf-win .wc{padding:12px 13px}
+.sf-win .wh{display:block;margin:0 0 5px;font-size:13px;color:var(--tx);font-weight:640;letter-spacing:-.01em}
+.sf-win p{margin:0 0 10px;font-size:12px;color:var(--tx-2);line-height:1.6;max-width:none}
+.sf-win .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sf-btn{min-height:30px;padding:0 12px;font-size:11.5px;font-weight:560;border:1px solid var(--glass-line-2);
+  background:var(--glass-3);color:var(--tx);border-radius:var(--r);display:inline-flex;align-items:center;gap:6px}
+.sf-btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.sf-btn.dgr{border-color:color-mix(in srgb,var(--brand-red) 55%,transparent);color:var(--brand-red);background:transparent}
+.sf-in{flex:1;min-width:110px;min-height:30px;padding:0 10px;font-size:11.5px;color:var(--tx-3);
+  border:1px solid var(--glass-line-2);background:var(--glass-2);border-radius:var(--r);display:flex;align-items:center}
+.sf-dock{display:inline-flex;align-items:flex-end;gap:6px;padding:6px;background:var(--chrome);
+  border:1px solid var(--glass-line);border-radius:var(--r-lg);max-width:100%;flex-wrap:wrap}
+.tm-b .sf-dock{box-shadow:0 8px 24px rgba(0,0,0,.24)}
+.sf-dock .icbox{width:32px;height:32px}
+.sf-card{border:1px solid var(--glass-line);background:var(--glass-2);border-radius:var(--r-lg);padding:11px 12px}
+.tm-b .sf-card{backdrop-filter:var(--blur)}
+.sf-card .k{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-3);font-family:var(--mono);margin-bottom:6px}
+.tm-b .sf-card .k{letter-spacing:.03em;text-transform:none;font-family:var(--sans);font-size:10.5px}
+.sf-card .v{display:block;font-size:20px;letter-spacing:-.02em;line-height:1.1}
+.tm-a .sf-card .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.tm-b .sf-card .v{font-weight:540}
+.sf-card .s{display:block;font-size:10.5px;color:var(--tx-3);margin-top:5px}
+.sf-card .s b{color:var(--tx)}
+.sf-meter{height:3px;background:var(--glass-line-2);margin-top:9px;border-radius:var(--r-pill);overflow:hidden}
+.sf-meter i{display:block;height:100%;width:62%;background:var(--public);border-radius:inherit}
+.sf-chips{display:flex;gap:7px;flex-wrap:wrap}
+.sf-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;font-size:10.5px;border:1px solid}
+.tm-a .sf-chip{border-radius:2px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.tm-b .sf-chip{border-radius:var(--r-pill)}
+.sf-chip .d{width:6px;height:6px;flex:none}
+.tm-a .sf-chip .d{border-radius:0}
+.tm-b .sf-chip .d{border-radius:99px}
+.sf-chip.pv{color:var(--private);border-color:color-mix(in srgb,var(--private) 42%,transparent);background:var(--private-dim)}
+.sf-chip.pv .d{background:currentColor}
+.tm-b .sf-chip.pv .d{box-shadow:0 0 6px currentColor}
+.sf-chip.pb{color:var(--public);border-color:color-mix(in srgb,var(--public) 42%,transparent);background:var(--public-dim)}
+.sf-chip.pb .d{border:1.5px solid currentColor;background:transparent}
+.sf-chip.fl{color:var(--fail);border-color:color-mix(in srgb,var(--fail) 46%,transparent);background:var(--fail-dim)}
+.sf-chip.fl .d{background:currentColor}
+.sf-chip.ac{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 46%,transparent);background:var(--accent-dim)}
+.sf-chip.ac .d{background:currentColor}
+
+/* ---------- cost ---------- */
+.costtag{display:inline-flex;align-items:center;gap:5px;font-family:var(--p-mono);font-size:10.5px;
+  padding:2px 7px;border-radius:5px;border:1px solid var(--p-line-2);color:var(--p-fg-3);white-space:nowrap}
+.costtag.tok{color:var(--p-ok);border-color:color-mix(in srgb,var(--p-ok) 40%,transparent)}
+.costtag.asset{color:var(--p-accent);border-color:color-mix(in srgb,var(--p-accent) 40%,transparent)}
+.costtag.frame{color:var(--p-warn);border-color:color-mix(in srgb,var(--p-warn) 45%,transparent)}
+.costtag.code{color:var(--p-fg-2);border-color:var(--p-line-2)}
+
+/* ---------- recommendation ---------- */
+.pickgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+@media(min-width:900px){.pickgrid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+.pickcard{border:1px solid var(--p-line);border-radius:var(--p-r);padding:clamp(18px,2.4vw,28px);background:var(--p-bg-2)}
+.pickcard.win{border-color:color-mix(in srgb,var(--p-accent) 44%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--p-accent) 18%,transparent), var(--p-shadow)}
+.pickflag{display:inline-flex;align-items:center;gap:6px;font-family:var(--p-mono);font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--p-accent);
+  border:1px solid color-mix(in srgb,var(--p-accent) 44%,transparent);border-radius:99px;padding:3px 10px;margin-bottom:10px}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0 0}
+ol.steps li{counter-increment:s;position:relative;padding-left:38px;margin-bottom:14px;font-size:14px;color:var(--p-fg-2)}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:25px;height:25px;border-radius:99px;
+  display:grid;place-items:center;font-family:var(--p-mono);font-size:11px;font-weight:600;
+  background:var(--p-bg-3);border:1px solid var(--p-line-2);color:var(--p-fg)}
+ol.steps li b{display:block;color:var(--p-fg);margin-bottom:2px;font-size:14.5px}
+</style>
+</head>
+<body>
+<a class="sr" href="#main">Skip to content</a>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <span class="brandlock">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Magna<span class="verse">VERSE</span>
+    </span>
+    <span class="tb-sp"></span>
+    <div class="tb-ctrls">
+      <div class="seg" role="group" aria-label="Specimen mode">
+        <button type="button" data-spec="follow" aria-pressed="true">Follow<span class="lbl">&nbsp;page</span></button>
+        <button type="button" data-spec="dark" aria-pressed="false">Dark</button>
+        <button type="button" data-spec="light" aria-pressed="false">Light</button>
+      </div>
+      <button type="button" class="btn sm" id="pgTheme" aria-label="Toggle page theme">
+        <span id="pgThemeIcon" aria-hidden="true">◐</span> <span id="pgThemeLbl">Auto</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<nav class="tocbar" aria-label="Sections">
+  <div class="tocbar-in">
+    <a href="#choice">The choice</a>
+    <a href="#icons">Icon language</a>
+    <a href="#colour">Colour</a>
+    <a href="#type">Typography</a>
+    <a href="#motion">Motion</a>
+    <a href="#ai">The AI layer</a>
+    <a href="#applied">Applied</a>
+    <a href="#ship">Ship block</a>
+    <a href="#cost">Cost</a>
+    <a href="#rejected">Rejected</a>
+    <a href="#pick">Recommendation</a>
+  </div>
+</nav>
+
+<main id="main">
+</main>
+
+<footer>
+  <div class="wrap">
+    <p style="margin:0">MagnaVERSE Console — theme options. One self-contained file, no external requests.
+    The two proposed themes live entirely inside <code>.tm</code> mounts; this page's own chrome uses
+    <code>--p-*</code> tokens and never collides with them.</p>
+  </div>
+</footer>
+
+
+<script>
+/* ============================================================================
+   1 · THE TWO PALETTES — single source of truth.
+   The token CSS below, the swatch tables, the measured contrast figures and
+   the copyable ship block are ALL generated from this object, so they can
+   never drift apart. Token names are exactly Console's own.
+   ============================================================================ */
+var PAL = {
+  a:{
+    key:"A", id:"astrolabe", name:"Astrolabe", tag:"Futurism as instrument", layout:"grid",
+    dark:{
+      "--wall-1":"#12161C", "--wall-2":"#070A0E", "--wall-glow":"rgba(76,134,255,.10)",
+      "--bg":"#0B0E12",
+      "--glass":"#13171E", "--glass-2":"#181D25", "--glass-3":"#1E242E",
+      "--glass-line":"rgba(255,255,255,.085)", "--glass-line-2":"rgba(255,255,255,.17)",
+      "--chrome":"rgba(11,14,18,.90)",
+      "--tx":"#EAEDF2", "--tx-2":"#A8AEBA", "--tx-3":"#7F8798", "--tx-4":"#4A5160",
+      "--accent":"#4C86FF", "--accent-2":"#7BA6FF", "--accent-dim":"rgba(76,134,255,.14)",
+      "--signal":"#4C86FF", "--signal-dim":"rgba(76,134,255,.14)",
+      "--private":"#35D08A", "--private-dim":"rgba(53,208,138,.13)",
+      "--public":"#E3A33A",  "--public-dim":"rgba(227,163,58,.13)",
+      "--fail":"#FF5A52",    "--fail-dim":"rgba(255,90,82,.14)",
+      "--brand-red":"#DC3232",
+      "--cyan":"#4C86FF", "--blue":"#4C86FF", "--violet":"#8B5CF6",
+      "--glow-cyan":"rgba(76,134,255,.00)", "--glow-violet":"rgba(139,92,246,.00)",
+      "--shadow-win":"0 22px 48px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.055)",
+      "--shadow-sm":"0 1px 3px rgba(0,0,0,.5)",
+      "--shadow-pop":"0 14px 34px rgba(0,0,0,.6)",
+      "--blur":"saturate(1.05) blur(14px)"
+    },
+    light:{
+      "--wall-1":"#F2F4F7", "--wall-2":"#DBDFE6", "--wall-glow":"rgba(30,80,200,.07)",
+      "--bg":"#E8EAEE",
+      "--glass":"#FFFFFF", "--glass-2":"#F7F8FA", "--glass-3":"#EDEFF3",
+      "--glass-line":"rgba(12,16,26,.12)", "--glass-line-2":"rgba(12,16,26,.24)",
+      "--chrome":"rgba(255,255,255,.92)",
+      "--tx":"#0C1017", "--tx-2":"#3B424F", "--tx-3":"#5F6775", "--tx-4":"#8A919D",
+      "--accent":"#1E50C8", "--accent-2":"#12379B", "--accent-dim":"rgba(30,80,200,.10)",
+      "--signal":"#1E50C8", "--signal-dim":"rgba(30,80,200,.10)",
+      "--private":"#0C7048", "--private-dim":"rgba(12,112,72,.11)",
+      "--public":"#8A5D0B",  "--public-dim":"rgba(138,93,11,.11)",
+      "--fail":"#C5251E",    "--fail-dim":"rgba(197,37,30,.10)",
+      "--brand-red":"#A3241A",
+      "--cyan":"#1E50C8", "--blue":"#1E50C8", "--violet":"#6D3FD6",
+      "--glow-cyan":"rgba(30,80,200,.00)", "--glow-violet":"rgba(109,63,214,.00)",
+      "--shadow-win":"0 18px 40px rgba(18,24,38,.14), 0 0 0 1px rgba(12,16,26,.10)",
+      "--shadow-sm":"0 1px 3px rgba(18,24,38,.10)",
+      "--shadow-pop":"0 12px 30px rgba(18,24,38,.16)",
+      "--blur":"saturate(1.05) blur(14px)"
+    },
+    shape:{ "--r":"3px", "--r-lg":"4px", "--r-xl":"6px", "--r-pill":"3px",
+            "--menubar-h":"30px", "--dock-h":"70px",
+            "--icon-stroke":"1.5", "--icon-r":"2px", "--row-h":"26px",
+            "--ar":'"SF Arabic","Segoe UI","Noto Sans Arabic","Geeza Pro",Tahoma,sans-serif' },
+    motion:{ "--e-out":"cubic-bezier(.16,.84,.28,1)", "--e-in-out":"cubic-bezier(.65,0,.35,1)",
+             "--t-1":"90ms", "--t-2":"140ms", "--t-3":"200ms", "--t-4":"260ms" },
+    /* rules, not tokens. applyThemeById() injects this whole string as a
+       stylesheet, so anything here is live only while the theme is active.
+       This is what lets a token block reach the 20 hard-coded app tile hues. */
+    extra:[
+      ".dicon .tile,.dk{--tile:var(--tx-2);background:var(--glass-2);border:1px solid var(--glass-line-2);border-radius:var(--r);box-shadow:none}",
+      ".dicon .tile::after,.dk::after{display:none}",
+      ".dicon:hover .tile{transform:translateY(-2px);box-shadow:none}",
+      ".dicon:hover .tile .ico,.dk:hover .ico,.mb-btn:hover .ico,.tab:hover .ico{filter:none}",
+      ".dk:hover{transform:translateY(-2px) scale(1)}",
+      ".win{backdrop-filter:none}",
+      ".dicon .lbl{text-shadow:none}",
+      "#wallMark{opacity:.05}",
+      "#neural{opacity:.26}",
+      ":focus-visible{outline-color:var(--accent)}"
+    ]
+  },
+  b:{
+    key:"B", id:"suhail", name:"Suhail", tag:"Futurism as living system", layout:"floating",
+    dark:{
+      "--wall-1":"#2A2018", "--wall-2":"#0A0806", "--wall-glow":"rgba(227,154,60,.17)",
+      "--bg":"#131110",
+      "--glass":"rgba(31,27,24,.74)", "--glass-2":"rgba(41,35,31,.82)", "--glass-3":"rgba(53,46,40,.88)",
+      "--glass-line":"rgba(255,238,220,.10)", "--glass-line-2":"rgba(255,238,220,.20)",
+      "--chrome":"rgba(19,16,15,.72)",
+      "--tx":"#F4EFE8", "--tx-2":"#B7ADA1", "--tx-3":"#948C82", "--tx-4":"#5A534C",
+      "--accent":"#2FA79B", "--accent-2":"#4FC7B9", "--accent-dim":"rgba(47,167,155,.16)",
+      "--signal":"#2FA79B", "--signal-dim":"rgba(47,167,155,.16)",
+      "--private":"#8CC63F", "--private-dim":"rgba(140,198,63,.14)",
+      "--public":"#E39A3C",  "--public-dim":"rgba(227,154,60,.15)",
+      "--fail":"#F0594B",    "--fail-dim":"rgba(240,89,75,.15)",
+      "--brand-red":"#DC3232",
+      "--cyan":"#2FA79B", "--blue":"#3B7BFF", "--violet":"#9B7BD8",
+      "--glow-cyan":"rgba(47,167,155,.24)", "--glow-violet":"rgba(155,123,216,.18)",
+      "--shadow-win":"0 34px 78px rgba(0,0,0,.56), 0 2px 0 0 rgba(255,238,220,.05) inset, 0 0 0 1px rgba(255,238,220,.07)",
+      "--shadow-sm":"0 2px 10px rgba(0,0,0,.42)",
+      "--shadow-pop":"0 24px 56px rgba(0,0,0,.5)",
+      "--blur":"saturate(1.45) blur(24px)"
+    },
+    light:{
+      "--wall-1":"#F8F3EB", "--wall-2":"#DFD6C8", "--wall-glow":"rgba(196,124,32,.14)",
+      "--bg":"#EFE9E0",
+      "--glass":"rgba(255,253,250,.80)", "--glass-2":"rgba(255,252,247,.90)", "--glass-3":"#F5F0E8",
+      "--glass-line":"rgba(60,44,30,.13)", "--glass-line-2":"rgba(60,44,30,.26)",
+      "--chrome":"rgba(255,252,247,.72)",
+      "--tx":"#191410", "--tx-2":"#4A4038", "--tx-3":"#6E6459", "--tx-4":"#9A9088",
+      "--accent":"#17756D", "--accent-2":"#0E5B55", "--accent-dim":"rgba(23,117,109,.12)",
+      "--private":"#436A0F", "--private-dim":"rgba(67,106,15,.12)",
+      "--public":"#8F5D0E",  "--public-dim":"rgba(143,93,14,.12)",
+      "--fail":"#B93124",    "--fail-dim":"rgba(185,49,36,.11)",
+      "--signal":"#17756D", "--signal-dim":"rgba(23,117,109,.12)",
+      "--brand-red":"#A3241A",
+      "--cyan":"#17756D", "--blue":"#2C5BC8", "--violet":"#6E4FB0",
+      "--glow-cyan":"rgba(23,117,109,.16)", "--glow-violet":"rgba(110,79,176,.12)",
+      "--shadow-win":"0 30px 64px rgba(74,54,34,.16), 0 0 0 1px rgba(60,44,30,.08)",
+      "--shadow-sm":"0 2px 10px rgba(74,54,34,.10)",
+      "--shadow-pop":"0 22px 48px rgba(74,54,34,.16)",
+      "--blur":"saturate(1.45) blur(24px)"
+    },
+    shape:{ "--r":"11px", "--r-lg":"18px", "--r-xl":"26px", "--r-pill":"99px",
+            "--menubar-h":"36px", "--dock-h":"86px",
+            "--icon-stroke":"1.9", "--icon-r":"6px", "--row-h":"34px",
+            "--ar":'"SF Arabic","Segoe UI","Noto Sans Arabic","Geeza Pro",Tahoma,sans-serif' },
+    motion:{ "--e-out":"cubic-bezier(.22,1,.3,1)", "--e-in-out":"cubic-bezier(.45,0,.15,1)",
+             "--t-1":"180ms", "--t-2":"280ms", "--t-3":"420ms", "--t-4":"620ms" },
+    extra:[
+      ".dicon .tile,.dk{border-radius:29%;background-image:radial-gradient(120% 110% at 32% 12%,rgba(255,255,255,.18),transparent 64%)}",
+      ".dicon .tile::after,.dk::after{background:linear-gradient(168deg,rgba(255,255,255,.16),transparent 52%)}",
+      ".dk{box-shadow:0 8px 22px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.16)}",
+      "@media (hover:hover){.dk:hover{transform:translateY(-15px) scale(1.34)}}",
+      ".win.focused{box-shadow:var(--shadow-win),0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent),0 0 30px color-mix(in srgb,var(--accent) 16%,transparent)}",
+      "#wallpaper .glow{background:radial-gradient(circle,var(--wall-glow),transparent 62%);animation-duration:34s}",
+      "#wallpaper .glow.b{background:radial-gradient(circle,var(--glow-cyan),transparent 62%);animation-duration:42s}",
+      "#wallMark{opacity:.09}",
+      ":focus-visible{outline-color:var(--accent)}"
+    ]
+  }
+};
+
+/* type scales — differ in size, weight, tracking, leading and row height only,
+   because the repo forbids webfonts and both themes therefore share one stack. */
+var TYPE = {
+  a:{
+    rows:[
+      ["Menu bar",          "12px", "600", "-0.005em", "1.0",  "tabular-nums", "Console · Desktop · space names"],
+      ["Window title",      "12px", "650", "-0.005em", "1.0",  "tabular-nums", "Title bar, tab label"],
+      ["Section label",     "10px", "700", "+0.09em",  "1.0",  "uppercase",    "SOVEREIGNTY, AGENT FEED, widget keys"],
+      ["Control / button",  "12.5px","560", "-0.002em","1.15", "—",            "Buttons, menu items, chips"],
+      ["Body",              "13px", "450", "0",        "1.55", "—",            "Window body copy, list rows"],
+      ["Reading",           "15px", "400", "-0.004em", "1.62", "—",            "Docs, Chat transcript"],
+      ["Data / mono",       "11.5px","500", "+0.01em", "1.45", "tabular-nums", "Every machine-authored value"],
+      ["Figure",            "22px", "600", "-0.02em",  "1.1",  "mono, tabular","Widget headline numbers"],
+      ["Desktop icon label","10.5px","560","-0.002em", "1.25", "—",            "Under each desktop icon"]
+    ],
+    rowH:"26px", listGap:"0", density:"Compact — 26px rows, 8px gutters, hairline separators."
+  },
+  b:{
+    rows:[
+      ["Menu bar",          "13px", "520", "0",        "1.0",  "—",            "Console · Desktop · space names"],
+      ["Window title",      "13.5px","600","-0.008em", "1.0",  "—",            "Title bar, tab label"],
+      ["Section label",     "11.5px","600","0",        "1.2",  "sentence case","Sovereignty, Agent feed, widget keys"],
+      ["Control / button",  "13.5px","520","0",        "1.2",  "—",            "Buttons, menu items, chips"],
+      ["Body",              "14px", "400", "0",        "1.62", "—",            "Window body copy, list rows"],
+      ["Reading",           "16px", "400", "-0.003em", "1.70", "—",            "Docs, Chat transcript"],
+      ["Data / mono",       "12px", "450", "0",        "1.55", "tabular in tables only","Machine values in tables"],
+      ["Figure",            "26px", "500", "-0.025em", "1.1",  "lining, proportional","Widget headline numbers"],
+      ["Desktop icon label","11px", "480", "0",        "1.3",  "—",            "Under each desktop icon"]
+    ],
+    rowH:"34px", listGap:"2px", density:"Roomy — 34px rows, 14px gutters, separators by tonal step not by line."
+  }
+};
+
+/* motion scales */
+var MOTION = {
+  a:{
+    ease:[["--e-out","cubic-bezier(.16,.84,.28,1)","Decisive out. Reaches 90% of the distance in the first third. No overshoot, ever."],
+          ["--e-in-out","cubic-bezier(.65,0,.35,1)","Symmetric. Used only for things that reverse (space switch, panel slide)."]],
+    dur:[["--t-1","90ms","Press, hover, focus ring, checkbox"],
+         ["--t-2","140ms","Dock hover, menu open, tooltip, tab change"],
+         ["--t-3","200ms","Window open/close, sheet, notification"],
+         ["--t-4","260ms","Space switch — the longest thing in the system"]],
+    budget:[["Max displacement","8px","A window opens 6px below its resting place, not 40px."],
+            ["Max scale delta","0.98 → 1","Two percent. You read it as a snap, not a zoom."],
+            ["Blur transitions","none","Blur is never animated. It is the single most expensive property."],
+            ["Overshoot","0%","Nothing in an instrument bounces."],
+            ["Loops","1 (the mark)","Only the thinking indicator loops. Everything else is one-shot."]]
+  },
+  b:{
+    ease:[["--e-out","cubic-bezier(.22,1,.3,1)","Arrives fast, then settles for the last 15%. Reads as weight."],
+          ["--e-in-out","cubic-bezier(.45,0,.15,1)","Long, even. Used for the ground and for light."]],
+    dur:[["--t-1","180ms","Press, hover, focus ring"],
+         ["--t-2","280ms","Dock hover, menu open, tooltip"],
+         ["--t-3","420ms","Window open/close, sheet, notification"],
+         ["--t-4","620ms","Space switch, and every light change"]],
+    budget:[["Max displacement","18px","A window rises 14px and fades in with it."],
+            ["Max scale delta","0.94 → 1","Six percent — enough to read as arriving from depth."],
+            ["Blur transitions","none","Same rule as Astrolabe. Depth comes from shadow and light, never animated blur."],
+            ["Overshoot","≤1.5%","Only on dock magnification. Windows do not bounce."],
+            ["Loops","3 (mark, ground, edge light)","All three are transform/opacity only and all pause off-screen."]]
+  }
+};
+</script>
+
+<script>
+/* ============================================================================
+   2 · THE ICON SETS — 14 Console icons, redrawn twice.
+   Both sets live on the same 24 grid with a 2px optical margin, so they are
+   drop-in replacements for the existing #sprite symbols. Nothing here uses a
+   raster, a filter, or a gradient: one path colour, driven by currentColor.
+   ============================================================================ */
+var ICONS = {
+/* ---- A · ASTROLABE ------------------------------------------------------
+   Grammar: 24 grid, 20 live. 1.5px stroke, BUTT terminals, MITER joins,
+   2px container radius. Angles restricted to 0°, 45°, 90°. The only curve
+   permitted is a true compass circle. Solid marks are allowed only where
+   they represent DATA — a node, a selected cell, a traffic light — never
+   as ornament.                                                             */
+  a:{
+    chat:'<path d="M3 5.5H21V15H12.5L8 19.5V15H3Z"/><path d="M6.5 9H17M6.5 11.7H13"/>',
+    brain:'<path d="M12 3.5v6M12 14.5v6M3.5 12h6M14.5 12h6M6.7 6.7 9.9 9.9M17.3 6.7 14.1 9.9M6.7 17.3 9.9 14.1M17.3 17.3 14.1 14.1"/><path d="M9.5 9.5h5v5h-5z"/><path d="M11 2.4h2v2h-2zM11 19.6h2v2h-2zM2.4 11h2v2h-2zM19.6 11h2v2h-2z" fill="currentColor" stroke="none"/>',
+    code:'<path d="M9 6.5 3.5 12 9 17.5M15 6.5 20.5 12 15 17.5M13.7 5.4 10.3 18.6"/>',
+    mail:'<path d="M3 6h18v12H3z"/><path d="M3 6l9 6.6L21 6"/><path d="M3 18l6.4-5M21 18l-6.4-5"/>',
+    files:'<path d="M3 5.5h6.2l2 2.8H21V18.5H3Z"/><path d="M3 10.3h18"/><path d="M5.4 13.4h2v2h-2z" fill="currentColor" stroke="none"/>',
+    agents:'<path d="M10 3.5h4v4h-4zM4.5 15h4v4h-4zM15.5 15h4v4h-4z"/><path d="M12 7.5v3.4M12 10.9 8.5 14.4M12 10.9 15.5 14.4"/><path d="M11.15 10.05h1.7v1.7h-1.7z" fill="currentColor" stroke="none"/>',
+    workflow:'<path d="M2.5 4.5h7v5h-7zM14.5 3h7v5h-7zM14.5 16h7v5h-7z"/><path d="M9.5 7H12M12 5.5h2.5M12 18.5h2.5M12 5.5v13"/><path d="M11.2 6.2h1.7v1.7h-1.7z" fill="currentColor" stroke="none"/>',
+    settings:'<path d="M3 6.5h18M3 12h18M3 17.5h18"/><path d="M6.5 4.5h3.5v4H6.5zM14 10h3.5v4H14zM8.5 15.5H12v4H8.5z"/>',
+    trash:'<path d="M3.5 6.5h17M9 6.5V3.5h6v3M6 6.5v14h12v-14"/><path d="M10 10.5v6M14 10.5v6"/>',
+    terminal:'<path d="M3 4.5h18v15H3z"/><path d="M3 8h18"/><path d="M6.5 11.5 9.5 14.5 6.5 17.5M12.5 17.5h5"/><path d="M5.3 5.4h1.5v1.5H5.3z" fill="currentColor" stroke="none"/>',
+    sheets:'<path d="M3 4.5h18v15H3z"/><path d="M3 9h18M3 14h18M9 4.5v15M15 4.5v15"/><path d="M9 9h6v5H9z" fill="currentColor" stroke="none" opacity=".22"/>',
+    browser:'<path d="M3 4.5h18v15H3z"/><path d="M3 9h18"/><path d="M5.4 6h1.6v1.6H5.4zM8.5 6h1.6v1.6H8.5zM11.6 6h1.6v1.6h-1.6z" fill="currentColor" stroke="none"/><path d="M6.5 12.5h11M6.5 15.5h7"/>',
+    shield:'<path d="M12 3 20 6.2v6.3L12 21 4 12.5V6.2Z"/><path d="M8.4 12 11 14.6 16 9.6"/>',
+    search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.2 15.2 20.5 20.5"/>'
+  },
+/* ---- B · SUHAIL ---------------------------------------------------------
+   Grammar: 24 grid, 20 live. 1.9px stroke, ROUND terminals and joins,
+   6px radius on any container, arcs drawn from a 4/8 radius family — no
+   internal 90° corner anywhere. Every icon that has a BODY (a container, a
+   vessel, a form) carries a 12% currentColor fill so it reads as a lit
+   object. Pure marks (code, sliders) carry none.                          */
+  b:{
+    chat:'<path fill="currentColor" fill-opacity=".12" d="M12 4.4c-4.7 0-8.5 3-8.5 6.8 0 2.1 1.2 4 3.1 5.3l-.9 3.6 4-2c.7.2 1.5.2 2.3.2 4.7 0 8.5-3 8.5-6.8S16.7 4.4 12 4.4Z"/><path d="M8.4 11.2h7.2"/>',
+    brain:'<circle cx="12" cy="12" r="8.1" fill="currentColor" fill-opacity=".075" stroke="none"/><circle cx="12" cy="6.2" r="2"/><circle cx="6.1" cy="10.5" r="2"/><circle cx="17.9" cy="10.5" r="2"/><circle cx="8.5" cy="17.6" r="2"/><circle cx="15.5" cy="17.6" r="2"/><path d="M10.2 7.3q-2 .8-2.7 1.5M13.8 7.3q2 .8 2.7 1.5M6.7 12.4q.5 2 1.4 3.3M17.3 12.4q-.5 2-1.4 3.3M10.5 17.6h3"/>',
+    code:'<path d="M9.2 6.9Q3.9 10 3.9 12t5.3 5.1M14.8 6.9q5.3 3.1 5.3 5.1t-5.3 5.1"/><path d="M13.5 5.4q-1.2 6.6-3 13.2"/>',
+    mail:'<rect x="3" y="5.4" width="18" height="13.2" rx="4.6" fill="currentColor" fill-opacity=".12"/><path d="M4.9 8.3q5.2 4.4 7.1 4.4t7.1-4.4"/>',
+    files:'<path fill="currentColor" fill-opacity=".12" d="M3 8.1a2.8 2.8 0 0 1 2.8-2.8h3a2 2 0 0 1 1.6.8l1 1.4a2 2 0 0 0 1.7.8h5.1A2.8 2.8 0 0 1 21 11.1v5.9a2.8 2.8 0 0 1-2.8 2.8H5.8A2.8 2.8 0 0 1 3 17Z"/><path d="M3.4 11.4h17.2"/>',
+    agents:'<circle cx="12" cy="5.9" r="2.7" fill="currentColor" fill-opacity=".12"/><circle cx="5.6" cy="17.3" r="2.7" fill="currentColor" fill-opacity=".12"/><circle cx="18.4" cy="17.3" r="2.7" fill="currentColor" fill-opacity=".12"/><path d="M11 8.4q-1 3.2-3.9 6.3M13 8.4q1 3.2 3.9 6.3M8.3 17.3h7.4"/>',
+    workflow:'<rect x="2.6" y="4.4" width="7.4" height="5.4" rx="2.7" fill="currentColor" fill-opacity=".12"/><rect x="14" y="2.8" width="7.4" height="5.4" rx="2.7" fill="currentColor" fill-opacity=".12"/><rect x="14" y="15.8" width="7.4" height="5.4" rx="2.7" fill="currentColor" fill-opacity=".12"/><path d="M10 7.1c2.5 0 1.6-1.6 4-1.6M10 7.1c2.5 0 1.6 11.4 4 11.4"/>',
+    settings:'<path d="M3.4 7h17.2M3.4 12h17.2M3.4 17h17.2"/><circle cx="8.4" cy="7" r="2.5" fill="currentColor" fill-opacity=".12"/><circle cx="15.6" cy="12" r="2.5" fill="currentColor" fill-opacity=".12"/><circle cx="10" cy="17" r="2.5" fill="currentColor" fill-opacity=".12"/>',
+    trash:'<path d="M3.8 6.6h16.4"/><path d="M9.3 6.6V4.9a1.7 1.7 0 0 1 1.7-1.7h2a1.7 1.7 0 0 1 1.7 1.7v1.7"/><path fill="currentColor" fill-opacity=".12" d="M6.2 6.6h11.6l-.9 12a2.3 2.3 0 0 1-2.3 2.1H9.4a2.3 2.3 0 0 1-2.3-2.1Z"/><path d="M10.4 10.8v5.8M13.6 10.8v5.8"/>',
+    terminal:'<rect x="2.8" y="4.2" width="18.4" height="15.6" rx="5.2" fill="currentColor" fill-opacity=".12"/><path d="M6.9 10.3 9.8 13 6.9 15.7M13.3 15.7h4.2"/>',
+    sheets:'<rect x="2.8" y="4.2" width="18.4" height="15.6" rx="5.2" fill="currentColor" fill-opacity=".12"/><path d="M3 9.4h18M9.4 9.6v10.1M15.4 9.6v10.1"/><rect x="9.4" y="9.4" width="6" height="5" rx="1.4" fill="currentColor" fill-opacity=".2" stroke="none"/>',
+    browser:'<rect x="2.8" y="4.2" width="18.4" height="15.6" rx="5.2" fill="currentColor" fill-opacity=".12"/><path d="M3 8.8h18"/><circle cx="6.3" cy="6.5" r=".95" fill="currentColor" stroke="none"/><circle cx="9.3" cy="6.5" r=".95" fill="currentColor" stroke="none"/><path d="M7 13.4h10M7 16.6h6.2"/>',
+    shield:'<path fill="currentColor" fill-opacity=".12" d="M12 3.2 19.6 6.1v6c0 4.3-3.1 8-7.6 9.3-4.5-1.3-7.6-5-7.6-9.3v-6Z"/><path d="M8.9 12.2 11.3 14.6 15.5 10"/>',
+    search:'<circle cx="10.6" cy="10.6" r="6.6" fill="currentColor" fill-opacity=".12"/><path d="M15.4 15.4 20.4 20.4"/>'
+  }
+};
+var ICON_ORDER = ["chat","brain","code","mail","files","agents","workflow","settings","trash","terminal","sheets","browser","shield","search"];
+var ICON_LABEL = {chat:"Chat",brain:"Brain",code:"Code",mail:"Mail",files:"Files",agents:"Agents",
+  workflow:"Workflow",settings:"Settings",trash:"Trash",terminal:"Terminal",sheets:"Sheets",
+  browser:"Browser",shield:"Sovereignty",search:"Spotlight"};
+
+var GRAMMAR = {
+  a:[["Construction grid","24 × 24, 20 live","2px optical margin on every side. Nothing touches the box edge, so icons optically align in a dock, a menu and a list without per-icon nudging."],
+     ["Stroke weight","1.5px @24 · 1.5 @16 · 1.15 @48","Held visually constant. At 16 the stroke stays 1.5 rather than scaling to 1.0, because a sub-1px hairline disappears on a 1× display."],
+     ["Terminals","butt","Drafting convention. A stroke ends where the coordinate says it ends — no half-width overhang to guess at."],
+     ["Joins","miter","Corners are corners. No rounding anywhere in the mark."],
+     ["Corner radius","0 in the mark · 2px on the container","The only radius in the entire system."],
+     ["Angle set","0°, 45°, 90° only","Every diagonal in every icon is exactly 45°. This is what makes the set feel measured rather than drawn."],
+     ["Curves","true circles only","A compass circle is a drafting primitive. Free beziers are not permitted."],
+     ["Fill","stroke-only, with one exception","Solid marks are allowed only where they represent data — a graph node, a selected cell, a window control. Never as ornament."],
+     ["Container","hard square, 2px radius","1px hairline border, flat surface fill, one 1px top edge highlight. No gradient, no glow, no shadow."]],
+  b:[["Construction grid","24 × 24, 20 live","Same grid as Astrolabe, so the two sets are swappable without touching layout."],
+     ["Stroke weight","1.9px @24 · 2.05 @16 · 1.6 @48","Slightly heavier at 16 to survive the soft container; lighter at 48 so a big icon does not go blunt."],
+     ["Terminals","round","Every stroke ends in a half-round cap. Nothing in the set has a sharp point."],
+     ["Joins","round","Corners are arcs from the 4/8 radius family. There is no internal 90° corner in the set."],
+     ["Corner radius","6px in the mark · 29% on the container","The container is a superellipse-adjacent squircle, not a rounded rect."],
+     ["Angle set","free, but arcs preferred","Connections are quadratic curves, not polylines. The agents icon literally bends."],
+     ["Curves","arcs and quadratics","Radii come from a 4 / 8 family so curvature is consistent across the set."],
+     ["Fill","12% currentColor on bodies","Anything that is a container, a vessel or a form carries a 12% fill so it reads as a lit object. Pure marks (code, sliders) carry none."],
+     ["Container","squircle, 29% radius","Radial surface fill lit from 32%/12%, a 1px inner top highlight, and a 10px accent-tinted drop. This is where Suhail's volume lives."]]
+};
+</script>
+
+<script>
+/* ============================================================================
+   0 · PAGE CHROME THEME  (separate from the two themes being previewed)
+   ============================================================================ */
+(function(){
+  var KEY="mv-theme";
+  var root=document.documentElement;
+  function read(){ try{ return localStorage.getItem(KEY) }catch(e){ return null } }
+  function write(v){ try{ v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY) }catch(e){} }
+  function apply(v){
+    if(v==="dark"||v==="light"){ root.setAttribute("data-theme",v); }
+    else { root.removeAttribute("data-theme"); }
+    var i=document.getElementById("pgThemeIcon"), l=document.getElementById("pgThemeLbl");
+    if(i&&l){ i.textContent = v==="dark"?"●":(v==="light"?"○":"◐"); l.textContent = v==="dark"?"Dark":(v==="light"?"Light":"Auto"); }
+    document.dispatchEvent(new CustomEvent("pgtheme"));
+  }
+  apply(read());
+  window.__pgMode=function(){ var v=read(); if(v) return v;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"; };
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("#pgTheme"); if(!b) return;
+    var cur=read(); var next = cur==="dark"?"light":(cur==="light"?null:"dark");
+    write(next); apply(next);
+  });
+  try{
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){
+      if(!read()) document.dispatchEvent(new CustomEvent("pgtheme"));
+    });
+  }catch(e){}
+})();
+</script>
+
+<script>
+/* ============================================================================
+   3 · HELPERS
+   ============================================================================ */
+function esc(x){ return String(x).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function el(h){ var d=document.createElement("div"); d.innerHTML=h; return d.firstElementChild; }
+
+/* colour maths — real numbers, computed at load, not typed in by hand */
+function parseColor(c){
+  c=String(c).trim();
+  if(c[0]==="#"){
+    var h=c.slice(1);
+    if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16),1];
+  }
+  var m=c.match(/rgba?\(([^)]+)\)/);
+  if(m){ var v=m[1].split(",").map(function(x){return parseFloat(x)});
+    return [v[0],v[1],v[2],v.length>3?v[3]:1]; }
+  return [0,0,0,1];
+}
+function over(fg,bg){ /* composite fg (may be rgba) onto opaque bg */
+  var a=parseColor(fg), b=parseColor(bg), al=a[3];
+  return [a[0]*al+b[0]*(1-al), a[1]*al+b[1]*(1-al), a[2]*al+b[2]*(1-al), 1];
+}
+function lum(rgb){
+  var c=rgb.slice(0,3).map(function(v){ v=v/255; return v<=.03928? v/12.92 : Math.pow((v+.055)/1.055,2.4); });
+  return .2126*c[0]+.7152*c[1]+.0722*c[2];
+}
+function contrast(fg,bg){
+  var f=lum(over(fg,bg)), b=lum(parseColor(bg));
+  var hi=Math.max(f,b), lo=Math.min(f,b);
+  return (hi+.05)/(lo+.05);
+}
+function hueOf(c){
+  var v=parseColor(c), r=v[0]/255,g=v[1]/255,b=v[2]/255;
+  var mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn, h=0;
+  if(d===0) return 0;
+  if(mx===r) h=((g-b)/d)%6; else if(mx===g) h=(b-r)/d+2; else h=(r-g)/d+4;
+  h=Math.round(h*60); return h<0?h+360:h;
+}
+function crBadge(ratio,large){
+  var r=Math.round(ratio*100)/100;
+  var cls = ratio>=7 ? "aaa" : ratio>=4.5 ? "pass" : ratio>=3 ? "large" : "fail";
+  var lbl = ratio>=7 ? "AAA" : ratio>=4.5 ? "AA" : ratio>=3 ? "AA large only" : "fails AA";
+  return '<span class="pill '+cls+'">'+r.toFixed(2)+':1 · '+lbl+'</span>';
+}
+
+/* the real Magna mark — unique gradient ids per instance, always */
+var _mkN=0;
+function mark(cls){
+  var u="mk"+(++_mkN);
+  return '<svg class="magna-mark '+(cls||"")+'" viewBox="0 0 640 440" role="img" aria-label="Magna">'+
+    '<defs><linearGradient id="mgGB-'+u+'" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
+    '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>'+
+    '</linearGradient><linearGradient id="mgR-'+u+'" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
+    '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient></defs>'+
+    '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-'+u+')" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-'+u+')" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function icon(t,name,size,extra){
+  var d=ICONS[t][name]; if(!d) return "";
+  return '<svg class="ic '+(extra||"")+'" data-s="'+(size||24)+'" viewBox="0 0 24 24" aria-hidden="true">'+d+'</svg>';
+}
+function iconbox(t,name,cls){ return '<span class="icbox '+(cls||"")+'">'+icon(t,name,24)+'</span>'; }
+
+/* theme mount */
+function tm(t,inner,cls,mode){
+  return '<div class="tm tm-'+t+' '+(cls||"")+'" data-mode="'+(mode||"dark")+'" data-tk="'+t+'">'+inner+'</div>';
+}
+function thlabel(t,right){
+  var P=PAL[t];
+  return '<div class="thlabel '+t+'"><span class="swatch"></span><span class="key">Option '+P.key+'</span>'+
+    '<span>'+esc(P.name)+'</span>'+(right?'<span class="rt">'+right+'</span>':'')+'</div>';
+}
+
+/* build the token CSS from PAL — the single source of truth */
+(function buildTokenCSS(){
+  var out=[];
+  ["a","b"].forEach(function(t){
+    var P=PAL[t], base="";
+    Object.keys(P.shape).forEach(function(k){ base+=k+":"+P.shape[k]+";"; });
+    Object.keys(P.motion).forEach(function(k){ base+=k+":"+P.motion[k]+";"; });
+    out.push(".tm-"+t+"{"+base+"}");
+    ["dark","light"].forEach(function(m){
+      var d=P[m], css="";
+      Object.keys(d).forEach(function(k){ css+=k+":"+d[k]+";"; });
+      out.push('.tm-'+t+'[data-mode="'+m+'"]{'+css+'}');
+    });
+  });
+  var st=document.createElement("style"); st.id="tokenCSS"; st.textContent=out.join("\n");
+  document.head.appendChild(st);
+})();
+
+/* ============================================================================
+   4 · SECTION BUILDERS
+   ============================================================================ */
+var S=[];   /* section html accumulator */
+
+/* ---------- HERO + THE CHOICE ---------- */
+(function(){
+  var diffRows=[
+    ["What 'futuristic' means","An instrument you trust with a number","A system that is visibly alive"],
+    ["Ground","Calibrated luminance + a measured hairline grid. Static.","A warm horizon with two slow volumes. Drifts."],
+    ["Chrome","Opaque. Blur on the menu bar and dock only.","Translucent, but on three floating surfaces only."],
+    ["Accent","<b>#1E50C8 / #4C86FF</b> — the blue terminus of the Magna gradient","<b>#17756D / #2FA79B</b> — the green→teal origin of the same gradient"],
+    ["Corner radius","3px window · 2px icon container","11px window · 29% squircle icon container"],
+    ["Icon stroke","1.5px, butt caps, miter joins, 45° only","1.9px, round caps and joins, arcs only"],
+    ["Type","12px/600 chrome, ALL-CAPS keys, tabular everywhere","13px/520 chrome, sentence-case keys, tabular in tables"],
+    ["Row height","26px","34px"],
+    ["Longest motion","260ms (space switch)","620ms (space switch, and all light)"],
+    ["Dock","No magnification. 1.5px underline on running apps.","Magnifies to 1.34×. A glowing 4px dot on running apps."],
+    ["Thinking","Mark loop 1.6s + a determinate 2px hairline","Mark loop 2.4s + the whole panel breathing at 4.6s"],
+    ["Per-frame cost","<b>Zero.</b> Nothing animates unless you touch it.","Two compositor-only drifts + one gated canvas"],
+    ["Fails badly when","The client wants the demo to look impressive","The hardware is a 4-year-old ThinkPad on battery"]
+  ];
+  S.push(
+  '<section class="hero" id="top"><div class="wrap">'+
+    '<p class="eyebrow">MagnaVERSE Console · theme decision · 2 options</p>'+
+    '<h1>Astrolabe and Suhail.</h1>'+
+    '<p class="sub">Two complete theme packages for Console — icon set, colour tokens, type scale, motion scale, '+
+      'the AI surfaces, and a drop-in <code>cssD</code>/<code>cssL</code> block for the <code>THEMES</code> array. '+
+      'Both install alongside the twelve Console already has, and the current default stays the default. '+
+      'They disagree about what futuristic means, so the decision is which one leads.</p>'+
+    '<div class="metaline">'+
+      '<span class="chip"><span class="dot"></span>28 icons drawn · 14 per theme</span>'+
+      '<span class="chip">4 token sets · light + dark, both first-class</span>'+
+      '<span class="chip">10 replayable motion specimens</span>'+
+      '<span class="chip">2 live miniature Consoles</span>'+
+      '<span class="chip">contrast measured <b>in&nbsp;page</b>, not asserted</span>'+
+      '<span class="chip"><span class="dot"></span>both blocks tested <b>on the live Console</b></span>'+
+    '</div>'+
+    '<div class="callout" style="margin-top:32px">'+
+      '<h2 class="ttl">How this sits next to <code>desktop-vision.html</code></h2>'+
+      '<p style="margin-bottom:0">That document argues the <em>system</em>: elevation, light, wallpaper, the motion grammar, '+
+      'the three colour families, and why glassmorphism is a tax. This one does not re-argue any of it. '+
+      'It takes those rules as settled and delivers the two things a decision needs and a vision does not contain: '+
+      '<b>a finished icon set</b> and <b>tokens a developer can paste into the <code>THEMES</code> array this afternoon</b>. '+
+      'Where a principle from that page is load-bearing here, it is cited in one line and not restated.</p>'+
+    '</div>'+
+  '</div></section>');
+
+  /* the two thesis cards */
+  function thesis(t,title,body,quals){
+    var P=PAL[t];
+    return '<div class="card flush">'+thlabel(t)+
+      '<div style="padding:clamp(16px,2vw,24px)">'+
+      '<h3 style="margin-bottom:4px">'+esc(P.name)+'</h3>'+
+      '<p style="font-family:var(--p-mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--p-fg-3);margin-bottom:14px">'+esc(P.tag)+'</p>'+
+      '<p style="font-size:15px">'+body+'</p>'+
+      '<p class="note" style="margin-bottom:0"><b>Name.</b> '+title+'</p></div>'+
+      tm(t,'<div class="wall"><div class="v v1"></div><div class="v v2"></div>'+mark("wallmark")+'</div>'+
+        '<div style="position:relative;z-index:2;padding:22px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+          iconbox(t,"brain")+iconbox(t,"agents")+iconbox(t,"shield")+iconbox(t,"terminal")+
+          '<span style="font-size:12px;color:var(--tx-2);margin-left:auto">'+quals+'</span>'+
+        '</div>','tmount',"dark")+
+      '</div>';
+  }
+  S.push(
+  '<section id="choice"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">01 · the choice</p>'+
+    '<h2>Two answers to the same question</h2>'+
+    '<p class="lede">A reasonable person can prefer either. They are not two shades of one idea — they disagree about '+
+    'ground, chrome, radius, stroke, tempo and where the identity lives.</p></div>'+
+    '<div class="pair">'+
+      thesis("a","Named for the instrument Arab astronomers used to measure the sky — a brass disc of nested, exact rings. Precision as heritage, not pattern as decoration.",
+        'Futurism as <b>instrument</b>. A glass cockpit, a mass spectrometer, a Teenage Engineering front panel. '+
+        'Near-monochrome graphite and bone; one signal colour, used only where the machine is telling you something. '+
+        'Every diagonal is exactly 45°. Nothing moves for longer than 260&nbsp;ms and nothing moves at all unless you '+
+        'touched it. It should feel like a thing that was <em>engineered</em>, and like a number on it can be trusted.',
+        'graphite · bone · one signal')+
+      thesis("b","Suhail is Canopus — the star whose rising, in the Gulf, marks the turn of the season. A system you read by watching the sky change.",
+        'Futurism as <b>living system</b>. Warm neutrals, real depth, volumetric light with a direction. '+
+        'The ground is generative: it carries system state — load, agent activity, time of day — as luminance rather than as a chart. '+
+        'Motion breathes instead of snapping. It should feel like the environment is <em>awake</em>, and like the machine '+
+        'is somewhere behind the surface rather than printed on it.',
+        'limestone · dusk · teal light')+
+    '</div>'+
+    '<h3 style="margin:34px 0 14px">What you are actually choosing between</h3>'+
+    '<div class="tblwrap"><table><thead><tr><th style="width:24%">Dimension</th><th style="width:38%">A · Astrolabe</th><th style="width:38%">B · Suhail</th></tr></thead><tbody>'+
+      diffRows.map(function(r){ return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>'; }).join("")+
+    '</tbody></table></div>'+
+  '</div></section>');
+})();
+
+/* ---------- ICON LANGUAGE ---------- */
+(function(){
+  function grammarTable(t){
+    return '<div class="tblwrap"><table><thead><tr><th style="width:22%">Rule</th><th style="width:26%">Value</th><th>Why</th></tr></thead><tbody>'+
+      GRAMMAR[t].map(function(r){ return '<tr><td><b>'+r[0]+'</b></td><td class="mono">'+esc(r[1])+'</td><td>'+r[2]+'</td></tr>'; }).join("")+
+      '</tbody></table></div>';
+  }
+  function fullSet(t){
+    return tm(t,'<div class="icgrid">'+ICON_ORDER.map(function(n){
+      return '<div class="iccell"><span class="icbox" style="width:44px;height:44px">'+icon(t,n,24)+'</span>'+
+             '<span class="nm">'+esc(ICON_LABEL[n])+'</span></div>';
+    }).join("")+'</div>','',"dark");
+  }
+  function sizeRow(t){
+    var picks=["brain","workflow","sheets","shield"];
+    return tm(t,'<div style="padding:18px;display:flex;gap:26px;flex-wrap:wrap">'+
+      picks.map(function(n){
+        return '<div class="icsizes">'+[16,24,48].map(function(sz){
+          return '<div class="u"><span class="icbox" style="width:'+(sz+10)+'px;height:'+(sz+10)+'px">'+icon(t,n,sz)+'</span><span class="sz">'+sz+'</span></div>';
+        }).join("")+'</div>';
+      }).join("")+'</div>','',"dark");
+  }
+  /* construction proof */
+  function proof(t,name){
+    var gridA='<svg class="g" viewBox="0 0 24 24" aria-hidden="true">'+
+      '<g stroke="currentColor" stroke-width=".08" opacity=".5">'+
+      Array.from({length:23},function(_,i){var v=i+1;return '<path d="M'+v+' 0V24M0 '+v+'H24"/>'}).join("")+'</g>'+
+      '<rect x="2" y="2" width="20" height="20" fill="none" stroke="currentColor" stroke-width=".22" opacity=".9"/>'+
+      (t==="a"?'<path d="M2 2 22 22M22 2 2 22" stroke="currentColor" stroke-width=".14" opacity=".55"/>'
+              :'<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width=".14" opacity=".55"/><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width=".14" opacity=".55"/>')+
+      '</svg>';
+    return '<div class="icproof" style="color:var(--tx-4)">'+gridA+
+      '<svg class="ic" viewBox="0 0 24 24" style="color:var(--tx)" aria-hidden="true">'+ICONS[t][name]+'</svg></div>';
+  }
+
+  var comparePicks=["chat","brain","agents","workflow","shield","terminal"];
+
+  S.push(
+  '<section id="icons"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">02 · icon language</p>'+
+    '<h2>The part every theme document skips</h2>'+
+    '<p class="lede">A theme that only changes <code>--bg</code> and <code>--accent</code> is a filter, not a theme. '+
+    'The icons are what actually make an OS feel like itself — they are on screen at 16&nbsp;px in the menu bar, '+
+    '24&nbsp;px in the dock and 48&nbsp;px on the desktop, all at once. So both themes ship a complete redrawn set. '+
+    'Below: the grammar, all fourteen icons in both themes, the same icon compared side by side, the construction grid, '+
+    'and every size the product actually renders.</p></div>'+
+
+    '<div class="pair">'+
+      '<div><h3 style="margin-bottom:12px">A · Astrolabe — the shape grammar</h3>'+grammarTable("a")+'</div>'+
+      '<div><h3 style="margin-bottom:12px">B · Suhail — the shape grammar</h3>'+grammarTable("b")+'</div>'+
+    '</div>'+
+
+    '<h3 style="margin:38px 0 14px">The full set — 14 icons, twice</h3>'+
+    '<p class="note" style="margin-bottom:14px">The twelve Console asked for, plus Sovereignty and Spotlight because both are in the '+
+    'menu bar at 16&nbsp;px and are the hardest test of a grammar. Shown in each theme\'s own container.</p>'+
+    '<div class="pair">'+
+      '<div class="spec">'+thlabel("a","44px container")+'<div class="specbody">'+fullSet("a")+'</div></div>'+
+      '<div class="spec">'+thlabel("b","44px container")+'<div class="specbody">'+fullSet("b")+'</div></div>'+
+    '</div>'+
+
+    '<h3 style="margin:38px 0 14px">The same icon, both themes</h3>'+
+    '<p class="note" style="margin-bottom:14px">Bare marks, no container, at 24&nbsp;px. This is the honest comparison — '+
+    'if the two grammars were the same idea in two colours, this row would look identical.</p>'+
+    '<div class="spec"><div class="specbody" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)">'+
+      ['a','b'].map(function(t){
+        return tm(t,'<div style="padding:16px 12px">'+
+          '<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-3);margin-bottom:14px">Option '+PAL[t].key+' · '+esc(PAL[t].name)+'</div>'+
+          '<div style="display:flex;gap:18px;flex-wrap:wrap;color:var(--tx)">'+
+          comparePicks.map(function(n){
+            return '<div style="display:flex;flex-direction:column;align-items:center;gap:8px">'+icon(t,n,24)+
+              '<span style="font-family:var(--mono);font-size:9px;color:var(--tx-4)">'+esc(ICON_LABEL[n])+'</span></div>';
+          }).join("")+'</div></div>','',"dark");
+      }).join("")+
+    '</div></div>'+
+
+    '<h3 style="margin:38px 0 14px">At the three sizes the product renders</h3>'+
+    '<p class="note" style="margin-bottom:14px">16&nbsp;px menu bar · 24&nbsp;px dock and list · 48&nbsp;px desktop. Stroke weight is '+
+    '<b>not</b> scaled linearly — it is held optically constant, which is why the 48&nbsp;px marks do not look spindly and '+
+    'the 16&nbsp;px marks do not fill in.</p>'+
+    '<div class="pair">'+
+      '<div class="spec">'+thlabel("a","1.5 · 1.5 · 1.15")+'<div class="specbody">'+sizeRow("a")+'</div></div>'+
+      '<div class="spec">'+thlabel("b","2.05 · 1.9 · 1.6")+'<div class="specbody">'+sizeRow("b")+'</div></div>'+
+    '</div>'+
+
+    '<h3 style="margin:38px 0 14px">Construction</h3>'+
+    '<p class="note" style="margin-bottom:14px">Astrolabe is built on the 24 grid with 45° diagonals — the guide is the two diagonals of the live box. '+
+    'Suhail is built on concentric radii — the guides are r=10 and r=6. Overlay the guide on the mark and the discipline is visible or it is not.</p>'+
+    '<div class="pair">'+
+      ['a','b'].map(function(t){
+        return '<div class="spec">'+thlabel(t,t==="a"?"45° guides":"r10 / r6 guides")+'<div class="specbody">'+
+          tm(t,'<div style="padding:18px;display:flex;gap:14px;flex-wrap:wrap">'+
+            ["brain","workflow","shield"].map(function(n){return proof(t,n)}).join("")+'</div>','',"dark")+
+          '</div></div>';
+      }).join("")+
+    '</div>'+
+
+    '<div class="callout"><h3 class="ttl">Why both sets are drop-in</h3>'+
+    '<p style="margin-bottom:0">Both sets sit on the same 24&nbsp;×&nbsp;24 viewBox with the same 2&nbsp;px optical margin as the existing '+
+    '<code>#sprite</code> symbols, and both paint from <code>currentColor</code> with no gradient or filter. Swapping a theme swaps '+
+    'the <code>&lt;symbol&gt;</code> bodies and nothing else — <code>ico()</code>, every <code>.ico</code> size class and every layout '+
+    'measurement stays exactly as it is.</p></div>'+
+  '</div></section>');
+})();
+</script>
+
+
+<script>
+/* ---------- COLOUR ---------- */
+(function(){
+  var GROUPS=[
+    ["Grounds",       ["--bg","--wall-1","--wall-2","--wall-glow"]],
+    ["Surfaces",      ["--glass","--glass-2","--glass-3","--chrome"]],
+    ["Lines",         ["--glass-line","--glass-line-2"]],
+    ["Text — 4 tiers",["--tx","--tx-2","--tx-3","--tx-4"]],
+    ["Accent",        ["--accent","--accent-2","--accent-dim"]],
+    ["Semantic — residency & state", ["--private","--public","--fail","--brand-red"]]
+  ];
+  function swatchWall(t,mode){
+    var d=PAL[t][mode], bg=d["--bg"];
+    return GROUPS.map(function(g){
+      return '<div style="grid-column:1/-1;padding:9px 12px;background:var(--p-bg-3);border-top:1px solid var(--p-line);'+
+        'font-family:var(--p-mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--p-fg-3)">'+g[0]+'</div>'+
+        g[1].map(function(k){
+          var v=d[k]; if(!v) return "";
+          var chip = (v.indexOf("rgba")===0||v.indexOf("rgb(")===0)
+            ? 'background:linear-gradient(45deg,'+bg+','+bg+'),'+bg+';box-shadow:inset 0 0 0 999px '+v
+            : 'background:'+v;
+          return '<div class="swcell"><span class="swchip" style="'+chip+'"></span>'+
+            '<span class="swmeta"><span class="tk">'+esc(k)+'</span><br><span class="hx">'+esc(v)+'</span></span></div>';
+        }).join("");
+    }).join("");
+  }
+  function crTable(t,mode){
+    var d=PAL[t][mode], bg=d["--bg"], sf=d["--glass-2"];
+    var rows=[
+      ["--tx","--bg","Primary text on the desktop ground"],
+      ["--tx-2","--bg","Secondary text on the ground"],
+      ["--tx-3","--bg","Tertiary — labels, captions, widget keys"],
+      ["--tx-4","--bg","Quaternary — disabled, decorative rules"],
+      ["--accent","--bg","Accent as text / as a 1px rule"],
+      ["--private","--bg","Residency: Private"],
+      ["--public","--bg","Residency: Public"],
+      ["--fail","--bg","State: failed"],
+      ["--tx","--glass-2","Primary text inside a window"],
+      ["--tx-3","--glass-2","Widget keys inside a window"],
+      ["--accent","--glass-2","Accent as a link inside a window"],
+      ["--private","--glass-2","Residency chip inside a window"]
+    ];
+    return '<div class="tblwrap"><table><thead><tr><th>Pair</th><th class="mono">hex</th><th>Ratio</th><th>Use</th></tr></thead><tbody>'+
+      rows.map(function(r){
+        var fg=d[r[0]], grd = r[1]==="--bg" ? bg : over(sf,bg);
+        var grdHex = r[1]==="--bg" ? bg : "rgb("+grd.slice(0,3).map(Math.round).join(",")+")";
+        var cr=contrast(fg,grdHex);
+        return '<tr><td class="mono">'+esc(r[0])+' <span style="color:var(--p-fg-4)">on</span> '+esc(r[1])+'</td>'+
+          '<td class="mono" style="text-transform:uppercase">'+esc(fg)+'</td>'+
+          '<td>'+crBadge(cr)+'</td><td>'+r[2]+'</td></tr>';
+      }).join("")+'</tbody></table></div>';
+  }
+  function famStrip(t,mode){
+    var d=PAL[t][mode];
+    var fam=[["--accent","Accent","the current locus of control"],
+             ["--private","Private","data stays on Magna hardware"],
+             ["--public","Public","egress is permitted"],
+             ["--fail","Fail","the machine could not do it"],
+             ["--brand-red","Brand red","the mark, and destructive confirm"]];
+    return tm(t,'<div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap">'+
+      fam.map(function(f){
+        var h=hueOf(d[f[0]]);
+        return '<div style="flex:1 1 130px;min-width:0;padding:10px 12px;border:1px solid var(--glass-line);'+
+          (t==="a"?"border-radius:2px":"border-radius:12px")+';background:var(--glass-2)">'+
+          '<span style="display:block;width:26px;height:26px;'+(t==="a"?"border-radius:2px":"border-radius:50%")+
+          ';background:'+d[f[0]]+';margin-bottom:8px'+(t==="b"?';box-shadow:0 0 12px '+d[f[0]]:"")+'"></span>'+
+          '<span style="display:block;font-size:11.5px;color:var(--tx);font-weight:620">'+f[1]+'</span>'+
+          '<span style="display:block;font-size:10px;color:var(--tx-3);line-height:1.45;margin-top:2px">'+f[2]+'</span>'+
+          '<span style="display:block;font-family:var(--mono);font-size:9.5px;color:var(--tx-4);margin-top:5px">hue '+h+'°</span>'+
+          '</div>';
+      }).join("")+'</div>','',mode);
+  }
+  function sepNote(t){
+    var d=PAL[t].dark;
+    var pairs=[["--accent","--private"],["--accent","--public"],["--accent","--fail"],["--private","--public"]];
+    return '<ul class="note" style="margin:10px 0 0;padding-left:18px">'+pairs.map(function(pr){
+      var h1=hueOf(d[pr[0]]),h2=hueOf(d[pr[1]]),diff=Math.abs(h1-h2); if(diff>180) diff=360-diff;
+      var ok = diff>=60;
+      return '<li><code>'+pr[0]+'</code> vs <code>'+pr[1]+'</code> — <b>'+diff+'° apart</b>'+
+        (ok?' — safe.':' — <span style="color:var(--p-warn)">tight; must carry a second signal.</span>')+'</li>';
+    }).join("")+'</ul>';
+  }
+
+  S.push(
+  '<section id="colour"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">03 · colour</p>'+
+    '<h2>Two grounds, one rule about red</h2>'+
+    '<p class="lede">Both themes take their accent from the Magna mark\'s own gradient — Astrolabe from the blue terminus, '+
+    'Suhail from the green→teal origin. Neither uses Magna red as the accent, and that is deliberate.</p></div>'+
+
+    '<div class="callout bad"><h3 class="ttl">The change I am asking for: <code>--accent</code> stops being red</h3>'+
+    '<p>Console ships <code>--accent:#D71920</code> today. In an OS, red is the only colour with a job it cannot share: '+
+    '<b>this failed, or this will delete something.</b> When the accent is also red, the focus ring, the selected row, '+
+    'the running-app underline and the destructive confirm are all the same colour — and the one moment red needs to mean '+
+    '<em>stop</em> is the moment it means nothing.</p>'+
+    '<p style="margin-bottom:0">In both themes Magna red is reserved for exactly two things: <b>the mark</b> (untouched, full colour, both grounds) and '+
+    '<b>destructive confirmation</b>. The accent moves to a hue that belongs to the same brand gradient and cannot be '+
+    'confused with any semantic family. This is one line in the ship block and it is the highest-value line in this document.</p></div>'+
+
+    ['a','b'].map(function(t){
+      return '<h3 style="margin:34px 0 12px">Option '+PAL[t].key+' · '+esc(PAL[t].name)+' — the full token set</h3>'+
+      '<div class="pair">'+
+        ['dark','light'].map(function(m){
+          return '<div class="spec">'+
+            '<div class="spechd"><b>'+m+'</b><span class="sp"></span><span>'+Object.keys(PAL[t][m]).length+' tokens</span></div>'+
+            '<div class="swgrid">'+swatchWall(t,m)+'</div></div>';
+        }).join("")+
+      '</div>'+
+      '<h4 style="margin:22px 0 10px">Measured contrast — computed in this page from the values above</h4>'+
+      '<div class="pair">'+
+        ['dark','light'].map(function(m){
+          return '<div><p class="note" style="margin:0 0 8px;font-family:var(--p-mono);text-transform:uppercase;letter-spacing:.1em;font-size:10px">'+m+'</p>'+crTable(t,m)+'</div>';
+        }).join("")+
+      '</div>';
+    }).join("")+
+
+    '<div class="callout warn"><h3 class="ttl">What fails, stated plainly</h3>'+
+    '<p><code>--tx-4</code> fails AA in all four token sets. That is intentional and it is the same decision the platform '+
+    'makes: it is the disabled / decorative tier — hairline rules, an inactive window control, the "16" under a size specimen. '+
+    '<b>It must never carry information a user has to read.</b> If a string is in <code>--tx-4</code> and matters, that is a bug, not a theme.</p>'+
+    '<p style="margin-bottom:0">Everything in tiers 1–3 passes AA on both the desktop ground and inside a window, in both modes, '+
+    'in both themes. Suhail dark <code>--tx-3</code> is the tightest at ~4.5:1 — <b>do not darken it</b>. '+
+    'Accent-on-ground passes AA as text in all four sets, which is what lets the accent be a link colour and not only a fill.</p></div>'+
+
+    '<h3 style="margin:38px 0 14px">The families, and why they never collide</h3>'+
+    '<p class="note" style="margin-bottom:14px">Residency (Private / Public) and state (ok / warn / fail) are separate families '+
+    'from the accent. <code>desktop-vision.html</code> makes the case that residency should not be carried by hue alone; both themes obey it — '+
+    'the chip carries a <b>shape</b> (Astrolabe: a hard 5px square, filled = private, hollow = public; Suhail: a glowing round dot vs a ring) '+
+    'and a <b>word</b>, with hue only as reinforcement. Hue separations below are measured, not eyeballed.</p>'+
+    '<div class="pair">'+
+      ['a','b'].map(function(t){
+        return '<div class="spec">'+thlabel(t)+'<div class="specbody">'+famStrip(t,"dark")+
+          '<div style="padding:12px 16px;border-top:1px solid var(--p-line);background:var(--p-bg-2)">'+sepNote(t)+'</div>'+
+          '</div></div>';
+      }).join("")+
+    '</div>'+
+    '<div class="callout"><h3 class="ttl">Suhail\'s one real tension, admitted</h3>'+
+    '<p style="margin-bottom:0">Suhail\'s accent is teal and its Private is green. They sit 86° apart, which is enough — but only just, and only because '+
+    'residency also carries a shape and a word. If anyone later proposes a teal <em>Private</em> chip in Suhail, the answer is no. '+
+    'Astrolabe has no such tension: blue accent against green/amber/red semantics is 100°+ on every pair.</p></div>'+
+  '</div></section>');
+})();
+
+/* ---------- TYPOGRAPHY ---------- */
+(function(){
+  function scaleSpec(t){
+    var T=TYPE[t];
+    var sample={"Menu bar":"Console  Desktop  Delivery  Build  Research",
+      "Window title":"Brain — Company Knowledge",
+      "Section label":t==="a"?"SOVEREIGNTY":"Sovereignty",
+      "Control / button":"Approve and run",
+      "Body":"Twelve new chunks indexed from the mail triage.",
+      "Reading":"Every app, agent and document runs on Magna's own hardware in Riyadh.",
+      "Data / mono":"magna-riyadh-dc1 · 8×H200 · 14.3 tok/s",
+      "Figure":"SAR 5.32M",
+      "Desktop icon label":"Board Pack Thursday"};
+    return tm(t,T.rows.map(function(r){
+      var caps = /uppercase/.test(r[5]);
+      var st='font-size:'+r[1]+';font-weight:'+r[2]+';letter-spacing:'+(r[3]==="0"?"0":r[3])+';line-height:'+r[4]+';';
+      if(/mono/.test(r[0])||/mono/.test(r[5])) st+='font-family:var(--mono);';
+      if(/tabular/.test(r[5])) st+='font-variant-numeric:tabular-nums;';
+      if(caps) st+='text-transform:uppercase;';
+      return '<div class="tyrow"><span class="k">'+esc(r[0])+'</span>'+
+        '<span class="sp" style="'+st+'">'+esc(sample[r[0]]||"The quick brown fox")+'</span>'+
+        '<span class="mt">'+esc(r[1])+' / '+esc(r[2])+' / '+esc(r[3])+'</span></div>';
+    }).join(""),'',"dark");
+  }
+  function scaleTable(t){
+    return '<div class="tblwrap"><table><thead><tr><th>Role</th><th class="mono">size</th><th class="mono">wt</th>'+
+      '<th class="mono">track</th><th class="mono">lh</th><th>Numerals / case</th><th>Where</th></tr></thead><tbody>'+
+      TYPE[t].rows.map(function(r){
+        return '<tr><td><b>'+esc(r[0])+'</b></td><td class="mono">'+esc(r[1])+'</td><td class="mono">'+esc(r[2])+'</td>'+
+          '<td class="mono">'+esc(r[3])+'</td><td class="mono">'+esc(r[4])+'</td><td class="mono">'+esc(r[5])+'</td><td>'+esc(r[6])+'</td></tr>';
+      }).join("")+'</tbody></table></div>';
+  }
+  function density(t){
+    var rows=[["chat","Board pack review","09:14"],["mail","Q3 variance — reply drafted","09:02"],
+      ["agents","Procurement agent · 3 steps","08:47"],["shield","Egress check passed","08:40"],
+      ["sheets","Budget Q3.xlsx reindexed","08:31"]];
+    return tm(t,'<div style="padding:0">'+rows.map(function(r){
+      return '<div class="densrow">'+icon(t,r[0],16)+'<span>'+esc(r[1])+'</span><span class="num">'+r[2]+'</span></div>';
+    }).join("")+'</div>','',"dark");
+  }
+  function arabic(t){
+    var T=TYPE[t];
+    var bump = t==="a" ? "13px / 1.72" : "15px / 1.86";
+    return tm(t,
+      '<div class="artest">'+
+        '<span class="ai-lbl">LTR — the scale as specified</span>'+
+        '<div style="font-size:'+(t==="a"?"13px":"14px")+';line-height:'+(t==="a"?"1.55":"1.62")+';color:var(--tx-2)">'+
+        'Every app, agent and document runs on Magna’s own hardware in Riyadh. Egress today: <b style="color:var(--tx)">0 bytes</b>.</div>'+
+        '<div style="margin-top:10px;font-family:var(--mono);font-size:'+(t==="a"?"11.5px":"12px")+';color:var(--tx-3);font-variant-numeric:tabular-nums">PO-4471-C2 · SAR 5,320,000 · 18 Aug 2026 · 18:41</div>'+
+      '</div>'+
+      '<div class="artest" dir="rtl">'+
+        '<span class="ai-lbl">RTL — same content, adjusted scale</span>'+
+        '<div class="ar" style="font-size:'+(t==="a"?"14px":"15px")+';line-height:'+(t==="a"?"1.72":"1.86")+';color:var(--tx-2);letter-spacing:0">'+
+        'كل تطبيق ووكيل ومستند يعمل على أجهزة ماغنا الخاصة في الرياض. '+
+        'البيانات المرسلة اليوم: <b style="color:var(--tx)">صفر بايت</b>.</div>'+
+        '<div class="ar" style="margin-top:10px;font-size:'+(t==="a"?"13px":"14px")+';color:var(--tx-3);letter-spacing:0">'+
+        '١٧ ربيع الأول ١٤٤٨هـ · المغرب ١٨:٤١</div>'+
+        '<div style="margin-top:8px;font-family:var(--mono);font-size:'+(t==="a"?"11.5px":"12px")+';color:var(--tx-3);direction:ltr;text-align:right;font-variant-numeric:tabular-nums">PO-4471-C2 · SAR 5,320,000</div>'+
+        '<div style="margin-top:12px;font-size:11px;color:var(--tx-4);line-height:1.5">Arabic bumped to <b style="color:var(--tx-3)">'+bump+'</b>; tracking forced to 0; the all-caps key style has no Arabic form and falls back to '+(t==="a"?"11px / 600 sentence case":"the same 11.5px / 600 it already is")+'.</div>'+
+      '</div>','',"dark");
+  }
+
+  S.push(
+  '<section id="type"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">04 · typography</p>'+
+    '<h2>One stack, two very different voices</h2>'+
+    '<p class="lede">The repo forbids external requests, so neither theme gets a typeface of its own. Both use '+
+    '<code>-apple-system / Segoe UI / system-ui</code>. Everything that differentiates them therefore has to come from '+
+    '<b>size, weight, tracking, leading, case, numeral style and row height</b> — which turns out to be plenty, and is the '+
+    'honest constraint rather than a compromise to apologise for.</p></div>'+
+
+    ['a','b'].map(function(t){
+      return '<h3 style="margin:0 0 12px">Option '+PAL[t].key+' · '+esc(PAL[t].name)+' — the OS type scale</h3>'+
+      '<div class="pair" style="margin-bottom:14px">'+
+        '<div class="spec">'+thlabel(t,"rendered at real size")+'<div class="specbody">'+scaleSpec(t)+'</div></div>'+
+        '<div>'+scaleTable(t)+'</div>'+
+      '</div>'+
+      '<div style="height:30px"></div>';
+    }).join("")+
+
+    '<h3 style="margin:12px 0 12px">Density is a row height, not a font size</h3>'+
+    '<p class="note" style="margin-bottom:14px">Same five rows, same 16&nbsp;px icons. Astrolabe: 26&nbsp;px rows, hairline separators, tabular timestamps. '+
+    'Suhail: 34&nbsp;px rows, no separator line at all — the separation is a 3% tonal step. Roughly <b>30% more rows fit on a screen in Astrolabe</b>, '+
+    'which is a product decision as much as a visual one.</p>'+
+    '<div class="pair">'+
+      ['a','b'].map(function(t){
+        return '<div class="spec">'+thlabel(t,TYPE[t].rowH+" rows")+'<div class="specbody">'+density(t)+'</div></div>';
+      }).join("")+
+    '</div>'+
+
+    '<h3 style="margin:38px 0 12px">The Arabic pairing</h3>'+
+    '<p class="lede" style="margin-bottom:16px">Console already ships Hijri dates and prayer times on the boot screen. The stack is '+
+    '<code>"SF Arabic", "Segoe UI", "Noto Sans Arabic", "Geeza Pro", Tahoma</code> — every one present on the platforms Console targets, '+
+    'none downloaded.</p>'+
+    '<div class="pair">'+
+      ['a','b'].map(function(t){
+        return '<div class="spec">'+thlabel(t)+'<div class="specbody">'+arabic(t)+'</div></div>';
+      }).join("")+
+    '</div>'+
+    '<div class="trio" style="margin-top:18px">'+
+      '<div class="card"><h3 class="ttl">The scale shifts, it does not just mirror</h3><p class="note" style="margin:0">At the same px value Arabic renders about 10% smaller than Latin and its ascenders and descenders need more room. '+
+      'Both themes bump Arabic <b>+1px</b> and add leading — Astrolabe 1.55&nbsp;→&nbsp;1.72, Suhail 1.62&nbsp;→&nbsp;1.86. Suhail needs the bigger bump because its Latin leading is already loose and the mismatch would show.</p></div>'+
+      '<div class="card"><h3 class="ttl">Astrolabe loses a style in RTL</h3><p class="note" style="margin:0">Astrolabe’s section keys are 10&nbsp;px ALL-CAPS with +0.09em tracking. Arabic has no case and must never be tracked, '+
+      'so in RTL that style has <b>no equivalent</b> and becomes 11&nbsp;px / 600 sentence case. Suhail loses nothing, because its keys were sentence case already — '+
+      'a genuine, if small, point in Suhail’s favour for a Saudi deployment.</p></div>'+
+      '<div class="card"><h3 class="ttl">Numerals: two systems, on purpose</h3><p class="note" style="margin:0">Western digits for anything a system produced — SAR figures, PO numbers, timestamps, token counts — because that is what a P6 export or a SAP PO actually looks like. '+
+      'Arabic-Indic (٠١٢) only for the Hijri date and prayer times, where the numeral is cultural rather than operational. Both themes force <code>direction:ltr</code> on numeric runs inside RTL text so <code>SAR 5,320,000</code> never reorders.</p></div>'+
+    '</div>'+
+    '<p class="note" style="margin-top:16px">The RTL work itself is not a theme cost — it is finding every hard-coded <code>left</code>/<code>right</code> in Console and moving it to logical properties. '+
+    '<code>desktop-vision.html</code> already prices that at ~3 days; nothing in either theme changes that number.</p>'+
+  '</div></section>');
+})();
+</script>
+
+
+<script>
+/* ---------- MOTION ---------- */
+(function(){
+  function scaleTable(t){
+    var M=MOTION[t];
+    return '<div class="tblwrap"><table><thead><tr><th style="width:26%">Token</th><th style="width:30%">Value</th><th>What it is for</th></tr></thead><tbody>'+
+      M.ease.map(function(r){return '<tr><td class="mono"><b>'+esc(r[0])+'</b></td><td class="mono">'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'}).join("")+
+      M.dur.map(function(r){return '<tr><td class="mono"><b>'+esc(r[0])+'</b></td><td class="mono">'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'}).join("")+
+      '</tbody></table></div>';
+  }
+  function budgetTable(t){
+    return '<div class="tblwrap"><table><thead><tr><th style="width:34%">Budget</th><th style="width:22%">Limit</th><th>Note</th></tr></thead><tbody>'+
+      MOTION[t].budget.map(function(r){return '<tr><td><b>'+esc(r[0])+'</b></td><td class="mono">'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'}).join("")+
+      '</tbody></table></div>';
+  }
+
+  function ground(t){ return '<div class="wall"><div class="v v1"></div><div class="v v2"></div></div>'; }
+  function miniwin(t,title,cls){
+    return '<div class="'+(cls||"mwin")+'"><div class="mwin-bar"><span class="tl"></span><span class="tl"></span>'+
+      '<span style="margin-left:4px">'+esc(title)+'</span></div>'+
+      '<div class="mwin-body"><div class="skel" style="width:78%"></div><div class="skel" style="width:92%"></div>'+
+      '<div class="skel" style="width:54%"></div></div></div>';
+  }
+  var STAGE={
+    win:function(t){ return ground(t)+'<div class="d-win mwin"><div class="mwin-bar"><span class="tl"></span><span class="tl"></span>'+
+      '<span style="margin-left:4px">Brain — Company Knowledge</span></div><div class="mwin-body">'+
+      '<div class="skel" style="width:78%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:54%"></div></div></div>'; },
+    space:function(t){
+      function tiles(n,off){ return [0,1,2,3].map(function(i){
+        return '<span class="tile" style="left:'+(18+i*24)+'%;top:'+(28+((i%2)*22))+'%">'+iconbox(t,["chat","brain","agents","sheets"][i])+'</span>';
+      }).join(""); }
+      return ground(t)+'<div class="d-track">'+
+        '<div class="d-space out"><span class="lb">Delivery</span>'+tiles(4,0)+'</div>'+
+        '<div class="d-space"><span class="lb">Research</span>'+tiles(4,1)+'</div>'+
+        '</div><div class="d-dots"><i></i><i></i></div>'; },
+    dock:function(t){
+      var names=["chat","brain","code","mail","files","agents"];
+      return ground(t)+'<div class="d-dock">'+names.map(function(n,i){
+        var a = i===2?' data-hot="1"' : (i===1||i===3)?' data-near="1"' : '';
+        return '<span class="d-dk"'+a+'>'+iconbox(t,n)+(i===2?'<span class="d-tip">Code</span>':'')+'</span>';
+      }).join("")+'</div>'; },
+    note:function(t){
+      return ground(t)+'<div class="d-note"><span class="t">Procurement agent finished</span>'+
+        '<span class="s">Package C2 exposure recalculated — SAR 5.32M. 2 rows need approval.</span><span class="bar"></span></div>'+
+        miniwin(t,"Mail").replace('class="mwin"','class="mwin" style="left:12px;top:66px;width:min(56%,180px);opacity:.5"'); },
+    think:function(t){
+      return ground(t)+'<div class="d-think" style="--mg-dur:'+(t==="a"?"1600ms":"2400ms")+'">'+
+        '<div class="mkrow">'+mark()+'<span class="st">'+(t==="a"?"SEARCHING COMPANY KNOWLEDGE":"Searching Company Knowledge…")+'</span></div>'+
+        '<div class="hair"><i></i></div>'+
+        '<div style="margin-top:9px;font-size:10px;color:var(--tx-4);font-family:'+(t==="a"?"var(--mono)":"var(--sans)")+'">'+
+        (t==="a"?"14 chunks · 218 ms · local":"14 chunks retrieved · 218 ms · on-premise")+'</div></div>'; }
+  };
+  var DEMOS=[
+    ["win","Window open","Astrolabe: 200 ms, 6 px rise, 0.98→1, no shadow animation. Suhail: 420 ms, 14 px rise, 0.94→1, the shadow arrives with it."],
+    ["space","Space switch","The one place both themes spend their longest duration. Astrolabe slides the plane and changes one indicator. Suhail slides the plane <em>and</em> lets the icons fall back into depth on the way out — the reason its 620 ms does not feel slow."],
+    ["dock","Dock hover","Astrolabe does not magnify. A 2 px lift and a mono tooltip; the running-app underline never moves. Suhail magnifies to 1.34× with neighbour falloff — the single most 'alive' gesture in the theme, and the one most likely to be cut on low-end hardware."],
+    ["note","Notification arrival","Astrolabe drops it 8 px with a determinate 2 px progress rule that shows exactly how long it will stay. Suhail floats it 16 px with an accent rim that fades up over 620 ms and no progress bar — it leaves when it leaves."],
+    ["think","The thinking state","Per the brand addendum, the indicator <b>is</b> the Magna mark, looping. Astrolabe pairs it with a determinate hairline and a mono status in caps. Suhail slows the loop to 2.4 s and breathes the whole panel at 4.6 s. Press again to stop."]
+  ];
+
+  S.push(
+  '<section id="motion"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">05 · motion</p>'+
+    '<h2>Fast and short, or slow and settled</h2>'+
+    '<p class="lede">Same five interactions, same markup, two motion scales. Every specimen below is replayable, '+
+    'transform/opacity only, and genuinely disabled under <code>prefers-reduced-motion</code> — not slowed down, disabled.</p></div>'+
+    '<div class="pair">'+
+      ['a','b'].map(function(t){
+        return '<div><h3 style="margin:0 0 12px">Option '+PAL[t].key+' · '+esc(PAL[t].name)+'</h3>'+scaleTable(t)+
+          '<h4 style="margin:18px 0 10px">Budgets</h4>'+budgetTable(t)+'</div>';
+      }).join("")+
+    '</div>'+
+    DEMOS.map(function(d,i){
+      var g="g"+i;
+      return '<h3 style="margin:38px 0 10px">'+esc(d[1])+'</h3>'+
+        '<p class="note" style="margin-bottom:14px;max-width:88ch">'+d[2]+'</p>'+
+        '<div class="pair tight">'+
+          ['a','b'].map(function(t){
+            return '<div class="spec">'+thlabel(t, t==="a"?PAL.a.motion["--t-"+(d[0]==="space"?"4":"3")]:PAL.b.motion["--t-"+(d[0]==="space"?"4":"3")])+
+              '<div class="specbody">'+
+                tm(t,'<div class="mdemo" data-g="'+g+'" data-kind="'+d[0]+'"><div class="mstage'+(d[0]==="think"?" tall":"")+'">'+STAGE[d[0]](t)+'</div></div>','',"dark")+
+              '</div></div>';
+          }).join("")+
+        '</div>'+
+        '<div class="mctl">'+
+          '<button type="button" class="playbtn" data-play="'+g+'" data-loop="'+(d[0]==="think"?"1":"0")+'">'+
+            '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l8 5-8 5z"/></svg>'+
+            '<span>'+(d[0]==="think"?"Play both":"Replay both")+'</span></button>'+
+          '<span class="num">A '+PAL.a.motion["--t-"+(d[0]==="space"?"4":"3")]+' · B '+PAL.b.motion["--t-"+(d[0]==="space"?"4":"3")]+'</span>'+
+        '</div>';
+    }).join("")+
+    '<div class="callout good"><h3 class="ttl">Reduced motion is not a slower version</h3>'+
+    '<p style="margin-bottom:0">Under <code>prefers-reduced-motion: reduce</code> every specimen on this page collapses to 1&nbsp;ms and every loop '+
+    'runs once. The thinking indicator becomes the <b>static, fully drawn</b> mark plus its status text — never hidden, per the brand addendum. '+
+    'Suhail\'s ground stops drifting and holds its mid position. Nothing on the page reads as broken with motion off, which is the actual test.</p></div>'+
+  '</div></section>');
+})();
+
+/* ---------- THE AI LAYER ---------- */
+(function(){
+  function thinkingCell(t){
+    return tm(t,'<div class="aistage"><span class="ai-lbl">Thinking — three scales, one vocabulary</span>'+
+      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+        '<span style="display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--tx-2)">'+
+          mark("mk-sm")+'<span style="'+(t==="a"?"font-family:var(--mono);letter-spacing:.03em":"")+'">menu bar</span></span>'+
+        '<span style="display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--tx-2);padding:5px 10px;border:1px solid var(--glass-line);background:var(--glass-2);'+(t==="a"?"border-radius:2px":"border-radius:99px")+'">'+
+          mark("mk-md")+'<span>Writing…</span></span>'+
+      '</div>'+
+      '<div style="margin-top:14px;padding:12px;border:1px solid var(--glass-line);background:var(--glass-2);'+(t==="a"?"border-radius:2px":"border-radius:var(--r-lg)")+'">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+mark("mk-lg")+
+        '<span style="font-size:12px;color:var(--tx-2);'+(t==="a"?"font-family:var(--mono);letter-spacing:.03em;text-transform:uppercase;font-size:11px":"")+'">'+(t==="a"?"Retrieving · 14 chunks":"Reading your Company Knowledge…")+'</span></div>'+
+        '<div class="hair" style="margin-top:11px;height:2px;background:var(--glass-line-2);position:relative;overflow:hidden'+(t==="b"?";border-radius:99px":"")+'"><i style="position:absolute;inset:0;background:var(--accent);transform-origin:left;transform:scaleX(.62)'+(t==="b"?";box-shadow:0 0 10px var(--accent)":"")+'"></i></div>'+
+      '</div>'+
+      '<p style="margin:12px 0 0;font-size:10.5px;color:var(--tx-4);line-height:1.5">'+
+      (t==="a"?"One mark, three sizes: 13 / 16 / 22 px. Always paired with a determinate hairline, because an instrument that cannot say how far along it is, is not an instrument."
+              :"One mark, three sizes: 14 / 18 / 24 px. The hairline is indeterminate and glowing; progress is implied by the panel breathing, not stated.")+
+      '</p></div>','',"dark");
+  }
+  function presenceCell(t){
+    return tm(t,'<div class="aistage"><span class="ai-lbl">Agent presence</span>'+
+      '<div class="ai-win busy live"><span class="ttl">Procurement · Package C2</span>'+
+      '<span class="sub">'+(t==="a"?"STEP 3/5 · rebuilding exposure":"Step 3 of 5 — rebuilding exposure")+'</span>'+
+      '<div class="ai-agents"><span class="av on">P</span><span class="av on">R</span><span class="av">M</span><span class="av">S</span></div>'+
+      '</div>'+
+      '<div class="ai-win" style="margin-top:9px;opacity:.72"><span class="ttl">Mail</span><span class="sub">idle</span></div>'+
+      '<p style="margin:11px 0 0;font-size:10.5px;color:var(--tx-4);line-height:1.5">'+
+      (t==="a"?"A busy window carries a 2 px accent rule on its leading edge. It is either there or it is not — no pulse, no glow. Agent chips are hard squares; active ones take the accent border."
+              :"A busy window is rim-lit: a 1 px accent border plus a 26 px accent bloom that breathes over 3.4 s. Active agents get a 10 px halo. Presence is light, not a badge.")+
+      '</p></div>','',"dark");
+  }
+  function telemetryCell(t){
+    var spark = '<svg class="ai-spark" viewBox="0 0 120 16" preserveAspectRatio="none" aria-hidden="true">'+
+      (t==="a"
+        ? '<path d="M0 13 10 13 10 9 20 9 20 11 30 11 30 5 40 5 40 8 50 8 50 4 60 4 60 10 70 10 70 6 80 6 80 12 90 12 90 7 100 7 100 9 110 9 110 6 120 6" fill="none" stroke="var(--accent)" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>'
+        : '<path d="M0 13Q10 12 15 9T30 10 45 5 60 7 75 4 90 9 105 6 120 8" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>')+
+      '</svg>';
+    return tm(t,'<div class="aistage"><span class="ai-lbl">Ambient telemetry</span>'+
+      '<div class="ai-tel">'+
+        '<div class="cell"><span class="k">'+(t==="a"?"EGRESS TODAY":"Egress today")+'</span><span class="v ok">0 bytes</span></div>'+
+        '<div class="cell"><span class="k">'+(t==="a"?"TOK/S":"Throughput")+'</span><span class="v">14.3</span>'+spark+'</div>'+
+        '<div class="cell"><span class="k">'+(t==="a"?"GPU · 8×H200":"Cluster")+'</span><span class="v">41%</span></div>'+
+      '</div>'+
+      '<p style="margin:11px 0 0;font-size:10.5px;color:var(--tx-4);line-height:1.5">'+
+      (t==="a"?"Numbers are mono, tabular and never re-flow when they change. The sparkline is a stepped polyline at 1 px — it is a reading, not a decoration. Egress reads in --private green because zero is the good state."
+              :"Numbers are sans, 540 weight, with a rounded spark. The whole strip's luminance rises with cluster load, so peripheral vision catches a busy machine before you read the figure.")+
+      '</p></div>','',"dark");
+  }
+  function retrievalCell(t){
+    return tm(t,'<div class="aistage"><span class="ai-lbl">Retrieval &amp; grounding</span>'+
+      '<p class="ai-quote" style="margin:0">Package C2 is <span class="ai-cite">46 days behind on the LD cap<span class="ai-src">1</span></span>, '+
+      'and the board pack is due <span class="ai-cite">Thursday 09:00<span class="ai-src">2</span></span>.</p>'+
+      '<div class="ai-srcs">'+
+        '<div class="ai-srcrow"><span class="n">1</span><span>Delivery-Log-C2.xlsx · sheet 3</span><span class="sc">0.91</span></div>'+
+        '<div class="ai-srcrow"><span class="n">2</span><span>Board-Pack-Aug.docx · p.4</span><span class="sc">0.87</span></div>'+
+      '</div>'+
+      '<p style="margin:11px 0 0;font-size:10.5px;color:var(--tx-4);line-height:1.5">'+
+      (t==="a"?"A grounded span carries a 1 px accent underline and a numbered square chip. The score is shown because an instrument shows its confidence. Ungrounded text carries nothing — absence is the signal."
+              :"A grounded span sits on a 15% accent wash with a 12 px bloom, and the chip is a round pill. Hovering a source warms its span rather than drawing a connector line.")+
+      '</p></div>','',"dark");
+  }
+  function graphCell(t){
+    return tm(t,'<div class="graphwrap"><div style="padding:16px 16px 0"><span class="ai-lbl">The Brain graph</span></div>'+
+      '<canvas class="ai-graph" data-graph="'+t+'" aria-label="Brain knowledge graph, '+esc(PAL[t].name)+' rendering"></canvas>'+
+      '<span class="cap">'+(t==="a"?"orthogonal · 1px · no glow":"force-directed · depth by opacity")+'</span></div>'+
+      '<div style="padding:0 16px 14px"><p style="margin:0;font-size:10.5px;color:var(--tx-4);line-height:1.5">'+
+      (t==="a"?"Nodes are 3 px squares. Edges route orthogonally with 90° elbows — never a curve, never a crossing that could have been avoided. Node size encodes chunk count; nothing encodes nothing."
+              :"Nodes are discs with a soft halo. Edges are quadratics. Depth is faked with opacity and radius only — never blur, because an animated blur is the one thing that will melt the laptop.")+
+      '</p></div>','',"dark");
+  }
+
+  var CELLS=[["The thinking indicator",thinkingCell],["Agent presence",presenceCell],
+    ["Ambient telemetry",telemetryCell],["Retrieval & grounding",retrievalCell],["The Brain graph",graphCell]];
+
+  S.push(
+  '<section id="ai"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">06 · the AI layer</p>'+
+    '<h2>How the machine shows its work</h2>'+
+    '<p class="lede">This is the layer that makes an OS feel like an <em>AI</em> OS, and the layer where clichés live. '+
+    'Five surfaces, specified in both themes. The rule both obey: <b>the machine\'s activity is shown once, in one vocabulary, '+
+    'at whatever scale the surface allows</b> — never as a second decorative language layered on top.</p></div>'+
+    CELLS.map(function(c){
+      return '<h3 style="margin:32px 0 12px">'+esc(c[0])+'</h3>'+
+        '<div class="pair tight">'+['a','b'].map(function(t){
+          return '<div class="spec">'+thlabel(t)+'<div class="specbody">'+c[1](t)+'</div></div>';
+        }).join("")+'</div>';
+    }).join("")+
+    '<div class="callout"><h3 class="ttl">The mark is the indicator, everywhere</h3>'+
+    '<p style="margin-bottom:0">Per <code>BRIEF-ADDENDUM.md</code> §1b, the thinking affordance is the Magna mark animating — not a spinner, not three dots. '+
+    'Both themes keep it and neither recolours it: the mark stays full-colour on both grounds, and neither theme applies <code>filter</code>, '+
+    '<code>currentColor</code> or an opacity below .9 to it. What the themes change is only its <b>tempo</b> (1.6&nbsp;s vs 2.4&nbsp;s) and what sits beside it.</p></div>'+
+  '</div></section>');
+})();
+</script>
+
+
+<script>
+/* ---------- APPLIED · the miniature Console ---------- */
+(function(){
+  function miniConsole(t,mode){
+    var A = t==="a";
+    var desk=[["chat","Chat"],["brain","Brain"],["agents","Agents"],["sheets","Budget Q3"]];
+    var dock=["chat","brain","code","mail","files","agents","workflow","settings"];
+    return tm(t,
+      '<div class="mc">'+
+        '<div class="mc-wall wall"><div class="v v1"></div><div class="v v2"></div>'+mark("wallmark")+'</div>'+
+        '<div class="mc-bar">'+mark("mk")+'<span class="app">Console</span>'+
+          '<span class="mi">Desktop</span><span class="mi">Delivery</span>'+
+          '<span class="sp"></span>'+
+          '<span class="mc-res"><span class="d"></span>'+(A?"PRIVATE":"Private")+'</span>'+
+          '<span class="mc-clock">18:41</span>'+
+        '</div>'+
+        '<div class="mc-icons">'+desk.map(function(d){
+          return '<span class="mc-di">'+iconbox(t,d[0])+'<span class="lb">'+esc(d[1])+'</span></span>';
+        }).join("")+'</div>'+
+        '<div class="mc-widget"><span class="k">'+(A?"SOVEREIGNTY":"Sovereignty")+'</span>'+
+          '<span class="v">0 bytes</span>'+
+          '<span class="s">egress today</span>'+
+          '<span class="s" style="margin-top:6px"><b>magna-riyadh-dc1</b><br>'+(A?"8×H200 · 41%":"8×H200 — 41%")+'</span>'+
+        '</div>'+
+        '<div class="mc-win"><div class="wb"><span class="tl"></span><span class="tl"></span>'+
+          '<span style="margin-left:3px">Brain — Company Knowledge</span></div>'+
+          '<div class="wc"><span class="h">Package C2 exposure</span>'+
+          'Rebuilt from 14 chunks. '+
+          '<span style="color:var(--tx);'+(A?'box-shadow:inset 0 -1px 0 0 var(--accent)':'background:color-mix(in srgb,var(--accent) 15%,transparent);border-radius:4px;padding:0 2px')+'">46 days behind LD cap</span>'+
+          '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;font-size:8.5px;margin-left:2px;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 46%,transparent);'+(A?'border-radius:1px;font-family:var(--mono)':'border-radius:99px')+'">1</span>'+
+          '. Board pack due Thursday 09:00.'+
+          '<div style="margin-top:8px;display:flex;align-items:center;gap:7px">'+mark("mk-sm")+
+          '<span style="font-size:9.5px;color:var(--tx-3);'+(A?'font-family:var(--mono);letter-spacing:.04em':'')+'">'+(A?"WRITING…":"Writing…")+'</span></div>'+
+        '</div></div>'+
+        '<div class="mc-ask">'+mark("mk")+'<span>Ask AI</span></div>'+
+        '<div class="mc-dock">'+dock.map(function(n,i){
+          return '<span class="mc-dk'+(i===1||i===5?" run":"")+'">'+iconbox(t,n)+'</span>';
+        }).join("")+'</div>'+
+      '</div>','mcmount',mode);
+  }
+  window.__miniConsole=miniConsole;
+
+  S.push(
+  '<section id="applied"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">07 · applied</p>'+
+    '<h2>The whole thing, not the parts</h2>'+
+    '<p class="lede">Menu bar, wallpaper, six desktop icons, a window, the Sovereignty widget, the Ask&nbsp;AI pill and the dock — '+
+    'rendered in both themes. <b>The markup is byte-identical.</b> Everything you see differing below comes from the token block, '+
+    'the icon set and about forty lines of theme-scoped CSS. That is the proof the ship block in the next section is real.</p></div>'+
+    '<div class="pair">'+
+      ['a','b'].map(function(t){
+        return '<div class="spec">'+thlabel(t,"live · hover the dock")+'<div class="specbody" data-mini="'+t+'"></div></div>';
+      }).join("")+
+    '</div>'+
+    '<div class="trio" style="margin-top:20px">'+
+      '<div class="card"><h3 class="ttl">What the menu bar tells you</h3><p class="note" style="margin:0">Astrolabe: 12&nbsp;px/600, tabular clock, residency as a hard square chip in caps mono. '+
+      'Suhail: 13&nbsp;px/520, the same clock in the sans, residency as a soft pill with a glowing dot. Same information, two postures.</p></div>'+
+      '<div class="card"><h3 class="ttl">What the window tells you</h3><p class="note" style="margin:0">Astrolabe\'s window is <b>opaque</b> with a 3&nbsp;px radius and no backdrop filter at all — '+
+      'a panel bolted to the ground. Suhail\'s is translucent with an 18&nbsp;px radius and a 24&nbsp;px blur — a pane floating above it. '+
+      'This is the single biggest cost difference between the two and it is discussed in §09.</p></div>'+
+      '<div class="card"><h3 class="ttl">What the dock tells you</h3><p class="note" style="margin:0">Both show two apps running. Astrolabe: a 1.5&nbsp;px accent underline that does not move. '+
+      'Suhail: a 4&nbsp;px glowing dot, and the tiles magnify on hover. Try both — the dock is where a client decides how they feel about a theme in about two seconds.</p></div>'+
+    '</div>'+
+  '</div></section>');
+})();
+
+/* ---------- SHIP BLOCK ---------- */
+(function(){
+  /* the authoritative token list, read off the :root block at the top of
+     apps/app-7-console.html. Every one of these is checked below. */
+  var CONSOLE_ROOT = ["--wall-1","--wall-2","--wall-glow","--bg","--glass","--glass-2","--glass-3",
+    "--glass-line","--glass-line-2","--chrome","--tx","--tx-2","--tx-3","--tx-4",
+    "--accent","--accent-2","--accent-dim","--signal","--signal-dim","--private","--private-dim",
+    "--public","--public-dim","--cyan","--blue","--violet","--glow-cyan","--glow-violet",
+    "--shadow-win","--shadow-sm","--shadow-pop","--r","--r-lg","--r-xl","--r-pill",
+    "--sans","--mono","--menubar-h","--dock-h","--blur"];
+  var TOKEN_NOTE = {
+    "--sans":"unchanged — both themes use Console's existing system stack",
+    "--mono":"unchanged — both themes use Console's existing mono stack"
+  };
+  var NEW_TOKENS = ["--fail","--fail-dim","--brand-red","--ar","--e-out","--e-in-out","--t-1","--t-2","--t-3","--t-4","--icon-stroke","--icon-r","--row-h"];
+
+  function allTokens(t,mode){
+    var P=PAL[t], all={};
+    Object.keys(P[mode]).forEach(function(k){ all[k]=P[mode][k] });
+    Object.keys(P.shape).forEach(function(k){ all[k]=P.shape[k] });
+    Object.keys(P.motion).forEach(function(k){ all[k]=P.motion[k] });
+    return all;
+  }
+  function decl(obj){ return Object.keys(obj).map(function(k){ return k+":"+obj[k]; }).join(";"); }
+  /* ONE string covering BOTH modes. See the engine note below for why. */
+  function dualCSS(t){
+    return ':root[data-theme="dark"]{'+decl(allTokens(t,"dark"))+'}'+
+           ':root[data-theme="light"]{'+decl(allTokens(t,"light"))+'}'+
+           PAL[t].extra.join("");
+  }
+  window.__dualCSS=dualCSS;
+  function entry(t){
+    var P=PAL[t], css=dualCSS(t);
+    return '{id:"'+P.id+'", name:"'+P.name+'", layout:"'+P.layout+'", dark:true,\n'+
+      ' desc:"'+P.tag+'",\n'+
+      ' cssD:'+JSON.stringify(css)+',\n'+
+      ' cssL:'+JSON.stringify(css)+'}';
+  }
+  function block(t){
+    var P=PAL[t], css=dualCSS(t);
+    return '<div class="codewrap" style="margin-bottom:14px">'+
+      '<div class="codehd"><span class="fn">THEMES[] entry — '+esc(P.name)+'</span>'+
+      '<span class="sp"></span><span>'+css.length+' chars</span>'+
+      '<button type="button" class="btn sm" data-copy="ship-'+t+'">Copy entry</button></div>'+
+      '<pre id="ship-'+t+'">'+esc(entry(t))+'</pre></div>';
+  }
+  function coverage(){
+    var rows = CONSOLE_ROOT.map(function(k){
+      var a=allTokens("a","dark")[k], b=allTokens("b","dark")[k];
+      var note=TOKEN_NOTE[k];
+      function cell(v){ return v!==undefined
+        ? '<span class="pill pass">set</span>'
+        : (note?'<span class="pill low">inherited</span>':'<span class="pill fail">missing</span>'); }
+      return '<tr><td class="mono"><b>'+esc(k)+'</b></td><td>'+cell(a)+'</td><td>'+cell(b)+'</td><td>'+(note||"")+'</td></tr>';
+    }).join("");
+    var extra = NEW_TOKENS.map(function(k){
+      var a=allTokens("a","dark")[k];
+      return '<tr><td class="mono"><b>'+esc(k)+'</b></td><td><span class="pill aaa">new</span></td><td><span class="pill aaa">new</span></td>'+
+        '<td>Not in Console today. Harmless to set — it simply becomes available. Nothing reads it until the CSS is pointed at it.</td></tr>';
+    }).join("");
+    return '<div class="tblwrap"><table><thead><tr><th style="width:20%">Console <code>:root</code> token</th>'+
+      '<th style="width:12%">Astrolabe</th><th style="width:12%">Suhail</th><th>Note</th></tr></thead><tbody>'+
+      rows+
+      '<tr><td colspan="4" style="background:var(--p-bg-3);font-family:var(--p-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--p-fg-3)">tokens these themes add</td></tr>'+
+      extra+'</tbody></table></div>';
+  }
+
+  var BEYOND={
+    a:[["Layout","<code>layout:&quot;grid&quot;</code> — the existing column-first arrangement. <b>No new layout function needed.</b>"],
+       ["Icon set","<b>Required, and it is the only real asset work.</b> Replace the bodies of the 14 <code>&lt;symbol&gt;</code>s in <code>#sprite</code> with the Astrolabe paths from §02. Same <code>viewBox</code>, same ids, so <code>ico()</code> and every <code>.ico</code> size class are untouched. Gate it on the active theme id if you want the other 12 themes to keep today's icons."],
+       ["App tile colours","<b>Already in the paste block.</b> The <code>.g-*</code> classes are neutralised to <code>--tile:var(--tx-2)</code> on a flat surface. If you would rather keep app hues, delete that one rule from the tail of <code>cssD</code> — everything else still works, the theme is just less disciplined."],
+       ["Kill the icon glow","<b>Already in the paste block</b> (<code>filter:none</code> on the hover rules). Console drop-shadows every hovered icon in <code>--cyan</code>; Astrolabe has no glow anywhere, and that rule is also a per-hover filter."],
+       ["Opaque window chrome","<code>.win{backdrop-filter:none}</code>. The <code>--glass*</code> tokens already ship as solid hexes, so this one declaration finishes the job and removes the most expensive property in the window system."],
+       ["Wallpaper","<b>None.</b> The ground is <code>--wall-1</code>/<code>--wall-2</code> plus the existing <code>#wallpaper .grid</code>. No renderer, no canvas, no rAF. If you want the 256px major grid, that is one extra <code>background-image</code> layer."],
+       ["Focus ring","<code>:focus-visible{outline-color:var(--accent)}</code> — currently hard-wired to <code>--accent-2</code>, which was red."]],
+    b:[["Layout","<code>layout:&quot;floating&quot;</code> — the existing organic-wobble arrangement, which is exactly Suhail's character. <b>No new layout function needed.</b>"],
+       ["Icon set","<b>Required.</b> Same swap as Astrolabe, with the Suhail paths from §02."],
+       ["Wallpaper renderer","<b>Required, but small.</b> Two absolutely-positioned radial-gradient divs inside <code>#wallpaper</code> with 34&nbsp;s / 42&nbsp;s <code>transform</code> keyframes — Console already has <code>.glow</code> and <code>.glow.b</code> doing almost this; retune their colours to <code>--wall-glow</code>/<code>--glow-cyan</code> and lengthen the durations. Compositor-only. Keep it inside <code>@media (prefers-reduced-motion: no-preference)</code>."],
+       ["Motion variables","<b>Required.</b> Console has no motion tokens — durations are literals throughout. Suhail's identity <em>is</em> its tempo, so <code>--t-1…4</code> and <code>--e-out</code> have to be referenced by <code>.win</code>, <code>.dk</code> and the space switch. About a day, and worth doing whichever theme wins."],
+       ["App tile colours","<b>Already in the paste block.</b> The twenty <code>.g-*</code> hues are kept but re-lit from one direction, and the tiles take the squircle radius. Nothing is recoloured, so app recognition is untouched."],
+       ["Dock magnification","<b>Already in the paste block</b> — <code>.dk:hover{transform:translateY(-15px) scale(1.34)}</code> inside a <code>@media (hover:hover)</code> guard, so it never fires on touch. Neighbour falloff is the existing pointermove handler."],
+       ["Edge light","<code>.win.focused</code> gains an accent <code>box-shadow</code> transitioning over <code>--t-4</code>. Repaints that window's own layer on focus change — not per frame."]]
+  };
+
+  S.push(
+  '<section id="ship"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">08 · ship block · install</p>'+
+    '<h2>Installing these next to the current default</h2>'+
+    '<p class="lede">These are not a mood board. Both entries below paste straight into the <code>THEMES</code> array in '+
+    '<code>apps/app-7-console.html</code> and appear in the ⌘-picker alongside the existing twelve. '+
+    '<b>Grid stays the default and stays untouched</b>, and every existing user keeps whatever they had.</p></div>'+
+
+    '<div class="callout good"><h3 class="ttl">How to install</h3>'+
+    '<ol class="steps" style="margin-top:8px">'+
+      '<li><b>Paste both entries into <code>THEMES</code>.</b> The array is at <code>/* ---- THEME SYSTEM (12 themes …) ---- */</code>, around line 6266. Append them after <code>orbital</code>, or put them first so they lead the picker. Order in the array is only picker order — it has no other effect.</li>'+
+      '<li><b>Do not touch <code>grid</code>.</b> It is the default because <code>store.get("mv7.theme","grid")</code> falls back to it and because <code>applyThemeById</code> deliberately injects <em>no</em> stylesheet for it, letting the base <code>:root</code> stand. Both new entries are additive; nothing about the default changes.</li>'+
+      '<li><b>Existing users are safe.</b> A saved choice lives in <code>localStorage["mv7.theme"]</code> and the light/dark mode in <code>localStorage["mv7.themeMode"]</code>. Adding array entries cannot change either, so anyone already on, say, <em>Wave</em> stays on Wave. Nobody is opted in.</li>'+
+      '<li><b>Swap the icon sprite behind the theme id.</b> The token block cannot carry icons. Either replace the 14 <code>&lt;symbol&gt;</code> bodies outright, or keep both sets and swap on the <code>mv:theme</code> event that <code>applyThemeById</code> already dispatches. Details per theme below.</li>'+
+      '<li><b>Check it on a window, not the wallpaper.</b> The failure mode of all twelve existing themes is that they only reach the ground. Open Brain, open Settings, hover the dock, look at the Sovereignty card — in both modes.</li>'+
+    '</ol></div>'+
+
+    '<div class="callout bad"><h3 class="ttl">Two engine bugs the paste blocks are written around</h3>'+
+    '<p><b>1 · <code>cssL</code> currently does nothing.</b> <code>applyThemeById()</code> injects the block into a <code>&lt;style&gt;</code> appended to '+
+    '<code>&lt;head&gt;</code>, and all twelve existing themes write their light variant as <code>:root{…}</code>. But Console\'s base stylesheet defines its light '+
+    'tokens under <code>:root[data-theme="light"]{…}</code> — specificity (0,2,0) against (0,1,0). Source order never gets a look in. So every light-mode token the base '+
+    'block also defines — <code>--bg</code>, <code>--tx</code>, <code>--tx-2</code>, <code>--tx-3</code>, <code>--tx-4</code>, <code>--private</code>, '+
+    '<code>--public</code>, the shadows — <b>is silently discarded</b>. Only <code>--accent</code> and <code>--cyan</code> survive, because those two happen not to be '+
+    'redefined there. That is precisely why all twelve light themes are the same grey page with a different link colour.</p>'+
+    '<p><b>2 · The light/dark button does not re-inject.</b> <code>applyTheme()</code> flips <code>data-theme</code> and mutates <code>cur.dark</code>, but never calls '+
+    '<code>applyThemeById()</code>. So the stylesheet on the page after a toggle is still whichever one was injected when the theme was picked.</p>'+
+    '<p style="margin-bottom:0"><b>Both are fixed by the shape of the blocks below, with no engine change.</b> Each entry carries <em>one</em> string containing '+
+    '<b>both</b> <code>:root[data-theme="dark"]{…}</code> and <code>:root[data-theme="light"]{…}</code>, and ships that same string as <code>cssD</code> <em>and</em> '+
+    '<code>cssL</code>. Whichever field the engine picks, both modes are present, the attribute selector does the switching for free, and the toggle button works instantly '+
+    'because nothing needs re-injecting. It is deliberately belt-and-braces — the wiring is a paste, not a refactor.</p></div>'+
+
+    '<div class="pair">'+['a','b'].map(function(t){
+      return '<div><h3 style="margin:0 0 6px">Option '+PAL[t].key+' · '+esc(PAL[t].name)+'</h3>'+
+        '<p class="note" style="margin:0 0 10px"><code>id:"'+PAL[t].id+'"</code> · <code>layout:"'+PAL[t].layout+'"</code> — an existing layout function, so no new code.</p>'+
+        block(t)+'</div>';
+    }).join("")+'</div>'+
+
+    '<div class="callout warn"><h3 class="ttl">The 20 hues no token can reach — and how these blocks reach them anyway</h3>'+
+    '<p>Every desktop icon and every dock tile in Console gets its colour from a hard-coded class: '+
+    '<code>.g-chat{--tile:#F0353C;…}</code>, <code>.g-brain{--tile:#43E0A6;…}</code>, twenty of them, sitting outside the token system entirely. '+
+    'That is the real reason the existing twelve themes all look alike — whatever you do to <code>--bg</code>, the screen is still dominated '+
+    'by twenty fixed hues and a white gloss overlay.</p>'+
+    '<p><b>The lever is that <code>cssD</code> is a stylesheet, not a token list.</b> <code>applyThemeById()</code> injects the whole string into a '+
+    '<code>&lt;style&gt;</code> element, so it can carry rules as well as custom properties — and because that element only exists while the theme is '+
+    'active, those rules cannot leak into any other theme. Both blocks above therefore end with a short tail of real CSS:</p>'+
+    '<p style="margin-bottom:0"><b>Astrolabe</b> neutralises the tiles — <code>--tile:var(--tx-2)</code>, a flat <code>--glass-2</code> surface, a hairline border, '+
+    'no gloss, no drop-shadow, no hover glow, and <code>backdrop-filter:none</code> on windows. App identity moves entirely to icon shape, position and label, '+
+    'which is exactly why §02 spends its effort there. <b>Suhail</b> keeps the twenty hues but unifies them under one light direction — a radial highlight '+
+    'from 32%/12% on every tile, the squircle radius, and the focused-window rim light. Two different, cheap answers to the same problem, each true to its theme.</p></div>'+
+
+    '<div class="callout"><h3 class="ttl">One optional one-liner</h3>'+
+    '<p style="margin-bottom:0">Picking a theme currently forces the mode, because <code>applyThemeById</code> does '+
+    '<code>setAttribute("data-theme", theme.dark?"dark":"light")</code>. If you would rather a theme change preserve the user\'s light/dark choice, replace that line with '+
+    '<code>setAttribute("data-theme", store.get("mv7.themeMode","dark")==="light"?"light":"dark")</code>. Not required — both blocks work either way — but it is the more '+
+    'polite behaviour and it costs one line.</p></div>'+
+
+    '<h3 style="margin:38px 0 12px">Token coverage — every token Console\'s <code>:root</code> declares</h3>'+
+    '<p class="note" style="margin-bottom:14px">This is the check that separates a theme from a filter. The existing twelve set three tokens; below is what these two set, '+
+    'generated from the same object that produced the paste blocks. <b>If a row says <em>missing</em>, the theme would leak the default value into that surface.</b></p>'+
+    coverage()+
+
+    '<h3 style="margin:38px 0 14px">What each theme needs beyond tokens</h3>'+
+    '<p class="note" style="margin-bottom:14px">These cannot ship as a token string. Each line is what a developer actually does.</p>'+
+    '<div class="pair">'+['a','b'].map(function(t){
+      return '<div class="spec">'+thlabel(t)+'<div class="specbody"><div class="tblwrap" style="border:0;border-radius:0"><table>'+
+        '<thead><tr><th style="width:26%">Item</th><th>How you wire it</th></tr></thead><tbody>'+
+        BEYOND[t].map(function(r){ return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>'; }).join("")+
+        '</tbody></table></div></div></div>';
+    }).join("")+'</div>'+
+
+    '<h3 style="margin:38px 0 12px">Sanity check — the five surfaces that actually matter</h3>'+
+    '<p class="note" style="margin-bottom:14px">Menu bar, window chrome, window body, dock, widget card and the sovereignty chip — each theme, '+
+    '<b>both modes</b>, rendered from the pasted token block and nothing else. Use the Dark / Light control in the header to flip them.</p>'+
+    '<div class="pair">'+['a','b'].map(function(t){
+      return '<div class="spec">'+thlabel(t,"light + dark")+'<div class="specbody" data-surf="'+t+'"></div></div>';
+    }).join("")+'</div>'+
+  '</div></section>');
+})();
+
+/* ---------- COST ---------- */
+(function(){
+  var ROWS=[
+    ["Grounds, surfaces, lines, text tiers","tok","Token change. Both themes.","tok","Token change. Both themes.","—"],
+    ["Accent moves off red","tok","One token, plus the focus-ring line.","tok","One token, plus the focus-ring line.","—"],
+    ["Semantic families","tok","Token change.","tok","Token change + the residency chip gains a shape (≈20 lines).","—"],
+    ["Radius / shape language","tok","<code>--r</code> 10→3. Token change.","tok","<code>--r</code> 10→11. Token change.","—"],
+    ["Icon set","asset","14 symbols redrawn. ~1 day, done — the paths are in this file.","asset","14 symbols redrawn. ~1 day, done — the paths are in this file.","—"],
+    ["Type scale","code","~120 font-size/weight declarations across 13,000 lines. 1 day.","code","Same 1 day, plus row heights change so a few fixed-height lists need checking.","—"],
+    ["Motion scale","code","Console has no motion tokens. Introducing <code>--t-*</code>/<code>--e-*</code> and pointing the existing transitions at them: ~1 day. Worth doing either way.","code","Same day of work, and Suhail actually depends on it — its identity is in the tempo.","—"],
+    ["Window chrome","tok","<b>Removes</b> <code>backdrop-filter</code> from windows. Net performance win.","code","Keeps blur on three surfaces only (window, dock, menu bar). Same as today. No regression, no improvement.","—"],
+    ["Wallpaper","tok","Two CSS gradients + a background-image grid. Nothing runs.","code","Two radial divs with long <code>transform</code> keyframes. ~40 lines.","frame"],
+    ["Dock magnification","tok","Turned <b>off</b>. Deletes a per-pointermove handler.","code","Turned up. Keeps the existing per-pointermove handler.","frame"],
+    ["Focused-window edge light","—","Not used.","code","<code>box-shadow</code> transition on <code>.win.focused</code>. Repaints one layer, on focus change only — not per frame.","—"],
+    ["The 20 app tile hues","tok","Neutralised by 5 lines in the tail of <code>cssD</code>. No JS, no per-app edit.","tok","Re-lit by 3 lines in the tail of <code>cssD</code>. Hues untouched.","—"],
+    ["Brain graph","code","Orthogonal routing is a different draw function on the existing canvas. Static after settle.","code","Force-directed drift on the existing canvas.","frame"],
+    ["Thinking indicator","tok","Duration only. The mark animation already exists.","tok","Duration only, plus one 4.6 s opacity loop on the panel.","frame"]
+  ];
+  function tag(k){
+    if(k==="tok") return '<span class="costtag tok">token only</span>';
+    if(k==="asset") return '<span class="costtag asset">new asset</span>';
+    if(k==="code") return '<span class="costtag code">code</span>';
+    if(k==="frame") return '<span class="costtag frame">per-frame</span>';
+    return '<span class="costtag">—</span>';
+  }
+  var FRAME=[
+    ["Astrolabe","<b>Nothing.</b> Not one animation runs at rest. The ground is static, the dock does not magnify, the graph settles and stops. The only continuous animation in the entire theme is the thinking mark, which exists only while a request is pending and is two <code>stroke-dashoffset</code> keyframes on a 66×44 SVG.","zero"],
+    ["Suhail — ground drift","Two <code>transform</code>+<code>scale</code> keyframes at 34 s and 42 s on two blurred divs. <b>Compositor-only</b>: the blur is baked into the layer once, then the layer is translated. No repaint, no layout. This is the cheap way to do volumetric light and it is why Suhail does not need a canvas for its wallpaper.","low"],
+    ["Suhail — dock magnification","A <code>pointermove</code> handler writing <code>transform</code> to up to 10 tiles. Already in Console today. Bounded to the dock\'s own rect; releases on pointerleave.","low"],
+    ["Suhail — rim light breathe","One <code>box-shadow</code> keyframe on the focused window, 3.4 s. <b>This one does repaint</b> — box-shadow is not compositable. It is confined to a single window layer, only while an agent is actually working, and it stops the moment the agent finishes. If a profile ever shows it, the fallback is a static rim with no breathe and the theme survives.","med"],
+    ["Both — Brain graph canvas","One <code>&lt;canvas&gt;</code>, capped at 30 fps, gated on IntersectionObserver <em>and</em> <code>document.hidden</code>, and it stops entirely once the layout settles in Astrolabe. Suhail keeps a slow drift.","low"]
+  ];
+
+  S.push(
+  '<section id="cost"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">09 · cost</p>'+
+    '<h2>What is free, what is a day, what runs every frame</h2>'+
+    '<p class="lede">Console already had to drop a full-viewport <code>backdrop-filter</code> from the ⌘K switcher because it was '+
+    'recomposited on every animated frame. That is the standing precedent, so everything either theme proposes that runs '+
+    'continuously is listed below with what it actually costs.</p></div>'+
+    '<div class="tblwrap"><table><thead><tr><th style="width:19%">Change</th><th style="width:9%">A</th><th style="width:30%">Astrolabe</th>'+
+      '<th style="width:9%">B</th><th style="width:30%">Suhail</th></tr></thead><tbody>'+
+      ROWS.map(function(r){
+        return '<tr><td><b>'+r[0]+'</b></td><td>'+tag(r[1])+'</td><td>'+r[2]+'</td><td>'+tag(r[3])+'</td><td>'+r[4]+'</td></tr>';
+      }).join("")+'</tbody></table></div>'+
+
+    '<h3 style="margin:34px 0 14px">Everything that runs continuously, and its justification</h3>'+
+    '<div class="tblwrap"><table><thead><tr><th style="width:22%">What</th><th>Cost and justification</th><th style="width:12%">Budget</th></tr></thead><tbody>'+
+      FRAME.map(function(r){
+        var cls = r[2]==="zero"?"zero":r[2]==="low"?"low":r[2]==="med"?"med":"hi";
+        var lbl = r[2]==="zero"?"0 / frame":r[2]==="low"?"compositor":r[2]==="med"?"1 layer repaint":"—";
+        return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td><span class="pill '+cls+'">'+lbl+'</span></td></tr>';
+      }).join("")+'</tbody></table></div>'+
+
+    '<div class="callout warn"><h3 class="ttl">The honest summary</h3>'+
+    '<p><b>Astrolabe is cheaper than what Console ships today.</b> It removes the window backdrop-filter, removes the per-hover icon '+
+    'drop-shadow, removes dock magnification and removes the animated wallpaper. On a four-year-old ThinkPad it will feel faster than the current build.</p>'+
+    '<p style="margin-bottom:0"><b>Suhail costs roughly what Console costs today</b>, redistributed. It keeps blur on three surfaces instead of one, '+
+    'adds two compositor-only drifts, and adds one box-shadow breathe that is the only genuinely new repaint in the theme — scoped to one window, '+
+    'only while an agent is running. Neither theme reintroduces a full-viewport filter. That is the line, and neither crosses it.</p></div>'+
+  '</div></section>');
+})();
+
+/* ---------- REJECTED ---------- */
+(function(){
+  var REJ=[
+    ["Neon on black","Reads as 2016 cyberpunk, fails AA at almost every pairing, and makes a sovereignty product look like a toy. Both themes use a coloured <em>ground</em>, not a black one."],
+    ["Scanlines","A CRT artefact simulated on an OLED. It is a texture pretending to be a system, and it costs a full-viewport repeating gradient."],
+    ["Matrix rain","Decorative motion carrying zero information, running forever, at full viewport. It is the exact thing the ⌘K backdrop-filter incident was about."],
+    ["HUD reticles, targeting brackets","Borrowed from weapons interfaces. Wrong register for an enterprise document system, and in a Saudi defence-adjacent context, actively wrong."],
+    ["Glowing wireframe globes","A globe says <em>global network</em>. This product's entire value proposition is that nothing leaves Riyadh. The wrong metaphor, drawn beautifully."],
+    ["Fake terminal spam","Scrolling log lines the user cannot act on. Suhail's telemetry strip shows three real numbers instead; Astrolabe shows the same three with a determinate sparkline."],
+    ["Purple-to-blue gradient hero","The default look of every AI startup since 2022. Neither theme has a gradient hero; both take their accent from the Magna mark's own gradient instead."],
+    ["Glassmorphism as a default","Astrolabe removes it from windows entirely. Suhail keeps it on exactly three surfaces. <code>desktop-vision.html</code> measured the cost; neither theme ignores that."],
+    ["Emoji as UI icons","Twenty-eight icons are drawn in this file. There is no reason to reach for a colour-emoji glyph that renders differently on every platform, ignores <code>currentColor</code>, and cannot be themed at all."],
+    ["Arabic geometry as surface pattern","A girih tiling stuck on a panel is a sticker. Where Astrolabe draws on the tradition it is <b>structural</b> — the 256 px major grid and the 45° angle set are the astrolabe's nested rings, not its ornament. Suhail draws on it as <b>light</b> — the mashrabiya logic of a bright field filtered into a soft one — never as a repeated motif."]
+  ];
+  S.push(
+  '<section id="rejected"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">10 · rejected</p>'+
+    '<h2>Named, so nobody proposes them in round two</h2>'+
+    '<p class="lede">Every one of these is genuinely futuristic-looking and every one is wrong here. They are listed with the reason, '+
+    'so the rejection survives the meeting.</p></div>'+
+    '<ul class="rejlist">'+REJ.map(function(r){
+      return '<li><b>'+r[0]+'</b>'+r[1]+'</li>';
+    }).join("")+'</ul>'+
+  '</div></section>');
+})();
+
+/* ---------- RECOMMENDATION ---------- */
+(function(){
+  S.push(
+  '<section id="pick"><div class="wrap">'+
+    '<div class="sechd"><p class="eyebrow">11 · recommendation</p>'+
+    '<h2>Ship both. Lead with Astrolabe.</h2>'+
+    '<p class="lede">Both entries install cleanly next to <em>Grid</em> and the twelve others, so this is not a question of which one survives — '+
+    'it is which one you put first in the picker, screenshot for the deck, and eventually make the default.</p></div>'+
+    '<div class="pickgrid">'+
+      '<div class="pickcard win">'+
+        '<span class="pickflag">my recommendation</span>'+
+        '<h3 style="margin-bottom:10px">Lead with Astrolabe, and borrow one thing</h3>'+
+        '<p>Console is a place where someone reads <b>SAR&nbsp;5.32M</b> and <b>0&nbsp;bytes</b> and then makes a decision. '+
+        'The product\'s entire claim is that the machine is trustworthy and that the data did not move. Astrolabe is the theme '+
+        'that looks like that claim: near-monochrome, exactly measured, fast, and quiet enough that the one blue thing on screen '+
+        'is genuinely the thing that matters.</p>'+
+        '<p>It is also the theme that makes the product <em>faster</em>. It removes the window backdrop-filter, the per-hover icon '+
+        'drop-shadow and the dock magnification handler. It is the only proposal in either document that has a negative frame cost.</p>'+
+        '<p>And it is the theme that survives the room. Suhail photographs better; Astrolabe survives eight hours of a procurement '+
+        'manager\'s Tuesday. A theme that wins the demo and loses the year is a bad trade, and I have watched that trade get made before.</p>'+
+        '<p style="margin-bottom:0"><b>The borrowing:</b> take Suhail\'s ground into Astrolabe as an option. Astrolabe\'s calibrated grey is correct '+
+        'and slightly bloodless; Suhail\'s warm horizon is the one thing in this document that could not have come from anywhere but Riyadh. '+
+        'They are compatible — the ground is four tokens and Astrolabe\'s chrome rules do not care what is behind them. '+
+        'That gives you an instrument standing on local ground, which is the actual brief.</p>'+
+      '</div>'+
+      '<div>'+
+        '<div class="pickcard" style="margin-bottom:16px">'+
+          '<h3 class="ttl" style="margin-bottom:8px">When Suhail should lead instead</h3>'+
+          '<p class="note" style="margin:0">Put Suhail first if Console\'s primary job in the next twelve months is <b>to be shown</b> — to ministries, '+
+          'to partners, at LEAP. It is the more distinctive design and the more memorable screenshot, and nothing else in this category looks like it. '+
+          'It is also the better answer for RTL, because it loses no type style in Arabic where Astrolabe loses its all-caps key. '+
+          'Both are installed either way, so this costs nothing to reverse — it is a one-line reorder of the <code>THEMES</code> array.</p>'+
+        '</div>'+
+        '<div class="pickcard">'+
+          '<h3 class="ttl" style="margin-bottom:8px">What I would flag before anyone builds either</h3>'+
+          '<ol class="steps" style="margin-top:10px">'+
+            '<li><b>The light-mode bug is not optional.</b> Until <code>cssL</code> ships as <code>:root[data-theme="light"]</code>, no light theme in Console works, including these two.</li>'+
+            '<li><b>Red as accent has to go.</b> If that is rejected, both themes lose their semantic layer and I would rather ship neither than ship a system where the failure colour is also the selection colour.</li>'+
+            '<li><b>Theme and desktop layout must be separated.</b> Today choosing a colour scheme rearranges the user\'s desktop icons. Neither theme fixes that; both are blocked by it looking odd.</li>'+
+            '<li><b>Motion tokens first.</b> Console has none. Suhail cannot be built without them; Astrolabe is much harder to keep honest without them. One day, before either theme starts.</li>'+
+            '<li><b>The icon swap needs a sweep.</b> Fourteen icons are drawn here; Console\'s sprite has fifty-nine. The remaining forty-five inherit the grammar mechanically, but somebody has to actually draw them — budget two more days, not zero.</li>'+
+          '</ol>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div></section>');
+})();
+
+/* ============================================================================
+   5 · MOUNT + INTERACTIONS
+   ============================================================================ */
+(function(){
+  document.getElementById("main").innerHTML = S.join("");
+
+  /* mount the two miniature Consoles (built late so mark() ids stay unique) */
+  ["a","b"].forEach(function(t){
+    var host=document.querySelector('[data-mini="'+t+'"]');
+    if(host) host.innerHTML = window.__miniConsole(t,"dark");
+  });
+
+  /* mount the surface sanity strips */
+  function surfaceStrip(t){
+    var A = t==="a";
+    return tm(t,'<div class="sf">'+
+      '<div class="sf-sec"><span class="sf-k">1 · menu bar</span>'+
+        '<div class="sf-bar">'+mark("mk-sm")+'<span class="app">Console</span><span>Desktop</span>'+
+        '<span style="color:var(--tx-3)">Delivery</span><span class="sp"></span>'+
+        '<span class="sf-chip pv"><span class="d"></span>'+(A?"Private":"Private")+'</span>'+
+        '<span style="font-family:var(--mono);font-size:10.5px;color:var(--tx-2);font-variant-numeric:tabular-nums">18:41</span></div></div>'+
+      '<div class="sf-sec"><span class="sf-k">2 · window chrome + body</span>'+
+        '<div class="sf-win"><div class="wb"><span class="tl"></span><span class="tl"></span>'+
+        '<span style="margin-left:3px">Brain — Company Knowledge</span></div>'+
+        '<div class="wc"><span class="wh">Package C2 exposure</span>'+
+        '<p>Rebuilt from 14 chunks in 218&nbsp;ms, entirely on <b style="color:var(--tx)">magna-riyadh-dc1</b>. '+
+        'Secondary copy sits in <code style="font-family:var(--mono);font-size:11px;color:var(--tx-3);background:none;border:0;padding:0">--tx-2</code>, '+
+        '<span style="color:var(--tx-3)">tertiary in --tx-3</span>.</p>'+
+        '<div class="row"><span class="sf-in">Search this space…</span>'+
+        '<span class="sf-btn pri" aria-hidden="true">Approve</span>'+
+        '<span class="sf-btn" aria-hidden="true">Cancel</span>'+
+        '<span class="sf-btn dgr" aria-hidden="true">Delete</span></div></div></div></div>'+
+      '<div class="sf-sec"><span class="sf-k">3 · dock</span>'+
+        '<div class="sf-dock">'+["chat","brain","code","mail","files","agents","settings"].map(function(n){
+          return '<span class="mc-dk'+(n==="brain"?" run":"")+'">'+iconbox(t,n)+'</span>'; }).join("")+'</div></div>'+
+      '<div class="sf-sec"><span class="sf-k">4 · widget cards</span>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:9px">'+
+        '<div class="sf-card"><span class="k">'+(A?"SOVEREIGNTY":"Sovereignty")+'</span>'+
+        '<span class="v" style="color:var(--private)">0 bytes</span>'+
+        '<span class="s">egress today · <b>8×H200</b></span></div>'+
+        '<div class="sf-card"><span class="k">'+(A?"PACKAGE C2 EXPOSURE":"Package C2 exposure")+'</span>'+
+        '<span class="v" style="color:var(--tx)">SAR 5.32M</span>'+
+        '<span class="s">46 days past LD cap</span><span class="sf-meter"><i></i></span></div>'+
+        '</div></div>'+
+      '<div class="sf-sec"><span class="sf-k">5 · residency + state chips</span>'+
+        '<div class="sf-chips">'+
+        '<span class="sf-chip pv"><span class="d"></span>Private</span>'+
+        '<span class="sf-chip pb"><span class="d"></span>Public</span>'+
+        '<span class="sf-chip fl"><span class="d"></span>Failed</span>'+
+        '<span class="sf-chip ac"><span class="d"></span>Selected</span>'+
+        '</div>'+
+        '<p style="margin:9px 0 0;font-size:10.5px;color:var(--tx-4);line-height:1.5">Private is a filled mark, Public a hollow one — the hue is reinforcement, never the only signal. '+
+        'Selected uses the accent and is unmistakable against all three.</p></div>'+
+      '</div>','',"dark");
+  }
+  ["a","b"].forEach(function(t){
+    var host=document.querySelector('[data-surf="'+t+'"]');
+    if(host) host.innerHTML = surfaceStrip(t);
+  });
+
+  /* ---- specimen mode: dark / light / follow the page ---- */
+  var specMode="follow";
+  function applySpec(){
+    var m = specMode==="follow" ? window.__pgMode() : specMode;
+    document.querySelectorAll(".tm").forEach(function(n){ n.setAttribute("data-mode",m); });
+  }
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("[data-spec]"); if(!b) return;
+    specMode=b.getAttribute("data-spec");
+    document.querySelectorAll("[data-spec]").forEach(function(x){
+      x.setAttribute("aria-pressed", x===b ? "true":"false"); });
+    applySpec();
+  });
+  document.addEventListener("pgtheme",applySpec);
+  applySpec();
+
+  /* ---- copy buttons ---- */
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("[data-copy]"); if(!b) return;
+    var src=document.getElementById(b.getAttribute("data-copy"));
+    if(!src) return;
+    var txt=src.textContent, done=function(){ var o=b.textContent; b.textContent="Copied"; setTimeout(function(){b.textContent=o},1400); };
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done,done); }
+    else{
+      var ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select(); try{document.execCommand("copy")}catch(err){}
+      document.body.removeChild(ta); done();
+    }
+  });
+
+  /* ---- motion replay ---- */
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var timers={};
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("[data-play]"); if(!b) return;
+    var g=b.getAttribute("data-play"), loop=b.getAttribute("data-loop")==="1";
+    var nodes=[].slice.call(document.querySelectorAll('.mdemo[data-g="'+g+'"]'));
+    var lbl=b.querySelector("span:last-child");
+    if(loop){
+      var on=nodes.length && nodes[0].classList.contains("run");
+      nodes.forEach(function(n){ n.classList.toggle("run",!on); });
+      if(lbl) lbl.textContent = on ? "Play both" : "Stop";
+      return;
+    }
+    clearTimeout(timers[g]);
+    nodes.forEach(function(n){ n.classList.remove("run"); });
+    void document.body.offsetWidth;                       /* force reflow so the transition re-runs */
+    requestAnimationFrame(function(){
+      nodes.forEach(function(n){ n.classList.add("run"); });
+    });
+    timers[g]=setTimeout(function(){ nodes.forEach(function(n){ n.classList.remove("run"); }); }, reduce.matches?60:3400);
+  });
+
+  /* ---- wallpaper drift: only while on screen, never when the tab is hidden ---- */
+  var walls=[].slice.call(document.querySelectorAll(".tm-b .wall"));
+  if("IntersectionObserver" in window && !reduce.matches){
+    var wio=new IntersectionObserver(function(ents){
+      ents.forEach(function(en){ en.target.classList.toggle("live", en.isIntersecting && !document.hidden); });
+    },{rootMargin:"80px"});
+    walls.forEach(function(w){ wio.observe(w); });
+    document.addEventListener("visibilitychange",function(){
+      if(document.hidden) walls.forEach(function(w){ w.classList.remove("live"); });
+    });
+  }
+  /* the rim-light breathe is gated the same way */
+  var rims=[].slice.call(document.querySelectorAll(".tm-b .ai-win.busy"));
+  if("IntersectionObserver" in window && !reduce.matches){
+    var rio=new IntersectionObserver(function(ents){
+      ents.forEach(function(en){ en.target.classList.toggle("live", en.isIntersecting && !document.hidden); });
+    },{rootMargin:"60px"});
+    rims.forEach(function(r){ r.classList.remove("live"); rio.observe(r); });
+  } else { rims.forEach(function(r){ r.classList.remove("live"); }); }
+
+  /* ---- Brain graph canvases: one rAF loop total, capped at 30fps, IO-gated ---- */
+  (function(){
+    var canvases=[].slice.call(document.querySelectorAll("canvas[data-graph]"));
+    if(!canvases.length) return;
+    var states=canvases.map(function(c){
+      var t=c.getAttribute("data-graph");
+      var N = t==="a" ? 11 : 15, nodes=[], edges=[], seed=t==="a"?7:19;
+      function rnd(){ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+      for(var i=0;i<N;i++){
+        nodes.push({ x:.1+rnd()*.8, y:.14+rnd()*.72, r:2+rnd()*3.4,
+                     px:0,py:0, ph:rnd()*Math.PI*2, sp:.15+rnd()*.35, d:.35+rnd()*.65 });
+      }
+      if(t==="a"){
+        /* orthogonal lattice: deterministic spread on a 4x3 field, snapped, so
+           elbows are clean and no two nodes land on the same coordinate */
+        var cols=4, cell=[];
+        for(var cx=0;cx<cols;cx++) for(var cy=0;cy<3;cy++) cell.push([cx,cy]);
+        nodes.forEach(function(n,ix){
+          var c=cell[ix%cell.length], jx=Math.floor(ix/cell.length);
+          n.x=(c[0]+0.5+(jx?0.26:-0.12))/cols;
+          n.y=0.16+(c[1]+(jx?0.55:0.15))*0.28;
+          n.x=Math.round(n.x*16)/16; n.y=Math.round(n.y*12)/12; n.r=2.4;
+        });
+      }
+      for(var j=1;j<N;j++){ edges.push([j, Math.floor(rnd()*j)]); }
+      for(var k=0;k<Math.floor(N/3);k++){ edges.push([Math.floor(rnd()*N),Math.floor(rnd()*N)]); }
+      return {c:c, ctx:c.getContext("2d"), t:t, nodes:nodes, edges:edges, vis:false, settled:0};
+    });
+    function css(v,node){ return getComputedStyle(node).getPropertyValue(v).trim(); }
+    function size(st){
+      var r=st.c.getBoundingClientRect(); if(!r.width) return false;
+      var dpr=Math.min(window.devicePixelRatio||1,2);
+      var w=Math.round(r.width*dpr), h=Math.round(r.height*dpr);
+      if(st.c.width!==w||st.c.height!==h){ st.c.width=w; st.c.height=h; }
+      st.dpr=dpr; st.w=r.width; st.h=r.height; return true;
+    }
+    function draw(st,tt){
+      if(!size(st)) return;
+      var ctx=st.ctx, W=st.w, H=st.h, d=st.dpr;
+      ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,W,H);
+      var accent=css("--accent",st.c), tx3=css("--tx-3",st.c), tx4=css("--tx-4",st.c);
+      var A = st.t==="a";
+      st.nodes.forEach(function(n){
+        if(A){ n.px=n.x*W; n.py=n.y*H; }
+        else{
+          n.px=(n.x + Math.sin(tt*.00016*n.sp+n.ph)*.022)*W;
+          n.py=(n.y + Math.cos(tt*.00013*n.sp+n.ph)*.026)*H;
+        }
+      });
+      /* edges */
+      st.edges.forEach(function(e,i){
+        var a=st.nodes[e[0]], b=st.nodes[e[1]]; if(!a||!b||a===b) return;
+        ctx.beginPath();
+        if(A){
+          ctx.lineWidth=1; ctx.strokeStyle=tx4; ctx.globalAlpha=.85;
+          ctx.moveTo(Math.round(a.px)+.5, Math.round(a.py)+.5);
+          ctx.lineTo(Math.round(a.px)+.5, Math.round(b.py)+.5);
+          ctx.lineTo(Math.round(b.px)+.5, Math.round(b.py)+.5);
+        } else {
+          ctx.lineWidth=1.1; ctx.strokeStyle=tx4; ctx.globalAlpha=.55*Math.min(a.d,b.d)+.2;
+          var mx=(a.px+b.px)/2, my=(a.py+b.py)/2 + (i%2?-1:1)*18;
+          ctx.moveTo(a.px,a.py); ctx.quadraticCurveTo(mx,my,b.px,b.py);
+        }
+        ctx.stroke();
+      });
+      ctx.globalAlpha=1;
+      /* nodes */
+      st.nodes.forEach(function(n,i){
+        var hot = i%4===0;
+        if(A){
+          ctx.fillStyle = hot?accent:tx3;
+          var s=Math.round(n.r*1.1);
+          ctx.fillRect(Math.round(n.px)-s, Math.round(n.py)-s, s*2, s*2);
+        } else {
+          var rr=n.r*(0.8+n.d*0.8);
+          if(hot){
+            var g=ctx.createRadialGradient(n.px,n.py,0,n.px,n.py,rr*4.6);
+            g.addColorStop(0, accent); g.addColorStop(1,"rgba(0,0,0,0)");
+            ctx.globalAlpha=.30*n.d; ctx.fillStyle=g;
+            ctx.beginPath(); ctx.arc(n.px,n.py,rr*4.6,0,6.2832); ctx.fill();
+          }
+          ctx.globalAlpha=.35+n.d*.6; ctx.fillStyle = hot?accent:tx3;
+          ctx.beginPath(); ctx.arc(n.px,n.py,rr,0,6.2832); ctx.fill();
+          ctx.globalAlpha=1;
+        }
+      });
+    }
+    var anyVis=false, raf=0, last=0;
+    function loop(tt){
+      raf=0;
+      if(document.hidden || !anyVis) return;
+      if(tt-last >= 33){                                   /* hard cap at ~30fps */
+        last=tt;
+        states.forEach(function(st){
+          if(!st.vis) return;
+          if(st.t==="a"){ if(st.settled<2){ draw(st,tt); st.settled++; } }  /* Astrolabe settles and stops */
+          else draw(st,tt);
+        });
+      }
+      var needs=states.some(function(st){ return st.vis && (st.t==="b" || st.settled<2); });
+      if(needs && !reduce.matches) raf=requestAnimationFrame(loop);
+    }
+    function kick(){ if(!raf) raf=requestAnimationFrame(loop); }
+    if("IntersectionObserver" in window){
+      var gio=new IntersectionObserver(function(ents){
+        ents.forEach(function(en){
+          var st=states.filter(function(s){return s.c===en.target})[0];
+          if(st){ st.vis=en.isIntersecting; if(en.isIntersecting) st.settled=0; }
+        });
+        anyVis=states.some(function(s){return s.vis});
+        if(anyVis) kick();
+      },{rootMargin:"100px"});
+      states.forEach(function(st){ gio.observe(st.c); });
+    } else { states.forEach(function(st){ st.vis=true }); anyVis=true; kick(); }
+    document.addEventListener("visibilitychange",function(){ if(!document.hidden) kick(); });
+    document.addEventListener("pgtheme",function(){ states.forEach(function(st){ st.settled=0; }); kick(); });
+    document.addEventListener("click",function(e){ if(e.target.closest("[data-spec]")) { states.forEach(function(st){st.settled=0}); kick(); } });
+    var rt; window.addEventListener("resize",function(){ clearTimeout(rt);
+      rt=setTimeout(function(){ states.forEach(function(st){ st.settled=0; }); kick(); },160); });
+    /* redraw once even under reduced motion so the graph is not blank */
+    if(reduce.matches){ setTimeout(function(){ states.forEach(function(st){ st.vis=true; draw(st,0); }); },60); }
+  })();
+
+  /* ---- Escape closes nothing modal here, but keeps focus predictable ---- */
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){
+      var a=document.activeElement;
+      if(a && a!==document.body && typeof a.blur==="function") a.blur();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

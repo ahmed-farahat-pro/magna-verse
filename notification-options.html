@@ -1,0 +1,2118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE Console — The System Announcer · five options</title>
+<meta name="description" content="Five design options for how MagnaVERSE Console tells you what it just did, driven side by side from one live event bus.">
+<style>
+/* ============================================================
+   TOKENS — light is the base, dark redefines. An explicit
+   [data-theme] beats the media query in BOTH directions.
+   ============================================================ */
+:root{
+  color-scheme: light;
+  --bg:#F4F5F7;  --bg-2:#FFFFFF; --bg-3:#ECEEF2; --bg-sunk:#E6E9EF;
+  --line:#DBDFE7; --line-2:#C6CCD8; --line-3:#AFB7C6;
+  --tx:#10131A; --tx-2:#454C5A; --tx-3:#626A7A; --tx-4:#8B93A2;
+  --brand:#D71920;              /* Magna crimson — identity, never status */
+  --brand-dim:rgba(215,25,32,.10);
+
+  /* the five event classes — semantic, deliberately less saturated
+     than the mark so the mark stays the loudest colour on screen */
+  --ev-done:#0F7043;    --ev-done-t:rgba(15,112,67,.10);   --ev-done-l:rgba(15,112,67,.26);
+  --ev-needs:#8A5A05;   --ev-needs-t:rgba(138,90,5,.11);   --ev-needs-l:rgba(138,90,5,.28);
+  --ev-blocked:#9E2B25; --ev-blocked-t:rgba(158,43,37,.11);--ev-blocked-l:rgba(158,43,37,.30);
+  --ev-wrote:#463CB8;   --ev-wrote-t:rgba(70,60,184,.10);  --ev-wrote-l:rgba(70,60,184,.26);
+  --ev-result:#0B6579;  --ev-result-t:rgba(11,101,121,.10);--ev-result-l:rgba(11,101,121,.26);
+
+  --stage-wall-1:#E9ECF3; --stage-wall-2:#DCE1EB; --stage-chrome:rgba(255,255,255,.72);
+  --stage-win:rgba(255,255,255,.86); --stage-dock:rgba(255,255,255,.66);
+  --stage-line:rgba(16,19,26,.10);
+
+  --sh-1:0 1px 2px rgba(16,19,26,.06), 0 2px 8px rgba(16,19,26,.05);
+  --sh-2:0 8px 28px rgba(16,19,26,.12), 0 2px 6px rgba(16,19,26,.06);
+  --sh-3:0 18px 48px rgba(16,19,26,.18), 0 4px 12px rgba(16,19,26,.08);
+  --focus:#1E50C8;
+
+  --r:8px; --r-lg:14px; --r-xl:20px; --r-pill:99px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --maxw:1320px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#080A0F; --bg-2:#101420; --bg-3:#161B29; --bg-sunk:#05070B;
+    --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.17); --line-3:rgba(255,255,255,.26);
+    --tx:#F1F3F7; --tx-2:#B6BCCA; --tx-3:#848C9C; --tx-4:#5B6373;
+    --brand:#FF4A50; --brand-dim:rgba(255,74,80,.14);
+    --ev-done:#4FCB8B;    --ev-done-t:rgba(79,203,139,.13);   --ev-done-l:rgba(79,203,139,.34);
+    --ev-needs:#EDB35C;   --ev-needs-t:rgba(237,179,92,.13);  --ev-needs-l:rgba(237,179,92,.34);
+    --ev-blocked:#FF9A8F; --ev-blocked-t:rgba(255,154,143,.14);--ev-blocked-l:rgba(255,154,143,.36);
+    --ev-wrote:#A79BFF;   --ev-wrote-t:rgba(167,155,255,.13); --ev-wrote-l:rgba(167,155,255,.34);
+    --ev-result:#4FC7DE;  --ev-result-t:rgba(79,199,222,.12); --ev-result-l:rgba(79,199,222,.32);
+    --stage-wall-1:#0D1120; --stage-wall-2:#05070E; --stage-chrome:rgba(10,13,20,.66);
+    --stage-win:rgba(22,27,39,.80); --stage-dock:rgba(14,18,27,.62);
+    --stage-line:rgba(255,255,255,.09);
+    --sh-1:0 1px 2px rgba(0,0,0,.5); --sh-2:0 10px 30px rgba(0,0,0,.55);
+    --sh-3:0 22px 56px rgba(0,0,0,.62);
+    --focus:#7FA6FF;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#080A0F; --bg-2:#101420; --bg-3:#161B29; --bg-sunk:#05070B;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.17); --line-3:rgba(255,255,255,.26);
+  --tx:#F1F3F7; --tx-2:#B6BCCA; --tx-3:#848C9C; --tx-4:#5B6373;
+  --brand:#FF4A50; --brand-dim:rgba(255,74,80,.14);
+  --ev-done:#4FCB8B;    --ev-done-t:rgba(79,203,139,.13);   --ev-done-l:rgba(79,203,139,.34);
+  --ev-needs:#EDB35C;   --ev-needs-t:rgba(237,179,92,.13);  --ev-needs-l:rgba(237,179,92,.34);
+  --ev-blocked:#FF9A8F; --ev-blocked-t:rgba(255,154,143,.14);--ev-blocked-l:rgba(255,154,143,.36);
+  --ev-wrote:#A79BFF;   --ev-wrote-t:rgba(167,155,255,.13); --ev-wrote-l:rgba(167,155,255,.34);
+  --ev-result:#4FC7DE;  --ev-result-t:rgba(79,199,222,.12); --ev-result-l:rgba(79,199,222,.32);
+  --stage-wall-1:#0D1120; --stage-wall-2:#05070E; --stage-chrome:rgba(10,13,20,.66);
+  --stage-win:rgba(22,27,39,.80); --stage-dock:rgba(14,18,27,.62);
+  --stage-line:rgba(255,255,255,.09);
+  --sh-1:0 1px 2px rgba(0,0,0,.5); --sh-2:0 10px 30px rgba(0,0,0,.55);
+  --sh-3:0 22px 56px rgba(0,0,0,.62);
+  --focus:#7FA6FF;
+}
+:root[data-theme="light"]{ color-scheme: light; }
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+body{
+  margin:0; background:var(--bg); color:var(--tx);
+  font:400 15px/1.62 var(--sans); letter-spacing:-.006em;
+  overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+img,svg{ max-width:100%; }
+h1,h2,h3,h4{ margin:0; letter-spacing:-.024em; line-height:1.18; font-weight:640; }
+h1{ font-size:clamp(28px,5.2vw,50px); letter-spacing:-.034em; }
+h2{ font-size:clamp(22px,3.4vw,33px); letter-spacing:-.03em; }
+h3{ font-size:clamp(17px,2.1vw,21px); }
+h4{ font-size:14px; letter-spacing:-.01em; }
+p{ margin:0 0 14px; color:var(--tx-2); }
+a{ color:inherit; }
+strong{ font-weight:640; color:var(--tx); }
+code,.mono{ font-family:var(--mono); font-size:.88em; }
+:focus-visible{ outline:2.5px solid var(--focus); outline-offset:2px; border-radius:4px; }
+::selection{ background:rgba(30,80,200,.22); }
+
+.wrap{ max-width:var(--maxw); margin:0 auto; padding:0 clamp(14px,3.2vw,32px); }
+.sec{ padding:clamp(44px,6.5vw,84px) 0; border-top:1px solid var(--line); scroll-margin-top:64px; }
+.sec:first-of-type{ border-top:0; }
+.lede{ font-size:clamp(15px,1.7vw,18px); color:var(--tx-2); max-width:70ch; }
+.eyebrow{ font:600 10.5px/1 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--tx-3); display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.eyebrow::after{ content:""; height:1px; flex:1; background:var(--line); }
+.muted{ color:var(--tx-3); }
+.small{ font-size:13px; line-height:1.55; }
+.xs{ font-size:11.5px; line-height:1.5; }
+
+/* ---------- the Magna mark ---------- */
+.mk{ display:block; width:22px; height:auto; flex:none; }
+.mk path{ stroke-dasharray:1200; stroke-dashoffset:0; }
+@media (prefers-reduced-motion: no-preference){
+  .mk.draw path{ animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both; }
+  .mk.draw path:nth-of-type(2){ animation-delay:.18s; }
+  .mk.think path{ animation:mgLoop 1.9s ease-in-out infinite; }
+  .mk.think path:nth-of-type(2){ animation-delay:.22s; }
+  .mk.think.fast path{ animation-duration:.85s; }
+  .mk.breathe path{ animation:mgBreathe 5.4s ease-in-out infinite; }
+  .mk.breathe path:nth-of-type(2){ animation-delay:.5s; }
+}
+@keyframes mgDraw{ from{ stroke-dashoffset:1200 } to{ stroke-dashoffset:0 } }
+@keyframes mgLoop{ 0%{ stroke-dashoffset:1200; opacity:.35 } 45%{ stroke-dashoffset:0; opacity:1 } 100%{ stroke-dashoffset:-1200; opacity:.35 } }
+@keyframes mgBreathe{ 0%,100%{ opacity:.62 } 50%{ opacity:1 } }
+
+/* ---------- header ---------- */
+.top{ position:sticky; top:0; z-index:60; --top-h:56px; background:color-mix(in srgb, var(--bg) 86%, transparent);
+  border-bottom:1px solid var(--line); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
+.top-in{ max-width:var(--maxw); margin:0 auto; padding:9px clamp(14px,3.2vw,32px); display:flex; align-items:center; gap:12px; }
+.brandlock{ display:flex; align-items:center; gap:9px; font-weight:650; font-size:14.5px; letter-spacing:-.02em; }
+.brandlock .mk{ width:24px; }
+.brandlock em{ font-style:normal; color:var(--tx-3); font-weight:500; }
+.top .sp{ flex:1; }
+.navlinks{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+.navlinks::-webkit-scrollbar{ display:none; }
+.navlinks a{ text-decoration:none; font-size:12.5px; color:var(--tx-3); padding:8px 10px; border-radius:var(--r); white-space:nowrap; min-height:36px; display:flex; align-items:center; }
+.navlinks a:hover{ color:var(--tx); background:var(--bg-3); }
+@media (max-width:1023px){ .navlinks{ display:none; } }
+
+.btn{ font:inherit; font-size:13px; font-weight:540; color:var(--tx); background:var(--bg-2);
+  border:1px solid var(--line-2); border-radius:var(--r); padding:0 13px; min-height:38px;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;
+  transition:background .14s, border-color .14s, transform .1s; -webkit-tap-highlight-color:transparent; }
+.btn:hover{ background:var(--bg-3); border-color:var(--line-3); }
+.btn:active{ transform:translateY(1px); }
+.btn.pri{ background:var(--tx); color:var(--bg-2); border-color:var(--tx); font-weight:600; }
+.btn.pri:hover{ opacity:.88; background:var(--tx); }
+.btn.sm{ min-height:32px; font-size:12px; padding:0 10px; }
+.btn[aria-pressed="true"]{ background:var(--tx); color:var(--bg-2); border-color:var(--tx); }
+@media (pointer:coarse){ .btn{ min-height:44px; padding:0 15px; } .btn.sm{ min-height:44px; } }
+
+/* ---------- generic surfaces ---------- */
+.card{ background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--sh-1); }
+.pad{ padding:clamp(15px,2.2vw,22px); }
+.grid{ display:grid; gap:16px; }
+.g2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.g3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+.g4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+@media (max-width:900px){ .g3,.g4{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:600px){ .g2,.g3,.g4{ grid-template-columns:minmax(0,1fr); } }
+
+.chip{ display:inline-flex; align-items:center; gap:5px; font:600 10.5px/1 var(--mono);
+  letter-spacing:.05em; text-transform:uppercase; padding:5px 8px; border-radius:var(--r-pill);
+  border:1px solid var(--line-2); color:var(--tx-3); background:var(--bg-2); white-space:nowrap; }
+.chip .sw{ width:7px; height:7px; border-radius:99px; flex:none; }
+.chip.done{ color:var(--ev-done); border-color:var(--ev-done-l); background:var(--ev-done-t); }
+.chip.needs{ color:var(--ev-needs); border-color:var(--ev-needs-l); background:var(--ev-needs-t); }
+.chip.blocked{ color:var(--ev-blocked); border-color:var(--ev-blocked-l); background:var(--ev-blocked-t); }
+.chip.wrote{ color:var(--ev-wrote); border-color:var(--ev-wrote-l); background:var(--ev-wrote-t); }
+.chip.result{ color:var(--ev-result); border-color:var(--ev-result-l); background:var(--ev-result-t); }
+
+.tblwrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--bg-2); }
+table{ border-collapse:collapse; width:100%; min-width:640px; font-size:13px; }
+th,td{ text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; }
+th{ font:600 10.5px/1.4 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3); background:var(--bg-3); position:sticky; top:0; }
+tr:last-child td{ border-bottom:0; }
+td.mono{ font-family:var(--mono); font-size:11.5px; color:var(--tx-2); }
+
+.callout{ border-left:3px solid var(--brand); background:var(--brand-dim); padding:14px 16px; border-radius:0 var(--r) var(--r) 0; margin:18px 0; }
+.callout p:last-child{ margin-bottom:0; }
+.note{ border:1px dashed var(--line-2); border-radius:var(--r); padding:12px 14px; background:var(--bg-3); font-size:13px; color:var(--tx-2); }
+
+/* ============================================================
+   THE STAGE — a miniature Console every option is shown inside.
+   Ambient needs a dock and a window edge to light up, so every
+   option gets the same furniture and none gets a home advantage.
+   ============================================================ */
+.stage{ position:relative; border:1px solid var(--stage-line); border-radius:var(--r-lg);
+  overflow:hidden; background:linear-gradient(150deg, var(--stage-wall-1), var(--stage-wall-2));
+  height:320px; display:flex; flex-direction:column; isolation:isolate; contain:layout paint; }
+.stage.tall{ height:380px; }
+.st-bar{ height:26px; flex:none; display:flex; align-items:center; gap:6px; padding:0 8px;
+  background:var(--stage-chrome); border-bottom:1px solid var(--stage-line); font-size:10px; color:var(--tx-3); position:relative; z-index:4; }
+.st-bar .mk{ width:14px; }
+.st-bar .sp{ flex:1; }
+.st-bt{ font-weight:640; color:var(--tx-2); font-size:10px; }
+.st-clock{ font-family:var(--mono); font-size:9.5px; color:var(--tx-3); }
+.st-badge{ min-width:14px; height:14px; padding:0 4px; border-radius:99px; background:var(--brand); color:#fff;
+  font:700 9px/14px var(--mono); text-align:center; }
+.st-body{ position:relative; flex:1; min-height:0; padding:10px; }
+.st-win{ position:absolute; inset:12px 12px 14px 12px; border-radius:8px; background:var(--stage-win);
+  border:1px solid var(--stage-line); box-shadow:var(--sh-1); overflow:hidden; }
+.st-win::before{ content:""; position:absolute; top:0; left:0; right:0; height:16px; background:var(--stage-chrome); border-bottom:1px solid var(--stage-line); }
+.st-win .ln{ position:absolute; left:12px; height:5px; border-radius:99px; background:var(--tx-4); opacity:.24; }
+.st-hair{ position:absolute; top:0; left:0; right:0; height:2px; background:var(--c,transparent);
+  opacity:0; transition:opacity .5s ease; z-index:3; }
+.st-ov{ position:absolute; inset:0; pointer-events:none; }
+.st-ov > *{ pointer-events:auto; }
+.st-dock{ position:relative; z-index:4; flex:none; height:34px; display:flex; align-items:center; justify-content:center; gap:7px;
+  background:var(--stage-dock); border-top:1px solid var(--stage-line); }
+.dk{ position:relative; width:22px; height:22px; border-radius:6px; border:1px solid var(--stage-line);
+  background:var(--bg-2); display:flex; align-items:center; justify-content:center; }
+.dk svg{ width:12px; height:12px; stroke:var(--tx-3); stroke-width:1.7; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.dk .glow{ position:absolute; inset:-4px; border-radius:9px; box-shadow:0 0 0 0 transparent; transition:box-shadow .6s ease; pointer-events:none; }
+.dk .bdg{ position:absolute; top:-4px; right:-4px; min-width:12px; height:12px; padding:0 3px; border-radius:99px;
+  background:var(--brand); color:#fff; font:700 8px/12px var(--mono); text-align:center; display:none; }
+.dk[data-count]:not([data-count="0"]) .bdg{ display:block; }
+
+/* ---------- OPTION 1 · NARRATOR ---------- */
+.nr{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%) translateY(6px);
+  max-width:calc(100% - 24px); display:flex; align-items:center; gap:8px; padding:7px 12px 7px 9px;
+  border-radius:var(--r-pill); background:var(--stage-chrome); border:1px solid var(--stage-line);
+  box-shadow:var(--sh-2); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  font-size:11px; line-height:1.35; color:var(--tx); opacity:0; transition:opacity .28s ease, transform .28s cubic-bezier(.16,1,.3,1); }
+.nr.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+.nr .mk{ width:15px; }
+.nr .tx{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nr .tx b{ font-weight:640; }
+.nr .rail{ width:3px; align-self:stretch; border-radius:99px; background:var(--c,var(--tx-4)); flex:none; }
+.nr .more{ font:700 9px/1 var(--mono); color:var(--tx-2); border-left:1px solid var(--stage-line); padding-left:8px; flex:none; }
+
+/* ---------- OPTION 2 · PRESENCE ---------- */
+.pr{ position:absolute; right:14px; bottom:14px; width:46px; height:46px; border-radius:99px;
+  display:flex; align-items:center; justify-content:center; background:var(--stage-chrome);
+  border:1px solid var(--stage-line); box-shadow:var(--sh-2), 0 0 0 0 transparent;
+  transition:box-shadow .7s ease, transform .3s cubic-bezier(.16,1,.3,1); cursor:pointer; }
+.pr:hover{ transform:scale(1.06); }
+.pr .mk{ width:24px; }
+.pr .ring{ position:absolute; inset:-5px; border-radius:99px; border:2px solid var(--c,transparent); opacity:0; transition:opacity .5s ease; }
+.pr.lit .ring{ opacity:.85; }
+.pr .cnt{ position:absolute; top:-3px; right:-3px; min-width:16px; height:16px; padding:0 4px; border-radius:99px;
+  background:var(--c,var(--tx-3)); color:var(--bg-2); font:700 9px/16px var(--mono); text-align:center; display:none; }
+.pr.hascnt .cnt{ display:block; }
+.pr-pop{ position:absolute; right:14px; bottom:68px; width:min(230px, calc(100% - 28px)); border-radius:var(--r);
+  background:var(--stage-chrome); border:1px solid var(--stage-line); box-shadow:var(--sh-3); padding:7px;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  opacity:0; transform:translateY(6px) scale(.97); transform-origin:100% 100%; pointer-events:none;
+  transition:opacity .2s, transform .2s cubic-bezier(.16,1,.3,1); }
+.pr-pop.on{ opacity:1; transform:none; pointer-events:auto; }
+.pr-pop{ max-height:calc(100% - 78px); overflow-y:auto; overscroll-behavior:contain; }
+.pr-pop .r{ display:flex; gap:7px; align-items:flex-start; padding:5px 6px; font-size:10.5px; line-height:1.4; border-radius:5px; }
+.pr-pop .r > span:last-child, .am-peek .r > span:last-child{
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.pr-pop .r + .r{ border-top:1px solid var(--stage-line); }
+.pr-pop .d{ width:5px; height:5px; border-radius:99px; margin-top:5px; flex:none; background:var(--c,var(--tx-4)); }
+.pr-pop .hd{ font:600 9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3); padding:4px 6px 6px; }
+@media (prefers-reduced-motion: no-preference){
+  .pr.working::after{ content:""; position:absolute; inset:-9px; border-radius:99px; border:1.5px solid var(--c,var(--tx-4)); opacity:.4; animation:prPulse 2.2s ease-out infinite; }
+}
+@keyframes prPulse{ 0%{ transform:scale(.86); opacity:.5 } 100%{ transform:scale(1.15); opacity:0 } }
+
+/* ---------- OPTION 3 · LEDGER ---------- */
+.lg{ position:absolute; top:8px; right:8px; bottom:8px; width:min(190px, 62%); border-radius:9px;
+  background:var(--stage-chrome); border:1px solid var(--stage-line); box-shadow:var(--sh-2);
+  display:flex; flex-direction:column; overflow:hidden; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+.lg-hd{ flex:none; display:flex; align-items:center; gap:6px; padding:6px 8px; border-bottom:1px solid var(--stage-line);
+  font:600 9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3); }
+.lg-hd .mk{ width:12px; }
+.lg-hd .sp{ flex:1; }
+.lg-body{ flex:1; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
+.lg-day{ font:600 8.5px/1 var(--mono); letter-spacing:.09em; text-transform:uppercase; color:var(--tx-4);
+  padding:7px 8px 4px; position:sticky; top:0; background:var(--stage-chrome); }
+.lg-r{ display:grid; grid-template-columns:auto auto 1fr; gap:6px; align-items:start;
+  padding:5px 8px 6px; border-bottom:1px solid var(--stage-line); font-size:10px; line-height:1.35; }
+.lg-r .t{ font-family:var(--mono); font-size:8.5px; color:var(--tx-3); padding-top:2px; }
+.lg-r .rail{ width:2px; align-self:stretch; border-radius:99px; background:var(--c,var(--tx-4)); }
+.lg-r .who{ font-weight:650; color:var(--tx); }
+.lg-r .what{ color:var(--tx-2); }
+.lg-r .meta{ display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
+.lg-tag{ font:600 8px/1 var(--mono); letter-spacing:.05em; text-transform:uppercase; padding:2px 4px;
+  border-radius:3px; border:1px solid var(--stage-line); color:var(--tx-3); }
+.lg-tag.pv{ color:var(--ev-done); border-color:var(--ev-done-l); }
+.lg-tag.eg{ color:var(--ev-blocked); border-color:var(--ev-blocked-l); }
+.lg-tag.ap{ color:var(--ev-needs); border-color:var(--ev-needs-l); }
+.lg-grp{ font-size:9px; color:var(--tx-3); padding:4px 8px 6px 16px; border-bottom:1px solid var(--stage-line); }
+.lg-empty{ padding:14px 10px; font-size:10px; color:var(--tx-4); text-align:center; }
+
+/* ---------- OPTION 4 · CARD STACK ---------- */
+.cs{ position:absolute; right:10px; top:10px; width:min(196px, 66%); }
+.cs-card{ position:relative; border-radius:9px; background:var(--stage-chrome); border:1px solid var(--stage-line);
+  box-shadow:var(--sh-2); padding:8px 9px 8px 11px; margin-bottom:6px; font-size:10px; line-height:1.4;
+  transform-origin:50% 0; transition:transform .3s cubic-bezier(.16,1,.3,1), opacity .3s ease;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+.cs-card::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:9px 0 0 9px; background:var(--c,var(--tx-4)); }
+.cs-card.in{ animation:csIn .34s cubic-bezier(.16,1,.3,1) both; }
+@media (prefers-reduced-motion: reduce){ .cs-card.in{ animation:none; } }
+@keyframes csIn{ from{ opacity:0; transform:translateY(-8px) scale(.96) } to{ opacity:1; transform:none } }
+.cs-hd{ display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+.cs-hd .mk{ width:13px; }
+.cs-hd .who{ font-weight:650; font-size:9.5px; color:var(--tx); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cs-hd .sp{ flex:1; }
+.cs-hd .t{ font-family:var(--mono); font-size:8px; color:var(--tx-3); white-space:nowrap; flex:none; }
+.cs-bd{ color:var(--tx-2); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.cs-act{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+.cs-b{ font:600 9px/1 var(--sans); padding:5px 7px; border-radius:5px; border:1px solid var(--stage-line);
+  background:var(--bg-2); color:var(--tx-2); cursor:pointer; min-height:22px; }
+.cs-b:hover{ border-color:var(--line-3); color:var(--tx); }
+.cs-b.go{ background:var(--c,var(--tx)); color:var(--bg-2); border-color:transparent; font-weight:700; }
+.cs-pile{ position:relative; height:34px; margin-top:-2px; }
+.cs-pile .pc{ position:absolute; left:0; right:0; height:26px; border-radius:9px; background:var(--stage-chrome);
+  border:1px solid var(--stage-line); box-shadow:var(--sh-1); }
+.cs-pile .pc:nth-child(1){ top:0; }
+.cs-pile .pc:nth-child(2){ top:4px; left:5px; right:5px; opacity:.7; }
+.cs-pile .pc:nth-child(3){ top:8px; left:10px; right:10px; opacity:.45; }
+.cs-pile .lbl{ position:absolute; inset:0; display:flex; align-items:center; gap:6px; padding:0 9px;
+  font-size:9.5px; color:var(--tx-2); z-index:2; }
+.cs-dig{ border-left-width:3px; }
+.cs-dig .row{ display:flex; align-items:center; gap:5px; font-size:9.5px; color:var(--tx-2); margin-top:3px; }
+.cs-dig .row .d{ width:5px; height:5px; border-radius:99px; flex:none; }
+
+/* ---------- OPTION 5 · AMBIENT ---------- */
+.am-mk{ position:relative; }
+.am-mk .halo{ position:absolute; inset:-6px; border-radius:99px; box-shadow:0 0 0 0 transparent; transition:box-shadow .7s ease; }
+.am-peek{ position:absolute; left:8px; bottom:8px; right:8px; border-radius:8px; background:var(--stage-chrome);
+  border:1px solid var(--stage-line); box-shadow:var(--sh-2); padding:7px 9px; font-size:10px; line-height:1.4;
+  opacity:0; transform:translateY(6px); transition:opacity .2s, transform .2s cubic-bezier(.16,1,.3,1); pointer-events:none;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+.am-peek.on{ opacity:1; transform:none; pointer-events:auto; }
+.am-peek{ max-height:calc(100% - 20px); overflow-y:auto; overscroll-behavior:contain; }
+.am-peek .r{ display:flex; gap:6px; align-items:baseline; padding:2px 0; }
+.am-peek .d{ width:5px; height:5px; border-radius:99px; flex:none; transform:translateY(-1px); }
+.am-hint{ position:absolute; left:50%; bottom:10px; transform:translateX(-50%); font:600 8.5px/1 var(--mono);
+  letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3); white-space:nowrap; }
+
+/* ---------- simulator ---------- */
+.sim{ border:1px solid var(--line); border-radius:var(--r-xl); background:var(--bg-2); box-shadow:var(--sh-2); overflow:hidden; }
+.sim-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:12px 14px;
+  border-bottom:1px solid var(--line); background:var(--bg-3); position:sticky; top:56px; z-index:30; }
+@media (max-width:1023px){ .sim-bar{ position:static; } }
+.sim-bar .sp{ flex:1; min-width:8px; }
+.evbtn{ font:600 11.5px/1 var(--sans); padding:0 11px; min-height:38px; display:inline-flex; align-items:center; gap:6px;
+  border-radius:var(--r-pill); border:1px solid var(--line-2); background:var(--bg-2); color:var(--tx-2); cursor:pointer;
+  transition:border-color .14s, color .14s, background .14s; }
+.evbtn:hover{ color:var(--tx); background:var(--bg-3); }
+.evbtn .sw{ width:8px; height:8px; border-radius:99px; flex:none; }
+.evbtn.done{ border-color:var(--ev-done-l); } .evbtn.done .sw{ background:var(--ev-done); }
+.evbtn.needs{ border-color:var(--ev-needs-l); } .evbtn.needs .sw{ background:var(--ev-needs); }
+.evbtn.blocked{ border-color:var(--ev-blocked-l); } .evbtn.blocked .sw{ background:var(--ev-blocked); }
+.evbtn.wrote{ border-color:var(--ev-wrote-l); } .evbtn.wrote .sw{ background:var(--ev-wrote); }
+.evbtn.result{ border-color:var(--ev-result-l); } .evbtn.result .sw{ background:var(--ev-result); }
+@media (pointer:coarse){ .evbtn{ min-height:44px; } }
+.simgrid{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; padding:14px; align-items:start; }
+@media (max-width:1400px){ .simgrid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:1000px){ .simgrid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:680px){ .simgrid{ grid-template-columns:minmax(0,1fr); } }
+.simcol{ min-width:0; display:flex; flex-direction:column; gap:8px; }
+.simcol > h3{ display:flex; align-items:center; gap:7px; font-size:14px; font-weight:640; letter-spacing:-.012em; }
+.simcol > h3 .n{ font:700 9.5px/16px var(--mono); width:17px; height:17px; border-radius:5px; background:var(--tx); color:var(--bg-2); text-align:center; flex:none; }
+.metrics{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; }
+.metrics div{ background:var(--bg-2); padding:6px 8px; }
+.metrics dt{ font:600 8.5px/1.3 var(--mono); letter-spacing:.07em; text-transform:uppercase; color:var(--tx-3); }
+.metrics dd{ margin:2px 0 0; font:650 15px/1.1 var(--sans); font-variant-numeric:tabular-nums; }
+.metrics dd small{ font:500 10px/1 var(--sans); color:var(--tx-3); }
+.metrics .mhead{ grid-column:1/-1; background:var(--bg-3); font:700 9.5px/1.4 var(--mono);
+  letter-spacing:.1em; text-transform:uppercase; color:var(--tx-2); padding:7px 8px; }
+.verdict{ display:flex; gap:4px; }
+.verdict button{ flex:1; font:600 10.5px/1 var(--sans); min-height:32px; border-radius:var(--r); border:1px solid var(--line-2);
+  background:var(--bg-2); color:var(--tx-3); cursor:pointer; }
+.verdict button[aria-pressed="true"]{ background:var(--tx); color:var(--bg-2); border-color:var(--tx); }
+@media (pointer:coarse){ .verdict button{ min-height:44px; } }
+.simlog{ border-top:1px solid var(--line); background:var(--bg-3); padding:10px 14px; font:500 11.5px/1.5 var(--mono); color:var(--tx-3);
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap; min-height:44px; }
+.simlog .live{ width:7px; height:7px; border-radius:99px; background:var(--tx-4); flex:none; }
+.simlog.run .live{ background:var(--ev-done); }
+@media (prefers-reduced-motion: no-preference){ .simlog.run .live{ animation:mgBreathe 1.6s infinite; } }
+.speed{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--tx-3); }
+.speed input[type="range"]{ width:96px; height:44px; accent-color:var(--focus); cursor:pointer; }
+
+/* ---------- four voices / problem panel ---------- */
+.voices{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+@media (max-width:1000px){ .voices{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:600px){ .voices{ grid-template-columns:minmax(0,1fr); } }
+.voice{ border:1px solid var(--line); border-radius:var(--r-lg); background:var(--bg-3); padding:12px; }
+.voice h3{ font:600 10px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3); margin-bottom:9px; }
+.voice .spec{ background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r); padding:9px 10px; font-size:11.5px; line-height:1.45; color:var(--tx); }
+.voice .diag{ margin-top:9px; font-size:11.5px; color:var(--tx-3); }
+.voice .diag b{ color:var(--ev-blocked); font-weight:640; }
+
+/* ---------- anatomy callouts ---------- */
+.anat{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:22px; align-items:start; }
+@media (min-width:901px){ .anat > .anat-live{ position:sticky; top:70px; } }
+@media (max-width:900px){ .anat{ grid-template-columns:minmax(0,1fr); } }
+.hero{ display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr); gap:clamp(24px,4vw,54px); align-items:start; }
+@media (max-width:1023px){ .hero{ grid-template-columns:minmax(0,1fr); } }
+.optnav{ display:grid; gap:8px; }
+.optnav a{ display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:11px; align-items:center;
+  text-decoration:none; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--bg-2);
+  padding:11px 13px; min-height:56px; transition:border-color .14s, transform .14s, background .14s; }
+.optnav a:hover{ border-color:var(--line-3); background:var(--bg-3); transform:translateX(2px); }
+.optnav .n{ font:700 10.5px/22px var(--mono); width:22px; height:22px; border-radius:6px; background:var(--bg-3);
+  border:1px solid var(--line-2); color:var(--tx-2); text-align:center; flex:none; }
+.optnav b{ display:block; font-size:13.5px; font-weight:620; }
+.optnav span.d{ display:block; font-size:11.5px; color:var(--tx-3); line-height:1.4; }
+.optnav .k{ font:600 9px/1 var(--mono); letter-spacing:.09em; text-transform:uppercase; color:var(--tx-4);
+  border:1px solid var(--line); border-radius:var(--r-pill); padding:4px 7px; white-space:nowrap; }
+.parts{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.parts li{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; font-size:13px; line-height:1.5; color:var(--tx-2); }
+.parts .k{ font:700 9.5px/17px var(--mono); width:18px; height:18px; border-radius:5px; background:var(--bg-3);
+  border:1px solid var(--line-2); color:var(--tx-2); text-align:center; flex:none; }
+.parts b{ color:var(--tx); }
+
+.spectbl{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:0; border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; font-size:12.5px; }
+.spectbl > div{ padding:9px 12px; border-bottom:1px solid var(--line); background:var(--bg-2); }
+.spectbl > div:nth-child(odd){ font:600 10px/1.5 var(--mono); letter-spacing:.07em; text-transform:uppercase; color:var(--tx-3); background:var(--bg-3); white-space:nowrap; }
+.spectbl > div:nth-last-child(-n+2){ border-bottom:0; }
+.spectbl b{ color:var(--tx); }
+@media (max-width:560px){ .spectbl{ grid-template-columns:minmax(0,1fr); } .spectbl > div:nth-child(odd){ padding-bottom:2px; border-bottom:0; } }
+
+.optcard{ scroll-margin-top:64px; border:1px solid var(--line); border-radius:var(--r-xl); background:var(--bg-2); box-shadow:var(--sh-1); overflow:hidden; margin-bottom:22px; }
+.opthd{ display:flex; align-items:flex-start; gap:14px; padding:clamp(15px,2.2vw,22px); border-bottom:1px solid var(--line); background:var(--bg-3); flex-wrap:wrap; }
+.opthd .num{ font:700 13px/34px var(--mono); width:34px; height:34px; border-radius:9px; background:var(--tx); color:var(--bg-2); text-align:center; flex:none; }
+.opthd .ti{ flex:1 1 240px; }
+@media (max-width:640px){ .opthd .tags{ flex-basis:100%; } }
+.opthd .ti p{ margin:3px 0 0; font-size:13.5px; }
+.opthd .tags{ display:flex; gap:6px; flex-wrap:wrap; }
+
+.copyrule{ counter-reset:cr; list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+.copyrule li{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:12px; }
+.copyrule li::before{ counter-increment:cr; content:counter(cr); font:700 11px/24px var(--mono); width:24px; height:24px;
+  border-radius:7px; background:var(--bg-3); border:1px solid var(--line-2); text-align:center; color:var(--tx-2); }
+.copyrule b{ display:block; }
+.copyrule span{ color:var(--tx-2); font-size:13.5px; }
+.say{ font-size:13px; }
+.say .no{ color:var(--tx-3); text-decoration:line-through; text-decoration-color:var(--ev-blocked); text-decoration-thickness:1.5px; }
+.say .yes{ color:var(--tx); font-weight:520; }
+
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.skip{ position:absolute; left:-9999px; top:0; z-index:200; }
+.skip:focus{ left:8px; top:8px; min-height:44px; display:flex; align-items:center; padding:0 16px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:var(--r); }
+
+/* global reduced-motion kill switch — nothing animates, at all */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  html{ scroll-behavior:auto; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="top-in">
+    <span class="brandlock">
+      <svg class="mk draw" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-hdr" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-hdr" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-hdr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-hdr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Magna<em>VERSE</em>
+    </span>
+    <nav class="navlinks" aria-label="Sections">
+      <a href="#problem">The problem</a>
+      <a href="#schema">Event schema</a>
+      <a href="#copy">Copy standard</a>
+      <a href="#options">Five options</a>
+      <a href="#sim">Simulator</a>
+      <a href="#verdict">Recommendation</a>
+    </nav>
+    <span class="sp"></span>
+    <button class="btn sm" id="themeBtn" aria-label="Switch theme">
+      <span id="themeIcon" aria-hidden="true">◐</span><span id="themeLbl">Auto</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================================================ HERO -->
+<section class="sec" style="padding-top:clamp(34px,5vw,64px)">
+  <div class="wrap">
+    <div class="eyebrow">Design decision · MagnaVERSE Console · <span>system announcer</span></div>
+    <div class="hero">
+    <div>
+    <h1 style="max-width:19ch">The Console should tell you what it just did.</h1>
+    <p class="lede" style="margin-top:18px">
+      Right now it tells you four times, in four voices, and one of them is wrong about who did it.
+      This page proposes <strong>one event grammar and one copy standard</strong>, then offers
+      <strong>five genuinely different surfaces</strong> built on top of them — a narrator, a presence,
+      a ledger, a card stack and an ambient light. All five are wired to <strong>one live event bus</strong>
+      further down, so you can fire an event once and watch every option answer it at the same time.
+    </p>
+    <p class="lede">
+      The Magna mark is the announcer. It is the brand's one moment of colour and the one thing on screen
+      that is allowed to be saturated — so it carries identity and state, and never carries status.
+      Status is carried by five semantic colours that are deliberately quieter than the mark.
+    </p>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:22px">
+      <a class="btn pri" href="#sim">Go to the live simulator</a>
+      <a class="btn" href="#verdict">Read the recommendation</a>
+    </div>
+    <p class="note" id="rmNote" hidden style="margin-top:14px;max-width:52ch">Your system asks for reduced
+      motion, so every animation on this page is off. Nothing else changes — the marks are drawn, the
+      simulator still runs, and each option still shows its state.</p>
+  </div>
+  <div>
+    <div class="eyebrow" style="margin-bottom:10px">The five</div>
+    <nav class="optnav" aria-label="The five options">
+      <a href="#opt-narrator"><span class="n">01</span><span><b>The narrator</b><span class="d">One line, past tense, then gone.</span></span><span class="k">push</span></a>
+      <a href="#opt-presence"><span class="n">02</span><span><b>Presence</b><span class="d">The mark's state is the message.</span></span><span class="k">state</span></a>
+      <a href="#opt-ledger"><span class="n">03</span><span><b>The ledger</b><span class="d">A flight recorder with residency per row.</span></span><span class="k">pull</span></a>
+      <a href="#opt-cards"><span class="n">04</span><span><b>Card stack</b><span class="d">Discrete, actionable, digested under load.</span></span><span class="k">push</span></a>
+      <a href="#opt-ambient"><span class="n">05</span><span><b>Ambient</b><span class="d">Light on the dock. Text only on demand.</span></span><span class="k">state</span></a>
+    </nav>
+    <p class="xs muted" style="margin-top:12px">Each is answered by the same event bus in §04, so you can
+      compare them on the same morning rather than on five different mock-ups.</p>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ PROBLEM -->
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="eyebrow">00 · Why this is needed</div>
+    <h2 style="max-width:24ch">The plumbing is already there. The design is not.</h2>
+    <p class="lede" style="margin-top:14px">
+      Console already has everything a notification system needs. <code>toast(msg, ms)</code> fires a
+      transient line and — correctly — calls <code>notifPush()</code> so a permanent record exists for
+      every single one. <code>#notifPanel</code> is a proper slide-over with an unread badge on the clock.
+      <code>#thoughtStream</code> gives the OS an inner monologue. The Agent Feed widget reports agent work
+      in the right-hand column. <code>focusMode()</code> already quiets toasts while still logging them.
+      Four surfaces, all working.
+    </p>
+    <p class="lede">
+      What is missing is the layer underneath: <strong>a shared definition of what an event is.</strong>
+      Nothing in the code says what class an event belongs to, how urgent it is, who performed it, what it
+      touched, whether it can be undone, or which surface owns it. So each surface invents its own answer.
+      Here is the same real event — the Mail Triage agent finishing a classification pass — as Console
+      renders it today, live, in all four places at once.
+    </p>
+
+    <div class="voices" style="margin-top:22px">
+      <div class="voice">
+        <h3>toast()</h3>
+        <div class="spec">Mail Triage Agent: 3 vendor mails classified: 2 routine, 1 asks for a variation notice — escalated to you.</div>
+        <div class="diag">Agent name as a prefix, colon, then a second colon inside the sentence. 108 characters, no past-tense verb, no action.</div>
+      </div>
+      <div class="voice">
+        <h3>#thoughtStream</h3>
+        <div class="spec">Mail agent · 3 vendor mails classified · 1 escalated to you</div>
+        <div class="diag">Same event, <b>different agent name</b> ("Mail agent" vs "Mail Triage Agent"), telegraphic, middot-separated, no punctuation, and a different count.</div>
+      </div>
+      <div class="voice">
+        <h3>#notifPanel row</h3>
+        <div class="spec"><b style="color:var(--ev-blocked)">Console</b> — Mail Triage Agent: 3 vendor mails classified: 2 routine, 1 asks for a variation notice — escalated to you.</div>
+        <div class="diag">Because toasts push with <code>kind:"toast"</code> and no title, the Centre attributes the agent's work to <b>"Console"</b>. The sender is wrong.</div>
+      </div>
+      <div class="voice">
+        <h3>Agent Feed widget</h3>
+        <div class="spec">Mail Triage Agent — 3 vendor mails classified: 2 routine, 1 asks for a variation notice — escalated to you. <span class="muted mono" style="font-size:10px">01:26 PM</span></div>
+        <div class="diag">Byte-identical to the toast, attributed correctly this time — so the Notification Centre shows <b>the same event twice, under two different senders.</b></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:22px">
+      <p><strong>This is reproducible in the live build.</strong> Open <code>apps/app-7-console.html</code>,
+      explore as a guest, wait for the mail triage event, then open the Notification Centre. The event is
+      listed twice — once as <em>Console</em> and once as <em>Mail Triage Agent</em> — because the toast and
+      the agent feed each pushed their own record and nothing deduplicates them. There is no event identity,
+      so there is nothing to deduplicate on.</p>
+    </div>
+
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card pad">
+        <h3 style="font-size:16px">Three different things share one stream</h3>
+        <p class="small" style="margin-top:8px">Console's notification log currently mixes <b>reports</b>
+        ("Document saved."), <b>responses</b> to something you just pressed ("Nothing to undo.",
+        "Open a file first.") and <b>tips</b> ("Signed in. Press ⌘K to switch desktops…").</p>
+        <p class="small">Only reports are announcements. A response belongs next to the control you pressed;
+        a tip belongs in onboarding. Splitting these three removes roughly a third of the traffic before any
+        design work happens.</p>
+      </div>
+      <div class="card pad">
+        <h3 style="font-size:16px">Some copy is already right</h3>
+        <p class="small" style="margin-top:8px">The standard proposed below is not invented — it is extracted
+        from the best strings Console already ships:</p>
+        <p class="small say" style="margin:8px 0 0">
+          <span class="yes">"Downloaded. The file never left your browser."</span><br>
+          <span class="yes">"Automation created. It has no write scope yet."</span><br>
+          <span class="yes">"Cancelled. Nothing was written."</span>
+        </p>
+        <p class="small" style="margin-top:8px">Each is: past tense, names the object, then states the
+        consequence — including the <em>absence</em> of one. That is the whole standard.</p>
+      </div>
+      <div class="card pad">
+        <h3 style="font-size:16px">And some is not</h3>
+        <p class="small say" style="margin:8px 0 0">
+          <span class="no">"Discarded."</span> — discarded what?<br>
+          <span class="no">"Duplicated."</span> — which file, where to?<br>
+          <span class="no">"Run finished — …"</span> — which run, what changed?<br>
+          <span class="no">"Nothing to undo."</span> — a response, not an event.
+        </p>
+        <p class="small" style="margin-top:8px">In an environment where agents act on your behalf while you
+        are not looking, an announcement with no object is worse than silence: it tells you something
+        happened and denies you the ability to check it.</p>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:22px">
+      <strong>House position, honoured.</strong> <code>desktop-vision.html</code> §07 argues that a
+      <em>count</em> ("3 unread") earns a badge because it is a thing you must clear, while <em>activity</em>
+      ("this agent is running") is ambient and should be soft light in the agent's colour, not a red dot.
+      Every option below is scored against that rule. Options 2 and 5 are the direct expression of it.
+      Option 4 partially contradicts it, and §04 says exactly why the contradiction is earned.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SCHEMA -->
+<section class="sec" id="schema">
+  <div class="wrap">
+    <div class="eyebrow">01 · One event, one shape</div>
+    <h2 style="max-width:22ch">Five classes. Four of them already have a colour in Console.</h2>
+    <p class="lede" style="margin-top:14px">
+      Every announcement is one object. The surfaces are five ways of rendering it — they never invent
+      content, they only choose how much of it to show. This is what makes the simulator possible, and
+      it is what makes it possible to ship two surfaces without them disagreeing.
+    </p>
+
+    <div class="grid g2" style="margin-top:22px;align-items:start">
+      <div class="card pad">
+        <h3 style="font-size:16px;margin-bottom:10px">The event</h3>
+        <pre class="mono" style="margin:0;font-size:11.5px;line-height:1.62;color:var(--tx-2);overflow-x:auto;background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:12px">{
+  id:        "ev_8f21",        <span class="muted">// stable — dedupes across surfaces</span>
+  cls:       "wrote",          <span class="muted">// done | needs | blocked | wrote | result</span>
+  actor:     "Mail agent",     <span class="muted">// ONE canonical name, everywhere</span>
+  app:       "mail",           <span class="muted">// which dock icon lights</span>
+  text:      "Drafted a reply to Al-Rashid…",
+  object:    { kind:"draft", id:"d_119" },
+  residency: "private",        <span class="muted">// private | egress | blocked</span>
+  reversible: true,
+  needsHuman: false,
+  actions:   [{ label:"Open draft" }, { label:"Undo", undo:true }],
+  ts:        1755598...
+}</pre>
+        <p class="small" style="margin-top:12px;margin-bottom:0">Two fields do most of the work.
+        <b>id</b> makes the duplicate-row bug impossible. <b>needsHuman</b> is the only thing that decides
+        whether an announcement is allowed to interrupt — in any surface, in any option.</p>
+      </div>
+
+      <div>
+        <div class="tblwrap">
+          <table style="min-width:480px">
+            <caption class="sr-only">The five event classes, their colour tokens and their announcement politeness</caption>
+            <thead><tr><th scope="col">Class</th><th scope="col">Means</th><th scope="col">Token</th><th scope="col" style="white-space:nowrap">aria-live</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="chip done"><span class="sw" style="background:var(--ev-done)"></span>done</span></td>
+                <td>Something finished, no consequence for you</td>
+                <td class="mono">--ev-done<br><span class="muted">= Console --private</span></td>
+                <td class="mono">off</td>
+              </tr>
+              <tr>
+                <td><span class="chip needs"><span class="sw" style="background:var(--ev-needs)"></span>needs</span></td>
+                <td>Something is stopped until a human acts</td>
+                <td class="mono">--ev-needs<br><span class="muted">= Console --public</span></td>
+                <td class="mono">polite</td>
+              </tr>
+              <tr>
+                <td><span class="chip blocked"><span class="sw" style="background:var(--ev-blocked)"></span>blocked</span></td>
+                <td>Failed, refused, or prevented by policy</td>
+                <td class="mono">--ev-blocked<br><span class="muted">NEW — not the brand red</span></td>
+                <td class="mono">assertive</td>
+              </tr>
+              <tr>
+                <td><span class="chip wrote"><span class="sw" style="background:var(--ev-wrote)"></span>wrote</span></td>
+                <td>State changed outside Console — mail, Jira, disk</td>
+                <td class="mono">--ev-wrote<br><span class="muted">= Console --signal</span></td>
+                <td class="mono">polite</td>
+              </tr>
+              <tr>
+                <td><span class="chip result"><span class="sw" style="background:var(--ev-result)"></span>result</span></td>
+                <td>A background agent produced something to read</td>
+                <td class="mono">--ev-result<br><span class="muted">= Console --cyan</span></td>
+                <td class="mono">polite</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note" style="margin-top:14px">
+          <strong>The red problem, stated plainly.</strong> The Magna mark contains green, teal, blue
+          <em>and</em> red, and the brand accent is crimson <code>#D71920</code>. So every conventional
+          status hue collides with the brand somewhere. The resolution is threefold:
+          <b>hue</b> carries class; <b>fill weight</b> carries severity (only <span class="chip blocked" style="padding:2px 6px">blocked</span>
+          gets a filled ground); and <b>position</b> keeps them apart — the mark always sits in the sender
+          slot, the class colour always sits in the rail or dot, and the two never occupy the same 8 pixels.
+          <code>--ev-blocked</code> is a darker, browner red than the brand crimson on purpose, and it never
+          ships without both an icon and the word "Blocked", so hue is never doing the job alone.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ COPY -->
+<section class="sec" id="copy">
+  <div class="wrap">
+    <div class="eyebrow">02 · The copy standard</div>
+    <h2 style="max-width:26ch">Say what you did, to what, and what it means for me.</h2>
+    <p class="lede" style="margin-top:14px">
+      This matters more than any of the five visual options, and it is the part that ships regardless of
+      which one you pick. A beautifully animated surface saying "Action completed" is worse than a plain
+      grey line saying "Drafted a reply to Al-Rashid. Not sent."
+    </p>
+
+    <div class="grid g2" style="margin-top:22px;align-items:start">
+      <div class="card pad">
+        <h3 style="font-size:16px;margin-bottom:14px">Seven rules</h3>
+        <ol class="copyrule">
+          <li><span><b>Past tense, active, the doer first.</b> The system did it — say so. "Indexed 12 chunks", never "12 chunks were indexed" and never "Indexing complete".</span></li>
+          <li><span><b>Name the object.</b> Never a bare verb. "Discarded." fails; "Discarded the draft to Al-Rashid." passes.</span></li>
+          <li><span><b>State the consequence — especially its absence.</b> "Not sent." "Nothing was written." "Nothing left Riyadh." In a sovereign environment, what <em>didn't</em> happen is the reassuring half.</span></li>
+          <li><span><b>One sentence, then one qualifier.</b> Target 90 characters before the full stop, 140 in total. If it needs more, it is a result and belongs in a document, not a notification.</span></li>
+          <li><span><b>No adjectives for the machine's own work.</b> No "Successfully", no "Great news", no emoji, no exclamation mark. The machine does not congratulate itself.</span></li>
+          <li><span><b>If a human must act, the ask is the last clause.</b> "…Irreversible — needs your sign-off." The reader should be able to stop at the full stop and still know what is wanted.</span></li>
+          <li><span><b>Residency is a tag, not prose.</b> "Private" is a chip. It only enters the sentence when it <em>changed</em> — a block, an egress, a tier switch.</span></li>
+        </ol>
+        <div class="note" style="margin-top:16px">
+          <strong>Arabic note.</strong> Console is bilingual. Rules 1 and 2 survive translation intact —
+          Arabic verb-initial past tense (<span lang="ar" dir="rtl">صاغَ رداً على الراشد</span>) is the
+          natural register for this. Rule 4's character budget must be measured in Arabic too; it typically
+          runs 10–15% shorter, which is headroom, not a problem.
+        </div>
+      </div>
+
+      <div class="card pad">
+        <h3 style="font-size:16px;margin-bottom:6px">Before and after, on real Console strings</h3>
+        <p class="small muted" style="margin-bottom:12px">Left column is what the build ships today.</p>
+        <div class="tblwrap" style="border-radius:var(--r)">
+          <table style="min-width:0">
+            <thead><tr><th scope="col" style="width:40%">Today</th><th scope="col">To the standard</th></tr></thead>
+            <tbody>
+              <tr><td class="say"><span class="no">Discarded.</span></td><td class="say"><span class="yes">Discarded the draft reply to Al-Rashid. Nothing was sent.</span></td></tr>
+              <tr><td class="say"><span class="no">Duplicated.</span></td><td class="say"><span class="yes">Duplicated "calc.js" into exposure-calc/. The copy is untracked.</span></td></tr>
+              <tr><td class="say"><span class="no">Run finished — …</span></td><td class="say"><span class="yes">PO Slippage Watch finished its 2-hour cycle. 4 POs moved, none past the LD cap.</span></td></tr>
+              <tr><td class="say"><span class="no">Moved to Trash — shake the pointer to undo.</span></td><td class="say"><span class="yes">Moved "calc.js" to Trash. Shake the pointer to undo.</span></td></tr>
+              <tr><td class="say"><span class="no">Agent stopped.</span></td><td class="say"><span class="yes">Stopped Risk Research Agent mid-run. Its partial finding was kept.</span></td></tr>
+              <tr><td class="say"><span class="no">Nothing to undo.</span></td><td class="say"><span class="yes">— Not an event. This is a response to a keypress and belongs beside the control, not in the announcer.</span></td></tr>
+              <tr><td class="say"><span class="no">Signed in. Press ⌘K to switch desktops…</span></td><td class="say"><span class="yes">— Not an event. This is onboarding and belongs in the first-run tour.</span></td></tr>
+              <tr><td class="say"><span class="yes">Downloaded. The file never left your browser.</span></td><td class="say"><span class="yes">Keep verbatim. This is the model the standard is extracted from.</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:34px;font-size:19px">Fourteen real Console events, written to the standard</h3>
+    <p class="small muted" style="margin-top:6px;max-width:70ch">These are the exact strings the simulator
+      fires. They cover every class and every surface, so they double as the copy deck and the test corpus.
+      Each is shown with its class, the dock icon it lights, and the actions it carries.</p>
+    <div class="tblwrap" style="margin-top:14px">
+      <table>
+        <caption class="sr-only">Fourteen Console event strings written to the copy standard</caption>
+        <thead><tr><th scope="col" style="width:88px">Class</th><th scope="col" style="width:150px">Actor</th><th scope="col">String</th><th scope="col" style="width:140px">Actions</th></tr></thead>
+        <tbody id="corpusTbl"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ OPTIONS -->
+<section class="sec" id="options">
+  <div class="wrap">
+    <div class="eyebrow">03 · The five options</div>
+    <h2 style="max-width:24ch">Five answers to "how should the OS tell me what it did".</h2>
+    <p class="lede" style="margin-top:14px">
+      Each is shown inside the same miniature Console — same menu bar, same window, same dock — so no
+      option gets a home advantage. <strong>They are live right now:</strong> every stage on this page is
+      already subscribed to the simulator's bus, so the specimens below react as soon as you fire anything
+      in §04. Use the buttons under each one to feel it on its own first.
+    </p>
+
+    <!-- ---------- OPTION 1 ---------- -->
+    <article class="optcard" id="opt-narrator">
+      <div class="opthd">
+        <span class="num">01</span>
+        <div class="ti">
+          <h3>The narrator</h3>
+          <p>One refined line, the mark beside it, the system speaking in plain past tense. It says the thing, then it goes. No history on screen.</p>
+        </div>
+        <div class="tags">
+          <span class="chip">ephemeral</span><span class="chip">push</span><span class="chip">0 chrome</span>
+        </div>
+      </div>
+      <div class="pad">
+        <div class="anat">
+          <div class="anat-live">
+            <div class="stage" data-opt="narrator" data-inst="a1"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" data-localfire></div>
+          </div>
+          <div>
+            <h4 style="margin-bottom:10px">Anatomy</h4>
+            <ul class="parts">
+              <li><span class="k">A</span><span><b>The mark, 15px, drawing.</b> One loop per announcement, then it holds fully drawn. The draw <em>is</em> the entrance animation — nothing slides.</span></li>
+              <li><span class="k">B</span><span><b>The class rail.</b> A 3px vertical stroke in the class colour, between the mark and the text. It is the only status colour in the component.</span></li>
+              <li><span class="k">C</span><span><b>The sentence.</b> Actor in medium weight, then the past-tense clause. Single line, ellipsised — if it does not fit on one line, the string is wrong, not the component.</span></li>
+              <li><span class="k">D</span><span><b>The overflow counter.</b> "+7" appears when the queue is deeper than the line can serve. It is the only place this option admits it is dropping things.</span></li>
+            </ul>
+            <div class="spectbl" style="margin-top:16px">
+              <div>Classes</div><div>Rail colour only. <b>needs</b> and <b>blocked</b> additionally hold for 6s instead of 2.6s and refuse to be superseded; the other three yield immediately.</div>
+              <div>The mark</div><div>Draws once per announcement, 1.5s, then holds. Never loops while idle, so it is never a spinner. Under a burst it drops to <em>one</em> draw for the whole burst.</div>
+              <div>Under load</div><div><b>Fails honestly.</b> 12 events in 3s become 1 visible line plus "+11". The line shows the highest-priority event, not the newest. Everything else is only in the ledger.</div>
+              <div>Quiet paths</div><div>Focus mode: only <b>needs</b> and <b>blocked</b> appear. DND: nothing appears. Reduced motion: no draw, no slide — the line simply is there, then is not.</div>
+              <div>Access</div><div>The visible line is <code>aria-hidden</code>. A parallel <code>role="status"</code> region announces polite classes; a separate <code>role="alert"</code> handles <b>blocked</b>. SR hears: <em>"Blocked. Egress guard. Blocked 2 contract pages from reaching an external model. Nothing left Riyadh."</em></div>
+              <div>Cost</div><div><b>Lowest.</b> One element, one SVG, opacity + transform only — both compositor properties. No per-frame work when idle. ~40 lines of CSS, no new component in the OS shell.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ---------- OPTION 2 ---------- -->
+    <article class="optcard" id="opt-presence">
+      <div class="opthd">
+        <span class="num">02</span>
+        <div class="ti">
+          <h3>Presence</h3>
+          <p>A persistent mark whose <em>state</em> is the message. Breathing when idle, drawing when working, ringed in the class colour when something landed. Notification as presence rather than as text.</p>
+        </div>
+        <div class="tags"><span class="chip">state</span><span class="chip">pull</span><span class="chip">always on</span></div>
+      </div>
+      <div class="pad">
+        <div class="anat">
+          <div class="anat-live">
+            <div class="stage" data-opt="presence" data-inst="a2"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" data-localfire></div>
+            <p class="xs muted" style="margin-top:8px">Click the mark in the stage to expand it.</p>
+          </div>
+          <div>
+            <h4 style="margin-bottom:10px">Anatomy</h4>
+            <ul class="parts">
+              <li><span class="k">A</span><span><b>The mark, 24px, permanent.</b> Bottom-right of the desktop, above the dock. Three states and nothing else: <em>breathing</em> (5.4s opacity drift, idle), <em>drawing</em> (1.9s loop, work in flight), <em>held</em> (fully drawn, still).</span></li>
+              <li><span class="k">B</span><span><b>The ring.</b> A 2px ring in the class colour of the most consequential unseen event. It fades in over 500ms and stays until you look. This is the whole message.</span></li>
+              <li><span class="k">C</span><span><b>The count.</b> Appears only when more than one thing is unseen — per §07, a count is a thing you clear, so it has earned a badge. Below two, there is no badge at all.</span></li>
+              <li><span class="k">D</span><span><b>The expansion.</b> Click or ⌥N: the last four announcements, dotted by class, ~110 characters each. Escape closes. This is the only text this option ever shows.</span></li>
+            </ul>
+            <div class="spectbl" style="margin-top:16px">
+              <div>Classes</div><div>Ring colour = highest-priority unseen class. A <b>blocked</b> event also stops the breath entirely — stillness is the alarm. That reads at a glance, at any size, with no text.</div>
+              <div>The mark</div><div><b>The whole option is the mark.</b> Speed encodes state exactly as <code>desktop-vision</code> §07 specifies: 5.4s = idle, 1.9s = working, 0.85s = closing out, held = done.</div>
+              <div>Under load</div><div><b>Survives untouched.</b> 12 events do not queue — they update one ring and one integer. The cost is total: you learn that five things happened and nothing about what they were.</div>
+              <div>Quiet paths</div><div>Focus: the ring still tints, the count still counts, nothing pops. DND: the mark drops to breathing only, ring suppressed until you open it. Reduced motion: no breath, no draw — a static mark plus a static ring; state moves to a <code>title</code> and the expanded list.</div>
+              <div>Access</div><div>The mark is <code>aria-hidden</code>; a labelled button wraps it — <em>"Console activity: 5 new, 1 needs you. Activate to review."</em> Nothing auto-announces except <b>blocked</b>. This is the quietest option for a screen reader and the one that most requires the expansion to be genuinely good.</div>
+              <div>Cost</div><div><b>The one with real per-frame cost</b> — <code>stroke-dashoffset</code> is not a compositor property, so an always-looping mark repaints a small SVG every frame, forever. Mitigations are mandatory: pause on <code>visibilitychange</code>, pause after 20s idle, and fall back to a two-step opacity pulse (which <em>is</em> composited) on low-power. Measured on one 24px mark this is negligible; it would not be at 58px behind a blur.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ---------- OPTION 3 ---------- -->
+    <article class="optcard" id="opt-ledger">
+      <div class="opthd">
+        <span class="num">03</span>
+        <div class="ti">
+          <h3>The ledger</h3>
+          <p>A running, grouped, timestamped record in a rail: what ran, what it touched, what it wrote, residency and approval state on every row. Reads like a flight recorder.</p>
+        </div>
+        <div class="tags"><span class="chip">record</span><span class="chip">pull</span><span class="chip">audit</span></div>
+      </div>
+      <div class="pad">
+        <div class="anat">
+          <div class="anat-live">
+            <div class="stage" data-opt="ledger" data-inst="a3"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" data-localfire></div>
+          </div>
+          <div>
+            <h4 style="margin-bottom:10px">Anatomy</h4>
+            <ul class="parts">
+              <li><span class="k">A</span><span><b>The header.</b> The mark at 12px, the word "Activity", and a live count. The mark draws once when the rail opens and never again — in a record, animation is noise.</span></li>
+              <li><span class="k">B</span><span><b>The row.</b> Monospace timestamp · class rail · actor in 650 weight · the sentence. Fixed grid, so 40 rows scan as a column of times, not a wall of text.</span></li>
+              <li><span class="k">C</span><span><b>The tags.</b> Residency (<span class="lg-tag pv" style="display:inline-block">private</span>), egress (<span class="lg-tag eg" style="display:inline-block">blocked</span>) and approval state (<span class="lg-tag ap" style="display:inline-block">needs you</span>) per row. This is the only option that shows sovereignty state on every single line, which is why it is the compliance answer.</span></li>
+              <li><span class="k">D</span><span><b>The grouping.</b> Three or more events from one actor within 60s collapse to one row with "· 4 more". Expanding is a click, and the underlying rows are never discarded.</span></li>
+              <li><span class="k">E</span><span><b>Day dividers.</b> Sticky, so an overnight batch reads as "last night" rather than as an alarming pile.</span></li>
+            </ul>
+            <div class="spectbl" style="margin-top:16px">
+              <div>Classes</div><div>2px rail per row plus a tag. Deliberately low-contrast: in a list of 40, saturated per-row colour is unreadable. <b>needs</b> rows float to a pinned "Waiting on you" group at the top — the only reordering allowed.</div>
+              <div>The mark</div><div>Header only, one draw on open. It signs the record; it does not narrate it.</div>
+              <div>Under load</div><div><b>Survives perfectly — it is a list.</b> 12 events become 12 rows, or 4 rows once grouping fires. But it is a <em>pull</em> surface: nothing about the burst reaches you unless you were already looking at the rail.</div>
+              <div>Quiet paths</div><div>Unaffected by focus and DND by definition — it never pushes. That is its strength and its whole limitation.</div>
+              <div>Access</div><div><code>role="log" aria-live="off"</code>, navigable as a list, each row a landmark. SR reads a row as: <em>"09:04. Wrote. Mail agent. Drafted a reply to Al-Rashid about the C2 rebar variation. Not sent, it is in Drafts. Private. Two actions available."</em> Nothing is ever announced unbidden.</div>
+              <div>Cost</div><div><b>No per-frame work at all.</b> The cost is space — a permanent rail is ~280px of desktop — and DOM growth: past ~200 rows it needs windowing. Replaces <code>#notifPanel</code> rather than adding to it, so net component count goes down.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ---------- OPTION 4 ---------- -->
+    <article class="optcard" id="opt-cards">
+      <div class="opthd">
+        <span class="num">04</span>
+        <div class="ti">
+          <h3>Card stack</h3>
+          <p>Discrete cards that collapse into a pile, the mark as sender, inline Undo / View / Approve, and a burst merged into one digest card.</p>
+        </div>
+        <div class="tags"><span class="chip">push</span><span class="chip">actionable</span><span class="chip">familiar</span></div>
+      </div>
+      <div class="pad">
+        <div class="anat">
+          <div class="anat-live">
+            <div class="stage" data-opt="cards" data-inst="a4"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" data-localfire></div>
+          </div>
+          <div>
+            <h4 style="margin-bottom:10px">Anatomy</h4>
+            <ul class="parts">
+              <li><span class="k">A</span><span><b>The sender row.</b> Mark at 13px, actor name, relative time. The mark identifies <em>Console</em> as the sender the way an avatar does — it does not animate here. This is the one place the brand appears per card, so it must be still.</span></li>
+              <li><span class="k">B</span><span><b>The class edge.</b> A 3px full-height left edge. At a glance the pile reads as a colour histogram of your morning.</span></li>
+              <li><span class="k">C</span><span><b>Inline actions.</b> Approve / Reject / Undo / Open. <b>This is what no other option has:</b> the decision is reachable without navigating anywhere. Destructive and irreversible actions get the filled button in the class colour.</span></li>
+              <li><span class="k">D</span><span><b>The pile.</b> Beyond the visible few — three at desktop scale, two in this miniature — the rest stack with 4px offsets behind a "+n earlier" label. Click to fan out.</span></li>
+              <li><span class="k">E</span><span><b>The digest card.</b> A burst becomes one card: "12 things happened in 3 seconds", a per-class tally, and one action — "Review". The burst never becomes 12 cards.</span></li>
+            </ul>
+            <div class="spectbl" style="margin-top:16px">
+              <div>Classes</div><div>Full treatment — edge, tinted ground for <b>blocked</b>, button colour, and dwell time. <b>done</b> auto-dismisses after 5s; <b>wrote</b> after 12s because it carries an Undo; <b>needs</b> and <b>blocked</b> never auto-dismiss.</div>
+              <div>The mark</div><div>Static sender identity, 13px. It draws once on the very first card of a session and is still thereafter. Resisting the urge to animate it per card is the entire discipline of this option.</div>
+              <div>Under load</div><div><b>Survives, but only because of the digest.</b> Without it this is the worst option on the page — 12 stacked cards cover a third of the desktop. The rule that saves it: more than 3 events in 5 seconds, and everything non-actionable folds into one digest card while <b>needs</b> and <b>blocked</b> stay as individual cards, because you cannot approve a summary.</div>
+              <div>Quiet paths</div><div>Focus: only <b>needs</b> and <b>blocked</b> materialise; everything else goes straight to the pile, collapsed. DND: nothing materialises, the pile just grows. Reduced motion: no entry animation, no fan-out — cards appear and disappear.</div>
+              <div>Access</div><div>Each card is an <code>article</code> in a <code>role="region"</code>. Actionable cards are <em>not</em> auto-announced into an interrupting region — instead the region is <code>polite</code> and the card is focusable, so a keyboard user tabs to it. SR: <em>"Needs you. Vendor master cleanup. Wants to delete 41 duplicate vendor records. Irreversible — needs your sign-off. Approve button. Reject button."</em> The digest announces once: <em>"12 events. 2 need you, 1 blocked."</em></div>
+              <div>Cost</div><div><b>Medium.</b> Transform and opacity only, so entry is composited — but the pile's fan-out is a layout change on up to 8 elements, and it must be transform-based rather than <code>top</code>-based or it will jank the same way the ⌘K <code>backdrop-filter</code> did. Genuinely new component, plus digest logic, plus an undo registry that has to be real.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ---------- OPTION 5 ---------- -->
+    <article class="optcard" id="opt-ambient">
+      <div class="opthd">
+        <span class="num">05</span>
+        <div class="ti">
+          <h3>Ambient</h3>
+          <p>Almost no text. Activity reads as light on the dock icon, the menu bar and the window edge. The mark tints. Text only when you ask. The quietest option, and the house position.</p>
+        </div>
+        <div class="tags"><span class="chip">ambient</span><span class="chip">no chrome</span><span class="chip">§07</span></div>
+      </div>
+      <div class="pad">
+        <div class="anat">
+          <div class="anat-live">
+            <div class="stage" data-opt="ambient" data-inst="a5"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" data-localfire></div>
+            <p class="xs muted" style="margin-top:8px">Hover or click the mark in the menu bar to pull text.</p>
+          </div>
+          <div>
+            <h4 style="margin-bottom:10px">Anatomy</h4>
+            <ul class="parts">
+              <li><span class="k">A</span><span><b>Dock under-light.</b> The icon of the app the event belongs to gets a soft box-shadow in the class colour. It brightens on the event and decays over ~8s. Two events on one icon = one brighter light, not two badges.</span></li>
+              <li><span class="k">B</span><span><b>Window top hairline.</b> 2px across the top of the affected window. If Mail wrote something, the Mail window is edged violet, whether or not it is focused.</span></li>
+              <li><span class="k">C</span><span><b>The menu-bar mark, haloed.</b> The mark keeps its own colours — it is never recoloured — but gains a soft halo in the class colour. Brand identity and status stay in different pixels.</span></li>
+              <li><span class="k">D</span><span><b>The pull.</b> Hover or click the mark: the last four lines, plain, no chrome. This is the only text in the option, and it exists on demand only.</span></li>
+              <li><span class="k">E</span><span><b>The one exception.</b> <b>needs</b> and <b>blocked</b> still get a red count badge on the dock, because per §07 those are things you must clear, and a count earns a badge. Everything else is light.</span></li>
+            </ul>
+            <div class="spectbl" style="margin-top:16px">
+              <div>Classes</div><div>Light intensity carries recency, hue carries class, and a badge carries only the two classes that need clearing. Colour is the sole channel here, which is why the pull-text and the badge exist — see the accessibility row.</div>
+              <div>The mark</div><div>Menu bar only, 14px, still. It draws once at login. It gains a halo but is never tinted, filtered or recoloured, per the brand rule. The most restrained use of the mark of the five.</div>
+              <div>Under load</div><div><b>Survives trivially.</b> 12 events become brighter light on 3 or 4 icons. There is no queue to overflow because nothing is queued. It is the only option where a burst looks <em>better</em> than a trickle — you can see the shape of the morning.</div>
+              <div>Quiet paths</div><div>It <em>is</em> the quiet path. Focus changes nothing. DND drops the badge and keeps the light. Reduced motion: the light does not pulse — it is either on or off, with a 500ms opacity fade, which is the one transition worth keeping.</div>
+              <div>Access</div><div><b>The weak point, and it must be answered head-on.</b> Light alone is invisible to a screen reader and to the colour-blind. So: every event still writes to an <code>aria-live="off"</code> log, <b>blocked</b> still fires a <code>role="alert"</code>, the dock badge exposes <code>aria-label="Mail: 2 need you"</code>, and the pull-text is keyboard-reachable at ⌥N. Without those four, this option is unusable and must not ship.</div>
+              <div>Cost</div><div><b>Cheapest by a distance</b>, and <code>desktop-vision</code> §07 already costed it: a box-shadow and a 3px pseudo-element per lit tile, zero frame cost, because <em>the light either is or is not</em>. The trap: making the glow pulse. An animated blurred box-shadow repaints a large area every frame and is exactly the mistake the ⌘K switcher's full-viewport <code>backdrop-filter</code> was. Fade in, fade out, never pulse.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ SIMULATOR -->
+<section class="sec" id="sim">
+  <div class="wrap">
+    <div class="eyebrow">04 · The part that decides it</div>
+    <h2 style="max-width:26ch">One bus. Five options. Fire once, watch all five answer.</h2>
+    <p class="lede" style="margin-top:14px">
+      Every stage below is subscribed to the same event bus, so nothing here is a mock-up of a behaviour —
+      it <em>is</em> the behaviour. Fire a class, then fire the burst. The metrics under each option are
+      counted from what actually happened on screen, not asserted. Fill in your own verdict at the bottom
+      of each column; it is saved in this browser.
+    </p>
+
+    <div class="sim" style="margin-top:22px">
+      <div class="sim-bar">
+        <span class="xs mono muted" style="white-space:nowrap">FIRE ONE:</span>
+        <button class="evbtn done" data-fire="done"><span class="sw"></span>Finished</button>
+        <button class="evbtn needs" data-fire="needs"><span class="sw"></span>Needs you</button>
+        <button class="evbtn blocked" data-fire="blocked"><span class="sw"></span>Blocked</button>
+        <button class="evbtn wrote" data-fire="wrote"><span class="sw"></span>Wrote</button>
+        <button class="evbtn result" data-fire="result"><span class="sw"></span>Agent result</button>
+        <span class="sp"></span>
+        <button class="btn sm" id="burstBtn">Burst · 12 in 3s</button>
+        <button class="btn sm pri" id="morningBtn">Realistic morning · 40s</button>
+        <button class="btn sm" id="pauseBtn" aria-pressed="false">Pause</button>
+        <button class="btn sm" id="resetBtn">Reset</button>
+        <label class="speed">Speed
+          <input type="range" id="speedIn" min="0.5" max="3" step="0.5" value="1" aria-label="Playback speed">
+          <span class="mono" id="speedLbl" style="min-width:30px">1.0×</span>
+        </label>
+      </div>
+
+      <div class="simgrid" id="simGrid">
+        <div class="simcol">
+          <h3><span class="n">1</span>Narrator</h3>
+          <div class="stage" data-opt="narrator" data-inst="s1"></div>
+          <dl class="metrics" data-m="narrator">
+            <div><dt>Surfaced</dt><dd data-k="shown">0</dd></div>
+            <div><dt>Dropped</dt><dd data-k="drop">0</dd></div>
+            <div><dt>Peak on screen</dt><dd data-k="peak">0</dd></div>
+            <div><dt>Words to read</dt><dd data-k="words">0</dd></div>
+            <div style="grid-column:1/-1"><dt>Actions in reach</dt><dd data-k="act">0 <small>of 0 actionable</small></dd></div>
+          </dl>
+          <div class="verdict" role="group" aria-label="Your verdict on the Narrator">
+            <button data-v="narrator" data-val="ship" aria-pressed="false">Ship</button>
+            <button data-v="narrator" data-val="maybe" aria-pressed="false">Maybe</button>
+            <button data-v="narrator" data-val="no" aria-pressed="false">No</button>
+          </div>
+          <p class="xs muted" data-obs="narrator" style="margin:0;min-height:2.6em">Fire something to fill this in.</p>
+        </div>
+
+        <div class="simcol">
+          <h3><span class="n">2</span>Presence</h3>
+          <div class="stage" data-opt="presence" data-inst="s2"></div>
+          <dl class="metrics" data-m="presence">
+            <div><dt>Surfaced</dt><dd data-k="shown">0</dd></div>
+            <div><dt>Dropped</dt><dd data-k="drop">0</dd></div>
+            <div><dt>Peak on screen</dt><dd data-k="peak">0</dd></div>
+            <div><dt>Words to read</dt><dd data-k="words">0</dd></div>
+            <div style="grid-column:1/-1"><dt>Actions in reach</dt><dd data-k="act">0 <small>of 0 actionable</small></dd></div>
+          </dl>
+          <div class="verdict" role="group" aria-label="Your verdict on Presence">
+            <button data-v="presence" data-val="ship" aria-pressed="false">Ship</button>
+            <button data-v="presence" data-val="maybe" aria-pressed="false">Maybe</button>
+            <button data-v="presence" data-val="no" aria-pressed="false">No</button>
+          </div>
+          <p class="xs muted" data-obs="presence" style="margin:0;min-height:2.6em">Fire something to fill this in.</p>
+        </div>
+
+        <div class="simcol">
+          <h3><span class="n">3</span>Ledger</h3>
+          <div class="stage" data-opt="ledger" data-inst="s3"></div>
+          <dl class="metrics" data-m="ledger">
+            <div><dt>Surfaced</dt><dd data-k="shown">0</dd></div>
+            <div><dt>Dropped</dt><dd data-k="drop">0</dd></div>
+            <div><dt>Peak on screen</dt><dd data-k="peak">0</dd></div>
+            <div><dt>Words to read</dt><dd data-k="words">0</dd></div>
+            <div style="grid-column:1/-1"><dt>Actions in reach</dt><dd data-k="act">0 <small>of 0 actionable</small></dd></div>
+          </dl>
+          <div class="verdict" role="group" aria-label="Your verdict on the Ledger">
+            <button data-v="ledger" data-val="ship" aria-pressed="false">Ship</button>
+            <button data-v="ledger" data-val="maybe" aria-pressed="false">Maybe</button>
+            <button data-v="ledger" data-val="no" aria-pressed="false">No</button>
+          </div>
+          <p class="xs muted" data-obs="ledger" style="margin:0;min-height:2.6em">Fire something to fill this in.</p>
+        </div>
+
+        <div class="simcol">
+          <h3><span class="n">4</span>Card stack</h3>
+          <div class="stage" data-opt="cards" data-inst="s4"></div>
+          <dl class="metrics" data-m="cards">
+            <div><dt>Surfaced</dt><dd data-k="shown">0</dd></div>
+            <div><dt>Merged</dt><dd data-k="drop">0</dd></div>
+            <div><dt>Peak on screen</dt><dd data-k="peak">0</dd></div>
+            <div><dt>Words to read</dt><dd data-k="words">0</dd></div>
+            <div style="grid-column:1/-1"><dt>Actions in reach</dt><dd data-k="act">0 <small>of 0 actionable</small></dd></div>
+          </dl>
+          <div class="verdict" role="group" aria-label="Your verdict on the Card stack">
+            <button data-v="cards" data-val="ship" aria-pressed="false">Ship</button>
+            <button data-v="cards" data-val="maybe" aria-pressed="false">Maybe</button>
+            <button data-v="cards" data-val="no" aria-pressed="false">No</button>
+          </div>
+          <p class="xs muted" data-obs="cards" style="margin:0;min-height:2.6em">Fire something to fill this in.</p>
+        </div>
+
+        <div class="simcol">
+          <h3><span class="n">5</span>Ambient</h3>
+          <div class="stage" data-opt="ambient" data-inst="s5"></div>
+          <dl class="metrics" data-m="ambient">
+            <div><dt>Surfaced</dt><dd data-k="shown">0</dd></div>
+            <div><dt>Dropped</dt><dd data-k="drop">0</dd></div>
+            <div><dt>Peak on screen</dt><dd data-k="peak">0</dd></div>
+            <div><dt>Words to read</dt><dd data-k="words">0</dd></div>
+            <div style="grid-column:1/-1"><dt>Actions in reach</dt><dd data-k="act">0 <small>of 0 actionable</small></dd></div>
+          </dl>
+          <div class="verdict" role="group" aria-label="Your verdict on Ambient">
+            <button data-v="ambient" data-val="ship" aria-pressed="false">Ship</button>
+            <button data-v="ambient" data-val="maybe" aria-pressed="false">Maybe</button>
+            <button data-v="ambient" data-val="no" aria-pressed="false">No</button>
+          </div>
+          <p class="xs muted" data-obs="ambient" style="margin:0;min-height:2.6em">Fire something to fill this in.</p>
+        </div>
+      </div>
+
+      <div class="simlog" id="simLog">
+        <span class="live" aria-hidden="true"></span>
+        <span id="simState">Idle · 0 events fired</span>
+        <span class="sp" style="flex:1"></span>
+        <span id="simNow" class="muted"></span>
+      </div>
+    </div>
+
+    <p class="xs muted" style="margin-top:10px">
+      "Words to read" counts words actually rendered on screen — the reading tax each option charges you.
+      "Actions in reach" counts events whose decision was reachable without navigating away.
+      The simulator pauses automatically when it scrolls out of view.
+    </p>
+
+    <div class="grid g2" style="margin-top:26px;align-items:start">
+      <div class="card pad">
+        <h3 style="font-size:17px">What the burst is for</h3>
+        <p class="small" style="margin-top:8px">Twelve events in three seconds is not a stress test invented
+        for a slide. It is 06:00 on a Tuesday: the overnight agents all report within a minute of each
+        other, the SAP connector's first sync of the day fails, and yesterday's approvals roll over.</p>
+        <p class="small">The burst sorts the five options into two families, and that split is the actual
+        finding of this page. <b>Push</b> surfaces (Narrator, Card stack) have a queue, and a queue can
+        overflow — they must drop, merge or digest, and each of those is a decision with a cost.
+        <b>State</b> surfaces (Presence, Ledger, Ambient) have no queue: twelve events update one ring,
+        append twelve rows, or brighten four icons. They cannot overflow because there is nothing to
+        overflow.</p>
+        <p class="small" style="margin-bottom:0">Which is why the answer is unlikely to be one option.</p>
+      </div>
+      <div class="card pad">
+        <h3 style="font-size:17px">Rate limiting, spelled out</h3>
+        <p class="small" style="margin-top:8px">One rule set, applied by the bus before any surface sees an
+        event, so all five behave consistently:</p>
+        <ul class="small" style="margin:0;padding-left:18px;color:var(--tx-2)">
+          <li><b>Dedupe by <code>id</code></b> — the current double-row bug becomes structurally impossible.</li>
+          <li><b>Coalesce by actor</b> — 3+ events from one actor inside 60s become one grouped event with a count.</li>
+          <li><b>Digest threshold</b> — more than 3 events in 5s and every non-actionable event folds into one digest.</li>
+          <li><b>Never digest a decision</b> — <code>needsHuman</code> events are exempt from every rule above. You cannot approve a summary.</li>
+          <li><b>One assertive announcement per 10s</b> — a burst of blocked events produces one alert, not twelve. This is an accessibility requirement, not a nicety.</li>
+          <li><b>Floor of 1.2s between push animations</b> — below that the eye reads flicker, not information.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ COMPARISON -->
+<section class="sec" id="compare">
+  <div class="wrap">
+    <div class="eyebrow">05 · Side by side</div>
+    <h2 style="max-width:24ch">The five, on the six things that matter.</h2>
+    <div class="tblwrap" style="margin-top:20px">
+      <table style="min-width:880px">
+        <caption class="sr-only">Comparison of the five options across load, cost, accessibility and fit</caption>
+        <thead><tr>
+          <th scope="col" style="width:120px"></th>
+          <th scope="col">01 Narrator</th><th scope="col">02 Presence</th><th scope="col">03 Ledger</th>
+          <th scope="col">04 Card stack</th><th scope="col">05 Ambient</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <th scope="row">Kind</th>
+            <td>Push, ephemeral</td><td>State, persistent</td><td>Pull, permanent</td><td>Push, persistent</td><td>State, ambient</td>
+          </tr>
+          <tr>
+            <th scope="row">Burst of 12</th>
+            <td><b style="color:var(--ev-blocked)">Breaks.</b> 1 shown, 11 dropped to "+11".</td>
+            <td><b style="color:var(--ev-done)">Survives.</b> One ring, one integer. Zero detail.</td>
+            <td><b style="color:var(--ev-done)">Survives.</b> 12 rows, grouped to ~5. Nothing pushed.</td>
+            <td><b style="color:var(--ev-needs)">Survives only with the digest.</b> Without it: a wall.</td>
+            <td><b style="color:var(--ev-done)">Survives.</b> Light on 3–4 icons. Reads as shape.</td>
+          </tr>
+          <tr>
+            <th scope="row">Reading tax</th>
+            <td>~14 words, once</td><td>0 words unless asked</td><td>~180 words if you look</td><td>~40–90 words, unbidden</td><td>0 words unless asked</td>
+          </tr>
+          <tr>
+            <th scope="row">Decision in reach</th>
+            <td>No — must navigate</td><td>No — must expand</td><td>Partly — row actions</td><td><b style="color:var(--ev-done)">Yes — inline</b></td><td>No — badge then navigate</td>
+          </tr>
+          <tr>
+            <th scope="row">Per-frame cost</th>
+            <td>None when idle</td><td><b style="color:var(--ev-needs)">Continuous SVG repaint</b> — needs the three mitigations</td><td>None</td><td>None (transform/opacity)</td><td><b style="color:var(--ev-done)">None</b> — light is or is not</td>
+          </tr>
+          <tr>
+            <th scope="row">§07 fit</th>
+            <td>Neutral</td><td><b>Direct expression</b></td><td>Neutral — a pull surface</td><td>Contradicts, then earns it</td><td><b>Direct expression</b></td>
+          </tr>
+          <tr>
+            <th scope="row">Screen reader</th>
+            <td>Good — one clean region</td><td>Weakest — everything is on demand</td><td>Best — a navigable record</td><td>Good — focusable cards</td><td>Unusable without its four mandated additions</td>
+          </tr>
+          <tr>
+            <th scope="row">Build cost</th>
+            <td>~1 day</td><td>~2 days + perf work</td><td>~3 days, replaces #notifPanel</td><td>~5 days + real undo registry</td><td>~1.5 days</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ VERDICT -->
+<section class="sec" id="verdict">
+  <div class="wrap">
+    <div class="eyebrow">06 · Recommendation</div>
+    <h2 style="max-width:22ch">Ship a combination — and ship the words first.</h2>
+    <p class="lede" style="margin-top:14px">
+      The evidence does not support one winner, and pretending otherwise would produce a system that is
+      either too loud on a normal Tuesday or too quiet on the one morning it matters. Three surfaces,
+      each doing the job it is actually good at.
+    </p>
+
+    <div class="grid g3" style="margin-top:24px;align-items:start">
+      <div class="card pad" style="border-color:var(--ev-done-l)">
+        <span class="chip done" style="margin-bottom:10px">Default channel</span>
+        <h3 style="font-size:18px">05 · Ambient</h3>
+        <p class="small" style="margin-top:8px">Everything Console does, all day, is light on the dock and
+        a halo on the mark. It survived the burst without a queue, it costs nothing per frame, and it is
+        the position <code>desktop-vision</code> §07 already argued for. On an ordinary Tuesday you should
+        be able to glance at the dock and know your morning without reading a single word.</p>
+        <p class="small" style="margin-bottom:0"><b>Conditional:</b> only ships with all four accessibility
+        additions — the silent log, the <code>role="alert"</code> for blocked, labelled dock badges, and
+        ⌥N pull-text. Light-only is not a design, it is an exclusion.</p>
+      </div>
+      <div class="card pad" style="border-color:var(--ev-needs-l)">
+        <span class="chip needs" style="margin-bottom:10px">Promoted for humans</span>
+        <h3 style="font-size:18px">04 · Card stack</h3>
+        <p class="small" style="margin-top:8px">Promoted <em>only</em> for <b>needs</b> and <b>blocked</b>.
+        This is the one option where the decision is in reach, and an approval you cannot act on where you
+        read it is an approval you will act on late. Restricting cards to the two classes that require a
+        human also resolves the §07 contradiction cleanly: a card exists because it carries an action, and
+        an action is a thing you must clear — which §07 says has earned a badge.</p>
+        <p class="small" style="margin-bottom:0">In practice this is 2–5 cards a day, not 40. The digest
+        rule stays in place for the mornings when it is not.</p>
+      </div>
+      <div class="card pad" style="border-color:var(--ev-result-l)">
+        <span class="chip result" style="margin-bottom:10px">The record</span>
+        <h3 style="font-size:18px">03 · Ledger</h3>
+        <p class="small" style="margin-top:8px">Replaces <code>#notifPanel</code> behind the same clock
+        button — so it costs one component rather than adding one. It is the only surface that carries
+        residency and approval state per row, which for a sovereign on-prem deployment is not a nicety;
+        it is the artefact an auditor asks for. It never pushes, so it never competes with the other two.</p>
+        <p class="small" style="margin-bottom:0">Net component count across the whole proposal: <b>+2</b>
+        (ambient light, actionable card), <b>−1</b> (the current Notification Centre), <b>−1</b> (the
+        thought stream folds into the ledger as its own filter).</p>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:22px;align-items:start">
+      <div class="card pad">
+        <h3 style="font-size:17px">What I would fold in, not ship</h3>
+        <p class="small" style="margin-top:8px"><b>02 Presence</b> should not ship as a separate surface —
+        it should <em>become</em> Ambient's mark. The menu-bar mark already needs a halo; giving it
+        Presence's three speeds (breathing / drawing / held) and its click-to-expand costs almost nothing
+        extra and gives Ambient the one thing it lacks, which is a place to put the mark's animation. That
+        also concentrates the per-frame cost into a single 14px SVG with a hard pause rule, rather than
+        spreading it.</p>
+        <p class="small" style="margin-bottom:0"><b>01 Narrator</b> should not ship as a surface either —
+        but it is the most valuable thing on this page, because <em>its copy standard is what all five run
+        on</em>. Keep the sentence, drop the pill.</p>
+      </div>
+      <div class="card pad">
+        <h3 style="font-size:17px">Order, and what it costs</h3>
+        <ol class="small" style="margin:8px 0 0;padding-left:18px;color:var(--tx-2)">
+          <li style="margin-bottom:7px"><b>The event schema and the copy standard. Half a day, no pixels.</b>
+          Give <code>notifPush</code> a class, an actor and an id; rewrite the ~70 existing toast strings to
+          the seven rules; move responses and tips out of the stream. This alone fixes the duplicate-row
+          bug and removes about a third of the traffic. Everything else is blocked on it; nothing is
+          blocked by it.</li>
+          <li style="margin-bottom:7px"><b>Ambient. ~1.5 days.</b> A box-shadow, a pseudo-element and a
+          decay timer. Zero frame cost. Ship the four accessibility additions in the same commit or not at
+          all.</li>
+          <li style="margin-bottom:7px"><b>The actionable card, needs + blocked only. ~3 days</b> of the
+          five, because restricting it to two classes removes the pile, the fan-out and most of the digest.</li>
+          <li><b>The ledger, replacing the Notification Centre. ~3 days.</b> Last, because it is the pull
+          surface — nobody is worse off while it is still the old panel.</li>
+        </ol>
+        <p class="small" style="margin:10px 0 0"><b>Token change:</b> one new colour,
+        <code>--ev-blocked</code>. The other four map onto <code>--private</code>, <code>--public</code>,
+        <code>--signal</code> and <code>--cyan</code>, which Console already ships.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px">
+      <p style="margin-bottom:8px"><strong>Three things I would flag before you decide.</strong></p>
+      <p class="small" style="margin-bottom:6px"><b>1 — The mark is going to be asked to be a spinner, and it must not be.</b>
+      The brief for §1b of the addendum makes the mark the thinking indicator, which is right. But a mark
+      that also announces every completion, every write and every failure animates almost continuously, and
+      a logo that never stops moving stops being a logo. The rule that holds the line: <em>the mark animates
+      for work in progress and holds still for work that is finished.</em> An announcement is by definition
+      finished. So in four of the five options the mark is still at the moment it speaks.</p>
+      <p class="small" style="margin-bottom:6px"><b>2 — The red collision is real and needs a decision from you.</b>
+      Magna's accent is crimson. Failure is conventionally red. This page separates them by hue distance,
+      fill weight and position, and never lets hue work alone — but if you would rather the brand red never
+      appear near a failure state at all, the alternative is to move <code>blocked</code> to a filled
+      near-black treatment and rely entirely on weight. It is defensible; it is less immediately legible.</p>
+      <p class="small" style="margin-bottom:0"><b>3 — Nothing here fixes the thought stream's honesty problem.</b>
+      <code>#thoughtStream</code> currently rotates a fixed 12-line script whether or not anything is
+      happening. Once real events flow through a real bus, a fabricated inner monologue sitting next to a
+      truthful announcer is worse than not having one. Either wire it to the bus as a verbose filter of the
+      ledger, or remove it.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="sec" style="padding:26px 0 60px">
+  <div class="wrap" style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+    <p class="xs muted" style="margin:0">MagnaVERSE Console · system announcer · five options, one bus.
+      Built against <code>apps/app-7-console.html</code> and <code>desktop-vision.html</code> §07.</p>
+    <p class="xs muted mono" style="margin:0" id="markCount"></p>
+  </div>
+</footer>
+
+<!-- live regions used by the a11y demonstration -->
+<div class="sr-only" id="lrPolite" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="sr-only" id="lrAlert" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+<script>
+(function(){
+"use strict";
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]; }); }
+
+/* ============================================================
+   THEME — explicit choice beats the media query, both ways.
+   ============================================================ */
+var THEMES = ["auto","light","dark"], ICONS = { auto:"◐", light:"☀", dark:"☾" };
+function applyTheme(t){
+  if(t === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+  $("#themeIcon").textContent = ICONS[t];
+  $("#themeLbl").textContent = t.charAt(0).toUpperCase() + t.slice(1);
+  try{ localStorage.setItem("mv-theme", t); }catch(e){}
+}
+var savedTheme = "auto";
+try{ savedTheme = localStorage.getItem("mv-theme") || "auto"; }catch(e){}
+if(THEMES.indexOf(savedTheme) < 0) savedTheme = "auto";
+applyTheme(savedTheme);
+$("#themeBtn").addEventListener("click", function(){
+  savedTheme = THEMES[(THEMES.indexOf(savedTheme) + 1) % 3];
+  applyTheme(savedTheme);
+});
+if(REDUCED){ var rn = $("#rmNote"); if(rn) rn.hidden = false; }
+
+/* ============================================================
+   THE MARK — unique gradient IDs per instance, guaranteed by a
+   counter rather than by discipline.
+   ============================================================ */
+var MKN = 0;
+function mark(cls){
+  var n = ++MKN;
+  return '<svg class="mk '+(cls||"")+'" viewBox="0 0 640 440" aria-hidden="true" focusable="false">'+
+   '<defs>'+
+    '<linearGradient id="mgGB-i'+n+'" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
+     '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/></linearGradient>'+
+    '<linearGradient id="mgR-i'+n+'" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
+     '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient>'+
+   '</defs>'+
+   '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-i'+n+')" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+   '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-i'+n+')" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '</svg>';
+}
+
+/* ============================================================
+   EVENT CORPUS — the fourteen strings from §02, verbatim.
+   ============================================================ */
+var CLS = {
+  done:    { label:"Finished",  v:"var(--ev-done)",    l:"var(--ev-done-l)",    t:"var(--ev-done-t)",    pri:1, live:"off" },
+  result:  { label:"Result",    v:"var(--ev-result)",  l:"var(--ev-result-l)",  t:"var(--ev-result-t)",  pri:2, live:"polite" },
+  wrote:   { label:"Wrote",     v:"var(--ev-wrote)",   l:"var(--ev-wrote-l)",   t:"var(--ev-wrote-t)",   pri:3, live:"polite" },
+  needs:   { label:"Needs you", v:"var(--ev-needs)",   l:"var(--ev-needs-l)",   t:"var(--ev-needs-t)",   pri:4, live:"polite" },
+  blocked: { label:"Blocked",   v:"var(--ev-blocked)", l:"var(--ev-blocked-l)", t:"var(--ev-blocked-t)", pri:5, live:"assertive" }
+};
+var CORPUS = [
+ { k:"done",    actor:"PO Slippage Watch",   app:"agents",    res:"private",
+   s:"Finished its 2-hour cycle. 4 POs moved, none past the LD cap.", a:["View run"] },
+ { k:"wrote",   actor:"Mail agent",          app:"mail",      res:"private",
+   s:"Drafted a reply to Al-Rashid about the C2 rebar variation. Not sent — it is in Drafts.", a:["Open draft","Undo"] },
+ { k:"wrote",   actor:"Jira connector",      app:"agents",    res:"egress",
+   s:"Created OPS-2841 “Rebar variation — confirm rate card” and assigned it to you.", a:["Open OPS-2841","Undo"] },
+ { k:"needs",   actor:"Vendor master cleanup", app:"approvals", res:"private", human:true,
+   s:"Wants to delete 41 duplicate vendor records. Irreversible — needs your sign-off.", a:["Approve","Reject"] },
+ { k:"blocked", actor:"SAP connector",       app:"agents",    res:"egress",
+   s:"Stopped responding at 06:12. Three syncs are queued behind it.", a:["Retry","Open log"] },
+ { k:"result",  actor:"Overnight",           app:"agents",    res:"private",
+   s:"6 agents ran overnight. 2 things need you, nothing left the building.", a:["Read digest"] },
+ { k:"done",    actor:"Board Pack Drafter",  app:"agents",    res:"private",
+   s:"Ran at 09:00. Saved “Board Pack — Nov.pptx” to Drafts.", a:["Open file"] },
+ { k:"wrote",   actor:"Marketplace",         app:"brain",     res:"private",
+   s:"Imported the “Tender Comparison” skill. No write scope granted.", a:["Review scope"] },
+ { k:"blocked", actor:"Egress guard",        app:"brain",     res:"blocked", human:true,
+   s:"Blocked 2 contract pages from reaching an external model. Nothing left Riyadh.", a:["See what was blocked"] },
+ { k:"result",  actor:"Brain",               app:"brain",     res:"private",
+   s:"Indexed 12 new chunks from the mail triage. Searchable now.", a:["Search them"] },
+ { k:"needs",   actor:"CI agent",            app:"approvals", res:"private", human:true,
+   s:"Deploy api-gateway v2.4 to production is waiting on you. It affects 3 services.", a:["Approve","Reject"] },
+ { k:"result",  actor:"Risk Research Agent", app:"agents",    res:"private",
+   s:"Re-read GC-8 §8.4. The interpretation held — no change to the SAR 5.32M exposure.", a:["Open finding"] },
+ { k:"done",    actor:"Mail triage",         app:"mail",      res:"private",
+   s:"Classified 3 vendor mails. 2 routine, 1 escalated to you.", a:["Open Mail"] },
+ { k:"wrote",   actor:"Chat",                app:"chat",      res:"private",
+   s:"Switched this thread to Falcon-180B on-prem. Your last thread stays on ALLaM.", a:["Undo"] }
+];
+
+/* fill the corpus table in §02 */
+(function(){
+  var host = $("#corpusTbl"); if(!host) return;
+  host.innerHTML = CORPUS.map(function(e){
+    return '<tr><td><span class="chip '+e.k+'">'+esc(CLS[e.k].label)+'</span></td>'+
+      '<td style="font-weight:600">'+esc(e.actor)+'</td>'+
+      '<td>'+esc(e.s)+'</td>'+
+      '<td class="mono" style="font-size:11px">'+e.a.map(esc).join(" · ")+'</td></tr>';
+  }).join("");
+})();
+
+/* ============================================================
+   CLOCK — one virtual clock so speed and pause govern every
+   dwell timer, every decay and the whole replay identically.
+   ============================================================ */
+var VISIBLE = true;
+var Clock = {
+  t:0, tasks:[], paused:false, speed:1,
+  at:function(delay, fn){ var task = { due:this.t + delay, fn:fn, dead:false }; this.tasks.push(task); return task; },
+  cancel:function(task){ if(task) task.dead = true; },
+  tick:function(dt){
+    this.t += dt;
+    var due = [], keep = [], i;
+    for(i = 0; i < this.tasks.length; i++){
+      var x = this.tasks[i];
+      if(x.dead) continue;
+      if(x.due <= this.t){ x.dead = true; due.push(x); } else keep.push(x);
+    }
+    this.tasks = keep;
+    for(i = 0; i < due.length; i++){ try{ due[i].fn(); }catch(e){ } }
+  },
+  clear:function(){ this.tasks = []; }
+};
+/* Pause when the tab goes away — but only once we have actually seen it
+   visible. Some embedded/preview panes report document.hidden permanently,
+   and a simulator that silently never runs is worse than one that runs in
+   a background tab. The IntersectionObserver below is the real guard. */
+var EVER_SHOWN = !document.hidden;
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) EVER_SHOWN = true; });
+/* delta-driven rather than assuming the interval fired on time — browsers
+   throttle timers hard in background tabs, and a fixed step would make the
+   replay run at the wrong speed rather than simply pausing. */
+var lastNow = (window.performance && performance.now) ? performance.now() : Date.now();
+setInterval(function(){
+  var now = (window.performance && performance.now) ? performance.now() : Date.now();
+  var dt = now - lastNow; lastNow = now;
+  if(Clock.paused || !VISIBLE || (EVER_SHOWN && document.hidden)) return;
+  if(dt > 1200) dt = 1200;                 /* never jump more than 1.2s at once */
+  Clock.tick(dt * Clock.speed);
+}, 80);
+
+/* ============================================================
+   THE BUS — dedupe, coalesce, digest, one alert per 10s.
+   Every surface is downstream of these rules, so no surface can
+   disagree with another about what happened.
+   ============================================================ */
+var BUS = {
+  subs:[], seen:{}, fired:0, actionable:0, recent:[], lastAlert:-99999,
+  on:function(fn){ this.subs.push(fn); },
+  emit:function(ev){
+    if(this.seen[ev.id]) return;            /* rule 1 — dedupe by id */
+    this.seen[ev.id] = 1;
+    this.fired++;
+    if(ev.human) this.actionable++;
+    this.recent.push(Clock.t);
+    while(this.recent.length && this.recent[0] < Clock.t - 5000) this.recent.shift();
+    ev.burst = this.recent.length > 3 && !ev.human;   /* rule 3 + rule 4 */
+    /* rule 5 — one assertive announcement per 10s */
+    var live = CLS[ev.k].live;
+    if(live === "assertive"){
+      if(Clock.t - this.lastAlert < 10000) live = "polite"; else this.lastAlert = Clock.t;
+    }
+    ev.live = live;
+    announce(ev);
+    for(var i = 0; i < this.subs.length; i++){ try{ this.subs[i](ev); }catch(e){ } }
+    syncState();
+  },
+  reset:function(){ this.seen = {}; this.fired = 0; this.actionable = 0; this.recent = []; this.lastAlert = -99999; }
+};
+function announce(ev){
+  if(ev.live === "off") return;
+  var line = CLS[ev.k].label + ". " + ev.actor + ". " + ev.s;
+  var host = ev.live === "assertive" ? $("#lrAlert") : $("#lrPolite");
+  host.textContent = "";
+  Clock.at(60, function(){ host.textContent = line; });
+}
+
+var EVN = 0;
+function makeEvent(spec){
+  return { id:"ev_" + (++EVN), k:spec.k, actor:spec.actor, app:spec.app, s:spec.s,
+           a:spec.a || [], res:spec.res || "private", human:!!spec.human, ts:Clock.t };
+}
+function pickByClass(k){
+  var pool = CORPUS.filter(function(e){ return e.k === k; });
+  return makeEvent(pool[Math.floor(Math.random() * pool.length)]);
+}
+
+/* ============================================================
+   METRICS — counted from what actually rendered.
+   ============================================================ */
+var M = {};
+["narrator","presence","ledger","cards","ambient"].forEach(function(o){
+  M[o] = { shown:0, drop:0, peak:0, words:0, act:0, live:0 };
+});
+function words(s){ return String(s).trim().split(/\s+/).filter(Boolean).length; }
+function bump(o, k, n){ M[o][k] += (n === undefined ? 1 : n); }
+function livePeak(o, n){ M[o].live = n; if(n > M[o].peak) M[o].peak = n; }
+var OPTNAME = { narrator:"01 · Narrator", presence:"02 · Presence", ledger:"03 · Ledger",
+                cards:"04 · Card stack", ambient:"05 · Ambient" };
+$$("[data-m]").forEach(function(h){
+  var d = document.createElement("div");
+  d.className = "mhead"; d.textContent = OPTNAME[h.getAttribute("data-m")] || "";
+  h.insertBefore(d, h.firstChild);
+});
+function paintMetrics(){
+  Object.keys(M).forEach(function(o){
+    var host = $('[data-m="'+o+'"]'); if(!host) return;
+    var m = M[o];
+    host.querySelector('[data-k="shown"]').textContent = m.shown;
+    host.querySelector('[data-k="drop"]').textContent  = m.drop;
+    host.querySelector('[data-k="peak"]').textContent  = m.peak;
+    host.querySelector('[data-k="words"]').textContent = m.words;
+    host.querySelector('[data-k="act"]').innerHTML = m.act + ' <small>of ' + BUS.actionable + ' actionable</small>';
+  });
+}
+
+/* observations — written after the dust settles, from the numbers */
+var obsTask = null;
+function scheduleObs(){
+  Clock.cancel(obsTask);
+  obsTask = Clock.at(2600, writeObs);
+}
+function writeObs(){
+  if(!BUS.fired) return;
+  var f = BUS.fired, a = BUS.actionable;
+  var t = {
+    narrator: M.narrator.drop
+      ? "Showed " + M.narrator.shown + " of " + f + ". " + M.narrator.drop + " were dropped to a “+n” counter and exist only in the ledger."
+      : "Showed all " + M.narrator.shown + ". At this rate it reads well — one sentence at a time, nothing to clear.",
+    presence: "Represented all " + f + " in one ring and one integer. 0 words shown, 0 dropped — and 0 detail until you open it.",
+    ledger: "Recorded all " + f + " with residency on every row. " + M.ledger.words + " words are sitting there if you look — and none of them reached you if you did not.",
+    cards: M.cards.drop
+      ? M.cards.shown + " cards, " + M.cards.drop + " events merged into a digest. " + M.cards.act + " of " + a + " decisions stayed reachable in place."
+      : M.cards.shown + " cards, nothing merged. " + M.cards.act + " of " + a + " decisions were reachable without navigating.",
+    ambient: "All " + f + " read as light on " + Math.max(1, M.ambient.peak) + " dock icon" + (M.ambient.peak === 1 ? "" : "s") + ". 0 words, 0 dropped. You know the shape of the morning, not its content."
+  };
+  Object.keys(t).forEach(function(o){
+    var n = $('[data-obs="'+o+'"]'); if(n) n.textContent = t[o];
+  });
+}
+
+/* ============================================================
+   THE STAGE — identical furniture for every option.
+   ============================================================ */
+var APPS = ["chat","mail","agents","brain","approvals"];
+var APPICON = {
+  chat:"M3 4h14v9H8l-4 3v-3H3z",
+  mail:"M2 5h16v10H2z|M2 5l8 6 8-6",
+  agents:"M10 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z|M10 2v2.5M10 15.5V18M2 10h2.5M15.5 10H18",
+  brain:"M10 3a3.5 3.5 0 0 0-3.5 3.5v7a3 3 0 0 0 6 0v-7A3.5 3.5 0 0 0 10 3z|M6.5 8h7",
+  approvals:"M4 10.5l3.5 3.5L16 5.5"
+};
+function dockHTML(){
+  return APPS.map(function(a){
+    var d = APPICON[a].split("|").map(function(p){ return '<path d="'+p+'"/>'; }).join("");
+    return '<span class="dk" data-app="'+a+'" data-count="0"><span class="glow"></span>'+
+      '<svg viewBox="0 0 20 20" aria-hidden="true">'+d+'</svg><span class="bdg"></span></span>';
+  }).join("");
+}
+function stageHTML(){
+  return '<div class="st-bar">'+ mark() +'<span class="st-bt">Console</span><span class="sp"></span>'+
+      '<span class="st-clock" data-clk>09:04</span><span class="st-badge" data-sbadge hidden>0</span></div>'+
+    '<div class="st-body">'+
+      '<div class="st-win"><span class="st-hair" data-hair></span>'+
+        '<span class="ln" style="top:26px;width:52%"></span><span class="ln" style="top:37px;width:70%"></span>'+
+        '<span class="ln" style="top:48px;width:38%"></span><span class="ln" style="top:59px;width:62%"></span>'+
+        '<span class="ln" style="top:70px;width:46%"></span></div>'+
+      '<div class="st-ov" data-ov></div>'+
+    '</div>'+
+    '<div class="st-dock">'+ dockHTML() +'</div>';
+}
+
+/* ============================================================
+   THE FIVE RENDERERS
+   ============================================================ */
+var RENDER = {};
+
+/* ---------- 01 NARRATOR ---------- */
+RENDER.narrator = function(host, count){
+  var ov = host.querySelector("[data-ov]");
+  var el = document.createElement("div");
+  el.className = "nr"; el.setAttribute("aria-hidden","true");
+  el.innerHTML = mark() + '<span class="rail"></span><span class="tx"></span><span class="more" hidden></span>';
+  ov.appendChild(el);
+  var tx = el.querySelector(".tx"), rail = el.querySelector(".rail"),
+      more = el.querySelector(".more"), mk = el.querySelector(".mk");
+  var cur = null, hideT = null, pend = 0, lastShow = -99999;
+
+  function hide(){ el.classList.remove("on"); cur = null; pend = 0; more.hidden = true;
+    if(count) livePeak("narrator", 0); }
+  function show(ev){
+    cur = ev; lastShow = Clock.t;
+    el.style.setProperty("--c", CLS[ev.k].v);
+    tx.innerHTML = "<b>" + esc(ev.actor) + "</b> — " + esc(ev.s);
+    tx.setAttribute("title", ev.actor + " — " + ev.s);
+    el.classList.add("on");
+    if(!REDUCED){ mk.classList.remove("draw"); void mk.offsetWidth; mk.classList.add("draw"); }
+    if(count){ bump("narrator","shown"); bump("narrator","words", words(ev.actor) + words(ev.s)); livePeak("narrator", 1); }
+    Clock.cancel(hideT);
+    hideT = Clock.at(ev.k === "needs" || ev.k === "blocked" ? 6000 : 2600, hide);
+  }
+  return {
+    push:function(ev){
+      var gap = Clock.t - lastShow;
+      var outranks = cur && CLS[ev.k].pri > CLS[cur.k].pri;
+      if(gap < 1200 && !outranks){                    /* rule 6 — 1.2s floor */
+        pend++; more.hidden = false; more.textContent = "+" + pend;
+        if(count) bump("narrator","drop");
+        return;
+      }
+      if(cur && !outranks && (cur.k === "needs" || cur.k === "blocked")){
+        pend++; more.hidden = false; more.textContent = "+" + pend;
+        if(count) bump("narrator","drop");
+        return;
+      }
+      if(pend){ more.hidden = false; more.textContent = "+" + pend; }
+      show(ev);
+    },
+    reset:function(){ Clock.cancel(hideT); hide(); }
+  };
+};
+
+/* ---------- 02 PRESENCE ---------- */
+RENDER.presence = function(host, count){
+  var ov = host.querySelector("[data-ov]");
+  var btn = document.createElement("button");
+  btn.type = "button"; btn.className = "pr";
+  btn.setAttribute("aria-label","Console activity. Nothing new.");
+  btn.innerHTML = '<span class="ring" aria-hidden="true"></span>' + mark("breathe") + '<span class="cnt" aria-hidden="true">0</span>';
+  var pop = document.createElement("div");
+  pop.className = "pr-pop"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label","Recent activity");
+  pop.innerHTML = '<div class="hd">Last four</div>';
+  ov.appendChild(btn); ov.appendChild(pop);
+  var mk = btn.querySelector(".mk"), cnt = btn.querySelector(".cnt");
+  var log = [], unseen = 0, top = null, workT = null;
+
+  function paint(){
+    btn.classList.toggle("hascnt", unseen > 1);
+    cnt.textContent = unseen > 9 ? "9+" : unseen;
+    btn.classList.toggle("lit", !!top);
+    if(top) btn.style.setProperty("--c", CLS[top.k].v);
+    btn.setAttribute("aria-label", unseen
+      ? "Console activity: " + unseen + " new" + (top && top.human ? ", needs you" : "") + ". Activate to review."
+      : "Console activity. Nothing new.");
+    if(pop.classList.contains("on")) paintPop();
+  }
+  function paintPop(){
+    pop.innerHTML = '<div class="hd">Last four</div>' + (log.length
+      ? log.slice(0,4).map(function(e){
+          return '<div class="r" style="--c:'+CLS[e.k].v+'"><span class="d"></span><span><b>'+esc(e.actor)+'</b> — '+esc(e.s)+'</span></div>'; }).join("")
+      : '<div class="r"><span>Nothing yet.</span></div>');
+  }
+  btn.addEventListener("click", function(){
+    var on = pop.classList.toggle("on");
+    if(on){ unseen = 0; top = null; paintPop(); }
+    paint();
+  });
+  pop.addEventListener("click", function(e){ e.stopPropagation(); });
+
+  return {
+    el:btn, pop:pop,
+    push:function(ev){
+      log.unshift(ev); if(log.length > 12) log.pop();
+      unseen++;
+      if(!top || CLS[ev.k].pri >= CLS[top.k].pri) top = ev;
+      if(!REDUCED){
+        mk.classList.remove("breathe"); mk.classList.add("think");
+        btn.classList.add("working");
+        if(ev.k === "needs" || ev.k === "blocked") mk.classList.add("fast");
+        Clock.cancel(workT);
+        workT = Clock.at(2200, function(){
+          btn.classList.remove("working"); mk.classList.remove("think","fast");
+          if(!(top && top.k === "blocked")) mk.classList.add("breathe");   /* stillness is the alarm */
+        });
+      }
+      if(count){
+        bump("presence","shown"); livePeak("presence", 1);
+        if(pop.classList.contains("on")) bump("presence","words", words(ev.actor) + words(ev.s));
+      }
+      paint();
+    },
+    reset:function(){ log = []; unseen = 0; top = null; pop.classList.remove("on");
+      Clock.cancel(workT); btn.classList.remove("working");
+      mk.classList.remove("think","fast"); if(!REDUCED) mk.classList.add("breathe"); paint(); }
+  };
+};
+
+/* ---------- 03 LEDGER ---------- */
+RENDER.ledger = function(host, count){
+  var ov = host.querySelector("[data-ov]");
+  var el = document.createElement("div");
+  el.className = "lg";
+  el.innerHTML = '<div class="lg-hd">'+ mark("draw") +'<span>Activity</span><span class="sp"></span><span data-n>0</span></div>'+
+    '<div class="lg-body" role="log" aria-live="off" aria-label="Activity ledger" data-b><div class="lg-empty">Nothing recorded yet.</div></div>';
+  ov.appendChild(el);
+  var body = el.querySelector("[data-b]"), n = el.querySelector("[data-n]");
+  var rows = [], lastActor = null, run = 0, runNode = null;
+
+  function tag(ev){
+    var t = [];
+    if(ev.res === "private") t.push('<span class="lg-tag pv">private</span>');
+    if(ev.res === "egress")  t.push('<span class="lg-tag">egress ok</span>');
+    if(ev.res === "blocked") t.push('<span class="lg-tag eg">egress blocked</span>');
+    if(ev.human) t.push('<span class="lg-tag ap">needs you</span>');
+    return '<div class="meta">' + t.join("") + '</div>';
+  }
+  function clk(ms){
+    var base = 9 * 60 + 4 + Math.floor(ms / 1000);
+    return String(Math.floor(base / 60) % 24).padStart(2,"0") + ":" + String(base % 60).padStart(2,"0");
+  }
+  return {
+    push:function(ev){
+      if(!rows.length) body.innerHTML = '<div class="lg-day">Today</div>';
+      if(ev.actor === lastActor){ run++; } else { run = 1; lastActor = ev.actor; runNode = null; }
+      if(run >= 3){                                    /* rule 2 — coalesce by actor */
+        if(!runNode){
+          runNode = document.createElement("div");
+          runNode.className = "lg-grp";
+          body.querySelector(".lg-day").after(runNode);
+        }
+        runNode.textContent = esc(ev.actor) + " · " + (run - 1) + " more in this run";
+        rows.push(ev); n.textContent = rows.length;
+        if(count){ bump("ledger","shown"); livePeak("ledger", Math.min(rows.length, 6)); }
+        return;
+      }
+      var r = document.createElement("div");
+      r.className = "lg-r";
+      r.style.setProperty("--c", CLS[ev.k].v);
+      r.innerHTML = '<span class="t">'+clk(ev.ts)+'</span><span class="rail"></span>'+
+        '<span><span class="who">'+esc(ev.actor)+'</span> <span class="what">'+esc(ev.s)+'</span>'+tag(ev)+'</span>';
+      var day = body.querySelector(".lg-day");
+      day.after(r);
+      rows.push(ev); n.textContent = rows.length;
+      var olds = body.querySelectorAll(".lg-r");
+      for(var oi = 40; oi < olds.length; oi++) olds[oi].remove();
+      if(count){
+        bump("ledger","shown"); bump("ledger","words", words(ev.actor) + words(ev.s));
+        livePeak("ledger", Math.min(rows.length, 6));
+      }
+    },
+    reset:function(){ rows = []; lastActor = null; run = 0; runNode = null; n.textContent = "0";
+      body.innerHTML = '<div class="lg-empty">Nothing recorded yet.</div>'; }
+  };
+};
+
+/* ---------- 04 CARD STACK ---------- */
+RENDER.cards = function(host, count){
+  var ov = host.querySelector("[data-ov]");
+  var el = document.createElement("div");
+  el.className = "cs"; el.setAttribute("role","region"); el.setAttribute("aria-label","Recent actions");
+  ov.appendChild(el);
+  var live = [], digest = null, digestCounts = null, pile = 0;
+
+  var MAXC = 2;                 /* the miniature holds two; a real desktop holds three */
+  function relayout(){
+    var cards = $$(".cs-card", el);
+    var extra = cards.length - MAXC;
+    $$(".cs-pile", el).forEach(function(p){ p.remove(); });
+    if(extra > 0){
+      cards.slice(MAXC).forEach(function(c){ c.remove(); });
+      pile += extra;
+    }
+    if(pile > 0){
+      var p = document.createElement("div");
+      p.className = "cs-pile";
+      p.innerHTML = '<span class="pc"></span><span class="pc"></span><span class="pc"></span>'+
+        '<span class="lbl">+' + pile + ' earlier</span>';
+      el.appendChild(p);
+    }
+    if(count) livePeak("cards", $$(".cs-card", el).length);
+  }
+  function drop(node, ev){
+    node.remove();
+    var i = live.indexOf(ev); if(i >= 0) live.splice(i,1);
+    relayout();
+  }
+  function addCard(ev){
+    var c = document.createElement("article");
+    c.className = "cs-card" + (REDUCED ? "" : " in");
+    c.style.setProperty("--c", CLS[ev.k].v);
+    c.tabIndex = 0;
+    if(ev.k === "blocked") c.style.background = "var(--ev-blocked-t)";
+    var acts = ev.a.map(function(l, i){
+      return '<button class="cs-b'+(i === 0 && ev.human ? " go" : "")+'" type="button">'+esc(l)+'</button>'; }).join("");
+    c.innerHTML = '<div class="cs-hd">'+ mark() +'<span class="who">'+esc(ev.actor)+'</span><span class="sp"></span>'+
+      '<span class="t">'+CLS[ev.k].label+'</span></div>'+
+      '<div class="cs-bd">'+esc(ev.s)+'</div>'+
+      (acts ? '<div class="cs-act">'+acts+'</div>' : '');
+    el.insertBefore(c, el.firstChild);
+    live.push(ev);
+    if(count){
+      bump("cards","shown");
+      bump("cards","words", words(ev.actor) + words(ev.s));
+      if(ev.human) bump("cards","act");
+    }
+    relayout();
+    if(!ev.human && ev.k !== "blocked"){
+      Clock.at(ev.k === "wrote" ? 12000 : 5000, function(){ drop(c, ev); });
+    }
+    c.addEventListener("click", function(e){
+      if(e.target.classList.contains("cs-b")) drop(c, ev);
+    });
+  }
+  function addDigest(ev){
+    if(!digest){
+      digestCounts = {};
+      digest = document.createElement("article");
+      digest.className = "cs-card cs-dig" + (REDUCED ? "" : " in");
+      digest.style.setProperty("--c","var(--tx-3)");
+      digest.tabIndex = 0;
+      el.insertBefore(digest, el.firstChild);
+      if(count){ bump("cards","shown"); }
+      var self = digest;
+      Clock.at(16000, function(){ if(digest === self){ self.remove(); digest = null; relayout(); } });
+    }
+    digestCounts[ev.k] = (digestCounts[ev.k] || 0) + 1;
+    var tot = 0; Object.keys(digestCounts).forEach(function(k){ tot += digestCounts[k]; });
+    digest.innerHTML = '<div class="cs-hd">'+ mark() +'<span class="who">Console</span><span class="sp"></span>'+
+        '<span class="t">digest</span></div>'+
+      '<div class="cs-bd" style="-webkit-line-clamp:2">'+tot+' things happened in the last few seconds.</div>'+
+      Object.keys(digestCounts).map(function(k){
+        return '<div class="row"><span class="d" style="background:'+CLS[k].v+'"></span>'+
+          digestCounts[k]+' '+CLS[k].label.toLowerCase()+'</div>'; }).join("")+
+      '<div class="cs-act"><button class="cs-b" type="button">Review all</button></div>';
+    if(count) bump("cards","drop");
+    relayout();
+  }
+  return {
+    push:function(ev){
+      if(ev.burst) addDigest(ev);       /* rule 3 + 4 — never digest a decision */
+      else addCard(ev);
+    },
+    reset:function(){ el.innerHTML = ""; live = []; digest = null; digestCounts = null; pile = 0; }
+  };
+};
+
+/* ---------- 05 AMBIENT ---------- */
+RENDER.ambient = function(host, count){
+  var ov  = host.querySelector("[data-ov]");
+  var bar = host.querySelector(".st-bar");
+  var hair = host.querySelector("[data-hair]");
+  var barmk = bar.querySelector(".mk");
+  var halo = document.createElement("span");
+  halo.className = "halo"; halo.setAttribute("aria-hidden","true");
+  var wrapBtn = document.createElement("button");
+  wrapBtn.type = "button"; wrapBtn.className = "am-mk";
+  wrapBtn.setAttribute("aria-label","Console activity. Nothing new.");
+  wrapBtn.style.cssText = "background:none;border:0;padding:0;cursor:pointer;display:flex;min-width:22px;min-height:22px;align-items:center;justify-content:center";
+  bar.insertBefore(wrapBtn, barmk);
+  wrapBtn.appendChild(halo); wrapBtn.appendChild(barmk);
+
+  var peek = document.createElement("div");
+  peek.className = "am-peek"; peek.setAttribute("role","dialog"); peek.setAttribute("aria-label","Recent activity");
+  ov.appendChild(peek);
+  var hint = document.createElement("span");
+  hint.className = "am-hint"; hint.textContent = "no text unless you ask";
+  ov.appendChild(hint);
+
+  var log = [], lit = {}, decay = {}, counts = { needs:0, blocked:0 }, unseen = 0;
+
+  function paintPeek(){
+    peek.innerHTML = log.slice(0,4).map(function(e){
+      return '<div class="r"><span class="d" style="background:'+CLS[e.k].v+'"></span>'+
+        '<span><b>'+esc(e.actor)+'</b> — '+esc(e.s)+'</span></div>'; }).join("")
+      || '<div class="r"><span>Nothing yet.</span></div>';
+  }
+  function toggle(on){
+    peek.classList.toggle("on", on);
+    if(on){ paintPeek(); if(count) bump("ambient","words", log.slice(0,4).reduce(function(a,e){ return a + words(e.actor) + words(e.s); },0)); }
+  }
+  wrapBtn.addEventListener("click", function(){ toggle(!peek.classList.contains("on")); });
+  wrapBtn.addEventListener("mouseenter", function(){ toggle(true); });
+  host.addEventListener("mouseleave", function(){ toggle(false); });
+
+  return {
+    peek:peek,
+    push:function(ev){
+      log.unshift(ev); if(log.length > 12) log.pop();
+      unseen++;
+      var dk = host.querySelector('.dk[data-app="'+ev.app+'"]');
+      if(dk){
+        var g = dk.querySelector(".glow"), c = CLS[ev.k].v;
+        g.style.boxShadow = "0 0 0 1.5px " + CLS[ev.k].l + ", 0 0 13px 3px " + c + ", 0 0 22px 8px " + CLS[ev.k].t;
+        g.style.opacity = ".95";
+        lit[ev.app] = 1;
+        Clock.cancel(decay[ev.app]);
+        decay[ev.app] = Clock.at(8000, function(){
+          g.style.boxShadow = "0 0 0 0 transparent"; delete lit[ev.app];
+          if(count) livePeak("ambient", Object.keys(lit).length);
+        });
+        if(ev.k === "needs" || ev.k === "blocked"){
+          counts[ev.k]++;
+          var tot = counts.needs + counts.blocked;
+          dk.setAttribute("data-count", tot);
+          dk.querySelector(".bdg").textContent = tot;
+          dk.setAttribute("aria-label", ev.app + ": " + tot + " need you");
+        }
+      }
+      hair.style.setProperty("--c", CLS[ev.k].v);
+      hair.style.background = CLS[ev.k].v;
+      hair.style.opacity = "1";
+      Clock.at(8000, function(){ hair.style.opacity = "0"; });
+      halo.style.boxShadow = "0 0 0 1px " + CLS[ev.k].l + ", 0 0 9px 2px " + CLS[ev.k].t;
+      Clock.at(6000, function(){ halo.style.boxShadow = "0 0 0 0 transparent"; });
+      wrapBtn.setAttribute("aria-label", "Console activity: " + unseen + " new" +
+        (counts.needs + counts.blocked ? ", " + (counts.needs + counts.blocked) + " need you" : "") + ". Activate to read.");
+      if(count){ bump("ambient","shown"); livePeak("ambient", Object.keys(lit).length); }
+      if(peek.classList.contains("on")) paintPeek();
+    },
+    reset:function(){
+      log = []; lit = {}; counts = { needs:0, blocked:0 }; unseen = 0;
+      peek.classList.remove("on");
+      $$(".dk", host).forEach(function(d){
+        d.setAttribute("data-count","0"); d.querySelector(".glow").style.boxShadow = "0 0 0 0 transparent";
+        d.removeAttribute("aria-label");
+      });
+      hair.style.opacity = "0"; halo.style.boxShadow = "0 0 0 0 transparent";
+      wrapBtn.setAttribute("aria-label","Console activity. Nothing new.");
+    }
+  };
+};
+
+/* ============================================================
+   MOUNT — every stage on the page, all on the one bus.
+   Only the simulator instances (data-inst starting "s") count
+   toward the metrics, so the anatomy specimens do not inflate them.
+   ============================================================ */
+var MOUNTED = [];
+$$(".stage[data-opt]").forEach(function(host){
+  var opt = host.getAttribute("data-opt");
+  var counts = /^s/.test(host.getAttribute("data-inst") || "");
+  host.innerHTML = stageHTML();
+  var api = RENDER[opt](host, counts);
+  api.opt = opt; api.host = host;
+  MOUNTED.push(api);
+  BUS.on(function(ev){ api.push(ev); });
+});
+BUS.on(function(){ paintMetrics(); scheduleObs(); });
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+var SIM = { mode:"idle", tasks:[] };
+function syncState(){
+  var s = $("#simState");
+  s.textContent = (SIM.mode === "idle" ? "Idle" : SIM.mode === "burst" ? "Burst running" : "Morning replay")
+    + " · " + BUS.fired + " event" + (BUS.fired === 1 ? "" : "s") + " fired";
+  $("#simLog").classList.toggle("run", SIM.mode !== "idle");
+}
+function clearSim(){ SIM.tasks.forEach(function(t){ Clock.cancel(t); }); SIM.tasks = []; }
+
+$$("[data-fire]").forEach(function(b){
+  b.addEventListener("click", function(){ BUS.emit(pickByClass(b.getAttribute("data-fire"))); });
+});
+
+$("#burstBtn").addEventListener("click", function(){
+  clearSim(); SIM.mode = "burst"; syncState();
+  for(var i = 0; i < 12; i++){
+    (function(i){
+      SIM.tasks.push(Clock.at(i * 250, function(){
+        BUS.emit(makeEvent(CORPUS[i % CORPUS.length]));
+        if(i === 11){ SIM.mode = "idle"; syncState(); }
+      }));
+    })(i);
+  }
+});
+
+/* a Tuesday, compressed to 40 seconds */
+var MORNING = [
+  [0,     5],  [2200,  0],  [4600, 11], [6800,  6],  [9500,  4],
+  [13000, 2],  [16000,12],  [18500, 1], [22000, 10], [26000, 9],
+  [29000, 8],  [32000, 3],  [35000, 7], [38000, 13]
+];
+$("#morningBtn").addEventListener("click", function(){
+  clearSim(); resetAll(true); SIM.mode = "morning"; syncState();
+  MORNING.forEach(function(pair, i){
+    SIM.tasks.push(Clock.at(pair[0], function(){
+      BUS.emit(makeEvent(CORPUS[pair[1]]));
+      if(i === MORNING.length - 1){ SIM.tasks.push(Clock.at(2500, function(){ SIM.mode = "idle"; syncState(); })); }
+    }));
+  });
+});
+
+$("#pauseBtn").addEventListener("click", function(){
+  Clock.paused = !Clock.paused;
+  this.setAttribute("aria-pressed", Clock.paused ? "true" : "false");
+  this.textContent = Clock.paused ? "Resume" : "Pause";
+});
+$("#speedIn").addEventListener("input", function(){
+  Clock.speed = parseFloat(this.value);
+  $("#speedLbl").textContent = Clock.speed.toFixed(1) + "×";
+});
+function resetAll(keepMode){
+  clearSim(); Clock.clear(); BUS.reset();
+  MOUNTED.forEach(function(a){ a.reset(); });
+  Object.keys(M).forEach(function(o){ M[o] = { shown:0, drop:0, peak:0, words:0, act:0, live:0 }; });
+  paintMetrics();
+  if(!keepMode){
+    SIM.mode = "idle";
+    $$("[data-obs]").forEach(function(n){ n.textContent = "Fire something to fill this in."; });
+  }
+  syncState();
+}
+$("#resetBtn").addEventListener("click", function(){ resetAll(false); });
+
+/* local fire rows under each option specimen */
+$$("[data-localfire]").forEach(function(host){
+  host.innerHTML = Object.keys(CLS).map(function(k){
+    return '<button class="evbtn '+k+'" type="button" data-fire="'+k+'"><span class="sw"></span>'+CLS[k].label+'</button>';
+  }).join("");
+  $$("[data-fire]", host).forEach(function(b){
+    b.addEventListener("click", function(){ BUS.emit(pickByClass(b.getAttribute("data-fire"))); });
+  });
+});
+
+/* ============================================================
+   QUIET PATHS — the simulator stops when it is not being watched.
+   ============================================================ */
+if(window.IntersectionObserver){
+  var seenVis = [];
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      var i = seenVis.indexOf(e.target);
+      if(e.isIntersecting){ if(i < 0) seenVis.push(e.target); }
+      else if(i >= 0) seenVis.splice(i, 1);
+    });
+    VISIBLE = seenVis.length > 0;
+  }, { threshold:0.02 });
+  io.observe($("#simGrid"));
+  $$(".optcard .stage").forEach(function(n){ io.observe(n); });
+}
+
+/* Escape closes any overlay this page owns */
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Escape") return;
+  var closed = false;
+  $$(".pr-pop.on, .am-peek.on").forEach(function(n){ n.classList.remove("on"); closed = true; });
+  if(closed) e.stopPropagation();
+});
+
+/* ============================================================
+   VERDICTS — persisted, because a decision doc that forgets your
+   decision is a brochure.
+   ============================================================ */
+var V = {};
+try{ V = JSON.parse(localStorage.getItem("mv-notif-verdicts") || "{}"); }catch(e){ V = {}; }
+function paintVerdicts(){
+  $$("[data-v]").forEach(function(b){
+    b.setAttribute("aria-pressed", V[b.getAttribute("data-v")] === b.getAttribute("data-val") ? "true" : "false");
+  });
+}
+$$("[data-v]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var o = b.getAttribute("data-v"), val = b.getAttribute("data-val");
+    V[o] = (V[o] === val) ? null : val;
+    try{ localStorage.setItem("mv-notif-verdicts", JSON.stringify(V)); }catch(e){}
+    paintVerdicts();
+  });
+});
+paintVerdicts();
+
+/* live clock in each stage menu bar */
+(function(){
+  function tick(){
+    var d = new Date(), s = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+    $$("[data-clk]").forEach(function(n){ n.textContent = s; });
+    var now = $("#simNow"); if(now) now.textContent = s;
+  }
+  tick(); setInterval(tick, 20000);
+})();
+
+/* ============================================================
+   SELF-CHECK — the gradient-ID rule, verified in the live DOM.
+   ============================================================ */
+(function(){
+  var n = $("#markCount"); if(!n) return;
+  function check(){
+    var ids = $$("linearGradient[id]").map(function(g){ return g.id; });
+    var uniq = {}, dupes = 0;
+    ids.forEach(function(i){ if(uniq[i]) dupes++; uniq[i] = 1; });
+    n.textContent = $$(".mk").length + " marks live · " + ids.length + " gradient IDs · " +
+      (dupes ? dupes + " DUPLICATE" : "all unique");
+  }
+  check(); setInterval(check, 3000);
+})();
+
+})();
+</script>
+</body>
+</html>
