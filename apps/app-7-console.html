@@ -511,6 +511,32 @@ body.dreaming #dock,body.dreaming #menubar,body.dreaming #quickAI,body.dreaming 
 body.dreaming .wg,body.dreaming #thoughtStream{filter:saturate(.4) brightness(.5);transition:filter 1.8s ease}
 body.dreaming #neural{opacity:.95 !important;transition:opacity 2s ease}
 
+/* =============== HOLOGRAPHIC DEPTH =============== */
+/* three planes: wallpaper (deep) · icons (mid) · windows (front, tilt).
+   --hpx/--hpy run -1..1 from pointer position, lerped in JS. While any
+   pointer button is down the values freeze — drag math stays exact. */
+body.holo{--hpx:0;--hpy:0}
+body.holo #wallpaper{will-change:transform;
+  transform:translate3d(calc(var(--hpx)*-16px),calc(var(--hpy)*-11px),0) scale(1.045)}
+body.holo .icon-layer{will-change:transform;
+  transform:translate3d(calc(var(--hpx)*-8px),calc(var(--hpy)*-6px),0)}
+/* background windows lean away on a cylinder + pick up depth-of-field;
+   the focused window sits perfectly flat. tilt is lerped by JS per frame */
+body.holo .win:not(.focused){transform:perspective(1400px) rotateY(var(--tilt,0deg)) translateZ(0);
+  filter:blur(.55px) brightness(.9) saturate(.95);transition:filter .45s ease}
+@media (max-width:767px){ body.holo .win:not(.focused){transform:none;filter:none} }
+/* edge light-leak — accent light breathing behind the hologram */
+#edgeGlow{position:fixed;inset:0;z-index:2147483000;pointer-events:none;opacity:0;
+  transition:opacity 1.2s ease;
+  box-shadow:inset 0 0 110px rgba(14,165,183,.10),inset 0 0 280px rgba(14,165,183,.05)}
+body.holo #edgeGlow{opacity:1;animation:holoBreathe 7s ease-in-out infinite}
+@keyframes holoBreathe{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+  #edgeGlow{animation:none}
+  body.holo #wallpaper,body.holo .icon-layer{transform:none}
+  body.holo .win:not(.focused){transform:none}
+}
+
 /* =============== BRAIN SEARCH BAR =============== */
 .br-search-wrap{padding:0 16px 10px;display:flex;flex-direction:column;gap:4px}
 .br-search{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:var(--r-md);
@@ -1978,6 +2004,11 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
         <button class="cc-toggle" data-cctoggle="clap" aria-pressed="false"><span class="cc-knob"></span></button>
         <div class="cc-sub">Double-clap → voice</div>
       </div>
+      <div class="cc-tile">
+        <div class="cc-lbl">Depth</div>
+        <button class="cc-toggle" data-cctoggle="holo" aria-pressed="true"><span class="cc-knob"></span></button>
+        <div class="cc-sub">Holographic parallax</div>
+      </div>
       <div class="cc-tile cc-span2">
         <div class="cc-lbl">Icon layout</div>
         <div class="cc-layouts" data-cclayouts></div>
@@ -2036,6 +2067,9 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
     <div class="dream-line" data-dreamline></div>
     <div class="dream-hint">move to wake</div>
   </div>
+
+  <!-- Holographic depth — edge light-leak -->
+  <div id="edgeGlow" aria-hidden="true"></div>
 
   <!-- ===== CONTEXT MENU ===== -->
   <div id="ctxMenu" class="ctx-menu" style="display:none">
@@ -2405,7 +2439,8 @@ function ccRender(){
       '" style="'+bg+'" title="'+esc(wp.label)+'"></div>'; }).join("");
   $$("#ccPanel [data-cctoggle]").forEach(function(b){
     var k = b.getAttribute("data-cctoggle");
-    b.setAttribute("aria-pressed", String(k === "focus" ? focusMode() : clap.on)); });
+    b.setAttribute("aria-pressed", String(
+      k === "focus" ? focusMode() : k === "holo" ? (typeof HOLO !== "undefined" && HOLO.on) : clap.on)); });
   var fl = $("[data-ccfocuslbl]");
   if(fl) fl.textContent = focusMode() ? "On — agents quiet" : "Off — agents live";
   var nr = $("[data-ccneu]");
@@ -2429,7 +2464,10 @@ document.addEventListener("click", function(e){
          applyWallpaper(w.getAttribute("data-wp")); ccRender(); return; }
   var t = e.target.closest("[data-cctoggle]");
   if(t){ var k = t.getAttribute("data-cctoggle");
-         k === "focus" ? setFocus(!focusMode()) : clapToggle(); ccRender(); return; }
+         if(k === "focus") setFocus(!focusMode());
+         else if(k === "holo") holoSet(!HOLO.on);
+         else clapToggle();
+         ccRender(); return; }
   if(e.target.closest("[data-ccwidgets]")){ ccOpen(false); weditOpen(); return; }
   if(e.target.closest("[data-cckeys]")){ ccOpen(false); keysOpen(); return; }
 });
@@ -2441,6 +2479,91 @@ document.addEventListener("input", function(e){
 document.addEventListener("click", function(e){
   if(e.target === $("#ccPanel")) ccOpen(false);
 });
+
+/* ---- Holographic depth: 3-plane parallax + window tilt + edge light ----
+   Planes: wallpaper -16px · icons -8px · windows tilt in 3D (focused stays
+   flat). While ANY pointer button is held, targets freeze at their current
+   value — a constant layer offset cancels out of drag-delta math, so icon
+   and window dragging stays pixel-exact and click targets never jump. */
+var HOLO = {
+  on: store.get("mv7.holo", "1") === "1",
+  tx: 0, ty: 0, x: 0, y: 0,        /* target / lerped pointer, -1..1     */
+  freeze: 0, raf: 0, cur: {}       /* per-window current tilt, degrees   */
+};
+var HOLO_FINE = true;
+try{ HOLO_FINE = !matchMedia("(pointer: coarse)").matches; }catch(e){}
+function holoBodyClass(){
+  document.body.classList.toggle("holo", HOLO.on && !REDUCED);
+}
+function holoSet(on){
+  HOLO.on = !!on;
+  store.set("mv7.holo", HOLO.on ? "1" : "0");
+  holoBodyClass();
+  if(!HOLO.on){
+    document.body.style.setProperty("--hpx", "0");
+    document.body.style.setProperty("--hpy", "0");
+    wins.forEach(function(w){
+      if(w && w.node) w.node.style.removeProperty("--tilt");
+    });
+  } else {
+    toast("Holographic depth on — move the pointer across the desktop.", 2400);
+  }
+  syncCC();
+}
+window.addEventListener("pointermove", function(e){
+  if(HOLO.freeze || !HOLO.on || REDUCED || !HOLO_FINE) return;
+  HOLO.tx = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+  HOLO.ty = (e.clientY / Math.max(1, window.innerHeight)) * 2 - 1;
+}, {passive:true});
+window.addEventListener("pointerdown", function(){ HOLO.freeze = 1; },
+  {capture:true, passive:true});
+window.addEventListener("pointerup",   function(){ HOLO.freeze = 0; },
+  {capture:true, passive:true});
+window.addEventListener("pointercancel", function(){ HOLO.freeze = 0; },
+  {capture:true, passive:true});
+function holoTick(){
+  HOLO.raf = requestAnimationFrame(holoTick);
+  if(!HOLO.on || REDUCED || document.hidden || !HOLO_FINE) return;
+  if(!document.body.matches('[data-stage="os"]')) return;
+  if(typeof wins === "undefined" || !wins || typeof curSpace === "undefined") return;
+  /* ease the two planes toward the pointer */
+  if(!HOLO.freeze){
+    HOLO.x += (HOLO.tx - HOLO.x) * .085;
+    HOLO.y += (HOLO.ty - HOLO.y) * .085;
+    document.body.style.setProperty("--hpx", HOLO.x.toFixed(4));
+    document.body.style.setProperty("--hpy", HOLO.y.toFixed(4));
+  }
+  /* background windows lean on a cylinder and follow the pointer slightly;
+     paused while Mission Control / Dream Mode owns the screen */
+  var mc = $("#mission");
+  var skip = (mc && mc.classList.contains("on")) || (typeof DREAM !== "undefined" && DREAM.on) || HOLO.freeze;
+  var focusId = -1, fz = -1;
+  wins.forEach(function(w){
+    if(w.spaceId === curSpace && !w.min && w.z > fz){ fz = w.z; focusId = w.id; }
+  });
+  wins.forEach(function(w){
+    if(!w.node) return;
+    var visible = w.spaceId === curSpace && !w.min;
+    var target = 0;
+    if(visible && w.id !== focusId && !w.max && !skip){
+      var cx = w.x + w.w / 2;
+      var off = clamp((cx - window.innerWidth / 2) / (window.innerWidth / 2), -1, 1);
+      target = clamp(off * 2.4 + HOLO.x * 1.5, -3.4, 3.4);
+    } else if(!visible){
+      return;                              /* other spaces keep their state */
+    }
+    var c = HOLO.cur[w.id] || 0;
+    if(Math.abs(target - c) < .012){
+      if(target === 0 && c !== 0){ HOLO.cur[w.id] = 0; w.node.style.removeProperty("--tilt"); }
+      return;
+    }
+    c += (target - c) * .12;
+    HOLO.cur[w.id] = c;
+    w.node.style.setProperty("--tilt", c.toFixed(3) + "deg");
+  });
+}
+holoBodyClass();
+holoTick();
 
 /* ---- Shortcuts overlay ---- */
 var KEYS_DOC = [
