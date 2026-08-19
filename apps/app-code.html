@@ -1,0 +1,2963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>MagnaVERSE Code — editor with AI, on-prem</title>
+<!--
+  MagnaVERSE Code — the "separate tab" companion app for Console's Code window.
+
+  A Cursor-shaped editor: file tree, editor tabs, Monaco, and an AI panel that
+  can read the buffer, propose an inline edit, or plan a multi-file change.
+
+  Rules this file keeps, deliberately:
+
+  · No CDN, no npm, no build step, no backend. Monaco is the vendored copy in
+    ../vendor/monaco/vs (0.52.2, MIT). Console's Sovereignty widget reads
+    "Egress today: 0 bytes" — a script tag pointed at a CDN would make that a
+    lie the moment this tab opened, and would fail in an air-gapped DC.
+  · The vendored copy has the language services trimmed out, so there is no
+    completion and no type checking — only tokenising. Nothing in this UI
+    promises IntelliSense.
+  · Monaco has no RTL support (it renders invisible inside dir="rtl"), so
+    dir="ltr" is pinned on every editor host and code surface. Source code is
+    left-to-right even in an Arabic UI. The chrome around it stays RTL-capable.
+  · The AI is a deterministic canned generator, not a model. It is keyed off
+    what you type and the bytes actually in your buffer. It says so, in the UI,
+    where you can see it. See INTENTS below.
+  · Every AI edit is a write, so it passes through the same approval bar
+    Console uses before it touches a file.
+-->
+<script>
+/* theme before first paint — no flash. mv-theme is the site-wide key. */
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme");
+    if(t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  }catch(e){}
+})();
+</script>
+<style>
+/* ============================================================
+   1 · TOKENS
+   Dark is the design's home, matching Console. Light is a real
+   variant, not a filter. An explicit data-theme beats the media
+   query in BOTH directions — pick light on a dark OS and it
+   stays light, and the reverse.
+   ============================================================ */
+:root{
+  --bg:#05070C;
+  --surface:#0F131B;            /* == magna-dark editor.background */
+  --surface-2:#161C27;
+  --surface-3:#1E2432;
+  --chrome:#0B0E14;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+  --tx:#F2F3F6; --tx-2:#B4B9C6; --tx-3:#787E8D; --tx-4:#4C5262;
+  --accent:#D71920; --accent-2:#FF4A50; --accent-dim:rgba(215,25,32,.16);
+  --signal:#5B4FE0; --signal-dim:rgba(91,79,224,.16);
+  --private:#3FCF95; --private-dim:rgba(63,207,149,.14);
+  --public:#E0A33C;  --public-dim:rgba(224,163,60,.14);
+  --cyan:#0EA5B7; --blue:#3B7BFF; --violet:#8B5CF6;
+  --add:rgba(63,207,149,.16); --add-line:rgba(63,207,149,.42);
+  --del:rgba(255,74,80,.15);   --del-line:rgba(255,74,80,.42);
+  --shadow:0 20px 50px rgba(0,0,0,.5);
+  --shadow-sm:0 2px 10px rgba(0,0,0,.4);
+  --r:9px; --r-lg:14px; --r-pill:99px;
+  --tree-w:236px; --ai-w:392px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+/* light tokens, written once and applied from two places */
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#E9ECF3; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E7EBF1; --chrome:#F7F9FC;
+    --line:rgba(12,16,26,.10); --line-2:rgba(12,16,26,.20);
+    --tx:#0D1018; --tx-2:#3D434F; --tx-3:#6B7280; --tx-4:#9AA0AC;
+    --accent-dim:rgba(215,25,32,.10); --signal-dim:rgba(91,79,224,.10);
+    --private:#128A5B; --private-dim:rgba(18,138,91,.12);
+    --public:#A9711A;  --public-dim:rgba(169,113,26,.12);
+    --add:rgba(18,138,91,.13); --add-line:rgba(18,138,91,.40);
+    --del:rgba(200,30,36,.11);  --del-line:rgba(200,30,36,.38);
+    --shadow:0 20px 50px rgba(20,26,40,.18); --shadow-sm:0 2px 10px rgba(20,26,40,.10);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#E9ECF3; --surface:#FFFFFF; --surface-2:#F2F4F7; --surface-3:#E7EBF1; --chrome:#F7F9FC;
+  --line:rgba(12,16,26,.10); --line-2:rgba(12,16,26,.20);
+  --tx:#0D1018; --tx-2:#3D434F; --tx-3:#6B7280; --tx-4:#9AA0AC;
+  --accent-dim:rgba(215,25,32,.10); --signal-dim:rgba(91,79,224,.10);
+  --private:#128A5B; --private-dim:rgba(18,138,91,.12);
+  --public:#A9711A;  --public-dim:rgba(169,113,26,.12);
+  --add:rgba(18,138,91,.13); --add-line:rgba(18,138,91,.40);
+  --del:rgba(200,30,36,.11);  --del-line:rgba(200,30,36,.38);
+  --shadow:0 20px 50px rgba(20,26,40,.18); --shadow-sm:0 2px 10px rgba(20,26,40,.10);
+}
+
+/* ============================================================
+   2 · RESET / PRIMITIVES
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:13.5px;
+  -webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;
+  stroke-linejoin:round;flex:none}
+.ico.sm{width:15px;height:15px}.ico.xs{width:12px;height:12px}.ico.lg{width:22px;height:22px}
+.mono{font-family:var(--mono)}
+
+/* buttons — one shape, three weights */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:30px;
+  padding:0 11px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);
+  color:var(--tx-2);font-size:12.5px;white-space:nowrap;transition:background .14s,color .14s,border-color .14s}
+.btn:hover{background:var(--surface-3);color:var(--tx);border-color:var(--line-2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--tx);color:var(--bg);border-color:var(--tx);font-weight:620}
+.btn.primary:hover{opacity:.88;background:var(--tx);color:var(--bg)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--surface-2);border-color:var(--line)}
+.btn.ok{color:var(--private);border-color:color-mix(in srgb,var(--private) 40%,transparent);
+  background:var(--private-dim)}
+.btn.ok:hover{background:color-mix(in srgb,var(--private) 24%,transparent);color:var(--private)}
+.btn.no{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 34%,transparent);
+  background:var(--accent-dim)}
+.btn.no:hover{background:color-mix(in srgb,var(--accent-2) 20%,transparent);color:var(--accent-2)}
+.btn.sm{min-height:26px;padding:0 9px;font-size:11.5px;border-radius:7px}
+.iconbtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--tx-3);flex:none}
+.iconbtn:hover{background:var(--surface-2);color:var(--tx)}
+.iconbtn[aria-pressed="true"]{background:var(--signal-dim);color:var(--tx)}
+/* touch: everything a finger reaches is at least 44px */
+@media (pointer:coarse){
+  .btn{min-height:44px;padding:0 14px}.btn.sm{min-height:40px}
+  .iconbtn{width:44px;height:44px}
+}
+
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);
+  padding:3px 8px;border-radius:var(--r-pill);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--tx-3);white-space:nowrap}
+.chip.private{color:var(--private);border-color:color-mix(in srgb,var(--private) 32%,transparent);
+  background:var(--private-dim)}
+.chip .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+
+/* ============================================================
+   3 · THE MARK — real Magna logo, gradient ids unique per use
+   ============================================================ */
+.magna-mark{width:24px;height:auto;display:block;flex:none}
+.magna-mark path{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion: no-preference){
+  .mg-thinking path{animation:mgLoop 1.9s ease-in-out infinite}
+  .mg-thinking path:nth-of-type(2){animation-delay:.22s}
+}
+@keyframes mgLoop{
+  0%{stroke-dashoffset:1200;opacity:.35}
+  45%{stroke-dashoffset:0;opacity:1}
+  100%{stroke-dashoffset:-1200;opacity:.35}
+}
+.wordmark{font-size:13.5px;font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+.wordmark span{color:var(--tx-3);font-weight:500}
+
+/* ============================================================
+   4 · SHELL
+   ============================================================ */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;min-width:0}
+.topbar{flex:none;display:flex;align-items:center;gap:8px;height:48px;padding:0 10px;
+  background:var(--chrome);border-bottom:1px solid var(--line);min-width:0}
+.topbar .brand{display:flex;align-items:center;gap:9px;padding-right:4px;min-width:0}
+.topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
+.topbar .sp{flex:1;min-width:0}
+.topbar .grp{display:flex;align-items:center;gap:4px;flex:none}
+
+.stage{flex:1;min-height:0;display:flex;min-width:0;position:relative}
+
+/* --- file tree --- */
+.tree{width:var(--tree-w);flex:none;display:flex;flex-direction:column;min-width:0;
+  background:var(--chrome);border-right:1px solid var(--line)}
+body:not(.tree-open) .tree{display:none}
+.tree-h{flex:none;display:flex;align-items:center;gap:6px;padding:9px 10px 7px;font-size:10px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--tx-4);font-weight:700}
+.tree-h .sp{flex:1}
+.tree-scroll{flex:1;min-height:0;overflow:auto;padding:0 6px 10px}
+.tw-folder{margin-top:2px}
+.tw-row{display:flex;align-items:center;gap:7px;width:100%;padding:6px 8px;border-radius:7px;
+  font-size:12.5px;color:var(--tx-2);text-align:left;min-height:30px}
+.tw-row:hover{background:var(--surface-2);color:var(--tx)}
+.tw-row .ico{color:var(--tx-4)}
+.tw-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tw-row .del{opacity:0;color:var(--tx-4);flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:5px}
+.tw-row:hover .del,.tw-row:focus-within .del{opacity:1}
+.tw-row .del:hover{color:var(--accent-2);background:var(--accent-dim)}
+.tw-file[aria-current="true"]{background:var(--signal-dim);color:var(--tx);font-weight:560}
+.tw-file[aria-current="true"] .ico{color:var(--accent)}
+.tw-file .dirty{width:6px;height:6px;border-radius:99px;background:var(--public);flex:none}
+.tw-fold{font-weight:650;color:var(--tx-2)}
+.tw-fold .ico{color:var(--blue)}
+.tw-fold .chev{transition:transform .16s;color:var(--tx-4)}
+.tw-folder.closed .chev{transform:rotate(-90deg)}
+.tw-folder.closed .tw-kids{display:none}
+.tw-kids{padding-left:12px;border-left:1px solid var(--line);margin-left:14px}
+@media (pointer:coarse){ .tw-row{min-height:44px} .tw-row .del{opacity:1;width:32px;height:32px} }
+
+/* --- centre column --- */
+.centre{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:var(--surface)}
+.tabstrip{flex:none;display:flex;align-items:stretch;gap:0;background:var(--chrome);
+  border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;min-height:36px}
+.tabstrip::-webkit-scrollbar{display:none}
+.etab{display:flex;align-items:center;gap:7px;padding:0 9px 0 11px;font-size:12px;color:var(--tx-3);
+  border-right:1px solid var(--line);background:transparent;max-width:210px;flex:none;min-height:36px;
+  position:relative}
+.etab:hover{color:var(--tx-2);background:var(--surface-2)}
+.etab[aria-selected="true"]{background:var(--surface);color:var(--tx)}
+.etab[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--accent)}
+.etab .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.etab .x{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;color:var(--tx-4);flex:none}
+.etab .x:hover{background:var(--surface-3);color:var(--tx)}
+.etab .dot{width:7px;height:7px;border-radius:99px;background:var(--public);flex:none}
+.etab .dot+.x{display:none}
+.etab:hover .dot{display:none}
+.etab:hover .dot+.x{display:grid}
+@media (pointer:coarse){ .etab{min-height:44px} .etab .dot+.x{display:grid} .etab .dot{display:none} }
+
+.ed-wrap{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+.ed-host{flex:1;min-height:0;position:relative}
+.ed-host .monaco-editor{position:absolute;inset:0}
+/* the plain-text fallback when the vendored Monaco is missing */
+.ed-fallback{position:absolute;inset:0;overflow:auto;padding:12px 0;margin:0;
+  font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--tx-2);white-space:pre;
+  tab-size:2}
+.ed-fallback textarea{width:100%;height:100%;background:transparent;border:0;outline:none;resize:none;
+  font-family:var(--mono);font-size:12px;line-height:1.65;padding:0 14px}
+.ed-empty{position:absolute;inset:0;display:grid;place-items:center;padding:26px;text-align:center}
+.ed-empty .in{max-width:420px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.ed-empty .magna-mark{width:54px;opacity:.9}
+.ed-empty h2{margin:0;font-size:16px;font-weight:680;letter-spacing:-.01em}
+.ed-empty p{margin:0;font-size:12.5px;color:var(--tx-3);line-height:1.65}
+.ed-empty .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* --- status bar --- */
+.statusbar{flex:none;display:flex;align-items:center;gap:12px;height:26px;padding:0 10px;
+  background:var(--chrome);border-top:1px solid var(--line);font-family:var(--mono);font-size:10.5px;
+  color:var(--tx-3);overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.statusbar::-webkit-scrollbar{display:none}
+.statusbar .sp{flex:1;min-width:8px}
+.statusbar button{color:inherit;font-family:inherit;font-size:inherit}
+.statusbar button:hover{color:var(--tx)}
+.sov{display:inline-flex;align-items:center;gap:6px;color:var(--private)}
+.sov .d{width:6px;height:6px;border-radius:99px;background:var(--private);flex:none}
+@media (prefers-reduced-motion: no-preference){ .sov .d{animation:sovPulse 2.4s ease-in-out infinite} }
+@keyframes sovPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* --- splitters --- */
+.split{flex:none;width:5px;margin:0 -2px;cursor:col-resize;z-index:5;background:transparent;
+  position:relative;touch-action:none}
+.split:hover::after,.split.dragging::after{content:"";position:absolute;inset:0 2px;background:var(--signal)}
+@media (max-width:1079px){ .split{display:none} }
+
+/* ============================================================
+   5 · AI PANEL
+   ============================================================ */
+.ai{width:var(--ai-w);flex:none;display:flex;flex-direction:column;min-width:0;
+  background:var(--chrome);border-left:1px solid var(--line)}
+body:not(.ai-open) .ai{display:none}
+.ai-h{flex:none;display:flex;align-items:center;gap:9px;padding:9px 10px;border-bottom:1px solid var(--line)}
+.ai-h .ttl{font-size:12.5px;font-weight:660;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:2px;flex:none}
+.seg button{padding:4px 11px;border-radius:6px;font-size:11.5px;color:var(--tx-3);min-height:24px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--tx);font-weight:640;box-shadow:var(--shadow-sm)}
+.seg button[aria-pressed="true"][data-mode="agent"]{color:var(--signal)}
+@media (pointer:coarse){ .seg button{min-height:36px} }
+
+.ai-ctx{flex:none;display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;border-bottom:1px solid var(--line);
+  background:var(--surface-2)}
+.ai-ctx .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-4);
+  font-weight:700;width:100%;margin-bottom:1px}
+.ctxchip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;
+  padding:3px 4px 3px 8px;border-radius:var(--r-pill);border:1px solid var(--line-2);
+  background:var(--surface);color:var(--tx-2);max-width:100%}
+.ctxchip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctxchip .x{width:16px;height:16px;border-radius:99px;display:grid;place-items:center;color:var(--tx-4);flex:none}
+.ctxchip .x:hover{background:var(--surface-3);color:var(--accent-2)}
+.ctxchip.sel{border-color:color-mix(in srgb,var(--signal) 45%,transparent);background:var(--signal-dim)}
+.ctxchip.add{color:var(--tx-3);padding-right:8px;border-style:dashed}
+.ctxchip.add:hover{color:var(--tx);border-color:var(--line-2)}
+@media (pointer:coarse){ .ctxchip{min-height:32px} .ctxchip .x{width:26px;height:26px} }
+
+.ai-thread{flex:1;min-height:0;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;flex-direction:column;gap:7px;max-width:100%;min-width:0}
+.msg .who{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--tx-4);font-weight:700}
+.msg .who .magna-mark{width:16px}
+.msg .who .tag{font-family:var(--mono);letter-spacing:0;text-transform:none;font-size:10px;
+  padding:1px 6px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);color:var(--tx-3)}
+.msg .who .tag.agent{color:var(--signal);border-color:color-mix(in srgb,var(--signal) 40%,transparent);
+  background:var(--signal-dim)}
+.msg.user .bubble{background:var(--surface-3);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:9px 12px;font-size:12.5px;line-height:1.6;color:var(--tx);white-space:pre-wrap;word-break:break-word}
+.msg.ai .body{font-size:12.5px;line-height:1.7;color:var(--tx-2);min-width:0}
+.msg.ai .body p{margin:0 0 8px}
+.msg.ai .body p:last-child{margin-bottom:0}
+.msg.ai .body b,.msg.ai .body strong{color:var(--tx);font-weight:640}
+.msg.ai .body code{font-family:var(--mono);font-size:11px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--tx)}
+.msg.ai .body ul,.msg.ai .body ol{margin:0 0 8px;padding-left:19px}
+.msg.ai .body li{margin-bottom:4px}
+.msg.ai .body li::marker{color:var(--tx-4)}
+.aicode{margin:0 0 8px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  overflow:hidden}
+.aicode .hd{display:flex;align-items:center;gap:6px;padding:5px 9px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;color:var(--tx-3)}
+.aicode .hd .sp{flex:1}
+.aicode pre{margin:0;padding:9px 11px;overflow-x:auto;font-family:var(--mono);font-size:11px;
+  line-height:1.65;color:var(--tx-2);white-space:pre}
+.aitable{width:100%;border-collapse:collapse;font-size:11.5px;margin:0 0 8px;font-family:var(--mono)}
+.aitable th,.aitable td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:left}
+.aitable th{color:var(--tx-4);font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.aitable td:last-child,.aitable th:last-child{text-align:right}
+.aitable tr:last-child td{border-bottom:0;color:var(--tx);font-weight:650}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);margin:0 0 8px}
+.tblwrap .aitable{margin:0}
+.finding{display:flex;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);margin-bottom:6px;font-size:11.5px;line-height:1.55}
+.finding .sev{font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px;flex:none;
+  height:16px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.finding .sev.warn{background:var(--public-dim);color:var(--public)}
+.finding .sev.info{background:var(--signal-dim);color:var(--signal)}
+.finding .sev.high{background:var(--accent-dim);color:var(--accent-2)}
+.finding .mid{flex:1;min-width:0}
+.finding .ln{font-family:var(--mono);font-size:10px;color:var(--tx-4);flex:none}
+.thinking{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--tx-3)}
+.thinking .magna-mark{width:20px}
+.thinking .st{font-family:var(--mono);font-size:11px}
+.ai-note{flex:none;padding:8px 11px;border-top:1px solid var(--line);background:var(--surface-2);
+  font-size:10.5px;line-height:1.55;color:var(--tx-3);display:flex;gap:7px;align-items:flex-start}
+.ai-note .ico{color:var(--public);margin-top:1px}
+.ai-note b{color:var(--tx-2)}
+.ai-chips{flex:none;display:flex;gap:5px;padding:8px 10px 0;overflow-x:auto;scrollbar-width:none}
+.ai-chips::-webkit-scrollbar{display:none}
+.pchip{font-size:11px;padding:5px 10px;border-radius:var(--r-pill);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--tx-2);white-space:nowrap;flex:none;min-height:28px}
+.pchip:hover{background:var(--surface-3);color:var(--tx);border-color:var(--line-2)}
+.pchip.agent{border-color:color-mix(in srgb,var(--signal) 34%,transparent)}
+.pchip.agent::before{content:"⌥ ";color:var(--signal);font-family:var(--mono)}
+@media (pointer:coarse){ .pchip{min-height:40px} }
+.ai-comp{flex:none;padding:8px 10px 10px;border-top:1px solid var(--line);margin-top:8px}
+.ai-comp .box{display:flex;align-items:flex-end;gap:7px;border:1px solid var(--line-2);border-radius:12px;
+  background:var(--surface);padding:7px 7px 7px 11px}
+.ai-comp .box:focus-within{border-color:color-mix(in srgb,var(--signal) 55%,transparent)}
+.ai-comp textarea{flex:1;min-width:0;background:transparent;border:0;outline:none;resize:none;
+  font-size:12.5px;line-height:1.55;max-height:140px;min-height:20px;padding:2px 0;color:var(--tx)}
+.ai-comp textarea::placeholder{color:var(--tx-4)}
+.ai-comp .send{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;
+  background:var(--tx);color:var(--bg)}
+.ai-comp .send:disabled{opacity:.35;cursor:not-allowed}
+.ai-comp .hint{font-size:10px;color:var(--tx-4);font-family:var(--mono);margin-top:5px;
+  display:flex;gap:9px;flex-wrap:wrap}
+@media (pointer:coarse){ .ai-comp .hint{display:none} .ai-comp .send{width:44px;height:44px} }
+
+/* ============================================================
+   6 · DIFF — hand-built. Monaco's diff editor is used for the
+   inline ⌘K preview when its worker is up; these rules dress
+   the fallback and every composer diff.
+   ============================================================ */
+.diffcard{border:1px solid var(--line-2);border-radius:var(--r-lg);background:var(--surface);
+  overflow:hidden;margin:0 0 9px}
+.diffcard.settled{opacity:.72}
+.diffcard .dh{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);font-size:11.5px;min-width:0}
+.diffcard .dh .pth{font-family:var(--mono);font-size:11px;color:var(--tx);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.diffcard .dh .stat{font-family:var(--mono);font-size:10px;flex:none}
+.diffcard .dh .stat .a{color:var(--private)}
+.diffcard .dh .stat .r{color:var(--accent-2)}
+.diffcard .note{padding:7px 10px;font-size:11.5px;line-height:1.55;color:var(--tx-3);
+  border-bottom:1px solid var(--line)}
+.diff{max-height:280px;overflow:auto;font-family:var(--mono);font-size:11px;line-height:1.62;
+  background:var(--surface)}
+.diff .row{display:flex;min-width:min-content}
+.diff .gut{flex:none;width:66px;display:flex;color:var(--tx-4);user-select:none;
+  background:var(--surface-2);border-right:1px solid var(--line);position:sticky;left:0}
+.diff .gut i{width:33px;text-align:right;padding-right:7px;font-style:normal;font-size:10px}
+.diff .sgn{flex:none;width:16px;text-align:center;color:var(--tx-4)}
+.diff .txt{flex:1;white-space:pre;padding-right:14px;color:var(--tx-2)}
+.diff .row.add{background:var(--add)}
+.diff .row.add .sgn{color:var(--private)}
+.diff .row.add .txt{color:var(--tx)}
+.diff .row.del{background:var(--del)}
+.diff .row.del .sgn{color:var(--accent-2)}
+.diff .row.del .txt{color:var(--tx-2);text-decoration-color:var(--del-line)}
+.diff .row.skip{background:var(--surface-2);color:var(--tx-4)}
+.diff .row.skip .txt{color:var(--tx-4);font-style:italic}
+.diff.side{display:flex;max-height:280px}
+.diff.side .col{flex:1;min-width:0;overflow:auto}
+.diff.side .col+.col{border-left:1px solid var(--line)}
+.diff.side .colh{position:sticky;top:0;background:var(--surface-2);border-bottom:1px solid var(--line);
+  padding:4px 9px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-4);
+  font-weight:700;z-index:1}
+.diffcard .acts{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid var(--line);
+  background:var(--surface-2);flex-wrap:wrap}
+.diffcard .acts .sp{flex:1;min-width:0}
+.diffcard .acts .verdict{font-size:11px;font-family:var(--mono)}
+.diffcard .acts .verdict.ok{color:var(--private)}
+.diffcard .acts .verdict.no{color:var(--tx-4)}
+.plan{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  padding:9px 11px;margin:0 0 9px}
+.plan h6{margin:0 0 6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-4);
+  font-weight:700}
+.plan ol{margin:0;padding-left:18px;font-size:11.5px;line-height:1.65;color:var(--tx-2)}
+.plan ol li{margin-bottom:3px}
+.plan ol li code{font-family:var(--mono);font-size:10.5px;color:var(--tx)}
+
+/* ============================================================
+   7 · INLINE EDIT (⌘K) — a floating card over the editor
+   ============================================================ */
+.inline{position:absolute;z-index:40;left:50%;top:14px;transform:translateX(-50%);
+  width:min(680px,calc(100% - 24px));background:var(--surface-2);border:1px solid var(--line-2);
+  border-radius:var(--r-lg);box-shadow:var(--shadow);display:none;flex-direction:column;
+  max-height:calc(100% - 28px);min-height:0}
+.inline.on{display:flex}
+.inline .ih{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--line)}
+.inline .ih .magna-mark{width:18px}
+.inline .ih b{font-size:12px;font-weight:660}
+.inline .ih .rng{font-family:var(--mono);font-size:10.5px;color:var(--tx-3);
+  padding:2px 7px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line)}
+.inline .ih .sp{flex:1}
+.inline .prompt{display:flex;gap:7px;padding:9px 11px;align-items:center}
+.inline .prompt input{flex:1;min-width:0;height:34px;border-radius:9px;background:var(--surface);
+  border:1px solid var(--line-2);padding:0 11px;font-size:12.5px;outline:none}
+.inline .prompt input:focus{border-color:color-mix(in srgb,var(--signal) 55%,transparent)}
+.inline .out{flex:1;min-height:0;overflow:auto;padding:0 11px 11px}
+.inline .empty{padding:0 11px 11px;font-size:11.5px;color:var(--tx-3);line-height:1.6}
+.inline .empty .exs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.mdiff{height:230px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+@media (pointer:coarse){ .inline .prompt input{height:44px} }
+
+/* ============================================================
+   8 · APPROVAL BAR — the same visual language Console uses for
+   every write, so an AI edit cannot slip past unnoticed.
+   ============================================================ */
+.approve{position:absolute;top:0;left:0;right:0;z-index:50;display:flex;align-items:flex-start;gap:11px;
+  padding:12px 14px;background:color-mix(in srgb,var(--public) 22%,var(--surface-2));
+  border-bottom:1px solid color-mix(in srgb,var(--public) 46%,transparent);
+  box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.approve .ico{color:var(--public);margin-top:1px}
+.approve .mid{flex:1;min-width:0;font-size:12.5px;line-height:1.6;color:var(--tx-2)}
+.approve .mid b{display:block;margin-bottom:2px;color:var(--tx)}
+.approve .mid code{font-family:var(--mono);font-size:11px;background:var(--surface);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.approve .acts{display:flex;gap:7px;flex:none;align-self:center;flex-wrap:wrap}
+@media (prefers-reduced-motion: no-preference){ .approve{animation:growDown .22s ease-out} }
+@keyframes growDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (max-width:560px){ .approve{flex-wrap:wrap} .approve .acts{width:100%} .approve .acts .btn{flex:1} }
+
+/* ============================================================
+   9 · COMMAND PALETTE
+   ============================================================ */
+#palette{position:fixed;inset:0;z-index:120;display:none;justify-content:center;
+  align-items:flex-start;padding:12vh 16px 16px;background:rgba(0,0,0,.45)}
+#palette.on{display:flex}
+:root[data-theme="light"] #palette{background:rgba(40,46,60,.35)}
+.pal{width:100%;max-width:560px;background:var(--surface-2);border:1px solid var(--line-2);
+  border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
+  max-height:70vh}
+.pal input{width:100%;height:46px;background:transparent;border:0;border-bottom:1px solid var(--line);
+  padding:0 15px;font-size:14px;outline:none}
+.pal input::placeholder{color:var(--tx-4)}
+.pal .list{flex:1;min-height:0;overflow-y:auto;padding:6px}
+.pal .row{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:8px;
+  font-size:12.5px;color:var(--tx-2);text-align:left;min-height:38px}
+.pal .row .ico{color:var(--tx-4)}
+.pal .row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pal .row .sub{font-family:var(--mono);font-size:10.5px;color:var(--tx-4);flex:none}
+.pal .row[aria-selected="true"]{background:var(--signal-dim);color:var(--tx)}
+.pal .row:hover{background:var(--surface-3);color:var(--tx)}
+.pal .none{padding:20px 15px;font-size:12.5px;color:var(--tx-4);text-align:center}
+@media (pointer:coarse){ .pal .row{min-height:46px} }
+
+/* ============================================================
+   10 · DROP ZONE / TOAST / SHEETS
+   ============================================================ */
+#drop{position:fixed;inset:0;z-index:130;display:none;place-items:center;padding:24px;
+  background:color-mix(in srgb,var(--signal) 18%,rgba(0,0,0,.5))}
+#drop.on{display:grid}
+#drop .in{border:2px dashed var(--signal);border-radius:var(--r-lg);background:var(--surface-2);
+  padding:26px 30px;text-align:center;max-width:420px}
+#drop .in b{display:block;font-size:15px;margin-bottom:6px}
+#drop .in small{font-size:12px;color:var(--tx-2);line-height:1.6;display:block}
+#toasts{position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:200;display:flex;
+  flex-direction:column;gap:7px;align-items:center;pointer-events:none;max-width:calc(100% - 24px)}
+.toast{background:var(--surface-3);border:1px solid var(--line-2);border-radius:var(--r-pill);
+  padding:8px 15px;font-size:12.5px;color:var(--tx);box-shadow:var(--shadow);max-width:100%;
+  text-align:center;line-height:1.5}
+@media (prefers-reduced-motion: no-preference){ .toast{animation:toastIn .2s ease-out} }
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:58;display:none}
+:root[data-theme="light"] #scrim{background:rgba(40,46,60,.35)}
+
+/* ---- tablet: the AI panel becomes a sheet, the tree stays ---- */
+@media (max-width:1079px){
+  :root{--tree-w:200px}
+  .ai{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:60;box-shadow:var(--shadow);
+    border-left:1px solid var(--line-2)}
+  body.ai-open #scrim{display:block}
+  .ai-h .sheetclose{display:grid}
+}
+/* ---- mobile: both rails are sheets ---- */
+@media (max-width:767px){
+  .topbar{height:52px;gap:5px}
+  .topbar .lbl{display:none}
+  .topbar .btn{padding:0 9px}
+  .tree{position:fixed;top:0;left:0;bottom:0;width:min(280px,86vw);z-index:60;box-shadow:var(--shadow);
+    border-right:1px solid var(--line-2)}
+  body.tree-open #scrim{display:block}
+  .ai{width:100%;max-width:100%}
+  .tree-h .sheetclose{display:grid}
+  .statusbar{gap:9px;font-size:10px}
+  .inline{left:8px;right:8px;transform:none;width:auto;top:8px}
+}
+.sheetclose{display:none;width:30px;height:30px;border-radius:7px;place-items:center;color:var(--tx-3);flex:none}
+.sheetclose:hover{background:var(--surface-3);color:var(--tx)}
+@media (pointer:coarse){ .sheetclose{width:40px;height:40px} }
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important}
+  .magna-mark path{stroke-dashoffset:0!important;opacity:1!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ icon sprite ============================ -->
+<svg id="sprite" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M9 18 3 12l6-6"/><path d="m15 6 6 6-6 6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 20V8"/><path d="m7 13 5-5 5 5"/><path d="M4 4h16"/></symbol>
+  <symbol id="i-zip" viewBox="0 0 24 24"><path d="M6 3h12v18H6z"/><path d="M12 3v3M12 8v2M12 12v2M12 16h1v3h-2v-3z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><path d="M9 9h11v11H9z"/><path d="M5 15H4V4h11v1"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 13a8.5 8.5 0 1 1-9.9-10 7 7 0 0 0 9.9 10z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 20 4l-6 16-2.5-6.5z"/></symbol>
+  <symbol id="i-ai" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+  <symbol id="i-tree" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6 7v13h12V7"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M4 10h10a5 5 0 0 1 0 10h-4"/><path d="m4 10 4-4M4 10l4 4"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></symbol>
+  <symbol id="i-cmd" viewBox="0 0 24 24"><path d="M9 6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+</defs></svg>
+
+<div id="app">
+
+  <!-- ============================ top bar ============================ -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wordmark">Magna<span>VERSE</span> Code</span>
+    </div>
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <button class="iconbtn" id="btnTree" aria-pressed="true" aria-label="Toggle file tree" title="File tree">
+      <svg class="ico"><use href="#i-tree"/></svg></button>
+
+    <div class="grp">
+      <button class="btn sm" data-cmd="import.files" title="Import files (read in this tab, never uploaded)">
+        <svg class="ico sm"><use href="#i-import"/></svg><span class="lbl">Import</span></button>
+      <button class="btn sm" data-cmd="import.folder" title="Import a whole folder">
+        <svg class="ico sm"><use href="#i-folder"/></svg><span class="lbl">Folder</span></button>
+    </div>
+
+    <div class="sep" aria-hidden="true"></div>
+
+    <div class="grp">
+      <button class="btn sm" data-cmd="export.file" title="Download the active file">
+        <svg class="ico sm"><use href="#i-export"/></svg><span class="lbl">Export</span></button>
+      <button class="btn sm" data-cmd="export.copy" title="Copy the active file to the clipboard">
+        <svg class="ico sm"><use href="#i-copy"/></svg><span class="lbl">Copy</span></button>
+      <button class="btn sm" data-cmd="export.zip" title="Download every open file as a .zip">
+        <svg class="ico sm"><use href="#i-zip"/></svg><span class="lbl">.zip</span></button>
+    </div>
+
+    <div class="sp"></div>
+
+    <div class="grp">
+      <button class="btn sm" data-cmd="palette.commands" title="Command palette (⌘⇧P)">
+        <svg class="ico sm"><use href="#i-cmd"/></svg><span class="lbl">Commands</span></button>
+      <button class="iconbtn" id="btnTheme" aria-label="Switch theme" title="Switch theme">
+        <svg class="ico"><use href="#i-moon"/></svg></button>
+      <button class="iconbtn" id="btnAI" aria-pressed="true" aria-label="Toggle AI panel" title="AI panel">
+        <svg class="ico"><use href="#i-ai"/></svg></button>
+    </div>
+  </header>
+
+  <!-- ============================ stage ============================ -->
+  <div class="stage">
+
+    <!-- ---- file tree ---- -->
+    <aside class="tree" id="tree" aria-label="Files">
+      <div class="tree-h">
+        <span>Workspace</span><span class="sp"></span>
+        <button class="iconbtn" style="width:24px;height:24px" data-cmd="file.new" title="New file"
+                aria-label="New file"><svg class="ico sm"><use href="#i-plus"/></svg></button>
+        <button class="sheetclose" data-close="tree" aria-label="Close file tree">
+          <svg class="ico sm"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="tree-scroll" id="treeScroll"></div>
+    </aside>
+
+    <div class="split" id="splitTree" role="separator" aria-orientation="vertical"
+         aria-label="Resize file tree" tabindex="-1"></div>
+
+    <!-- ---- centre: tabs + editor ---- -->
+    <main class="centre" id="centre">
+      <div class="tabstrip" id="tabstrip" role="tablist" aria-label="Open editors"></div>
+      <div class="ed-wrap">
+        <!-- dir="ltr" is pinned: Monaco has no RTL support, and source code is
+             left-to-right even when the chrome around it is Arabic. -->
+        <div class="ed-host" id="edHost" dir="ltr"></div>
+        <div class="ed-empty" id="edEmpty" hidden></div>
+        <!-- inline ⌘K edit -->
+        <div class="inline" id="inline" role="dialog" aria-modal="false" aria-label="Inline edit">
+          <div class="ih">
+            <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+              <defs>
+                <linearGradient id="mgGB-ink" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                </linearGradient>
+                <linearGradient id="mgR-ink" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                </linearGradient>
+              </defs>
+              <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ink)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ink)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <b>Inline edit</b>
+            <span class="rng" id="inlineRange">no selection</span>
+            <span class="sp"></span>
+            <button class="sheetclose" style="display:grid" data-close="inline" aria-label="Close inline edit">
+              <svg class="ico sm"><use href="#i-x"/></svg></button>
+          </div>
+          <div class="prompt">
+            <input id="inlineInput" type="text" placeholder="Describe the change — e.g. add a guard for negative days"
+                   aria-label="Describe the change">
+            <button class="btn primary sm" id="inlineGo">Generate</button>
+          </div>
+          <div class="empty" id="inlineEmpty"></div>
+          <div class="out" id="inlineOut" hidden></div>
+        </div>
+      </div>
+    </main>
+
+    <div class="split" id="splitAI" role="separator" aria-orientation="vertical"
+         aria-label="Resize AI panel" tabindex="-1"></div>
+
+    <!-- ---- AI panel ---- -->
+    <aside class="ai" id="ai" aria-label="AI assistant">
+      <div class="ai-h">
+        <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:18px">
+          <defs>
+            <linearGradient id="mgGB-ai" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+            </linearGradient>
+            <linearGradient id="mgR-ai" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+            </linearGradient>
+          </defs>
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ai)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ai)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="ttl">Assist</span>
+        <div class="seg" role="group" aria-label="Assistant mode">
+          <button data-mode="ask" aria-pressed="true">Ask</button>
+          <button data-mode="agent" aria-pressed="false">Agent</button>
+        </div>
+        <button class="sheetclose" data-close="ai" aria-label="Close AI panel">
+          <svg class="ico sm"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="ai-ctx" id="aiCtx"></div>
+      <div class="ai-thread" id="aiThread" aria-live="polite"></div>
+      <div class="ai-chips" id="aiChips"></div>
+      <div class="ai-comp">
+        <div class="box">
+          <textarea id="aiInput" rows="1" placeholder="Ask about this file, or describe a change…"
+                    aria-label="Message the assistant"></textarea>
+          <button class="send" id="aiSend" aria-label="Send" disabled>
+            <svg class="ico sm"><use href="#i-send"/></svg></button>
+        </div>
+        <div class="hint">
+          <span>↵ send</span><span>⇧↵ newline</span><span>⌘K inline edit</span><span>⌘P files</span>
+        </div>
+      </div>
+      <div class="ai-note">
+        <svg class="ico sm"><use href="#i-warn"/></svg>
+        <span><b>No model runs here.</b> This panel is a deterministic generator: it matches your wording
+        against built-in intents and computes its answer from the bytes in your buffer. Same prompt,
+        same file, same answer — every time. Nothing leaves this tab.</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============================ status bar ============================ -->
+  <footer class="statusbar">
+    <button data-cmd="palette.files" title="Go to file (⌘P)">⌘P files</button>
+    <span id="stLang">plaintext</span>
+    <button id="stPos" data-cmd="editor.goto" title="Line and column">Ln 1, Col 1</button>
+    <span id="stSpaces">Spaces: 2</span>
+    <span id="stSize"></span>
+    <span class="sp"></span>
+    <button data-cmd="about" title="What is real and what is simulated in this prototype">
+      <span class="sov"><span class="d"></span>Private · Riyadh DC-1 · 0 bytes egress</span>
+    </button>
+  </footer>
+</div>
+
+<div id="scrim" hidden></div>
+<div id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="pal">
+    <input id="palInput" type="text" autocomplete="off" spellcheck="false" aria-label="Search">
+    <div class="list" id="palList" role="listbox"></div>
+  </div>
+</div>
+<div id="drop"><div class="in">
+  <b>Drop files or a folder here</b>
+  <small>Read with the File API inside this browser tab. Nothing is uploaded, no request leaves the machine.</small>
+</div></div>
+<div id="toasts" aria-live="polite"></div>
+<input type="file" id="pickFiles" multiple hidden>
+<input type="file" id="pickFolder" webkitdirectory directory multiple hidden>
+
+<script>
+"use strict";
+/* ============================================================
+   0 · house helpers — var, function declarations, esc()
+   ============================================================ */
+var $  = function(s, r){ return (r||document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; });
+}
+function el(tag, cls, html){
+  var n = document.createElement(tag);
+  if(cls) n.className = cls;
+  if(html != null) n.innerHTML = html;
+  return n;
+}
+function ico(id, cls){ return '<svg class="ico'+(cls?" "+cls:"")+'"><use href="#'+id+'"/></svg>'; }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function bytes(n){ return n < 1024 ? n + " B" : (n/1024).toFixed(1) + " KB"; }
+var store = {
+  get: function(k, d){ try{ var v = localStorage.getItem(k); return v === null ? d : v; }catch(e){ return d; } },
+  set: function(k, v){ try{ localStorage.setItem(k, v); }catch(e){} },
+  del: function(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function toast(msg, ms){
+  var t = el("div", "toast", esc(msg));
+  $("#toasts").appendChild(t);
+  setTimeout(function(){ t.remove(); }, ms || 2600);
+}
+/* The real Magna mark. Gradient ids MUST be unique per instance in a
+   document — a duplicate id silently kills the second instance's paint. */
+var MARK_N = 0;
+function markSVG(cls, px){
+  var u = "m" + (++MARK_N);
+  return '<svg class="magna-mark'+(cls?" "+cls:"")+'" viewBox="0 0 640 440" role="img" aria-label="Magna"'+
+    (px ? ' style="width:'+px+'px"' : "")+'>'+
+    '<defs>'+
+      '<linearGradient id="mgGB-'+u+'" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">'+
+        '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/>'+
+        '<stop offset="1" stop-color="#1E50C8"/></linearGradient>'+
+      '<linearGradient id="mgR-'+u+'" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">'+
+        '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/></linearGradient>'+
+    '</defs>'+
+    '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-'+u+')" stroke-width="52" '+
+      'stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-'+u+')" stroke-width="52" '+
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+/* ============================================================
+   1 · THEME — mv-theme. An explicit choice beats the OS media
+   query in both directions; "system" removes the attribute.
+   ============================================================ */
+function themeMode(){
+  var a = document.documentElement.getAttribute("data-theme");
+  return (a === "light" || a === "dark") ? a : "system";
+}
+function isLightTheme(){
+  var a = document.documentElement.getAttribute("data-theme");
+  if(a === "light") return true;
+  if(a === "dark")  return false;
+  return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches);
+}
+function setTheme(mode){
+  if(mode === "system"){ document.documentElement.removeAttribute("data-theme"); store.del("mv-theme"); }
+  else { document.documentElement.setAttribute("data-theme", mode); store.set("mv-theme", mode); }
+  paintThemeButton();
+  if(window.monaco) try{ window.monaco.editor.setTheme(isLightTheme() ? "magna-light" : "magna-dark"); }catch(e){}
+}
+function paintThemeButton(){
+  var b = $("#btnTheme"); if(!b) return;
+  var m = themeMode(), light = isLightTheme();
+  b.innerHTML = ico(light ? "i-sun" : "i-moon");
+  b.title = "Theme: " + (m === "system" ? "system (" + (light ? "light" : "dark") + ")" : m) + " — click to change";
+  b.setAttribute("aria-label", b.title);
+}
+$("#btnTheme").addEventListener("click", function(){
+  var order = ["dark", "light", "system"], i = order.indexOf(themeMode());
+  var next = order[(i + 1) % order.length];
+  setTheme(next);
+  toast("Theme: " + next + (next === "system" ? " (" + (isLightTheme() ? "light" : "dark") + ")" : ""));
+});
+if(window.matchMedia){
+  try{
+    window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function(){
+      if(themeMode() === "system"){ paintThemeButton();
+        if(window.monaco) try{ window.monaco.editor.setTheme(isLightTheme() ? "magna-light" : "magna-dark"); }catch(e){} }
+    });
+  }catch(e){}
+}
+paintThemeButton();
+
+/* ============================================================
+   2 · SEED — the same two projects Console's Code window carries,
+   byte for byte, so this tab opens on something real.
+   ============================================================ */
+var PROJECTS = [
+  { id:"p1", name:"c2-status", desc:"Package C2 status page", files:[
+    { n:"index.html", t:"html", code:'<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <title>Package C2 — Status</title>\n  <style>\n    body{font:15px -apple-system,system-ui,sans-serif;margin:0;padding:28px;background:#0c0c0e;color:#f2f3f6}\n    h1{font-size:20px;margin:0 0 4px}\n    .sub{color:#9a9aa2;font-size:13px;margin-bottom:20px}\n    .n{font-size:34px;font-weight:800;color:#ff4a50;letter-spacing:-.02em}\n    table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}\n    th,td{border-bottom:1px solid #26262b;padding:9px 6px;text-align:left}\n    th{color:#9a9aa2;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}\n    .ok{color:#3fcf95}.bad{color:#e0a33c}\n  </style>\n</head>\n<body>\n  <h1>Package C2 — rebar</h1>\n  <div class="sub">RYD-M3 · updated from SAP + P6</div>\n  <div class="n">SAR 5.32M</div>\n  <div class="sub">exposure at 45 days</div>\n  <table>\n    <tr><th>Metric</th><th>Value</th></tr>\n    <tr><td>Ordered</td><td>1,240 t</td></tr>\n    <tr><td>Delivered</td><td class="bad">742 t</td></tr>\n    <tr><td>Promised</td><td>03 Aug 2026</td></tr>\n    <tr><td>Schedule slip</td><td class="bad">11 days</td></tr>\n    <tr><td>Critical path</td><td class="bad">yes</td></tr>\n    <tr><td>Residency</td><td class="ok">Riyadh DC-1</td></tr>\n  </table>\n</body>\n</html>' },
+    { n:"README.md", t:"md", code:"# c2-status\n\nA single-page status board for Package C2.\n\n- Reads nothing live — figures are pasted from the SAP and P6 pulls\n- Deployed as a link for the Thursday board pack\n" }
+  ]},
+  { id:"p2", name:"exposure-calc", desc:"Exposure model, plain JS", files:[
+    { n:"calc.js", t:"js", code:"// Exposure model for a rebar delay.\n// Every figure traceable: LD from GC-8 8.4, standby from the crew rate card.\n\nconst PACKAGE_VALUE = 41800000;   // SAR, C2 scope\nconst LD_RATE       = 0.0015;     // 0.15% per day, GC-8 8.4\nconst LD_CAP        = 0.10;       // 10% of package value\nconst STANDBY_DAY   = 94000;      // SAR/day, idled rebar crew\nconst ESCALATION    = 0.021;      // fabricator price escalation\n\nexport function exposure(days){\n  const ld      = Math.min(PACKAGE_VALUE * LD_RATE * days, PACKAGE_VALUE * LD_CAP);\n  const standby = STANDBY_DAY * days;\n  const esc     = PACKAGE_VALUE * ESCALATION * (days / 45);\n  return { ld, standby, esc, total: ld + standby + esc };\n}\n\n// Day the LD cap becomes binding — the number people get wrong.\nexport const capBitesAt = Math.ceil(LD_CAP / LD_RATE);   // 67\n" }
+  ]}
+];
+
+/* ============================================================
+   3 · WORKSPACE — a flat list of files keyed by path.
+   ============================================================ */
+var FILES = [], OPEN = [], ACTIVE = null, UID = 0;
+var WS_KEY = "mv-code.ws.v1";
+
+function seedWorkspace(){
+  FILES = [];
+  PROJECTS.forEach(function(p){
+    p.files.forEach(function(f){ addFile(p.name + "/" + f.n, f.code, true); });
+  });
+}
+function addFile(path, text, quiet){
+  path = String(path).replace(/^\/+/, "");
+  var ex = fileByPath(path);
+  if(ex){ setText(ex, text); return ex; }
+  var f = { id:"f" + (++UID), path:path, text:String(text == null ? "" : text),
+            saved:String(text == null ? "" : text), model:null };
+  FILES.push(f);
+  FILES.sort(function(a, b){ return a.path.localeCompare(b.path); });
+  if(window.monaco) ensureModel(f);
+  if(!quiet) drawTree();
+  return f;
+}
+function fileByPath(p){
+  for(var i = 0; i < FILES.length; i++) if(FILES[i].path === p) return FILES[i];
+  return null;
+}
+function fileById(id){
+  for(var i = 0; i < FILES.length; i++) if(FILES[i].id === id) return FILES[i];
+  return null;
+}
+function baseName(p){ return String(p).split("/").pop(); }
+function dirName(p){ var i = String(p).lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); }
+function getText(f){ return f && f.model ? f.model.getValue() : (f ? f.text : ""); }
+function isDirty(f){ return getText(f) !== f.saved; }
+function activeFile(){ return fileById(ACTIVE); }
+
+/* Writing through one door: the model when Monaco is up (so undo works and
+   the AI's edits sit in the same undo stack as yours), the string otherwise. */
+function setText(f, next, label){
+  if(!f) return;
+  if(f.model){
+    var m = f.model, full = m.getFullModelRange();
+    if(ED && ACTIVE === f.id){
+      ED.executeEdits(label || "assist", [{ range:full, text:next, forceMoveMarkers:true }]);
+      ED.pushUndoStop();
+    } else {
+      m.pushEditOperations([], [{ range:full, text:next }], function(){ return null; });
+    }
+  } else {
+    f.text = next;
+    if(ACTIVE === f.id) paintFallback();
+  }
+  drawTabs(); drawTree(); paintStatus();
+}
+var MONACO_LANG = { js:"javascript", jsx:"javascript", mjs:"javascript", cjs:"javascript",
+  ts:"typescript", tsx:"typescript", html:"html", htm:"html", css:"css", scss:"scss", less:"less",
+  md:"markdown", markdown:"markdown", py:"python", rb:"ruby", go:"go", rs:"rust", php:"php",
+  sql:"sql", json:"json", sh:"shell", bash:"shell", zsh:"shell", yml:"yaml", yaml:"yaml",
+  xml:"xml", svg:"xml", java:"java", kt:"kotlin", swift:"swift", c:"cpp", cc:"cpp", cpp:"cpp",
+  h:"cpp", hpp:"cpp", cs:"csharp", toml:"ini", ini:"ini", conf:"ini", txt:"plaintext", "":"plaintext" };
+function langFor(path){
+  var ext = String(path).indexOf(".") > -1 ? String(path).split(".").pop().toLowerCase() : "";
+  return MONACO_LANG[ext] || "plaintext";
+}
+/* comment syntax, used by the inline-edit transforms */
+function commentFor(path){
+  var l = langFor(path);
+  if(l === "html" || l === "xml" || l === "markdown") return { a:"<!-- ", b:" -->" };
+  if(l === "css" || l === "scss" || l === "less") return { a:"/* ", b:" */" };
+  if(l === "python" || l === "shell" || l === "yaml" || l === "ini" || l === "ruby") return { a:"# ", b:"" };
+  if(l === "sql") return { a:"-- ", b:"" };
+  return { a:"// ", b:"" };
+}
+
+/* ---- persistence: honest about what it is — this browser, not a server ---- */
+function saveWorkspace(){
+  try{
+    store.set(WS_KEY, JSON.stringify({
+      files: FILES.map(function(f){ return { path:f.path, text:getText(f) }; }),
+      open: OPEN.map(function(id){ var f = fileById(id); return f ? f.path : null; }).filter(Boolean),
+      active: activeFile() ? activeFile().path : null
+    }));
+  }catch(e){ toast("Could not save — this browser's storage is full or blocked."); return false; }
+  FILES.forEach(function(f){ f.saved = getText(f); });
+  drawTabs(); drawTree();
+  return true;
+}
+function restoreWorkspace(){
+  var raw = store.get(WS_KEY, "");
+  if(!raw) return false;
+  try{
+    var d = JSON.parse(raw);
+    if(!d || !d.files || !d.files.length) return false;
+    FILES = [];
+    d.files.forEach(function(f){ addFile(f.path, f.text, true); });
+    return d;
+  }catch(e){ return false; }
+}
+
+/* ============================================================
+   4 · MONACO — vendored, never a CDN.
+   Lifted from Console so the two windows behave identically.
+   ============================================================ */
+var MONACO = { state:"idle", queue:[] };
+function monacoFlush(m){
+  var q = MONACO.queue; MONACO.queue = [];
+  q.forEach(function(cb){ try{ cb(m); }catch(e){} });
+}
+function monacoReady(cb){
+  if(MONACO.state === "ready")  return cb(window.monaco);
+  if(MONACO.state === "failed") return cb(null);
+  MONACO.queue.push(cb);
+  if(MONACO.state === "loading") return;
+  MONACO.state = "loading";
+  /* Absolute, not relative: inside a WorkerGlobalScope a "../" path resolves
+     against the worker's own URL, not the page. The worker is bootstrapped
+     from a Blob carrying the absolute base, and baseUrl is the PARENT of vs —
+     Monaco appends "vs/..." itself. */
+  var root = new URL("../vendor/monaco/", location.href).href.replace(/\/$/, "");
+  var base = root + "/vs";
+  var workerBoot = "self.MonacoEnvironment={baseUrl:'" + root + "'};" +
+                   "importScripts('" + base + "/base/worker/workerMain.js');";
+  var workerURL = URL.createObjectURL(new Blob([workerBoot], { type:"text/javascript" }));
+  window.MonacoEnvironment = {
+    baseUrl: root,
+    getWorker: function(){ return new Worker(workerURL); },
+    getWorkerUrl: function(){ return workerURL; }
+  };
+  var sc = document.createElement("script");
+  sc.src = base + "/loader.js";
+  sc.onerror = function(){ MONACO.state = "failed"; monacoFlush(null); };
+  sc.onload = function(){
+    try{
+      window.require.config({ paths:{ vs: base } });
+      window.require(["vs/editor/editor.main"], function(){
+        try{
+          window.monaco.editor.defineTheme("magna-dark", { base:"vs-dark", inherit:true, rules:[],
+            colors:{ "editor.background":"#0F131B", "editorGutter.background":"#0F131B",
+                     "editorLineNumber.foreground":"#4C5262", "editor.lineHighlightBackground":"#161C27",
+                     "editorIndentGuide.background1":"#1E2432" } });
+          window.monaco.editor.defineTheme("magna-light", { base:"vs", inherit:true, rules:[],
+            colors:{ "editor.background":"#FFFFFF", "editorGutter.background":"#FFFFFF",
+                     "editorLineNumber.foreground":"#9AA3B2", "editor.lineHighlightBackground":"#F2F4F7" } });
+        }catch(e){}
+        MONACO.state = "ready"; monacoFlush(window.monaco);
+      }, function(){ MONACO.state = "failed"; monacoFlush(null); });
+    }catch(e){ MONACO.state = "failed"; monacoFlush(null); }
+  };
+  document.head.appendChild(sc);
+}
+
+var ED = null, VIEWSTATE = {};
+function ensureModel(f){
+  if(f.model || !window.monaco) return f.model;
+  try{
+    f.model = window.monaco.editor.createModel(f.text, langFor(f.path));
+    f.model.onDidChangeContent(function(){ scheduleDirtyPaint(); });
+  }catch(e){ f.model = null; }
+  return f.model;
+}
+var dirtyTimer = null;
+function scheduleDirtyPaint(){
+  clearTimeout(dirtyTimer);
+  dirtyTimer = setTimeout(function(){ drawTabs(); drawTree(); paintStatus(); }, 160);
+}
+function mountEditor(){
+  var host = $("#edHost");
+  monacoReady(function(m){
+    if(!m){
+      MONACO.state = "failed";
+      buildFallback();
+      return;
+    }
+    FILES.forEach(ensureModel);
+    ED = m.editor.create(host, {
+      model: null,
+      theme: isLightTheme() ? "magna-light" : "magna-dark",
+      automaticLayout: true, fontSize: 12.5, lineHeight: 20,
+      fontFamily: 'ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace',
+      minimap:{ enabled:true, maxColumn:70 }, scrollBeyondLastLine:false, renderWhitespace:"none",
+      smoothScrolling:true, padding:{ top:10, bottom:10 }, tabSize:2, insertSpaces:true,
+      scrollbar:{ verticalScrollbarSize:10, horizontalScrollbarSize:10 },
+      /* the vendored build has the language services trimmed out, so there is
+         nothing to complete against — asking for suggestions would only ever
+         show word-based noise. Say nothing rather than promise IntelliSense. */
+      quickSuggestions:false, suggestOnTriggerCharacters:false, parameterHints:{ enabled:false },
+      wordBasedSuggestions:"off", occurrencesHighlight:"singleFile", renderLineHighlight:"all",
+      bracketPairColorization:{ enabled:true }, guides:{ indentation:true }
+    });
+    ED.onDidChangeCursorSelection(function(){ paintStatus(); drawContext(); });
+    ED.addCommand(m.KeyMod.CtrlCmd | m.KeyCode.KeyK, function(){ openInline(); });
+    ED.addCommand(m.KeyMod.CtrlCmd | m.KeyCode.KeyS, function(){ doSave(); });
+    ED.addCommand(m.KeyMod.CtrlCmd | m.KeyCode.KeyP, function(){ openPalette("files"); });
+    ED.addCommand(m.KeyMod.CtrlCmd | m.KeyMod.Shift | m.KeyCode.KeyP, function(){ openPalette("commands"); });
+    if(ACTIVE) showFile(ACTIVE, true);
+    paintStatus();
+  });
+}
+/* If the vendor folder is missing this still has to be an editor, not a
+   dead <pre> — a plain textarea keeps every other feature (AI, diffs,
+   import, export) working. */
+var FB = null;
+function buildFallback(){
+  var host = $("#edHost");
+  host.innerHTML = '<div class="ed-fallback"><textarea spellcheck="false" aria-label="Editor"></textarea></div>';
+  FB = $("textarea", host);
+  FB.addEventListener("input", function(){
+    var f = activeFile(); if(!f) return;
+    f.text = FB.value; scheduleDirtyPaint();
+  });
+  FB.addEventListener("keyup", paintStatus);
+  FB.addEventListener("click", paintStatus);
+  paintFallback();
+  toast("Monaco is not in vendor/monaco — running on a plain textarea.", 5200);
+}
+function paintFallback(){
+  if(!FB) return;
+  var f = activeFile();
+  FB.value = f ? f.text : "";
+  FB.disabled = !f;
+}
+
+/* ============================================================
+   5 · TABS + TREE
+   ============================================================ */
+function openFile(id, focus){
+  if(OPEN.indexOf(id) < 0) OPEN.push(id);
+  showFile(id, focus);
+}
+function showFile(id, focus){
+  var prev = activeFile();
+  if(ED && prev && prev.model) VIEWSTATE[prev.id] = ED.saveViewState();
+  ACTIVE = id;
+  var f = activeFile();
+  if(ED){
+    if(f){
+      ensureModel(f);
+      ED.setModel(f.model);
+      if(VIEWSTATE[id]) ED.restoreViewState(VIEWSTATE[id]);
+      if(focus !== false) ED.focus();
+    } else ED.setModel(null);
+  }
+  paintFallback();
+  drawTabs(); drawTree(); paintStatus(); drawContext(); paintEmpty();
+  document.title = (f ? baseName(f.path) + " — " : "") + "MagnaVERSE Code";
+}
+function closeTab(id){
+  var i = OPEN.indexOf(id); if(i < 0) return;
+  OPEN.splice(i, 1);
+  if(ACTIVE === id) showFile(OPEN[Math.min(i, OPEN.length - 1)] || null, false);
+  else { drawTabs(); paintEmpty(); }
+}
+function drawTabs(){
+  var strip = $("#tabstrip");
+  if(!OPEN.length){ strip.innerHTML = ""; return; }
+  strip.innerHTML = OPEN.map(function(id){
+    var f = fileById(id); if(!f) return "";
+    var d = isDirty(f);
+    return '<div class="etab" role="tab" data-tab="'+f.id+'" aria-selected="'+(id === ACTIVE)+'" tabindex="0">'+
+      ico(langFor(f.path) === "plaintext" ? "i-file" : "i-code", "xs")+
+      '<span class="nm" title="'+esc(f.path)+'">'+esc(baseName(f.path))+'</span>'+
+      (d ? '<span class="dot" title="Unsaved changes"></span>' : "")+
+      '<button class="x" data-closetab="'+f.id+'" aria-label="Close '+esc(baseName(f.path))+'" '+
+        'title="Close">'+ico("i-x","xs")+'</button>'+
+    '</div>';
+  }).join("");
+}
+function treeModel(){
+  var root = { name:"", dirs:{}, files:[] };
+  FILES.forEach(function(f){
+    var parts = f.path.split("/"), node = root;
+    for(var i = 0; i < parts.length - 1; i++){
+      if(!node.dirs[parts[i]]) node.dirs[parts[i]] = { name:parts[i], dirs:{}, files:[] };
+      node = node.dirs[parts[i]];
+    }
+    node.files.push(f);
+  });
+  return root;
+}
+var FOLD = {};    /* collapsed folders, by path */
+function drawTree(){
+  var host = $("#treeScroll");
+  if(!FILES.length){
+    host.innerHTML = '<p style="font-size:11.5px;color:var(--tx-4);padding:10px 8px;line-height:1.6">'+
+      'No files. Import some, or press <b>New file</b>.</p>';
+    return;
+  }
+  host.innerHTML = renderNode(treeModel(), "");
+}
+function renderNode(node, prefix){
+  var out = "";
+  Object.keys(node.dirs).sort().forEach(function(k){
+    var d = node.dirs[k], p = prefix ? prefix + "/" + k : k;
+    var closed = FOLD[p] ? " closed" : "";
+    out += '<div class="tw-folder'+closed+'" data-folder="'+esc(p)+'">'+
+      '<button class="tw-row tw-fold" data-fold="'+esc(p)+'">'+
+        ico("i-chev", "xs") .replace('class="ico xs"', 'class="ico xs chev"')+
+        ico("i-folder", "sm")+'<span class="nm">'+esc(k)+'</span>'+
+        '<span class="mono" style="font-size:10px;color:var(--tx-4)">'+countIn(d)+'</span>'+
+      '</button>'+
+      '<div class="tw-kids">'+renderNode(d, p)+'</div>'+
+    '</div>';
+  });
+  node.files.sort(function(a, b){ return a.path.localeCompare(b.path); }).forEach(function(f){
+    out += '<button class="tw-row tw-file" data-open="'+f.id+'" aria-current="'+(f.id === ACTIVE)+'" '+
+      'title="'+esc(f.path)+'">'+
+      ico(langFor(f.path) === "plaintext" ? "i-file" : "i-code", "sm")+
+      '<span class="nm">'+esc(baseName(f.path))+'</span>'+
+      (isDirty(f) ? '<span class="dirty" title="Unsaved changes"></span>' : "")+
+      '<span class="del" role="button" tabindex="0" data-del="'+f.id+'" aria-label="Delete '+
+        esc(baseName(f.path))+'" title="Delete">'+ico("i-trash","xs")+'</span>'+
+    '</button>';
+  });
+  return out;
+}
+function countIn(d){
+  var n = d.files.length;
+  Object.keys(d.dirs).forEach(function(k){ n += countIn(d.dirs[k]); });
+  return n;
+}
+function paintEmpty(){
+  var box = $("#edEmpty"), has = !!activeFile();
+  box.hidden = has;
+  $("#edHost").style.visibility = has ? "" : "hidden";
+  if(has) return;
+  box.innerHTML = '<div class="in">'+ markSVG("", 54) +
+    '<h2>Nothing open</h2>'+
+    '<p>Pick a file on the left, press <b>⌘P</b> to jump to one, or drop a folder anywhere on this '+
+    'window — it is read in the browser and never uploaded.</p>'+
+    '<div class="row">'+
+      '<button class="btn" data-cmd="palette.files">'+ico("i-search","sm")+'Go to file</button>'+
+      '<button class="btn" data-cmd="import.files">'+ico("i-import","sm")+'Import files</button>'+
+      '<button class="btn" data-cmd="workspace.reset">'+ico("i-undo","sm")+'Reload the sample projects</button>'+
+    '</div></div>';
+}
+function paintStatus(){
+  var f = activeFile();
+  $("#stLang").textContent = f ? langFor(f.path) : "—";
+  $("#stSize").textContent = f ? bytes(new Blob([getText(f)]).size) + (isDirty(f) ? " · unsaved" : "") : "";
+  var pos = "Ln 1, Col 1";
+  if(ED && f){
+    var p = ED.getPosition(), s = ED.getSelection();
+    if(p) pos = "Ln " + p.lineNumber + ", Col " + p.column;
+    if(s && !s.isEmpty()){
+      var n = f.model ? f.model.getValueInRange(s).length : 0;
+      pos += " (" + n + " selected)";
+    }
+  }
+  $("#stPos").textContent = pos;
+}
+
+/* ============================================================
+   6 · APPROVAL — the OS-wide gate, borrowed from Console.
+   Anything that writes to a file goes through this. One visual
+   language for every write means an AI edit cannot slip past.
+   ============================================================ */
+function requestApproval(opts){
+  var host = $("#centre"), old = $(".approve", host);
+  if(old) old.remove();
+  var bar = el("div", "approve");
+  bar.setAttribute("role", "alertdialog");
+  bar.setAttribute("aria-label", opts.title);
+  bar.innerHTML = ico("i-warn") +
+    '<div class="mid"><b>'+esc(opts.title)+'</b>'+opts.detail+'</div>'+
+    '<div class="acts"><button class="btn sm" data-ap="no">Cancel</button>'+
+    '<button class="btn sm primary" data-ap="yes">'+esc(opts.confirm || "Approve")+'</button></div>';
+  host.appendChild(bar);
+  var yesBtn = $('[data-ap="yes"]', bar);
+  bar.addEventListener("click", function(e){
+    var b = e.target.closest("[data-ap]"); if(!b) return;
+    var yes = b.getAttribute("data-ap") === "yes";
+    bar.remove();
+    if(yes){ toast(opts.okToast || "Approved."); opts.onApprove && opts.onApprove(); }
+    else { toast("Cancelled. Nothing was written."); opts.onCancel && opts.onCancel(); }
+  });
+  bar.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ e.stopPropagation(); bar.remove(); toast("Cancelled. Nothing was written.");
+      opts.onCancel && opts.onCancel(); }
+  });
+  setTimeout(function(){ yesBtn.focus(); }, 30);
+  return bar;
+}
+
+/* ============================================================
+   7 · IMPORT — File API only. Every byte stays in this tab.
+   ============================================================ */
+var IMPORT_MAX = 400 * 1024;      /* per file — this is an editor, not a CDN */
+var BINARY_EXT = /\.(png|jpe?g|gif|webp|avif|ico|bmp|tiff?|pdf|zip|gz|tgz|rar|7z|mp[34]|mov|avi|mkv|wav|ogg|woff2?|ttf|otf|eot|exe|dll|so|dylib|class|jar|wasm|db|sqlite)$/i;
+
+function importFileList(list, label){
+  var files = Array.prototype.slice.call(list || []);
+  if(!files.length) return;
+  var kept = [], skipped = [], pending = files.length, first = null;
+  files.slice(0, 300).forEach(function(file){
+    var path = (file.webkitRelativePath || file.name).replace(/^\.\//, "");
+    if(BINARY_EXT.test(path) || file.size > IMPORT_MAX){
+      skipped.push(path); if(--pending === 0) done(); return;
+    }
+    var r = new FileReader();
+    r.onload = function(){
+      var f = addFile(path, String(r.result || ""), true);
+      f.saved = getText(f);
+      kept.push(path); if(!first) first = f;
+      if(--pending === 0) done();
+    };
+    r.onerror = function(){ skipped.push(path); if(--pending === 0) done(); };
+    r.readAsText(file);
+  });
+  if(files.length > 300) pending -= (files.length - 300);
+  function done(){
+    drawTree();
+    if(first){ openFile(first.id, true); }
+    var msg = "Imported " + kept.length + " file" + (kept.length === 1 ? "" : "s") +
+      (skipped.length ? " · skipped " + skipped.length + " (binary or over " + Math.round(IMPORT_MAX/1024) + " KB)" : "") +
+      " · read in this tab, nothing uploaded";
+    toast(msg, 4600);
+  }
+}
+$("#pickFiles").addEventListener("change", function(){ importFileList(this.files); this.value = ""; });
+$("#pickFolder").addEventListener("change", function(){ importFileList(this.files); this.value = ""; });
+
+/* ---- drag and drop, folders included, over the whole window ---- */
+(function(){
+  var depth = 0, zone = $("#drop");
+  function show(){ zone.classList.add("on"); }
+  function hide(){ depth = 0; zone.classList.remove("on"); }
+  window.addEventListener("dragenter", function(e){ e.preventDefault(); depth++; show(); });
+  window.addEventListener("dragover",  function(e){ e.preventDefault(); show(); });
+  window.addEventListener("dragleave", function(e){ e.preventDefault(); if(--depth <= 0) hide(); });
+  window.addEventListener("drop", function(e){
+    e.preventDefault(); hide();
+    var dt = e.dataTransfer; if(!dt) return;
+    var items = dt.items, out = [], pending = 0, fired = false;
+    function finish(){ if(fired) return; fired = true; importFileList(out); }
+    function walk(entry, prefix){
+      if(!entry) return;
+      if(entry.isFile){
+        pending++;
+        entry.file(function(file){
+          try{ Object.defineProperty(file, "webkitRelativePath", { value: prefix + entry.name }); }catch(err){}
+          out.push(file);
+          if(--pending === 0) finish();
+        }, function(){ if(--pending === 0) finish(); });
+      } else if(entry.isDirectory){
+        pending++;
+        var rd = entry.createReader();
+        rd.readEntries(function(list){
+          list.slice(0, 80).forEach(function(en){ walk(en, prefix + entry.name + "/"); });
+          if(--pending === 0) finish();
+        }, function(){ if(--pending === 0) finish(); });
+      }
+    }
+    var got = false;
+    if(items && items.length){
+      for(var i = 0; i < items.length; i++){
+        var en = items[i].webkitGetAsEntry && items[i].webkitGetAsEntry();
+        if(en){ got = true; walk(en, ""); }
+      }
+    }
+    /* browsers without the entry API still hand us a flat FileList */
+    if(!got) importFileList(dt.files);
+    else if(pending === 0) finish();
+  });
+})();
+
+/* ============================================================
+   8 · EXPORT
+   ---- 8a · a minimal ZIP writer, by hand ----
+   Store method, no compression: every byte is written literally, which
+   keeps this ~70 lines instead of pulling in a deflate implementation.
+   Three structures, all little-endian:
+     · local file header  PK\3\4  before each file's bytes
+     · central directory  PK\1\2  one record per file, at the end
+     · EOCD               PK\5\6  where the central directory starts
+   Bit 11 of the general-purpose flag marks names as UTF-8.
+   ============================================================ */
+var CRC_TABLE = (function(){
+  var t = new Uint32Array(256), c, n, k;
+  for(n = 0; n < 256; n++){
+    c = n;
+    for(k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8){
+  var c = 0xFFFFFFFF;
+  for(var i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function dosTime(d){ return ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF; }
+function dosDate(d){ return (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF; }
+
+function zipBlob(entries){
+  var enc = new TextEncoder(), parts = [], central = [], offset = 0, now = new Date();
+  var t = dosTime(now), dt = dosDate(now);
+  entries.forEach(function(e){
+    var name = enc.encode(e.name);
+    var data = e.data instanceof Uint8Array ? e.data : enc.encode(String(e.data));
+    var crc = crc32(data);
+    var lh = new Uint8Array(30 + name.length), v = new DataView(lh.buffer);
+    v.setUint32(0, 0x04034B50, true);   /* PK\3\4                       */
+    v.setUint16(4, 20, true);           /* version needed to extract    */
+    v.setUint16(6, 0x0800, true);       /* flags — bit 11: UTF-8 names  */
+    v.setUint16(8, 0, true);            /* method 0 = stored            */
+    v.setUint16(10, t, true);
+    v.setUint16(12, dt, true);
+    v.setUint32(14, crc, true);
+    v.setUint32(18, data.length, true); /* compressed size == raw size  */
+    v.setUint32(22, data.length, true);
+    v.setUint16(26, name.length, true);
+    v.setUint16(28, 0, true);           /* extra field length           */
+    lh.set(name, 30);
+    parts.push(lh, data);
+    central.push({ name:name, crc:crc, size:data.length, offset:offset });
+    offset += lh.length + data.length;
+  });
+  var cdStart = offset, cdSize = 0;
+  central.forEach(function(c){
+    var cd = new Uint8Array(46 + c.name.length), v = new DataView(cd.buffer);
+    v.setUint32(0, 0x02014B50, true);   /* PK\1\2                       */
+    v.setUint16(4, 0x031E, true);       /* version made by — 3.0, unix  */
+    v.setUint16(6, 20, true);
+    v.setUint16(8, 0x0800, true);
+    v.setUint16(10, 0, true);
+    v.setUint16(12, t, true);
+    v.setUint16(14, dt, true);
+    v.setUint32(16, c.crc, true);
+    v.setUint32(20, c.size, true);
+    v.setUint32(24, c.size, true);
+    v.setUint16(28, c.name.length, true);
+    /* 30 extra len · 32 comment len · 34 disk no · 36 internal attrs — all 0 */
+    v.setUint32(38, 0x81A40000, true);  /* external attrs: 0644 regular file */
+    v.setUint32(42, c.offset, true);
+    cd.set(c.name, 46);
+    parts.push(cd);
+    cdSize += cd.length;
+  });
+  var eo = new Uint8Array(22), ev = new DataView(eo.buffer);
+  ev.setUint32(0, 0x06054B50, true);    /* PK\5\6                       */
+  ev.setUint16(8, central.length, true);/* records on this disk         */
+  ev.setUint16(10, central.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, cdStart, true);
+  parts.push(eo);
+  return new Blob(parts, { type:"application/zip" });
+}
+function download(blob, name){
+  var url = URL.createObjectURL(blob), a = el("a");
+  a.href = url; a.download = name; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+function exportActive(){
+  var f = activeFile();
+  if(!f) return toast("Nothing open to export.");
+  download(new Blob([getText(f)], { type:"text/plain;charset=utf-8" }), baseName(f.path));
+  toast("Downloaded " + baseName(f.path) + " — written by this tab, not fetched.");
+}
+function exportZip(){
+  if(!FILES.length) return toast("Nothing to zip.");
+  var stamp = new Date().toISOString().slice(0, 10);
+  var entries = FILES.map(function(f){ return { name:f.path, data:getText(f) }; });
+  entries.push({ name:"READ-ME-first.txt", data:
+    "MagnaVERSE Code export — " + new Date().toISOString() + "\n" +
+    "=".repeat(52) + "\n\n" +
+    entries.length + " file(s), written in the browser with a hand-rolled ZIP writer\n" +
+    "(store method, no compression). No server was involved and nothing was\n" +
+    "uploaded to produce this archive.\n\n" +
+    FILES.map(function(f){ return "  " + f.path + "  (" + new Blob([getText(f)]).size + " bytes)"; }).join("\n") + "\n" });
+  var blob = zipBlob(entries);
+  download(blob, "magnaverse-code-" + stamp + ".zip");
+  toast("Zipped " + entries.length + " files · " + bytes(blob.size) + " · built in this tab", 4200);
+}
+function copyActive(){
+  var f = activeFile();
+  if(!f) return toast("Nothing open to copy.");
+  var text = getText(f);
+  function ok(){ toast("Copied " + baseName(f.path) + " to the clipboard."); }
+  if(navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(text).then(ok, fallback);
+  else fallback();
+  function fallback(){
+    var ta = el("textarea"); ta.value = text;
+    ta.style.cssText = "position:fixed;top:-2000px";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); ok(); }catch(e){ toast("Copy was blocked by the browser."); }
+    ta.remove();
+  }
+}
+function doSave(){
+  if(saveWorkspace()) toast("Saved to this browser's local storage — there is no server behind this tab.");
+}
+
+/* ============================================================
+   9 · COMMANDS + PALETTE
+   ============================================================ */
+var COMMANDS = [
+  { id:"palette.files",   label:"Go to file…",                 hint:"⌘P",  run:function(){ openPalette("files"); } },
+  { id:"import.files",    label:"Import files…",               hint:"",    run:function(){ $("#pickFiles").click(); } },
+  { id:"import.folder",   label:"Import a folder…",            hint:"",    run:function(){ $("#pickFolder").click(); } },
+  { id:"export.file",     label:"Export the active file",      hint:"",    run:exportActive },
+  { id:"export.copy",     label:"Copy the active file",        hint:"",    run:copyActive },
+  { id:"export.zip",      label:"Download all as .zip",        hint:"",    run:exportZip },
+  { id:"file.new",        label:"New file…",                   hint:"",    run:newFile },
+  { id:"file.save",       label:"Save the workspace",          hint:"⌘S",  run:doSave },
+  { id:"editor.find",     label:"Find in this file",           hint:"⌘F",  run:function(){ edAction("actions.find"); } },
+  { id:"editor.replace",  label:"Replace in this file",        hint:"⌘H",  run:function(){ edAction("editor.action.startFindReplaceAction"); } },
+  { id:"editor.goto",     label:"Go to line…",                 hint:"⌃G",  run:function(){ edAction("editor.action.gotoLine"); } },
+  { id:"editor.fold",     label:"Fold all",                    hint:"",    run:function(){ edAction("editor.foldAll"); } },
+  { id:"editor.unfold",   label:"Unfold all",                  hint:"",    run:function(){ edAction("editor.unfoldAll"); } },
+  { id:"ai.inline",       label:"Inline edit on the selection", hint:"⌘K", run:function(){ openInline(); } },
+  { id:"ai.ask",          label:"Ask about this file",         hint:"",    run:function(){ setMode("ask"); setPanel("ai", true); $("#aiInput").focus(); } },
+  { id:"ai.agent",        label:"Switch the assistant to Agent", hint:"",  run:function(){ setMode("agent"); setPanel("ai", true); $("#aiInput").focus(); } },
+  { id:"ai.clear",        label:"Clear the assistant thread",   hint:"",   run:function(){ $("#aiThread").innerHTML = ""; greet(); } },
+  { id:"view.tree",       label:"Toggle the file tree",        hint:"",    run:function(){ setPanel("tree", !PANEL.tree); } },
+  { id:"view.ai",         label:"Toggle the AI panel",         hint:"",    run:function(){ setPanel("ai", !PANEL.ai); } },
+  { id:"theme.toggle",    label:"Switch theme",                hint:"",    run:function(){ $("#btnTheme").click(); } },
+  { id:"workspace.reset", label:"Reset to the sample projects", hint:"",   run:resetWorkspace },
+  { id:"about",           label:"What is real in this prototype", hint:"", run:aboutPanel }
+];
+function edAction(id){
+  if(!ED) return toast("That needs the vendored Monaco, which did not load.");
+  ED.focus();
+  try{ ED.getAction(id).run(); }catch(e){ toast("Could not run " + id); }
+}
+function runCommand(id){
+  for(var i = 0; i < COMMANDS.length; i++) if(COMMANDS[i].id === id) return COMMANDS[i].run();
+}
+var PAL = { mode:"files", rows:[], sel:0, prev:null };
+function openPalette(mode){
+  PAL.mode = mode; PAL.sel = 0; PAL.prev = document.activeElement;
+  $("#palette").classList.add("on");
+  var inp = $("#palInput");
+  inp.value = "";
+  inp.placeholder = mode === "files" ? "Go to file…" : "Type a command…";
+  paintPalette();
+  inp.focus();
+}
+function closePalette(){
+  $("#palette").classList.remove("on");
+  if(PAL.prev && PAL.prev.focus) try{ PAL.prev.focus(); }catch(e){}
+  else if(ED) ED.focus();
+}
+function fuzzy(hay, needle){
+  hay = hay.toLowerCase(); needle = needle.toLowerCase();
+  if(!needle) return 1;
+  if(hay.indexOf(needle) > -1) return 100 - hay.indexOf(needle);
+  var i = 0, score = 0;
+  for(var j = 0; j < hay.length && i < needle.length; j++)
+    if(hay[j] === needle[i]){ i++; score++; }
+  return i === needle.length ? score : 0;
+}
+function paintPalette(){
+  var q = $("#palInput").value.trim(), list = $("#palList");
+  var rows = [];
+  if(PAL.mode === "files"){
+    FILES.forEach(function(f){
+      var s = fuzzy(f.path, q);
+      if(s > 0) rows.push({ score:s, icon:langFor(f.path) === "plaintext" ? "i-file" : "i-code",
+        nm:baseName(f.path), sub:dirName(f.path) || "root", act:function(){ openFile(f.id, true); } });
+    });
+  } else {
+    COMMANDS.forEach(function(c){
+      var s = fuzzy(c.label, q);
+      if(s > 0) rows.push({ score:s, icon:"i-cmd", nm:c.label, sub:c.hint, act:c.run });
+    });
+  }
+  rows.sort(function(a, b){ return b.score - a.score; });
+  PAL.rows = rows; PAL.sel = clamp(PAL.sel, 0, Math.max(0, rows.length - 1));
+  list.innerHTML = rows.length
+    ? rows.map(function(r, i){
+        return '<button class="row" role="option" data-i="'+i+'" aria-selected="'+(i === PAL.sel)+'">'+
+          ico(r.icon, "sm")+'<span class="nm">'+esc(r.nm)+'</span>'+
+          (r.sub ? '<span class="sub">'+esc(r.sub)+'</span>' : "")+'</button>';
+      }).join("")
+    : '<div class="none">Nothing matches “'+esc(q)+'”.</div>';
+  var cur = $('[aria-selected="true"]', list);
+  if(cur && cur.scrollIntoView) cur.scrollIntoView({ block:"nearest" });
+}
+$("#palInput").addEventListener("input", function(){ PAL.sel = 0; paintPalette(); });
+$("#palInput").addEventListener("keydown", function(e){
+  if(e.key === "ArrowDown"){ e.preventDefault(); PAL.sel = clamp(PAL.sel + 1, 0, PAL.rows.length - 1); paintPalette(); }
+  else if(e.key === "ArrowUp"){ e.preventDefault(); PAL.sel = clamp(PAL.sel - 1, 0, PAL.rows.length - 1); paintPalette(); }
+  else if(e.key === "Enter"){ e.preventDefault(); var r = PAL.rows[PAL.sel]; if(r){ closePalette(); r.act(); } }
+  else if(e.key === "Escape"){ e.preventDefault(); closePalette(); }
+});
+$("#palList").addEventListener("click", function(e){
+  var b = e.target.closest("[data-i]"); if(!b) return;
+  var r = PAL.rows[+b.getAttribute("data-i")];
+  closePalette(); if(r) r.act();
+});
+$("#palette").addEventListener("mousedown", function(e){ if(e.target === this) closePalette(); });
+
+function newFile(){
+  var name = window.prompt("New file — path inside the workspace", "scratch/untitled.js");
+  if(!name) return;
+  name = name.trim().replace(/^\/+/, "");
+  if(!name) return;
+  if(fileByPath(name)){ toast("That path already exists."); return openFile(fileByPath(name).id, true); }
+  var f = addFile(name, "", true);
+  f.saved = " ";                 /* born unsaved, so the dot shows */
+  drawTree(); openFile(f.id, true);
+  toast("Created " + name + " in this tab's workspace.");
+}
+function deleteFile(id){
+  var f = fileById(id); if(!f) return;
+  requestApproval({
+    title: "Delete " + baseName(f.path) + "?",
+    detail: "<p style='margin:0'>Removes <code>"+esc(f.path)+"</code> from this workspace. "+
+            "It only ever existed in this browser tab, so there is nothing to recover it from.</p>",
+    confirm: "Delete",
+    okToast: "Deleted " + baseName(f.path) + ".",
+    onApprove: function(){
+      closeTab(id);
+      if(f.model) try{ f.model.dispose(); }catch(e){}
+      FILES = FILES.filter(function(x){ return x.id !== id; });
+      delete VIEWSTATE[id];
+      drawTree(); drawTabs(); paintEmpty(); drawContext();
+    }
+  });
+}
+function resetWorkspace(){
+  requestApproval({
+    title: "Reset the workspace to the two sample projects?",
+    detail: "<p style='margin:0'>Throws away every file in this tab, imported or edited, and reloads "+
+            "<code>c2-status</code> and <code>exposure-calc</code> exactly as Console's Code window carries them.</p>",
+    confirm: "Reset",
+    okToast: "Workspace reset.",
+    onApprove: function(){
+      FILES.forEach(function(f){ if(f.model) try{ f.model.dispose(); }catch(e){} });
+      store.del(WS_KEY);
+      FILES = []; OPEN = []; ACTIVE = null; VIEWSTATE = {};
+      seedWorkspace();
+      if(window.monaco) FILES.forEach(ensureModel);
+      drawTree();
+      var first = fileByPath("c2-status/index.html") || FILES[0];
+      if(first) openFile(first.id, true);
+      $("#aiThread").innerHTML = ""; greet();
+    }
+  });
+}
+function aboutPanel(){
+  setPanel("ai", true);
+  pushAI({ blocks:[
+    { t:"p", html:"<b>What is real in this tab.</b> The editor is Monaco 0.52.2 (MIT), served from "+
+      "<code>vendor/monaco/vs</code> in this repository — not a CDN. Syntax highlighting, folding, "+
+      "multi-cursor, find and replace are all genuinely Monaco." },
+    { t:"list", items:[
+      "<b>Import</b> uses the File API. Files are read with <code>FileReader</code> inside this tab. No request leaves the machine.",
+      "<b>Export</b> writes a Blob. The .zip is assembled byte by byte here — local headers, central directory, CRC-32, EOCD — with no library.",
+      "<b>Save</b> writes to this browser's <code>localStorage</code>. There is no server and no account.",
+      "<b>No IntelliSense.</b> The vendored Monaco has its language services trimmed out, so there is tokenising but no completion and no type checking. Nothing in the UI claims otherwise."
+    ]},
+    { t:"p", html:"<b>What is simulated.</b> The assistant. There is no model behind it — it is a "+
+      "deterministic generator that matches your wording against " + INTENTS.length + " built-in intents "+
+      "and computes every figure it quotes from the bytes actually in your buffer. Ask the same thing "+
+      "twice and you get the same answer twice. That is the point: the shape of the interaction is real, "+
+      "the intelligence is not." },
+    { t:"p", html:"The sovereignty chip in the status bar is therefore literally true here: this page "+
+      "makes no network request after load." }
+  ]}, { mode:"ask", tag:"about" });
+}
+
+/* ============================================================
+   10 · PANELS, SPLITTERS, GLOBAL KEYS
+   ============================================================ */
+var PANEL = { tree:true, ai:true };
+var MQ_TABLET = window.matchMedia("(max-width:1079px)");
+var MQ_MOBILE = window.matchMedia("(max-width:767px)");
+function setPanel(which, on){
+  PANEL[which] = !!on;
+  document.body.classList.toggle(which + "-open", !!on);
+  var btn = which === "tree" ? $("#btnTree") : $("#btnAI");
+  btn.setAttribute("aria-pressed", String(!!on));
+  if(on && which === "ai" && MQ_TABLET.matches) setTimeout(function(){ $("#aiInput").focus(); }, 40);
+  if(ED) setTimeout(function(){ try{ ED.layout(); }catch(e){} }, 60);
+}
+function applyBreakpoint(){
+  setPanel("ai", !MQ_TABLET.matches);
+  setPanel("tree", !MQ_MOBILE.matches);
+}
+MQ_TABLET.addEventListener("change", applyBreakpoint);
+MQ_MOBILE.addEventListener("change", applyBreakpoint);
+$("#btnTree").addEventListener("click", function(){ setPanel("tree", !PANEL.tree); });
+$("#btnAI").addEventListener("click", function(){ setPanel("ai", !PANEL.ai); });
+$("#scrim").addEventListener("click", function(){
+  if(MQ_MOBILE.matches) setPanel("tree", false);
+  if(MQ_TABLET.matches) setPanel("ai", false);
+});
+document.addEventListener("click", function(e){
+  var c = e.target.closest("[data-close]"); if(!c) return;
+  var k = c.getAttribute("data-close");
+  if(k === "inline") closeInline(); else setPanel(k, false);
+});
+
+/* drag to resize, pointer events so it works with a trackpad or a finger */
+function wireSplit(node, varName, min, max, invert){
+  var drag = null;
+  node.addEventListener("pointerdown", function(e){
+    drag = { x:e.clientX, w:parseInt(getComputedStyle(document.documentElement).getPropertyValue(varName), 10) };
+    node.classList.add("dragging"); node.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  node.addEventListener("pointermove", function(e){
+    if(!drag) return;
+    var d = (e.clientX - drag.x) * (invert ? -1 : 1);
+    document.documentElement.style.setProperty(varName, clamp(drag.w + d, min, max) + "px");
+    if(ED) try{ ED.layout(); }catch(err){}
+  });
+  ["pointerup", "pointercancel"].forEach(function(ev){
+    node.addEventListener(ev, function(){ drag = null; node.classList.remove("dragging"); });
+  });
+}
+wireSplit($("#splitTree"), "--tree-w", 160, 420, false);
+wireSplit($("#splitAI"), "--ai-w", 300, 640, true);
+
+document.addEventListener("keydown", function(e){
+  var meta = e.metaKey || e.ctrlKey;
+  if(e.key === "Escape"){
+    if($("#palette").classList.contains("on")){ e.preventDefault(); return closePalette(); }
+    if($("#inline").classList.contains("on")){ e.preventDefault(); return closeInline(); }
+    var ap = $(".approve"); if(ap){ e.preventDefault(); ap.remove(); return toast("Cancelled. Nothing was written."); }
+    if(MQ_TABLET.matches && PANEL.ai){ e.preventDefault(); return setPanel("ai", false); }
+    if(MQ_MOBILE.matches && PANEL.tree){ e.preventDefault(); return setPanel("tree", false); }
+    return;
+  }
+  if(!meta) return;
+  var k = e.key.toLowerCase();
+  if(k === "p"){ e.preventDefault(); openPalette(e.shiftKey ? "commands" : "files"); }
+  else if(k === "k" && !e.shiftKey){ e.preventDefault(); openInline(); }
+  else if(k === "s"){ e.preventDefault(); doSave(); }
+  else if(k === "b"){ e.preventDefault(); setPanel("tree", !PANEL.tree); }
+  else if(k === "i" && e.shiftKey){ e.preventDefault(); setPanel("ai", !PANEL.ai); }
+});
+
+/* one delegated click handler for every data-cmd in the chrome */
+document.addEventListener("click", function(e){
+  var c = e.target.closest("[data-cmd]");
+  if(c){ e.preventDefault(); return runCommand(c.getAttribute("data-cmd")); }
+  var del = e.target.closest("[data-del]");
+  if(del){ e.preventDefault(); e.stopPropagation(); return deleteFile(del.getAttribute("data-del")); }
+  var x = e.target.closest("[data-closetab]");
+  if(x){ e.preventDefault(); e.stopPropagation(); return closeTab(x.getAttribute("data-closetab")); }
+  var t = e.target.closest("[data-tab]");
+  if(t){ return showFile(t.getAttribute("data-tab"), true); }
+  var o = e.target.closest("[data-open]");
+  if(o){ openFile(o.getAttribute("data-open"), true); if(MQ_MOBILE.matches) setPanel("tree", false); return; }
+  var fo = e.target.closest("[data-fold]");
+  if(fo){ var p = fo.getAttribute("data-fold"); FOLD[p] = !FOLD[p]; drawTree(); return; }
+});
+$("#tabstrip").addEventListener("keydown", function(e){
+  var t = e.target.closest("[data-tab]"); if(!t) return;
+  if(e.key === "Enter" || e.key === " "){ e.preventDefault(); showFile(t.getAttribute("data-tab"), true); }
+  if(e.key === "Delete" || e.key === "Backspace"){ e.preventDefault(); closeTab(t.getAttribute("data-tab")); }
+});
+$("#treeScroll").addEventListener("keydown", function(e){
+  var d = e.target.closest("[data-del]");
+  if(d && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); e.stopPropagation(); deleteFile(d.getAttribute("data-del")); }
+});
+window.addEventListener("beforeunload", function(e){
+  var dirty = FILES.some(isDirty);
+  if(!dirty) return;
+  e.preventDefault(); e.returnValue = "";
+});
+
+/* ============================================================
+   11 · DIFF — hand-built, no dependency.
+   A line LCS with the common head and tail trimmed off first,
+   which keeps the DP table small on real files.
+   ============================================================ */
+function lcsOps(a, b){
+  var n = a.length, m = b.length, out = [], i, j;
+  if(!n && !m) return out;
+  if(!n || !m || n * m > 250000){
+    for(i = 0; i < n; i++) out.push({ t:"-", text:a[i] });
+    for(j = 0; j < m; j++) out.push({ t:"+", text:b[j] });
+    return out;
+  }
+  var w = m + 1, dp = new Int32Array((n + 1) * w);
+  for(i = n - 1; i >= 0; i--){
+    for(j = m - 1; j >= 0; j--){
+      dp[i * w + j] = a[i] === b[j] ? dp[(i + 1) * w + j + 1] + 1
+                    : Math.max(dp[(i + 1) * w + j], dp[i * w + j + 1]);
+    }
+  }
+  i = 0; j = 0;
+  while(i < n && j < m){
+    if(a[i] === b[j]){ out.push({ t:" ", text:a[i] }); i++; j++; }
+    else if(dp[(i + 1) * w + j] >= dp[i * w + j + 1]){ out.push({ t:"-", text:a[i] }); i++; }
+    else { out.push({ t:"+", text:b[j] }); j++; }
+  }
+  while(i < n) out.push({ t:"-", text:a[i++] });
+  while(j < m) out.push({ t:"+", text:b[j++] });
+  return out;
+}
+function diffRows(before, after){
+  var A = String(before).split("\n"), B = String(after).split("\n");
+  var s = 0, e = 0, n = A.length, m = B.length;
+  while(s < n && s < m && A[s] === B[s]) s++;
+  while(e < n - s && e < m - s && A[n - 1 - e] === B[m - 1 - e]) e++;
+  var rows = [];
+  for(var i = 0; i < s; i++) rows.push({ t:" ", text:A[i] });
+  rows = rows.concat(lcsOps(A.slice(s, n - e), B.slice(s, m - e)));
+  for(var k = 0; k < e; k++) rows.push({ t:" ", text:A[n - e + k] });
+  var la = 0, lb = 0;
+  rows.forEach(function(r){
+    if(r.t === "-"){ r.a = ++la; r.b = null; }
+    else if(r.t === "+"){ r.a = null; r.b = ++lb; }
+    else { r.a = ++la; r.b = ++lb; }
+  });
+  return rows;
+}
+function diffStat(rows){
+  var add = 0, del = 0;
+  rows.forEach(function(r){ if(r.t === "+") add++; else if(r.t === "-") del++; });
+  return { add:add, del:del };
+}
+/* collapse long stretches of untouched code down to a marker */
+function collapse(rows, pad){
+  pad = pad == null ? 3 : pad;
+  var keep = new Array(rows.length);
+  rows.forEach(function(r, i){
+    if(r.t === " ") return;
+    for(var k = Math.max(0, i - pad); k <= Math.min(rows.length - 1, i + pad); k++) keep[k] = true;
+  });
+  var out = [], run = 0;
+  rows.forEach(function(r, i){
+    if(keep[i]){
+      if(run){ out.push({ t:"~", text:"⋯ " + run + " unchanged line" + (run === 1 ? "" : "s") }); run = 0; }
+      out.push(r);
+    } else run++;
+  });
+  if(run) out.push({ t:"~", text:"⋯ " + run + " unchanged line" + (run === 1 ? "" : "s") });
+  return out;
+}
+function renderUnified(before, after){
+  var rows = collapse(diffRows(before, after));
+  return '<div class="diff" dir="ltr" role="img" aria-label="Diff preview">' + rows.map(function(r){
+    if(r.t === "~") return '<div class="row skip"><span class="gut"><i></i><i></i></span>'+
+      '<span class="sgn"></span><span class="txt">'+esc(r.text)+'</span></div>';
+    var cls = r.t === "+" ? " add" : r.t === "-" ? " del" : "";
+    return '<div class="row'+cls+'"><span class="gut"><i>'+(r.a || "")+'</i><i>'+(r.b || "")+'</i></span>'+
+      '<span class="sgn">'+(r.t === " " ? "" : r.t)+'</span>'+
+      '<span class="txt">'+(r.text === "" ? "&nbsp;" : esc(r.text))+'</span></div>';
+  }).join("") + '</div>';
+}
+/* the hand-built side-by-side, used when Monaco's diff editor is not
+   available. Deletions on the left, insertions on the right, paired. */
+function renderSideBySide(before, after){
+  var rows = collapse(diffRows(before, after), 2), L = [], R = [], i = 0;
+  while(i < rows.length){
+    var r = rows[i];
+    if(r.t === " " || r.t === "~"){ L.push(r); R.push(r); i++; continue; }
+    var dels = [], adds = [];
+    while(i < rows.length && rows[i].t === "-") dels.push(rows[i++]);
+    while(i < rows.length && rows[i].t === "+") adds.push(rows[i++]);
+    var n = Math.max(dels.length, adds.length);
+    for(var k = 0; k < n; k++){
+      L.push(dels[k] || { t:"pad", text:"" });
+      R.push(adds[k] || { t:"pad", text:"" });
+    }
+  }
+  function col(list, title, side){
+    return '<div class="col"><div class="colh">'+title+'</div>'+ list.map(function(r){
+      if(r.t === "~") return '<div class="row skip"><span class="txt">'+esc(r.text)+'</span></div>';
+      if(r.t === "pad") return '<div class="row"><span class="sgn"></span><span class="txt">&nbsp;</span></div>';
+      var cls = r.t === "-" ? " del" : r.t === "+" ? " add" : "";
+      var no = side === "a" ? r.a : r.b;
+      return '<div class="row'+cls+'"><span class="gut" style="width:34px"><i>'+(no || "")+'</i></span>'+
+        '<span class="sgn">'+(r.t === " " ? "" : r.t)+'</span>'+
+        '<span class="txt">'+(r.text === "" ? "&nbsp;" : esc(r.text))+'</span></div>';
+    }).join("")+'</div>';
+  }
+  return '<div class="diff side" dir="ltr">'+col(L, "Current", "a")+col(R, "Proposed", "b")+'</div>';
+}
+
+/* ============================================================
+   12 · READING THE BUFFER
+   Everything the assistant claims is computed from these, so the
+   answers move when you edit the file.
+   ============================================================ */
+function num(t, name){
+  var m = t.match(new RegExp("(?:const|let|var)\\s+" + name + "\\s*=\\s*([0-9.eE+\\-]+)"));
+  return m ? Number(m[1]) : null;
+}
+function calcModel(){
+  var f = fileByPath("exposure-calc/calc.js");
+  if(!f) return null;
+  var t = getText(f);
+  var o = { file:f, text:t };
+  ["PACKAGE_VALUE", "LD_RATE", "LD_CAP", "STANDBY_DAY", "ESCALATION"].forEach(function(k){ o[k] = num(t, k); });
+  if(o.PACKAGE_VALUE == null || o.LD_RATE == null) return null;
+  o.exposure = function(days){
+    var ld = Math.min(o.PACKAGE_VALUE * o.LD_RATE * days, o.PACKAGE_VALUE * o.LD_CAP);
+    var standby = o.STANDBY_DAY * days;
+    var esc2 = o.PACKAGE_VALUE * o.ESCALATION * (days / 45);
+    return { ld:ld, standby:standby, esc:esc2, total:ld + standby + esc2 };
+  };
+  o.capBitesAt = Math.ceil(o.LD_CAP / o.LD_RATE);
+  return o;
+}
+function sar(n){
+  if(n == null || !isFinite(n)) return "—";
+  return "SAR " + n.toLocaleString("en-US", { maximumFractionDigits:0 });
+}
+function millions(n){ return "SAR " + (n / 1e6).toFixed(2) + "M"; }
+function digest(f){
+  var t = getText(f), lines = t.split("\n"), d = {
+    path:f.path, lang:langFor(f.path), lines:lines.length,
+    bytes:new Blob([t]).size, text:t, consts:[], fns:[], heads:[], rules:0, longest:0
+  };
+  var m, re;
+  re = /^[ \t]*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*([^;\n]+)/gm;
+  while((m = re.exec(t))) d.consts.push({ name:m[1], val:m[2].trim() });
+  re = /(?:export\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/g;
+  while((m = re.exec(t))) d.fns.push({ name:m[1], args:m[2].trim() });
+  re = /<(h[1-6])[^>]*>([\s\S]*?)<\/\1>/gi;
+  while((m = re.exec(t))) d.heads.push(m[2].replace(/<[^>]*>/g, "").trim());
+  re = /^#{1,6}\s+(.+)$/gm;
+  while((m = re.exec(t))) d.heads.push(m[1].trim());
+  d.rules = (t.match(/\{[^{}]*\}/g) || []).length;
+  d.exports = (t.match(/^\s*export\s+/gm) || []).length;
+  d.tags = (t.match(/<([a-z][\w-]*)\b/gi) || []).length;
+  d.rows = (t.match(/<tr\b/gi) || []).length;
+  lines.forEach(function(l){ if(l.length > d.longest) d.longest = l.length; });
+  d.todos = [];
+  lines.forEach(function(l, i){ if(/TODO|FIXME|XXX|HACK/.test(l)) d.todos.push(i + 1); });
+  return d;
+}
+function lineOf(text, needle){
+  var lines = text.split("\n");
+  for(var i = 0; i < lines.length; i++) if(lines[i].indexOf(needle) > -1) return i + 1;
+  return null;
+}
+
+/* ============================================================
+   13 · REVIEW RULES — real regex passes over the real buffer.
+   Nothing here is a canned finding: every hit carries the line
+   number it actually matched on.
+   ============================================================ */
+function reviewFile(f){
+  var t = getText(f), lines = t.split("\n"), lang = langFor(f.path), out = [];
+  function hit(sev, line, msg){ out.push({ sev:sev, line:line, msg:msg }); }
+  lines.forEach(function(l, i){
+    if(/TODO|FIXME|XXX|HACK/.test(l)) hit("info", i + 1, "Left-behind marker: <code>" + esc(l.trim().slice(0, 60)) + "</code>");
+    if(/\s+$/.test(l) && l.trim()) hit("info", i + 1, "Trailing whitespace.");
+    if(l.length > 120) hit("info", i + 1, "Line is " + l.length + " characters — past the 120 most reviewers scan comfortably.");
+  });
+  if(lang === "html"){
+    if(!/<meta\s+name=["']viewport/i.test(t))
+      hit("warn", lineOf(t, "<head>") || 1, "No <code>&lt;meta name=\"viewport\"&gt;</code> — this page will render at desktop width on a phone and be zoomed out to unreadable.");
+    if(/<table/i.test(t) && !/<thead/i.test(t))
+      hit("warn", lineOf(t, "<table") || 1, "Table has no <code>&lt;thead&gt;</code>, so the header row is not announced as one by a screen reader.");
+    if(/<table/i.test(t) && !/<caption/i.test(t))
+      hit("info", lineOf(t, "<table") || 1, "Table has no <code>&lt;caption&gt;</code>. The figure above it is doing that job visually only.");
+    var colours = t.match(/#[0-9a-f]{3,8}\b/gi) || [];
+    if(colours.length > 5)
+      hit("info", lineOf(t, "<style>") || 1, colours.length + " hard-coded hex colours and no custom properties — this cannot follow the OS theme.");
+    if(/background:#0c0c0e|color:#f2f3f6/i.test(t) && !/prefers-color-scheme/i.test(t))
+      hit("warn", lineOf(t, "background:#0c0c0e") || 1, "Dark colours are hard-coded with no <code>prefers-color-scheme</code> branch — this page is dark even for a user who asked for light.");
+    if(!/<html[^>]*lang=/i.test(t))
+      hit("warn", 1, "No <code>lang</code> on <code>&lt;html&gt;</code>.");
+  }
+  if(lang === "javascript" || lang === "typescript"){
+    var fns = t.match(/function\s+\w+\s*\(([^)]*)\)/g) || [];
+    if(fns.length && !/typeof|isFinite|Number\.is|throw|if\s*\(/.test(t))
+      hit("warn", lineOf(t, "function ") || 1, "No input validation anywhere in the file — <code>" +
+        esc((fns[0].match(/function\s+(\w+)/) || [])[1] || "the entry point") + "</code> will happily take a string or a negative number and return NaN.");
+    var magic = [];
+    lines.forEach(function(l, i){
+      var mm = l.match(/[^\w.]\d{4,}(?![\w.])/g);
+      if(mm && !/^\s*(?:export\s+)?(?:const|let|var)\s/.test(l)) magic.push(i + 1);
+    });
+    if(magic.length) hit("info", magic[0], magic.length + " magic number(s) outside a named constant — first at line " + magic[0] + ".");
+    if(/export\s+/.test(t) && !/\/\*\*/.test(t))
+      hit("info", lineOf(t, "export ") || 1, "Exports carry no JSDoc, so an editor with type services cannot tell a caller what <code>days</code> is measured in.");
+    if(/\/\s*45\b/.test(t))
+      hit("warn", lineOf(t, "/ 45") || 1, "The escalation term divides by a literal <code>45</code> that is not one of the named constants — if the reporting window moves, this silently keeps using 45.");
+  }
+  if(lang === "markdown"){
+    if(!/^#\s/m.test(t)) hit("warn", 1, "No level-1 heading.");
+    if(!/\n$/.test(t)) hit("info", lines.length, "File does not end with a newline.");
+    if(t.split("\n").filter(function(l){ return /^- /.test(l); }).length < 2)
+      hit("info", 1, "Very little structure — two bullets is thin for a README a board pack depends on.");
+  }
+  return out;
+}
+
+/* ============================================================
+   14 · INTENTS — the "canned generation".
+   Each entry matches on wording and then computes its answer
+   from the buffer. Deterministic by construction: the same
+   prompt against the same bytes returns the same thing.
+   ============================================================ */
+function edit(path, next, note){ return { t:"diff", path:path, next:next, note:note }; }
+
+var INTENTS = [
+{
+  id:"explain", kind:"ask",
+  chip:"Explain this file",
+  keys:["explain", "what does this", "what is this file", "walk me through", "how does this work",
+        "overview", "summarise", "summarize", "describe this"],
+  run:function(q, ctx){
+    var f = ctx.file; if(!f) return null;
+    var d = digest(f), b = [];
+    b.push({ t:"p", html:"<b>"+esc(f.path)+"</b> — "+d.lines+" lines, "+bytes(d.bytes)+", tokenised as <code>"+d.lang+"</code>." });
+    if(d.lang === "javascript"){
+      var c = calcModel();
+      b.push({ t:"p", html:"It declares "+d.consts.length+" constant"+(d.consts.length === 1 ? "" : "s")+
+        " and "+d.fns.length+" function"+(d.fns.length === 1 ? "" : "s")+", with "+d.exports+" export"+(d.exports === 1 ? "" : "s")+"." });
+      b.push({ t:"table", head:["Constant", "Value"], rows:d.consts.slice(0, 8).map(function(x){
+        return [x.name, x.val]; }) });
+      if(d.fns.length) b.push({ t:"p", html:"<code>"+esc(d.fns[0].name)+"("+esc(d.fns[0].args)+")</code> returns four "+
+        "figures — <code>ld</code>, <code>standby</code>, <code>esc</code> and their <code>total</code>. "+
+        "The LD term is clamped by <code>Math.min</code>, which is the only branch in the file." });
+      if(c) b.push({ t:"p", html:"Working the numbers through as they stand: at 45 days the model returns <b>"+
+        millions(c.exposure(45).total)+"</b>, and the liquidated-damages cap starts to bind on day <b>"+c.capBitesAt+"</b>." });
+    } else if(d.lang === "html"){
+      b.push({ t:"p", html:"A single self-contained page: "+d.tags+" tags, "+d.rules+" CSS rule block"+
+        (d.rules === 1 ? "" : "s")+" inline in a <code>&lt;style&gt;</code>, and a "+d.rows+"-row table. "+
+        "No script, no external request — it renders from its own bytes." });
+      if(d.heads.length) b.push({ t:"list", items:d.heads.slice(0, 6).map(function(h){ return esc(h); }) });
+      var headline = (d.text.match(/class="n">([^<]+)</) || [])[1];
+      if(headline) b.push({ t:"p", html:"The headline figure is <code>"+esc(headline)+"</code>, hard-coded in the markup — "+
+        "nothing on this page reads the model in <code>exposure-calc/calc.js</code>." });
+    } else if(d.lang === "markdown"){
+      b.push({ t:"p", html:"Markdown, "+d.heads.length+" heading"+(d.heads.length === 1 ? "" : "s")+
+        ", "+(d.text.split("\n").filter(function(l){ return /^-\s/.test(l); }).length)+" bullets." });
+      if(d.heads.length) b.push({ t:"list", items:d.heads.map(function(h){ return esc(h); }) });
+    } else {
+      b.push({ t:"p", html:"Longest line is "+d.longest+" characters; "+d.todos.length+" TODO-style markers." });
+    }
+    if(ctx.sel) b.push({ t:"p", html:"You had lines <b>"+ctx.sel.from+"–"+ctx.sel.to+"</b> selected, which is "+
+      ctx.sel.text.split("\n").length+" line(s) — press <b>⌘K</b> to rewrite just that range." });
+    return { status:["Reading the buffer…", "Counting declarations…", "Writing…"], blocks:b };
+  }
+},
+{
+  id:"reconcile-ask", kind:"ask",
+  chip:"Where does SAR 5.32M come from?",
+  keys:["5.32", "where does", "come from", "figure", "reconcile", "does the number", "headline",
+        "exposure at 45", "add up", "check the number", "tie out"],
+  run:function(q, ctx){
+    var c = calcModel();
+    var page = fileByPath("c2-status/index.html");
+    if(!c) return { blocks:[{ t:"p", html:"I could not find <code>exposure-calc/calc.js</code>, so there is nothing to reconcile against." }] };
+    var shown = page ? ((getText(page).match(/class="n">([^<]+)</) || [])[1] || "—") : "—";
+    var r = c.exposure(45);
+    var b = [];
+    b.push({ t:"p", html:"<b>"+esc(shown)+"</b> is typed straight into <code>c2-status/index.html</code>. "+
+      "It is not computed from anything. Running <code>exposure(45)</code> against the constants that are "+
+      "actually in <code>calc.js</code> right now gives a different answer:" });
+    b.push({ t:"table", head:["Term", "Arithmetic", "SAR"], rows:[
+      ["LD", "min(" + (c.PACKAGE_VALUE/1e6).toFixed(1) + "M × " + c.LD_RATE + " × 45, cap " + (c.LD_CAP*100) + "%)", r.ld.toLocaleString("en-US", { maximumFractionDigits:0 })],
+      ["Standby", c.STANDBY_DAY.toLocaleString("en-US") + " × 45", r.standby.toLocaleString("en-US", { maximumFractionDigits:0 })],
+      ["Escalation", (c.PACKAGE_VALUE/1e6).toFixed(1) + "M × " + c.ESCALATION + " × (45/45)", r.esc.toLocaleString("en-US", { maximumFractionDigits:0 })],
+      ["Total", "", r.total.toLocaleString("en-US", { maximumFractionDigits:0 })]
+    ]});
+    b.push({ t:"finding", sev:"high", line:page ? lineOf(getText(page), 'class="n"') : null,
+      msg:"The page says <b>"+esc(shown)+"</b>. The model says <b>"+millions(r.total)+"</b>. "+
+          "That is a gap of "+millions(Math.abs(r.total - 5320000))+" on a figure going into a board pack." });
+    b.push({ t:"p", html:"The dominant term is standby at "+millions(r.standby)+" — "+
+      Math.round(r.standby / r.total * 100)+"% of the total — not the liquidated damages people argue about. "+
+      "The LD cap does not bind at 45 days; it starts to bind on day <b>"+c.capBitesAt+"</b>." });
+    b.push({ t:"p", html:"Switch to <b>Agent</b> and ask me to <i>reconcile the status page with the model</i> "+
+      "and I will show you the three files that would have to change." });
+    return { status:["Reading c2-status/index.html…", "Parsing the constants in calc.js…", "Re-running exposure(45)…", "Writing…"], blocks:b };
+  }
+},
+{
+  id:"review", kind:"ask",
+  chip:"Review this file for issues",
+  keys:["review", "issues", "problems", "bugs", "lint", "audit", "what is wrong", "critique",
+        "improve", "smell", "check this"],
+  run:function(q, ctx){
+    var f = ctx.file; if(!f) return null;
+    var found = reviewFile(f), b = [];
+    if(!found.length){
+      b.push({ t:"p", html:"Nothing my rule set catches in <b>"+esc(f.path)+"</b>. That is a statement about "+
+        "the rules, not about the code — there are "+"a couple of dozen"+" of them and they are all regex." });
+      return { status:["Scanning…"], blocks:b };
+    }
+    b.push({ t:"p", html:"<b>"+found.length+"</b> thing"+(found.length === 1 ? "" : "s")+" worth a look in <b>"+
+      esc(f.path)+"</b>. Every line number below is a real match in your current buffer:" });
+    found.slice(0, 9).forEach(function(x){
+      b.push({ t:"finding", sev:x.sev, line:x.line, msg:x.msg });
+    });
+    if(found.length > 9) b.push({ t:"p", html:"…and "+(found.length - 9)+" more of the same kind." });
+    b.push({ t:"p", html:"Switch to <b>Agent</b> to have any of these turned into a diff you can accept." });
+    return { status:["Scanning the buffer…", "Running "+found.length+" rule hits…", "Writing…"], blocks:b };
+  }
+},
+{
+  id:"cap", kind:"ask",
+  chip:"What does capBitesAt compute?",
+  keys:["capbitesat", "cap bites", "the cap", "67", "when does the cap", "ld cap", "binding", "liquidated"],
+  run:function(q, ctx){
+    var c = calcModel();
+    if(!c) return null;
+    var b = [];
+    b.push({ t:"p", html:"<code>capBitesAt</code> is <code>Math.ceil(LD_CAP / LD_RATE)</code> — the first whole day "+
+      "on which liquidated damages stop growing because they have hit their ceiling." });
+    b.push({ t:"code", lang:"javascript", text:
+      "LD_CAP  = " + c.LD_CAP + "        // " + (c.LD_CAP * 100) + "% of the package\n" +
+      "LD_RATE = " + c.LD_RATE + "      // " + (c.LD_RATE * 100) + "% per day\n\n" +
+      "ceil(" + c.LD_CAP + " / " + c.LD_RATE + ") = " + c.capBitesAt + "   // days" });
+    b.push({ t:"p", html:"So on day <b>"+c.capBitesAt+"</b> the LD term freezes at "+
+      millions(c.PACKAGE_VALUE * c.LD_CAP)+" and never moves again. Both constants cancel their units, "+
+      "which is why the answer is in days even though neither variable says so." });
+    b.push({ t:"p", html:"Practical consequence: past day "+c.capBitesAt+", every further day of delay costs "+
+      "exactly the standby rate of "+sar(c.STANDBY_DAY)+" plus escalation. Delay stops being a contract "+
+      "problem and becomes a cash problem — and the negotiating position changes with it." });
+    b.push({ t:"finding", sev:"info", line:lineOf(c.text, "capBitesAt"),
+      msg:"The trailing <code>// 67</code> comment is a hard-coded copy of a computed value. Change either "+
+          "constant and the comment lies. Right now the computed value is <b>"+c.capBitesAt+"</b>." });
+    return { status:["Reading calc.js…", "Evaluating the expression…", "Writing…"], blocks:b };
+  }
+},
+{
+  id:"viewport", kind:"agent",
+  chip:"Make the status page work on a phone",
+  keys:["viewport", "responsive", "mobile", "phone", "meta tag", "small screen", "media query"],
+  run:function(q, ctx){
+    var f = fileByPath("c2-status/index.html");
+    if(!f) return null;
+    var t = getText(f), next = t, notes = [];
+    if(!/<meta\s+name=["']viewport/i.test(next)){
+      next = next.replace(/(\n\s*<meta charset="utf-8">)/i,
+        '$1\n  <meta name="viewport" content="width=device-width, initial-scale=1">');
+      notes.push("added the viewport meta");
+    }
+    if(!/@media/.test(next)){
+      next = next.replace(/(\n\s*\.ok\{color:#3fcf95\}\.bad\{color:#e0a33c\}\n)/,
+        '$1' +
+        '    @media (max-width:520px){\n' +
+        '      body{padding:16px}\n' +
+        '      .n{font-size:27px}\n' +
+        '      table{display:block;overflow-x:auto}\n' +
+        '      th,td{white-space:nowrap}\n' +
+        '    }\n');
+      notes.push("gave the table its own horizontal scroll instead of letting it push the page wide");
+    }
+    if(next === t) return { blocks:[{ t:"p", html:"<code>"+esc(f.path)+"</code> already has a viewport meta and a "+
+      "media query. Nothing for me to change." }] };
+    return {
+      status:["Reading c2-status/index.html…", "Checking for a viewport meta…", "Drafting the edit…"],
+      blocks:[
+        { t:"p", html:"Two changes to <code>"+esc(f.path)+"</code>: "+notes.join(", ")+". "+
+          "The table is the part that actually breaks — six rows of nowrap content at 320px will force the "+
+          "whole document sideways unless it scrolls inside its own box." },
+        edit(f.path, next, "Viewport meta plus a 520px breakpoint. The dark palette is left alone — that is a separate decision.")
+      ]
+    };
+  }
+},
+{
+  id:"guard", kind:"agent",
+  chip:"Guard exposure() against bad input",
+  keys:["guard", "validate", "validation", "negative", "defensive", "error handling", "throw",
+        "bad input", "nan", "sanity check", "harden"],
+  run:function(q, ctx){
+    var c = calcModel(); if(!c) return null;
+    var t = c.text;
+    if(/Number\.isFinite/.test(t)) return { blocks:[{ t:"p", html:"<code>exposure()</code> already validates its input." }] };
+    var next = t.replace(/export function exposure\(days\)\{\n/,
+      "export function exposure(days){\n" +
+      "  if(!Number.isFinite(days) || days < 0)\n" +
+      "    throw new RangeError(`exposure(days): days must be a finite number >= 0, got ${days}`);\n");
+    if(next === t) return null;
+    return {
+      status:["Reading exposure-calc/calc.js…", "Locating the entry point…", "Drafting the guard…"],
+      blocks:[
+        { t:"p", html:"<code>exposure()</code> is the only entry point in the file and it takes <code>days</code> "+
+          "straight into arithmetic. A string gets you <code>NaN</code> silently; a negative number gets you a "+
+          "negative exposure, which will look like a credit in whatever consumes it." },
+        { t:"p", html:"Throwing rather than clamping is the right call here — a negative day count is a bug "+
+          "upstream, and silently returning zero would hide it." },
+        edit(c.file.path, next, "A three-line guard at the top of exposure(). RangeError, not TypeError: the value is the wrong magnitude, not the wrong kind.")
+      ]
+    };
+  }
+},
+{
+  id:"jsdoc", kind:"agent",
+  chip:"Add JSDoc to the exports",
+  keys:["jsdoc", "docstring", "document the", "annotate", "add types", "typed", "doc comment"],
+  run:function(q, ctx){
+    var c = calcModel(); if(!c) return null;
+    var t = c.text;
+    if(/\/\*\*/.test(t)) return { blocks:[{ t:"p", html:"<code>calc.js</code> already carries JSDoc blocks." }] };
+    var next = t.replace(/\nexport function exposure\(days\)\{/,
+      "\n/**\n" +
+      " * Total commercial exposure for a rebar delay of `days` days.\n" +
+      " *\n" +
+      " * @param   {number} days  Whole days late against Baseline r7. Must be >= 0.\n" +
+      " * @returns {{ld:number, standby:number, esc:number, total:number}} All figures in SAR.\n" +
+      " *\n" +
+      " * LD is clamped at " + (c.LD_CAP * 100) + "% of package value, which binds from day " + c.capBitesAt + ".\n" +
+      " */\nexport function exposure(days){");
+    next = next.replace(/\n\/\/ Day the LD cap becomes binding[^\n]*\nexport const capBitesAt/,
+      "\n/**\n" +
+      " * First whole day on which the LD cap binds — the number people get wrong.\n" +
+      " * @type {number}\n" +
+      " */\nexport const capBitesAt");
+    if(next === t) return null;
+    return {
+      status:["Reading calc.js…", "Listing the exports…", "Writing the annotations…"],
+      blocks:[
+        { t:"p", html:"Both exports documented. The units matter more than the types here — <code>days</code> "+
+          "is whole days against Baseline r7 and every returned figure is SAR, and neither of those facts is "+
+          "recoverable from the code." },
+        { t:"p", html:"Worth saying plainly: the Monaco build in this tab has its language services trimmed out, "+
+          "so nothing here will read the JSDoc back to you on hover. It is for the next human." },
+        edit(c.file.path, next, "JSDoc on both exports, with the cap day computed from the constants rather than typed in.")
+      ]
+    };
+  }
+},
+{
+  id:"formatter", kind:"agent",
+  chip:"Add an SAR currency formatter",
+  keys:["currency", "formatter", "format the number", "sar format", "intl", "thousands separator",
+        "pretty print", "human readable"],
+  run:function(q, ctx){
+    var c = calcModel(); if(!c) return null;
+    var t = c.text, rd = fileByPath("c2-status/README.md");
+    if(/formatSAR/.test(t)) return { blocks:[{ t:"p", html:"<code>formatSAR</code> is already exported." }] };
+    var next = t.replace(/\n\/\/ Day the LD cap becomes binding/,
+      "\n// One place that decides how a figure is rendered, so a board pack and a\n" +
+      "// status page cannot disagree about rounding.\nexport function formatSAR(n, opts){\n" +
+      "  const { millions = false } = opts || {};\n" +
+      "  if(!Number.isFinite(n)) return '—';\n" +
+      "  if(millions) return `SAR ${(n / 1e6).toFixed(2)}M`;\n" +
+      "  return `SAR ${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;\n}\n" +
+      "\n// Day the LD cap becomes binding");
+    var out = [
+      { t:"p", html:"Two files. The formatter belongs next to the model — the status page rounds "+
+        "<code>"+millions(c.exposure(45).total)+"</code> to two decimal places by hand today, and that is "+
+        "exactly the kind of thing that drifts." },
+      { t:"plan", steps:[
+        "<code>exposure-calc/calc.js</code> — export <code>formatSAR(n, {millions})</code>, guarded against non-finite input",
+        "<code>c2-status/README.md</code> — record that figures are formatted in one place, not per surface"
+      ]},
+      edit(c.file.path, next, "A single exported formatter with a millions mode. Returns an em dash rather than 'NaN' for bad input.")
+    ];
+    if(rd){
+      var rt = getText(rd);
+      if(!/formatSAR/.test(rt)){
+        out.push(edit(rd.path, rt.replace(/\n$/, "") +
+          "\n\n## Number formatting\n\n" +
+          "Every SAR figure goes through `formatSAR()` in `exposure-calc/calc.js`.\n" +
+          "Do not hand-round in the markup — that is how the page and the model\n" +
+          "ended up disagreeing in the first place.\n",
+          "A short section so the next person does not reinvent the rounding."));
+      }
+    }
+    return { status:["Reading calc.js…", "Reading README.md…", "Drafting 2 file changes…"], blocks:out };
+  }
+},
+{
+  id:"reconcile-agent", kind:"agent",
+  chip:"Reconcile the status page with the model",
+  keys:["reconcile", "make them agree", "fix the figure", "update the status page", "single source",
+        "make it match", "correct the number", "tie the page"],
+  run:function(q, ctx){
+    var c = calcModel(); if(!c) return null;
+    var page = fileByPath("c2-status/index.html"), rd = fileByPath("c2-status/README.md");
+    if(!page) return null;
+    var pt = getText(page), r = c.exposure(45);
+    var shown = (pt.match(/class="n">([^<]+)</) || [])[1] || "";
+    var target = millions(r.total);
+    var out = [];
+    out.push({ t:"p", html:"The page and the model disagree. <code>index.html</code> shows <b>"+esc(shown)+
+      "</b>; <code>calc.js</code> returns <b>"+target+"</b> at 45 days. Three files change, and you can take "+
+      "them one at a time." });
+    out.push({ t:"plan", steps:[
+      "<code>c2-status/index.html</code> — headline to <b>"+esc(target)+"</b>, plus a breakdown row so the number is auditable on the page",
+      "<code>exposure-calc/calc.js</code> — name the reporting window instead of dividing by a bare <code>45</code>",
+      "<code>c2-status/README.md</code> — say where the figure comes from, since 'pasted from the SAP pull' is what caused this"
+    ]});
+    var pn = pt;
+    if(shown && shown !== target) pn = pn.replace('class="n">' + shown + '<', 'class="n">' + target + '<');
+    if(!/Standby<\/td>/.test(pn)){
+      pn = pn.replace(/(\n\s*<tr><td>Residency<\/td>)/,
+        "\n    <tr><td>LD (capped " + (c.LD_CAP * 100) + "%)</td><td>SAR " + r.ld.toLocaleString("en-US", { maximumFractionDigits:0 }) + "</td></tr>" +
+        "\n    <tr><td>Standby</td><td class=\"bad\">SAR " + r.standby.toLocaleString("en-US", { maximumFractionDigits:0 }) + "</td></tr>" +
+        "\n    <tr><td>Escalation</td><td>SAR " + r.esc.toLocaleString("en-US", { maximumFractionDigits:0 }) + "</td></tr>$1");
+    }
+    if(pn !== pt) out.push(edit(page.path, pn, "Headline corrected and the three terms shown, so the total can be checked without opening the model."));
+    var ct = c.text;
+    var cn = ct;
+    if(!/REPORTING_DAYS/.test(cn)){
+      cn = cn.replace(/const ESCALATION    = ([^\n]+)\n/,
+        "const ESCALATION    = $1\nconst REPORTING_DAYS = 45;        // the window the board pack quotes\n");
+      cn = cn.replace(/\(days \/ 45\)/, "(days / REPORTING_DAYS)");
+    }
+    if(cn !== ct) out.push(edit(c.file.path, cn, "The bare 45 in the escalation term becomes a named constant. Same arithmetic, one fewer place to forget."));
+    if(rd){
+      var rt = getText(rd);
+      if(!/Where the figure comes from/.test(rt)){
+        out.push(edit(rd.path, rt.replace(/\n$/, "") +
+          "\n\n## Where the figure comes from\n\n" +
+          "The headline is `exposure(45).total` from `exposure-calc/calc.js`, currently\n" +
+          "`" + target + "`. It is **not** pasted from the SAP pull — that is what put a\n" +
+          "stale " + (shown || "figure") + " on this page.\n",
+          "Records the provenance, which is the actual fix. The number will drift again otherwise."));
+      }
+    }
+    out.push({ t:"p", html:"Accept them individually or take all three. Each one is a write, so each one asks first." });
+    out.push({ t:"acceptAll" });
+    return { status:["Reading 3 files…", "Re-running exposure(45)…", "Planning the change…", "Drafting diffs…"], blocks:out };
+  }
+},
+{
+  id:"extract-css", kind:"agent",
+  chip:"Extract the inline CSS into styles.css",
+  keys:["extract", "styles.css", "external stylesheet", "separate css", "split the css",
+        "pull the css", "move the styles"],
+  run:function(q, ctx){
+    var page = fileByPath("c2-status/index.html"); if(!page) return null;
+    var pt = getText(page);
+    var m = pt.match(/[ \t]*<style>\n([\s\S]*?)\n[ \t]*<\/style>\n/);
+    if(!m) return { blocks:[{ t:"p", html:"There is no inline <code>&lt;style&gt;</code> block left in <code>"+esc(page.path)+"</code>." }] };
+    var css = m[1].split("\n").map(function(l){ return l.replace(/^ {4}/, ""); }).join("\n");
+    var pn = pt.replace(m[0], '  <link rel="stylesheet" href="styles.css">\n');
+    var out = [
+      { t:"p", html:"The <code>&lt;style&gt;</code> block is "+css.split("\n").length+" lines. Pulling it out "+
+        "gives the page a cacheable stylesheet and makes the markup readable — at the cost of a second request, "+
+        "which for a page served off a share is a real trade, not a free win." },
+      { t:"plan", steps:[
+        "create <code>c2-status/styles.css</code> with the "+css.split("\n").length+" lines lifted out",
+        "replace the block in <code>c2-status/index.html</code> with a <code>&lt;link&gt;</code>"
+      ]},
+      edit("c2-status/styles.css", "/* Lifted out of index.html. One page, one stylesheet. */\n" + css + "\n",
+           "A new file. It does not exist yet, so this diff is all green."),
+      edit(page.path, pn, "The style block becomes a single link tag.")
+    ];
+    out.push({ t:"acceptAll" });
+    return { status:["Reading index.html…", "Lifting the style block…", "Drafting 2 file changes…"], blocks:out };
+  }
+}
+];
+
+/* the fallback still has to be useful and still has to be honest */
+function fallbackAnswer(q, ctx){
+  var f = ctx.file;
+  var b = [{ t:"p", html:"I do not have an intent that matches <i>“"+esc(q)+"”</i>." }];
+  if(f){
+    var d = digest(f);
+    b.push({ t:"p", html:"What I can tell you about <b>"+esc(f.path)+"</b> without guessing: "+d.lines+
+      " lines, "+bytes(d.bytes)+", "+d.consts.length+" declarations, "+d.fns.length+" functions"+
+      (ctx.sel ? ", and you have lines "+ctx.sel.from+"–"+ctx.sel.to+" selected" : "")+"." });
+  }
+  b.push({ t:"p", html:"<b>Why this is a wall and not a bad answer.</b> There is no model behind this panel. "+
+    "It is "+INTENTS.length+" hand-written intents matched on wording, each computing its reply from the bytes "+
+    "in your buffer. Off that list it has nothing to say, and inventing something would be the dishonest option." });
+  b.push({ t:"p", html:"Try one of the chips below, or press <b>⌘K</b> on a selection for an inline edit." });
+  return { status:["Matching intents…", "No match…"], blocks:b };
+}
+function pickIntent(q, mode){
+  var ql = " " + String(q).toLowerCase().replace(/[^a-z0-9.%]+/g, " ").replace(/\s+/g, " ") + " ";
+  var best = null, bestScore = 0;
+  INTENTS.forEach(function(it){
+    var s = 0;
+    it.keys.forEach(function(k){
+      if(ql.indexOf(k) > -1) s += k.indexOf(" ") > -1 ? 4 : 2;
+    });
+    if(String(it.chip).toLowerCase() === String(q).trim().toLowerCase()) s += 40;
+    if(s > 0 && it.kind === mode) s += 3;
+    if(s > bestScore){ bestScore = s; best = it; }
+  });
+  return bestScore >= 2 ? best : null;
+}
+
+/* ============================================================
+   15 · THE PANEL — context, thread, thinking, diff cards
+   ============================================================ */
+var MODE = "ask";
+var CTX = { dropFile:false, dropSel:false, extra:[], lastFile:null };
+var PEND = {}, PEND_N = 0, GROUP_N = 0;
+
+function setMode(m){
+  MODE = m;
+  $$('[data-mode]').forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === m)); });
+  $("#aiInput").placeholder = m === "agent"
+    ? "Describe a change — I will plan it and show you diffs…"
+    : "Ask about this file — read-only, nothing gets written…";
+}
+$$('[data-mode]').forEach(function(b){
+  b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode")); });
+});
+
+function aiCtx(){
+  var af = activeFile();
+  var f = CTX.dropFile ? null : af;
+  var sel = null;
+  if(!CTX.dropSel && ED && af && af.model){
+    var s = ED.getSelection();
+    if(s && !s.isEmpty())
+      sel = { from:s.startLineNumber, to:s.endLineNumber, text:af.model.getValueInRange(s), range:s };
+  }
+  return { file:f, sel:sel, extra:CTX.extra.map(fileById).filter(Boolean) };
+}
+function drawContext(){
+  var af = activeFile();
+  if(af && CTX.lastFile !== af.id){ CTX.lastFile = af.id; CTX.dropFile = false; CTX.dropSel = false; }
+  var c = aiCtx(), host = $("#aiCtx"), out = '<span class="lbl">Context</span>';
+  if(c.file) out += '<span class="ctxchip">'+ico("i-file","xs")+'<span class="nm">'+esc(baseName(c.file.path))+
+    '</span><button class="x" data-ctx="file" aria-label="Remove file from context" title="Remove">'+ico("i-x","xs")+'</button></span>';
+  if(c.sel) out += '<span class="ctxchip sel">'+ico("i-code","xs")+'<span class="nm">lines '+c.sel.from+'–'+c.sel.to+
+    '</span><button class="x" data-ctx="sel" aria-label="Remove selection from context" title="Remove">'+ico("i-x","xs")+'</button></span>';
+  c.extra.forEach(function(f){
+    out += '<span class="ctxchip">'+ico("i-file","xs")+'<span class="nm">'+esc(baseName(f.path))+
+      '</span><button class="x" data-ctx="x:'+f.id+'" aria-label="Remove" title="Remove">'+ico("i-x","xs")+'</button></span>';
+  });
+  if(!c.file && !c.sel && !c.extra.length)
+    out += '<span class="ctxchip" style="opacity:.7"><span class="nm">nothing attached</span></span>';
+  out += '<button class="ctxchip add" data-ctx="add">'+ico("i-plus","xs")+'<span class="nm">Add file</span></button>';
+  host.innerHTML = out;
+}
+$("#aiCtx").addEventListener("click", function(e){
+  var b = e.target.closest("[data-ctx]"); if(!b) return;
+  var k = b.getAttribute("data-ctx");
+  if(k === "file") CTX.dropFile = true;
+  else if(k === "sel") CTX.dropSel = true;
+  else if(k.indexOf("x:") === 0) CTX.extra = CTX.extra.filter(function(id){ return id !== k.slice(2); });
+  else if(k === "add"){
+    PAL.ctxAdd = true; openPalette("files");
+    return;
+  }
+  drawContext();
+});
+/* the palette doubles as the "add a file to context" picker */
+(function(){
+  var orig = paintPalette;
+  paintPalette = function(){
+    orig();
+    if(!PAL.ctxAdd) return;
+    PAL.rows.forEach(function(r, i){
+      var f = FILES.filter(function(x){ return baseName(x.path) === r.nm && (dirName(x.path) || "root") === r.sub; })[0];
+      if(f) r.act = function(){
+        if(CTX.extra.indexOf(f.id) < 0) CTX.extra.push(f.id);
+        PAL.ctxAdd = false; drawContext(); toast(baseName(f.path) + " added to the assistant's context.");
+      };
+    });
+  };
+})();
+var _closePalette = closePalette;
+closePalette = function(){ PAL.ctxAdd = false; _closePalette(); };
+
+function threadScroll(){
+  var t = $("#aiThread");
+  t.scrollTop = t.scrollHeight;
+}
+function pushUser(text){
+  var n = el("div", "msg user");
+  n.innerHTML = '<div class="who">You'+(MODE === "agent" ? ' <span class="tag agent">agent</span>' : ' <span class="tag">ask</span>')+'</div>'+
+    '<div class="bubble">'+esc(text)+'</div>';
+  $("#aiThread").appendChild(n); threadScroll();
+}
+function think(statuses, cb){
+  var n = el("div", "msg ai");
+  n.innerHTML = '<div class="thinking">'+markSVG("mg-thinking", 20)+'<span class="st"></span></div>';
+  $("#aiThread").appendChild(n); threadScroll();
+  var st = $(".st", n), i = 0, list = statuses && statuses.length ? statuses : ["Thinking…"];
+  st.textContent = list[0];
+  var iv = setInterval(function(){
+    i++;
+    if(i < list.length){ st.textContent = list[i]; threadScroll(); }
+  }, 400);
+  setTimeout(function(){ clearInterval(iv); n.remove(); cb(); },
+    Math.max(850, list.length * 400 + 200));
+}
+function blockHTML(b, group){
+  if(b.t === "p")    return "<p>" + b.html + "</p>";
+  if(b.t === "list") return "<ul>" + b.items.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul>";
+  if(b.t === "code") return '<div class="aicode"><div class="hd">'+esc(b.lang || "text")+
+    '<span class="sp"></span></div><pre dir="ltr">'+esc(b.text)+'</pre></div>';
+  if(b.t === "table") return '<div class="tblwrap"><table class="aitable"><thead><tr>'+
+    b.head.map(function(h){ return "<th>"+esc(h)+"</th>"; }).join("")+'</tr></thead><tbody>'+
+    b.rows.map(function(r){ return "<tr>"+r.map(function(c){ return "<td>"+esc(c)+"</td>"; }).join("")+"</tr>"; }).join("")+
+    '</tbody></table></div>';
+  if(b.t === "finding") return '<div class="finding"><span class="sev '+esc(b.sev)+'">'+esc(b.sev)+'</span>'+
+    '<span class="mid">'+b.msg+'</span>'+(b.line ? '<span class="ln">L'+b.line+'</span>' : "")+'</div>';
+  if(b.t === "plan") return '<div class="plan"><h6>Plan · '+b.steps.length+' step'+(b.steps.length === 1 ? "" : "s")+
+    '</h6><ol>'+b.steps.map(function(s){ return "<li>"+s+"</li>"; }).join("")+'</ol></div>';
+  if(b.t === "diff"){
+    var f = fileByPath(b.path);
+    var key = "d" + (++PEND_N);
+    PEND[key] = { path:b.path, before:f ? getText(f) : "", after:b.next, note:b.note,
+                  state:"open", group:group, isNew:!f };
+    return diffCardHTML(key);
+  }
+  if(b.t === "acceptAll") return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
+    '<button class="btn sm ok" data-all="'+group+'">'+ico("i-check","xs")+'Accept all</button>'+
+    '<button class="btn sm" data-allno="'+group+'">Reject all</button></div>';
+  return "";
+}
+function diffCardHTML(key){
+  var p = PEND[key], rows = diffRows(p.before, p.after), st = diffStat(rows);
+  return '<div class="diffcard'+(p.state === "open" ? "" : " settled")+'" data-card="'+key+'">'+
+    '<div class="dh">'+ico(p.isNew ? "i-plus" : "i-code", "xs")+
+      '<span class="pth">'+esc(p.path)+(p.isNew ? " · new file" : "")+'</span>'+
+      '<span class="stat"><span class="a">+'+st.add+'</span> <span class="r">−'+st.del+'</span></span></div>'+
+    (p.note ? '<div class="note">'+esc(p.note)+'</div>' : "")+
+    renderUnified(p.before, p.after)+
+    '<div class="acts">'+
+      (p.state === "open"
+        ? '<button class="btn sm ok" data-acc="'+key+'">'+ico("i-check","xs")+'Accept</button>'+
+          '<button class="btn sm no" data-rej="'+key+'">Reject</button>'+
+          '<span class="sp"></span>'+
+          '<button class="btn sm ghost" data-openf="'+key+'">Open file</button>'
+        : '<span class="verdict '+(p.state === "accepted" ? "ok" : "no")+'">'+
+          (p.state === "accepted" ? "✓ applied" : "✕ rejected — buffer untouched")+'</span>')+
+    '</div>'+
+  '</div>';
+}
+function pushAI(res, meta){
+  var group = "g" + (++GROUP_N);
+  var n = el("div", "msg ai");
+  n.setAttribute("data-group", group);
+  var tag = meta && meta.mode === "agent" ? '<span class="tag agent">agent</span>' : '<span class="tag">ask</span>';
+  n.innerHTML = '<div class="who">'+markSVG("", 16)+'Assist '+tag+'</div>'+
+    '<div class="body">'+res.blocks.map(function(b){ return blockHTML(b, group); }).join("")+'</div>';
+  $("#aiThread").appendChild(n); threadScroll();
+  return n;
+}
+function repaintCard(key){
+  var node = $('[data-card="'+key+'"]');
+  if(!node) return;
+  var wrap = el("div"); wrap.innerHTML = diffCardHTML(key);
+  /* diffCardHTML re-registers under a new key, so put the old one back */
+  var fresh = wrap.firstChild;
+  fresh.setAttribute("data-card", key);
+  node.replaceWith(fresh);
+}
+function applyEdit(key){
+  var p = PEND[key];
+  var f = fileByPath(p.path);
+  if(!f){ f = addFile(p.path, "", true); if(window.monaco) ensureModel(f); drawTree(); }
+  setText(f, p.after, "assist");
+  p.state = "accepted";
+  /* re-render without re-registering a fresh pending entry */
+  var node = $('[data-card="'+key+'"]');
+  if(node){
+    var acts = $(".acts", node);
+    if(acts) acts.innerHTML = '<span class="verdict ok">✓ applied to '+esc(baseName(p.path))+'</span>';
+    node.classList.add("settled");
+  }
+}
+$("#aiThread").addEventListener("click", function(e){
+  var a = e.target.closest("[data-acc]");
+  if(a){
+    var key = a.getAttribute("data-acc"), p = PEND[key];
+    if(!p || p.state !== "open") return;
+    var rows = diffRows(p.before, p.after), st = diffStat(rows);
+    return requestApproval({
+      title: (p.isNew ? "Create " : "Write to ") + p.path + "?",
+      detail: "<p style='margin:0'>"+(p.isNew ? "A new file in this workspace" : "Replaces the buffer")+
+        " — <code>+"+st.add+" −"+st.del+"</code> lines. It lands in the editor's undo stack, so "+
+        "<code>⌘Z</code> reverses it, and nothing is saved anywhere until you press <code>⌘S</code>.</p>",
+      confirm: "Apply",
+      okToast: "Applied to " + baseName(p.path) + ".",
+      onApprove: function(){ applyEdit(key); }
+    });
+  }
+  var r = e.target.closest("[data-rej]");
+  if(r){
+    var k2 = r.getAttribute("data-rej"), p2 = PEND[k2];
+    if(!p2 || p2.state !== "open") return;
+    p2.state = "rejected";
+    var node = $('[data-card="'+k2+'"]');
+    if(node){
+      var acts = $(".acts", node);
+      if(acts) acts.innerHTML = '<span class="verdict no">✕ rejected — '+esc(baseName(p2.path))+' untouched</span>';
+      node.classList.add("settled");
+    }
+    toast("Rejected. " + baseName(p2.path) + " was not modified.");
+    return;
+  }
+  var o = e.target.closest("[data-openf]");
+  if(o){
+    var p3 = PEND[o.getAttribute("data-openf")];
+    var f3 = p3 && fileByPath(p3.path);
+    if(f3) openFile(f3.id, true); else toast("That file does not exist yet — accept the diff to create it.");
+    return;
+  }
+  var all = e.target.closest("[data-all]");
+  if(all){
+    var g = all.getAttribute("data-all");
+    var keys = Object.keys(PEND).filter(function(k){ return PEND[k].group === g && PEND[k].state === "open"; });
+    if(!keys.length) return toast("Nothing left to accept in that plan.");
+    var add = 0, del = 0;
+    keys.forEach(function(k){ var s = diffStat(diffRows(PEND[k].before, PEND[k].after)); add += s.add; del += s.del; });
+    return requestApproval({
+      title: "Write to " + keys.length + " files?",
+      detail: "<p style='margin:0 0 4px'>"+keys.map(function(k){ return "<code>"+esc(PEND[k].path)+"</code>"; }).join(", ")+
+        "</p><p style='margin:0'><code>+"+add+" −"+del+"</code> lines across "+keys.length+
+        " file(s). Every one goes into the undo stack.</p>",
+      confirm: "Apply all",
+      okToast: "Applied " + keys.length + " file changes.",
+      onApprove: function(){ keys.forEach(applyEdit); }
+    });
+  }
+  var allno = e.target.closest("[data-allno]");
+  if(allno){
+    var g2 = allno.getAttribute("data-allno"), n2 = 0;
+    Object.keys(PEND).forEach(function(k){
+      if(PEND[k].group !== g2 || PEND[k].state !== "open") return;
+      PEND[k].state = "rejected"; n2++;
+      var nd = $('[data-card="'+k+'"]');
+      if(nd){ var ac = $(".acts", nd);
+        if(ac) ac.innerHTML = '<span class="verdict no">✕ rejected</span>';
+        nd.classList.add("settled"); }
+    });
+    toast("Rejected " + n2 + " change(s). No file was modified.");
+  }
+});
+
+/* ---- example prompts ---- */
+function drawChips(){
+  $("#aiChips").innerHTML = INTENTS.filter(function(i){ return i.chip; }).map(function(i){
+    return '<button class="pchip'+(i.kind === "agent" ? " agent" : "")+'" data-chip="'+i.id+'" '+
+      'title="'+(i.kind === "agent" ? "Agent — proposes a diff" : "Ask — read-only")+'">'+esc(i.chip)+'</button>';
+  }).join("");
+}
+$("#aiChips").addEventListener("click", function(e){
+  var c = e.target.closest("[data-chip]"); if(!c) return;
+  var it = INTENTS.filter(function(i){ return i.id === c.getAttribute("data-chip"); })[0];
+  if(!it) return;
+  if(it.kind !== MODE) setMode(it.kind);
+  send(it.chip);
+});
+
+/* ---- composer ---- */
+var input = $("#aiInput"), sendBtn = $("#aiSend");
+function grow(){
+  input.style.height = "auto";
+  input.style.height = Math.min(140, input.scrollHeight) + "px";
+  sendBtn.disabled = !input.value.trim();
+}
+input.addEventListener("input", grow);
+input.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); if(input.value.trim()) send(input.value.trim()); }
+});
+sendBtn.addEventListener("click", function(){ if(input.value.trim()) send(input.value.trim()); });
+
+function send(text){
+  input.value = ""; grow();
+  pushUser(text);
+  var ctx = aiCtx();
+  var it = pickIntent(text, MODE);
+  /* Ask is genuinely read-only — an edit intent gets shown, not run. */
+  if(it && it.kind === "agent" && MODE === "ask"){
+    return think(["Matching intents…", "That one writes…"], function(){
+      pushAI({ blocks:[
+        { t:"p", html:"<b>“"+esc(it.chip)+"”</b> is a write, and you are in <b>Ask</b> — which is read-only "+
+          "on purpose, so a question can never quietly change a file." },
+        { t:"p", html:'<button class="btn sm" data-runagent="'+it.id+'">'+ico("i-ai","xs")+
+          'Switch to Agent and run it</button>' }
+      ]}, { mode:"ask" });
+    });
+  }
+  var res = null;
+  try{ res = it ? it.run(text, ctx) : null; }catch(err){ res = null; }
+  if(!res) res = fallbackAnswer(text, ctx);
+  think(res.status, function(){ pushAI(res, { mode:MODE, intent:it ? it.id : "fallback" }); });
+}
+$("#aiThread").addEventListener("click", function(e){
+  var r = e.target.closest("[data-runagent]"); if(!r) return;
+  var it = INTENTS.filter(function(i){ return i.id === r.getAttribute("data-runagent"); })[0];
+  if(!it) return;
+  setMode("agent"); send(it.chip);
+});
+function greet(){
+  pushAI({ blocks:[
+    { t:"p", html:"Two projects are open, exactly as Console's Code window carries them: "+
+      "<code>c2-status</code> and <code>exposure-calc</code>." },
+    { t:"list", items:[
+      "<b>Ask</b> reads. It answers from the bytes in your buffer and never writes.",
+      "<b>Agent</b> proposes. Every change arrives as a diff you accept or reject, one file at a time.",
+      "<b>⌘K</b> on a selection rewrites just that range, with the diff first."
+    ]},
+    { t:"p", html:"There is no model behind any of it — see the note pinned at the bottom of this panel. "+
+      "Start with a chip below; each one produces a different, real answer against these files." }
+  ]}, { mode:"ask" });
+}
+
+/* ============================================================
+   16 · INLINE EDIT (⌘K)
+   Transforms are keyed off the instruction AND the selected text.
+   variant cycles on Retry so "try again" produces something
+   genuinely different rather than the same string twice.
+   ============================================================ */
+var INLINE = { open:false, dispose:null, variant:0 };
+function inlineTransform(instr, text, path, variant){
+  var q = String(instr).toLowerCase().trim();
+  var c = commentFor(path), lines = text.split("\n");
+  var ind = (text.match(/^[ \t]*/) || [""])[0];
+  var lang = langFor(path);
+  var v = variant || 0;
+
+  var ren = q.match(/rename\s+([A-Za-z_$][\w$]*)\s+(?:to|as|into)\s+([A-Za-z_$][\w$]*)/);
+  if(ren){
+    var re = new RegExp("\\b" + ren[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g");
+    var hits = (text.match(re) || []).length;
+    if(!hits) return { next:text, note:"“" + ren[1] + "” does not appear in the selection — nothing renamed." };
+    return { next:text.replace(re, ren[2]),
+      note:hits + " occurrence" + (hits === 1 ? "" : "s") + " of " + ren[1] + " → " + ren[2] +
+        ". Whole-word only, so a substring inside another identifier is left alone." };
+  }
+  if(/guard|validate|validation|null check|defensive|error handl|throw|check the input|harden/.test(q)){
+    var fnm = (text.match(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/) || []);
+    var arg = (fnm[2] || "value").split(",")[0].trim() || "value";
+    if(v % 2 === 0)
+      return { next:lines.map(function(l, i){
+          if(i !== 0) return l;
+          return l + "\n" + ind + "  if(!Number.isFinite(" + arg + ") || " + arg + " < 0)\n" +
+                 ind + "    throw new RangeError(`" + (fnm[1] || "fn") + "(): " + arg + " must be a finite number >= 0, got ${" + arg + "}`);";
+        }).join("\n"),
+        note:"Throws on bad input. A wrong magnitude is a caller bug — swallowing it would hide the bug, not fix it." };
+    return { next:ind + "if(" + arg + " == null) return null;   " + c.a + "nothing to do" + c.b + "\n" + text,
+      note:"Variant: an early return instead of a throw. Cheaper for callers, but it hides the mistake." };
+  }
+  if(/comment|explain|annotate|document|what does/.test(q) && !/jsdoc|type/.test(q)){
+    if(v % 2 === 0){
+      var head = ind + c.a + "—" + " " + text.split("\n").length + " lines, described in place." + c.b;
+      return { next:head + "\n" + lines.map(function(l){
+          if(!l.trim() || /^\s*(\/\/|\/\*|#|<!--)/.test(l)) return l;
+          return l;
+        }).join("\n"),
+        note:"A single header comment. Line-by-line commentary usually rots faster than the code it describes." };
+    }
+    return { next:lines.map(function(l){
+        if(!l.trim()) return l;
+        var m = l.match(/^\s*(?:export\s+)?(?:const|let|var|function|class|if|for|while|return)\b/);
+        return m ? l.replace(/^(\s*)/, "$1" + c.a + describeLine(l) + c.b + "\n$1") : l;
+      }).join("\n"),
+      note:"Variant: a comment above every statement. Verbose on purpose so you can delete the ones that state the obvious." };
+  }
+  if(/jsdoc|add types|typed|type annotation|signature/.test(q)){
+    var fn = text.match(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/);
+    var args = fn ? fn[2].split(",").map(function(a){ return a.trim(); }).filter(Boolean) : [];
+    var doc = ind + "/**\n" + ind + " * " + (fn ? fn[1] : "Block") + " — describe the contract here.\n" +
+      args.map(function(a){ return ind + " * @param {number} " + a.replace(/=.*/, "").trim() + "  units, and what happens at the edges\n"; }).join("") +
+      ind + " * @returns {unknown}\n" + ind + " */\n";
+    return { next:doc + text,
+      note:"JSDoc scaffold. The vendored Monaco has its language services trimmed out, so nothing here will show it on hover — it is for the next reader." };
+  }
+  if(/arrow|modernis|moderniz|es6|const instead|let instead|convert to arrow/.test(q)){
+    var out = text
+      .replace(/\bvar\b/g, "const")
+      .replace(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*\{/g, "const $1 = ($2) => {");
+    return { next:out, note:out === text
+      ? "Nothing to modernise in this selection."
+      : "var → const and function declarations → arrow consts. Note this changes hoisting: an arrow const is not available before its line." };
+  }
+  if(/extract|pull out|helper|into a function|separate function/.test(q)){
+    var name = (q.match(/(?:called|named)\s+([A-Za-z_$][\w$]*)/) || [])[1] || "extracted";
+    if(lang === "javascript" || lang === "typescript")
+      return { next:ind + "function " + name + "(){\n" +
+        lines.map(function(l){ return "  " + l; }).join("\n") + "\n" + ind + "}\n" + ind + name + "();",
+        note:"Wrapped and called in place. Closure over the surrounding scope is preserved; anything the block declared is now private to it, which may be exactly what you did not want." };
+    return { next:text, note:"Extraction is only wired for JavaScript-family selections." };
+  }
+  if(/magic number|constant|extract the number|name the number/.test(q)){
+    var nums = [], seen = {};
+    (text.match(/(?:^|[^\w.])(\d{3,})(?![\w.])/g) || []).forEach(function(x){
+      var n = x.replace(/[^\d]/g, "");
+      if(n && !seen[n]){ seen[n] = true; nums.push(n); }
+    });
+    if(!nums.length) return { next:text, note:"No multi-digit literals in the selection." };
+    var decls = nums.map(function(n, i){ return ind + "const VALUE_" + (i + 1) + " = " + n + ";"; }).join("\n");
+    var body = text;
+    nums.forEach(function(n, i){ body = body.replace(new RegExp("(^|[^\\w.])" + n + "(?![\\w.])", "g"), "$1VALUE_" + (i + 1)); });
+    return { next:decls + "\n" + body,
+      note:nums.length + " literal(s) lifted to named constants. The names are placeholders — VALUE_1 is not an improvement until you rename it." };
+  }
+  if(/log|debug|trace|console|print/.test(q)){
+    var vars = [];
+    (text.match(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g) || []).forEach(function(x){
+      vars.push(x.split(/\s+/)[1]);
+    });
+    var log = ind + "console.log('" + baseName(path) + "', { " + (vars.slice(0, 5).join(", ") || "'no locals found'") + " });";
+    return { next:text + "\n" + log,
+      note:"One log line naming the file and the locals it found. Remember it ships if you forget it." };
+  }
+  if(/tidy|format|indent|clean|whitespace|normalise|normalize/.test(q)){
+    var tidy = text.split("\n").map(function(l){
+      return l.replace(/\t/g, "  ").replace(/\s+$/, "");
+    }).join("\n").replace(/\n{3,}/g, "\n\n");
+    return { next:tidy, note:tidy === text
+      ? "Already tidy — no tabs, no trailing whitespace, no triple blank lines."
+      : "Tabs to two spaces, trailing whitespace stripped, runs of blank lines collapsed. No token was moved." };
+  }
+  if(/uppercase|upper case|shout/.test(q))
+    return { next:text.toUpperCase(), note:"Uppercased verbatim. Included because it is trivially verifiable — you can see it did exactly what it said." };
+  /* nothing matched: say so in the buffer rather than inventing a change */
+  if(v % 2 === 0)
+    return { next:ind + c.a + "TODO(assist): " + instr.replace(/\s+/g, " ").trim() + c.b + "\n" + text,
+      note:"No transform matches that wording, so this only leaves a marker. The generator has ten transforms and this is not one of them — see the note at the bottom of the AI panel." };
+  return { next:ind + c.a + "=== " + instr.replace(/\s+/g, " ").trim() + " ===" + c.b + "\n" + text + "\n" +
+      ind + c.a + "=== end ===" + c.b,
+    note:"Variant: a banner around the block instead of a TODO. Still not an actual edit — there is no model here to write one." };
+}
+function describeLine(l){
+  var t = l.trim();
+  if(/^export\s/.test(t)) return "exported below";
+  if(/^const|^let|^var/.test(t)) return "declares " + ((t.match(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)/) || [])[1] || "a value");
+  if(/^function/.test(t)) return "entry point";
+  if(/^return/.test(t)) return "result";
+  if(/^if/.test(t)) return "branch";
+  if(/^for|^while/.test(t)) return "loop";
+  return "statement";
+}
+var INLINE_EXAMPLES = ["add a guard for negative days", "add JSDoc", "rename days to daysLate",
+  "convert to arrow functions", "extract into a function", "name the magic numbers", "tidy the whitespace"];
+
+function openInline(){
+  var f = activeFile();
+  if(!f) return toast("Open a file first.");
+  if(!ED) return toast("Inline edit needs the vendored Monaco, which did not load.");
+  var s = ED.getSelection();
+  if(!s || s.isEmpty()){
+    var ln = ED.getPosition().lineNumber;
+    s = new window.monaco.Range(ln, 1, ln, f.model.getLineMaxColumn(ln));
+    ED.setSelection(s);
+  }
+  INLINE = { open:true, dispose:null, variant:0, path:f.path,
+             range:s, from:s.startLineNumber, to:s.endLineNumber,
+             before:f.model.getValueInRange(s) };
+  $("#inlineRange").textContent = "lines " + s.startLineNumber + "–" + s.endLineNumber +
+    " · " + baseName(f.path);
+  $("#inlineOut").hidden = true; $("#inlineOut").innerHTML = "";
+  var em = $("#inlineEmpty");
+  em.hidden = false;
+  em.innerHTML = "Rewrites only the selected range, and shows you the diff before anything moves. "+
+    "<b>Escape</b> closes without touching the buffer."+
+    '<div class="exs">'+INLINE_EXAMPLES.map(function(x){
+      return '<button class="pchip" data-inex="'+esc(x)+'">'+esc(x)+'</button>'; }).join("")+'</div>';
+  $("#inline").classList.add("on");
+  var inp = $("#inlineInput"); inp.value = ""; setTimeout(function(){ inp.focus(); }, 30);
+}
+function closeInline(){
+  if(INLINE.dispose){ INLINE.dispose(); INLINE.dispose = null; }
+  INLINE.open = false;
+  $("#inline").classList.remove("on");
+  $("#inlineOut").innerHTML = "";
+  if(ED) ED.focus();
+}
+$("#inline").addEventListener("click", function(e){
+  var x = e.target.closest("[data-inex]");
+  if(x){ $("#inlineInput").value = x.getAttribute("data-inex"); inlineGenerate(); return; }
+  if(e.target.closest("#inlineGo")){ inlineGenerate(); return; }
+  if(e.target.closest("[data-inacc]")) return inlineAccept();
+  if(e.target.closest("[data-inrej]")){
+    closeInline();
+    return toast("Rejected. The buffer was not touched.");
+  }
+  if(e.target.closest("[data-inret]")){ INLINE.variant++; inlineGenerate(true); return; }
+});
+$("#inlineInput").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){ e.preventDefault(); inlineGenerate(); }
+});
+function inlineGenerate(isRetry){
+  var instr = $("#inlineInput").value.trim();
+  if(!instr) return toast("Describe the change first.");
+  if(!isRetry) INLINE.variant = 0;
+  INLINE.instruction = instr;
+  var out = $("#inlineOut");
+  $("#inlineEmpty").hidden = true;
+  out.hidden = false;
+  out.innerHTML = '<div class="thinking" style="padding:10px 0">'+markSVG("mg-thinking", 20)+
+    '<span class="st">Reading lines '+INLINE.from+'–'+INLINE.to+'…</span></div>';
+  setTimeout(function(){
+    if(!INLINE.open) return;
+    var r = inlineTransform(instr, INLINE.before, INLINE.path, INLINE.variant);
+    INLINE.after = r.next; INLINE.note = r.note;
+    renderInline(r);
+  }, 620);
+}
+function renderInline(r){
+  var out = $("#inlineOut");
+  var st = diffStat(diffRows(INLINE.before, r.next));
+  var same = r.next === INLINE.before;
+  out.innerHTML =
+    '<div class="diffcard">'+
+      '<div class="dh">'+ico("i-code", "xs")+'<span class="pth">'+esc(INLINE.path)+' · lines '+
+        INLINE.from+'–'+INLINE.to+'</span>'+
+        '<span class="stat"><span class="a">+'+st.add+'</span> <span class="r">−'+st.del+'</span></span></div>'+
+      '<div class="note">'+esc(r.note)+(INLINE.variant ? " · variant " + (INLINE.variant + 1) : "")+'</div>'+
+      '<div class="mdiff" id="mdiff"></div>'+
+      '<div class="acts">'+
+        '<button class="btn sm ok" data-inacc="1"'+(same ? " disabled" : "")+'>'+ico("i-check","xs")+'Accept</button>'+
+        '<button class="btn sm no" data-inrej="1">Reject</button>'+
+        '<button class="btn sm" data-inret="1">'+ico("i-undo","xs")+'Retry</button>'+
+        '<span class="sp"></span>'+
+        '<span class="verdict no" id="mdiffKind"></span>'+
+      '</div>'+
+    '</div>';
+  var node = $("#mdiff");
+  if(INLINE.dispose){ INLINE.dispose(); INLINE.dispose = null; }
+  monacoDiff(node, INLINE.before, r.next, langFor(INLINE.path), function(){
+    node.classList.remove("mdiff");
+    node.innerHTML = renderSideBySide(INLINE.before, r.next);
+    $("#mdiffKind").textContent = "hand-built diff";
+  }, function(){
+    $("#mdiffKind").textContent = "Monaco diff editor";
+  });
+}
+/* Monaco computes diffs in the editor worker. The vendored bundle carries the
+   simple worker inside workerMain.js, so this normally works — but if the
+   worker never answers, fall back rather than showing an empty box. */
+function monacoDiff(node, before, after, lang, onFail, onOK){
+  if(!window.monaco || !window.monaco.editor || !window.monaco.editor.createDiffEditor) return onFail();
+  var mo, mn, de;
+  try{
+    mo = window.monaco.editor.createModel(before, lang);
+    mn = window.monaco.editor.createModel(after, lang);
+    de = window.monaco.editor.createDiffEditor(node, {
+      readOnly:true, automaticLayout:true, renderSideBySide:true, enableSplitViewResizing:false,
+      theme:isLightTheme() ? "magna-light" : "magna-dark", fontSize:11.5, lineHeight:18,
+      minimap:{ enabled:false }, scrollBeyondLastLine:false, renderOverviewRuler:false,
+      lineNumbersMinChars:3, glyphMargin:false, folding:false,
+      scrollbar:{ verticalScrollbarSize:8, horizontalScrollbarSize:8 }
+    });
+    de.setModel({ original:mo, modified:mn });
+  }catch(e){
+    try{ if(de) de.dispose(); if(mo) mo.dispose(); if(mn) mn.dispose(); }catch(e2){}
+    return onFail();
+  }
+  INLINE.dispose = function(){ try{ de.dispose(); mo.dispose(); mn.dispose(); }catch(e){} };
+  var t0 = Date.now(), settled = false;
+  var iv = setInterval(function(){
+    var ch = null;
+    try{ ch = de.getLineChanges(); }catch(e){}
+    if(ch && ch.length){ settled = true; clearInterval(iv); onOK(); return; }
+    if(before === after){ settled = true; clearInterval(iv); onOK(); return; }
+    if(Date.now() - t0 > 1400){
+      clearInterval(iv);
+      if(settled) return;
+      if(INLINE.dispose){ INLINE.dispose(); INLINE.dispose = null; }
+      onFail();
+    }
+  }, 180);
+}
+function inlineAccept(){
+  var I = INLINE;
+  if(!I.after || I.after === I.before) return toast("Nothing to apply.");
+  var st = diffStat(diffRows(I.before, I.after));
+  requestApproval({
+    title: "Apply the inline edit to " + baseName(I.path) + "?",
+    detail: "<p style='margin:0'>Replaces lines <code>"+I.from+"–"+I.to+"</code> — <code>+"+st.add+
+      " −"+st.del+"</code>. It goes into the editor's undo stack, so <code>⌘Z</code> takes it back.</p>",
+    confirm: "Apply",
+    okToast: "Applied to " + baseName(I.path) + ".",
+    onApprove: function(){
+      var f = fileByPath(I.path);
+      if(ED && f && f.model && f.id === ACTIVE){
+        ED.executeEdits("assist.inline", [{ range:I.range, text:I.after, forceMoveMarkers:true }]);
+        ED.pushUndoStop();
+      } else if(f){
+        setText(f, getText(f).split(I.before).join(I.after));
+      }
+      closeInline(); drawTabs(); drawTree(); paintStatus();
+      pushAI({ blocks:[{ t:"p", html:"Applied the inline edit to <code>"+esc(I.path)+"</code>, lines "+
+        I.from+"–"+I.to+". <code>"+esc(I.instruction)+"</code>" }] }, { mode:MODE });
+    }
+  });
+}
+
+/* ============================================================
+   17 · BOOT
+   ============================================================ */
+(function boot(){
+  var restored = restoreWorkspace();
+  if(!restored) seedWorkspace();
+  drawTree();
+  setMode("ask");
+  drawChips();
+  drawContext();
+  applyBreakpoint();
+  mountEditor();
+  var first = null;
+  if(restored && restored.open && restored.open.length){
+    restored.open.forEach(function(p){ var f = fileByPath(p); if(f) OPEN.push(f.id); });
+    first = fileByPath(restored.active) || (OPEN.length ? fileById(OPEN[0]) : null);
+  }
+  if(!first) first = fileByPath("c2-status/index.html") || FILES[0];
+  if(first) openFile(first.id, false);
+  else { drawTabs(); paintEmpty(); }
+  greet();
+  if(restored) toast("Restored the workspace from this browser's storage.", 3200);
+})();
+</script>
+</body>
+</html>

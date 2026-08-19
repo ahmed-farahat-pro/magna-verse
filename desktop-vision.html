@@ -52,7 +52,7 @@
   /* --- semantic: identical in every one of the twelve themes --- */
   --ok:#0F7B52;    --ok-dim:rgba(15,123,82,.12);
   --warn:#8A5A0B;  --warn-dim:rgba(138,90,11,.12);
-  --fail:#B01218;  --fail-dim:rgba(176,18,24,.10);
+  --fail:#9B1C3D;  --fail-dim:rgba(155,28,61,.10);
   --info:#4338CA;  --info-dim:rgba(67,56,202,.10);
 
   /* --- decorative theme tint: wallpaper, selection, focus ring, pips. Nothing else. --- */
@@ -89,7 +89,7 @@
     --accent:#D71920; --accent-ink:#FF6167; --accent-dim:rgba(215,25,32,.18);
     --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);
     --warn:#E0A33C; --warn-dim:rgba(224,163,60,.14);
-    --fail:#FF6B6B; --fail-dim:rgba(255,107,107,.14);
+    --fail:#FF7B93; --fail-dim:rgba(255,123,147,.14);
     --info:#8B84F5; --info-dim:rgba(139,132,245,.14);
     --tint:#2FB4A8; --tint-dim:rgba(47,180,168,.14);
   }
@@ -110,7 +110,7 @@
   --accent:#D71920; --accent-ink:#FF6167; --accent-dim:rgba(215,25,32,.18);
   --ok:#3FCF95;   --ok-dim:rgba(63,207,149,.14);
   --warn:#E0A33C; --warn-dim:rgba(224,163,60,.14);
-  --fail:#FF6B6B; --fail-dim:rgba(255,107,107,.14);
+  --fail:#FF7B93; --fail-dim:rgba(255,123,147,.14);
   --info:#8B84F5; --info-dim:rgba(139,132,245,.14);
   --tint:#2FB4A8; --tint-dim:rgba(47,180,168,.14);
 }
@@ -130,7 +130,7 @@
   --accent:#D71920; --accent-ink:#AE1219; --accent-dim:rgba(215,25,32,.10);
   --ok:#0F7B52;   --ok-dim:rgba(15,123,82,.12);
   --warn:#8A5A0B; --warn-dim:rgba(138,90,11,.12);
-  --fail:#B01218; --fail-dim:rgba(176,18,24,.10);
+  --fail:#9B1C3D; --fail-dim:rgba(155,28,61,.10);
   --info:#4338CA; --info-dim:rgba(67,56,202,.10);
   --tint:#1F8F86; --tint-dim:rgba(31,143,134,.12);
 }
@@ -293,13 +293,6 @@ section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
 .fieldrow output{font-family:var(--mono); font-size:12px; color:var(--tx-3); text-align:end; font-variant-numeric:tabular-nums}
 
 /* scroll container for specimens that cannot shrink */
-/* 44px tap targets: always on touch, and on every narrow layout */
-@media (pointer:coarse), (max-width:900px){
-  .btn.sm, .seg button, .toc a, .rmchip{min-height:44px}
-  .rng{height:44px}
-  .rng::-webkit-slider-thumb{width:26px; height:26px; margin-top:-11.5px}
-  .rng::-moz-range-thumb{width:26px; height:26px}
-}
 .hscroll{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; padding-bottom:4px}
 .hscroll > *{min-width:min(680px,100%)}
 
@@ -420,6 +413,10 @@ section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
 .lightlab[data-focus="1"] .lw.a::after,.lightlab[data-focus="2"] .lw.b::after{opacity:0}
 .lightlab .lw.a{inset-inline-start:6%; top:14%}
 .lightlab .lw.b{inset-inline-end:6%; top:36%}
+.settle-veil{position:absolute; inset:0; z-index:5; pointer-events:none; opacity:0;
+  background:radial-gradient(120% 90% at 50% 0%, color-mix(in srgb,var(--tint) 55%,#fff), transparent 70%);
+  transition:opacity var(--d-ambient) var(--ease-std)}
+.settle-veil.on{opacity:.055; transition-duration:120ms}
 .lightlab .keydot{position:absolute; top:6px; inset-inline-start:var(--kx,50%); width:11px; height:11px; margin-inline-start:-5px;
   border-radius:99px; background:color-mix(in srgb,var(--tint) 80%,#fff); box-shadow:0 0 22px 8px color-mix(in srgb,var(--tint) 40%,transparent)}
 
@@ -478,7 +475,7 @@ section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
 
 .stage{height:190px; position:relative; overflow:hidden; background:linear-gradient(168deg,var(--ground-1),var(--ground-2))}
 .mockwin{position:absolute; inset-inline-start:14%; top:16%; width:min(210px,68%); border-radius:12px; background:var(--e3);
-  border:1px solid var(--line); box-shadow:var(--sh-3); padding:9px 11px; font-size:12px; opacity:0}
+  border:1px solid var(--line); box-shadow:var(--sh-3); padding:9px 11px; font-size:12px}
 .mockwin .t{font-weight:650; font-size:12px; margin-bottom:5px}
 .mockwin .l{height:6px; border-radius:99px; background:var(--e1); margin-bottom:5px}
 .mockwin .l.s{width:62%}
@@ -514,7 +511,7 @@ section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
 
 .toastzone{position:relative; height:150px; overflow:hidden}
 .toast{position:absolute; inset-inline-end:12px; top:12px; width:min(230px,72%); border-radius:10px; background:var(--e4);
-  border:1px solid var(--line); box-shadow:var(--sh-3); padding:9px 11px; font-size:12px; opacity:0}
+  border:1px solid var(--line); box-shadow:var(--sh-3); padding:9px 11px; font-size:12px}
 .toast .h{font-weight:650; margin-bottom:2px; display:flex; gap:6px; align-items:center}
 .toast.play.bad{animation:toastBad 700ms cubic-bezier(.2,.9,.3,2) both}
 .toast.play.good{animation:toastGood var(--d-panel) var(--ease-out) both}
@@ -523,7 +520,7 @@ section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
 .toastzone .undock{position:absolute; inset-inline-start:14px; bottom:12px; width:40px; height:40px; border-radius:12px;
   background:var(--e3); border:1px solid var(--line); display:grid; place-items:center}
 .toastzone .undock .badge{position:absolute; top:-5px; inset-inline-end:-5px; min-width:18px; height:18px; border-radius:99px;
-  background:var(--accent); color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center; opacity:0}
+  background:var(--accent); color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center}
 .toastzone.bad .undock .badge{opacity:1; animation:badgePop 700ms cubic-bezier(.2,.9,.3,2.2) both}
 @keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
 .toastzone.good .undock{box-shadow:0 8px 22px -4px color-mix(in srgb,var(--tint) 55%,transparent); border-color:color-mix(in srgb,var(--tint) 45%,transparent)}
@@ -674,8 +671,9 @@ section.sec{padding:clamp(40px,6vw,78px) 0 0; scroll-margin-top:76px}
 .dont .body{padding:11px 12px; font-size:12.5px; color:var(--tx-2); line-height:1.5; flex:1}
 .dont .body b{color:var(--tx); font-weight:650}
 .dont .instead{padding:10px 12px; border-top:1px solid var(--line); background:var(--ok-dim); font-size:12.5px; color:var(--tx-2); line-height:1.5}
-.dont .instead b{color:var(--ok); font-weight:700; font-family:var(--mono); font-size:10px; letter-spacing:.1em;
-  text-transform:uppercase; display:block; margin-bottom:3px}
+.dont .instead > b:first-child{color:var(--ok); font-weight:700; font-family:var(--mono); font-size:10px;
+  letter-spacing:.1em; text-transform:uppercase; display:block; margin-bottom:3px}
+.dont .instead b{color:var(--tx); font-weight:650}
 .dont .foot{padding:9px 12px; border-top:1px solid var(--line)}
 
 /* ============================ §8 three looks ============================ */
@@ -854,6 +852,36 @@ footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
 .sheet .pbd{padding:18px}
 .sheet .pbd .look{box-shadow:none; border:0}
 .sheet .pbd .look .desk{aspect-ratio:16/9}
+
+/* ============================================================
+   44px tap targets — last in the sheet so it beats every
+   component rule above it, on touch and on any narrow layout.
+   ============================================================ */
+/* phone: labelled note rows and slider rows stack instead of squeezing */
+@media (max-width:540px){
+  .spec-note{flex-direction:column; gap:5px}
+  .spec-note .lbl{width:auto; padding-top:0}
+  .spec-bd{padding:14px}
+  .fieldrow{grid-template-columns:1fr auto; row-gap:2px}
+  .fieldrow label{grid-row:1; grid-column:1}
+  .fieldrow output{grid-row:1; grid-column:2}
+  .fieldrow .rng{grid-row:2; grid-column:1 / -1}
+  .ladder .rung{padding:12px 14px}
+  .stackwrap{height:250px}
+}
+/* on a phone the header wraps to three rows — stop it eating the viewport */
+@media (max-width:640px){
+  .top{position:static}
+  .toc{top:0}
+  section.sec{scroll-margin-top:60px}
+}
+@media (pointer:coarse), (max-width:900px){
+  .btn, .btn.sm, .seg button, .toc a, .rmchip, .sheet .phd .btn{min-height:44px}
+  .tsw{width:48px; height:48px}
+  .rng{height:44px}
+  .rng::-webkit-slider-thumb{width:26px; height:26px; margin-top:-11.5px}
+  .rng::-moz-range-thumb{width:26px; height:26px}
+}
 </style>
 </head>
 <body data-motion="on">
@@ -922,8 +950,9 @@ footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
       Console has thirty-one apps, four Spaces, a Brain, a dock, a widget rail and twelve themes. What it does
       not have is a <strong>visual system</strong> — a single set of rules about surface, light, motion and colour
       that every one of those pieces obeys. Right now depth is decided per component, glass is applied everywhere
-      by default, every window is lit identically, and the durations in the stylesheet run from 90ms to 600ms with
-      no scale behind them.
+      by default, every window is lit identically, and the stylesheet holds <strong>eighteen different interaction
+      durations</strong> between 80ms and 900ms across <strong>seven easing curves</strong>, with no scale behind
+      any of it.
     </p>
     <p class="lede" style="margin-top:14px">
       This page proposes that system. <strong>Every proposal below is a live specimen</strong> — real HTML, CSS and
@@ -1306,10 +1335,12 @@ footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
   <section class="sec" id="motion">
     <div class="sechead"><span class="secnum">04</span><h2>Motion language</h2></div>
     <p class="secintro">
-      Console's stylesheet currently contains transitions at .12s, .15s, .18s, .2s and .3s, plus animations at 300ms,
-      180ms and 600ms, and a dock hover on <code>cubic-bezier(.2,.9,.3,1.5)</code> — that trailing <strong>1.5</strong>
-      is an overshoot. Overshoot on a single playful button is charming. Overshoot on a dock holding thirty-one
-      enterprise apps makes the product feel like a toy.
+      Counted from the file: Console uses <strong>eighteen distinct sub-second durations</strong>
+      (<code>.08s .1s .12s .15s .16s .18s .2s .22s .24s .25s .3s .42s .45s .5s .55s .6s .8s .9s</code>) and
+      <strong>seven easing curves</strong>. One of those curves is the dock hover,
+      <code>cubic-bezier(.2,.9,.3,1.5)</code> — that trailing <strong>1.5</strong> is an overshoot. Overshoot on a
+      single playful button is charming. Overshoot on a dock holding thirty-one enterprise apps makes the product
+      feel like a toy.
     </p>
     <p class="secintro">Six durations. Four curves. Nothing else gets written.</p>
 
@@ -1608,7 +1639,11 @@ footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
         primary action in a view, and destructive confirmation. <b>It is never a status colour</b> — a red chip that
         might mean "Magna" or might mean "failed" is a chip that means nothing. <b>Semantic</b> is identical across all
         twelve themes. <b>Tint</b> is the only themeable family, and it is allowed on exactly four things: the
-        wallpaper, text selection, the focus ring, and the space pips.</div>
+        wallpaper, text selection, the focus ring, and the space pips.
+        <br><br>The awkward consequence, said out loud: <b>Magna's brand colour is red, and "error" is normally
+        red.</b> One of the two has to move, and it cannot be the brand. So the failure colour is pulled toward plum
+        and is never allowed to appear without an icon beside it. Compare the two swatches above with the greyscale
+        button below.</div>
       </div>
     </div>
 
@@ -1632,10 +1667,11 @@ footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
         asserted — flip the theme toggle and watch them change. Two real problems in Console today:
         <b>(a)</b> <code>--tx-3:#787E8D</code> on the dark glass is about 4.1:1, which fails AA for body text, and it
         is carrying Agent Feed timestamps, widget sub-lines and icon labels; this page raises it to
-        <code>#8C93A2</code> and the row above now passes. <b>(b)</b> Brand red on the light desktop ground lands
-        just under 4.5 — so <code>--accent-ink</code> exists for red <em>text</em>, while <code>--accent</code>
-        stays exact for fills, where only the white knockout matters. The two failing rows are failing
-        <em>on purpose</em>, and they are the argument for the rules in the panel above.</div>
+        <code>#8C93A2</code> and the row above now passes. <b>(b)</b> Brand red measures 3.9:1 on the dark desktop
+        ground and 4.5:1 on the light one — it is a fill colour, not a text colour, which is why
+        <code>--accent-ink</code> exists for red <em>text</em> while <code>--accent</code> stays exact for fills,
+        where only the white knockout matters. The rows that fail are failing <em>on purpose</em>: they are the
+        argument for the rules in the panel above. Change the theme tint below and this table moves with it.</div>
       </div>
     </div>
 
@@ -1838,7 +1874,8 @@ footer .wrap{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
     <div class="spec">
       <div class="spec-hd"><h3>5 — The settle</h3><span class="sp"></span><button class="btn sm" id="settleBtn">Finish a batch of agent work</button></div>
       <div class="spec-bd">
-        <div class="lightlab" id="settleLab" data-focus="1" data-lit="1" style="min-height:200px; transition:filter var(--d-ambient) var(--ease-std)">
+        <div class="lightlab" id="settleLab" data-focus="1" data-lit="1" style="min-height:200px">
+          <span class="settle-veil" id="settleVeil" aria-hidden="true"></span>
           <span class="keydot" aria-hidden="true"></span>
           <button class="lw a" type="button" style="top:22%"><span class="bar"><span class="dots"><i></i><i></i><i></i></span> Agents</span>
           <span class="bd">Press the button. Four agents just finished a run.</span></button>
@@ -2396,7 +2433,7 @@ var fieldLoop = addLoop(fieldCv, function(t, still){
     }
     if(open){ ctx.lineTo(W + 40, lastY - H*0.06); }
     else ctx.closePath();
-    if(open) ctx.strokeStyle = dark ? "rgba(255,150,120,.85)" : "rgba(176,18,24,.75)";
+    if(open) ctx.strokeStyle = dark ? "rgba(255,150,120,.85)" : "rgba(155,28,61,.85)";
     else if(hot) ctx.strokeStyle = dark ? "rgba(150,225,205,.34)" : "rgba(20,90,80,.30)";
     else ctx.strokeStyle = dark ? "rgba(190,215,255,.13)" : "rgba(40,54,90,.15)";
     ctx.stroke();
@@ -2585,7 +2622,7 @@ var SW = [
   {t:"--accent",  n:"Magna red",   fam:"Brand",    use:"The mark, one primary action per view, destructive confirm. Never a status."},
   {t:"--ok",      n:"Private / ok", fam:"Semantic", use:"Data residency Private, healthy, passed. Identical in all twelve themes."},
   {t:"--warn",    n:"Public / warn",fam:"Semantic", use:"Data leaving the boundary, approaching a threshold."},
-  {t:"--fail",    n:"Fail",         fam:"Semantic", use:"A run failed, a control is breached. Distinct from brand red."},
+  {t:"--fail",    n:"Fail",         fam:"Semantic", use:"A run failed, a control is breached. Pulled toward plum on purpose — it must never be mistaken for the brand red beside it — and it always carries an icon."},
   {t:"--info",    n:"Signal",       fam:"Semantic", use:"Agent activity, links, the focus ring."},
   {t:"--tint",    n:"Theme tint",   fam:"Decorative",use:"The only themeable colour. Wallpaper, selection, focus ring, space pips."}
 ];
@@ -2770,23 +2807,20 @@ $$("[data-brain]").forEach(function(cv){
   var mode = cv.dataset.brain;
   addLoop(cv, function(t, still){ drawBrain(cv, mode, t, still); }, mode === "load" ? 26 : (mode === "empty" ? 6 : 10));
 });
-var bln = $("#brainLoadN"), blStep = 0;
+var bln = $("#brainLoadN"), blStep = 0, blCv = $('[data-brain="load"]');
 setInterval(function(){
   if(motionOff() || document.hidden) return;
+  if(blCv && blCv.__loop && !blCv.__loop.vis) return;   /* off-screen: do nothing at all */
   blStep = (blStep % 12) + 1;
   if(bln) bln.textContent = "reading " + blStep + " of 12";
 }, 620);
 
 var settleBtn = $("#settleBtn"), settleLab = $("#settleLab");
+var settleVeil = $("#settleVeil");
 settleBtn.addEventListener("click", function(){
-  settleLab.style.transition = "none";
-  settleLab.style.filter = "brightness(1.035)";
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      settleLab.style.transition = "filter 700ms cubic-bezier(.4,0,.2,1)";
-      settleLab.style.filter = "brightness(1)";
-    });
-  });
+  /* exactly as specified: one overlay div's opacity, never a filter on the desktop root */
+  settleVeil.classList.add("on");
+  setTimeout(function(){ settleVeil.classList.remove("on"); }, 140);
 });
 
 /* --- the clichés: off by default, four seconds on demand --- */
