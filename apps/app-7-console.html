@@ -2995,6 +2995,11 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
         <div class="cc-sub">Double-clap → voice</div>
       </div>
       <div class="cc-tile">
+        <div class="cc-lbl">Hey Magna</div>
+        <button class="cc-toggle" data-cctoggle="wake" aria-pressed="false"><span class="cc-knob"></span></button>
+        <div class="cc-sub" style="color:var(--public)">Say it → voice · leaves your network</div>
+      </div>
+      <div class="cc-tile">
         <div class="cc-lbl">Depth</div>
         <button class="cc-toggle" data-cctoggle="holo" aria-pressed="true"><span class="cc-knob"></span></button>
         <div class="cc-sub">Holographic parallax</div>
@@ -4063,6 +4068,8 @@ function ccRender(){
       '" style="'+bg+'" title="'+esc(wp.label)+'"></div>'; }).join("");
   $$("#ccPanel [data-cctoggle]").forEach(function(b){
     var k = b.getAttribute("data-cctoggle");
+    if(k === "wake"){ b.setAttribute("aria-pressed", String(wake.on));
+                      b.classList.toggle("on", wake.on); return; }
     var st = k === "focus" ? focusMode()
            : k === "holo" ? (typeof HOLO !== "undefined" && HOLO.on)
            : k === "mtl" ? MATL.on
@@ -4104,6 +4111,7 @@ document.addEventListener("click", function(e){
          else if(k === "mtl"){ MATL.on = !MATL.on; store.set("mv7.mtl", MATL.on ? "1":"0"); }
          else if(k === "presence") presenceSet(!PRESENCE.on);
          else if(k === "natn") natnSet(!NATN.on);
+         else if(k === "wake") wakeToggle();
          else clapToggle();
          ccRender(); return; }
   if(e.target.closest("[data-ccwidgets]")){ ccOpen(false); weditOpen(); return; }
@@ -7442,52 +7450,14 @@ document.addEventListener("click", function(e){
 
 /* ---- THEME SYSTEM (12 themes × 2 modes, each with unique layout) ---- */
 var THEMES = [
-  {id:"grid",     name:"Grid",         layout:"grid",     dark:true,
+{id:"grid",     name:"Grid",         layout:"grid",     dark:true,
    desc:"Classic column-first flow — standard desktop",
    cssD:":root{--bg:#0c0c10;--accent:#0EA5B7;--cyan:#0EA5B7}", cssL:":root[data-theme=\"light\"]{--bg:#f0f2f5;--tx:#1a1c20;--tx-2:#4a4a52;--accent:#0d8f8f;--cyan:#0d8f8f}"},
-  {id:"rows",     name:"Rows",         layout:"rows",     dark:true,
-   desc:"Horizontal rows flowing left-to-right",
-   cssD:":root{--bg:#0a1628;--accent:#3B82F6;--cyan:#3B82F6}", cssL:":root[data-theme=\"light\"]{--bg:#eef2ff;--tx:#1e293b;--accent:#2563EB;--cyan:#2563EB}"},
-  {id:"columns",  name:"Columns",      layout:"columns",  dark:true,
-   desc:"Vertical columns flowing top-to-bottom",
-   cssD:":root{--bg:#0f172a;--accent:#8B5CF6;--cyan:#8B5CF6}", cssL:":root[data-theme=\"light\"]{--bg:#f5f3ff;--tx:#1e1b4b;--accent:#7C3AED;--cyan:#7C3AED}"},
-  {id:"floating", name:"Floating",     layout:"floating", dark:true,
-   desc:"Icons drift gently — organic, alive",
-   cssD:":root{--bg:#06101a;--accent:#06B6D4;--cyan:#06B6D4}", cssL:":root[data-theme=\"light\"]{--bg:#ecfeff;--tx:#083344;--accent:#0891B2;--cyan:#0891B2}"},
-  {id:"circular", name:"Circular",     layout:"circular", dark:true,
-   desc:"Icons orbit a center point — cosmic",
-   cssD:":root{--bg:#0a0a0a;--accent:#EC4899;--cyan:#EC4899}", cssL:":root[data-theme=\"light\"]{--bg:#fdf2f8;--tx:#831843;--accent:#DB2777;--cyan:#DB2777}"},
-  {id:"masonry",  name:"Masonry",      layout:"masonry",  dark:true,
-   desc:"Pinterest-style columns, varying heights",
-   cssD:":root{--bg:#140a06;--accent:#F59E0B;--cyan:#F59E0B}", cssL:":root[data-theme=\"light\"]{--bg:#fffbeb;--tx:#78350f;--accent:#D97706;--cyan:#D97706}"},
-  {id:"spiral",   name:"Spiral",       layout:"spiral",   dark:true,
-   desc:"Fibonacci spiral outward from center",
-   cssD:":root{--bg:#1a0a2e;--accent:#A855F7;--cyan:#A855F7}", cssL:":root[data-theme=\"light\"]{--bg:#faf5ff;--tx:#581c87;--accent:#9333EA;--cyan:#9333EA}"},
-  {id:"wave",     name:"Wave",         layout:"wave",     dark:true,
-   desc:"Icons ride a sine wave across the screen",
-   cssD:":root{--bg:#001219;--accent:#00F5D4;--cyan:#00F5D4}", cssL:":root[data-theme=\"light\"]{--bg:#f0fdfa;--tx:#134e4a;--accent:#14B8A6;--cyan:#14B8A6}"},
-  {id:"diagonal", name:"Diagonal",     layout:"diagonal", dark:true,
-   desc:"Staggered diagonal — dynamic energy",
-   cssD:":root{--bg:#18181b;--accent:#F43F5E;--cyan:#F43F5E}", cssL:":root[data-theme=\"light\"]{--bg:#fff1f2;--tx:#881337;--accent:#E11D48;--cyan:#E11D48}"},
-  {id:"stacked",  name:"Stacked",      layout:"stacked",  dark:true,
-   desc:"Overlapping cards layered in depth",
-   cssD:":root{--bg:#111113;--accent:#FF3D00;--cyan:#FF3D00}", cssL:":root[data-theme=\"light\"]{--bg:#fef2f2;--tx:#7f1d1d;--accent:#DC2626;--cyan:#DC2626}"},
-  {id:"scattered",name:"Scattered",    layout:"scattered",dark:true,
-   desc:"Random rotation & offset — playful chaos",
-   cssD:":root{--bg:#000;--accent:#C9A84C;--cyan:#C9A84C}", cssL:":root[data-theme=\"light\"]{--bg:#fefce8;--tx:#713f12;--accent:#CA8A04;--cyan:#CA8A04}"},
-  {id:"orbital",  name:"Orbital",      layout:"orbital",  dark:true,
-   desc:"Concentric rings slowly rotating — deep space",
-   cssD:":root{--bg:#020617;--accent:#22D3EE;--cyan:#22D3EE}", cssL:":root[data-theme=\"light\"]{--bg:#f0f9ff;--tx:#0c4a6e;--accent:#0284C7;--cyan:#0284C7}"},
-
-  /* ---- design-page themes: one string carries both [data-theme] blocks,
-     supplied as cssD and cssL alike, so the attribute selectors do the
-     mode switching. Pasted verbatim from the generator. ---- */
-  {id:"astrolabe", name:"Astrolabe", layout:"grid", dark:true,
+{id:"astrolabe", name:"Astrolabe", layout:"grid", dark:true,
  desc:"Futurism as instrument",
  cssD:":root[data-theme=\"dark\"]{--wall-1:#12161C;--wall-2:#070A0E;--wall-glow:rgba(76,134,255,.10);--bg:#0B0E12;--glass:#13171E;--glass-2:#181D25;--glass-3:#1E242E;--glass-line:rgba(255,255,255,.085);--glass-line-2:rgba(255,255,255,.17);--chrome:rgba(11,14,18,.90);--tx:#EAEDF2;--tx-2:#A8AEBA;--tx-3:#7F8798;--tx-4:#4A5160;--accent:#4C86FF;--accent-2:#7BA6FF;--accent-dim:rgba(76,134,255,.14);--signal:#4C86FF;--signal-dim:rgba(76,134,255,.14);--private:#35D08A;--private-dim:rgba(53,208,138,.13);--public:#E3A33A;--public-dim:rgba(227,163,58,.13);--fail:#FF5A52;--fail-dim:rgba(255,90,82,.14);--brand-red:#DC3232;--cyan:#4C86FF;--blue:#4C86FF;--violet:#8B5CF6;--glow-cyan:rgba(76,134,255,.00);--glow-violet:rgba(139,92,246,.00);--shadow-win:0 22px 48px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.055);--shadow-sm:0 1px 3px rgba(0,0,0,.5);--shadow-pop:0 14px 34px rgba(0,0,0,.6);--blur:saturate(1.05) blur(14px);--r:3px;--r-lg:4px;--r-xl:6px;--r-pill:3px;--menubar-h:30px;--dock-h:70px;--icon-stroke:1.5;--icon-r:2px;--row-h:26px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.16,.84,.28,1);--e-in-out:cubic-bezier(.65,0,.35,1);--t-1:90ms;--t-2:140ms;--t-3:200ms;--t-4:260ms}:root[data-theme=\"light\"]{--wall-1:#F2F4F7;--wall-2:#DBDFE6;--wall-glow:rgba(30,80,200,.07);--bg:#E8EAEE;--glass:#FFFFFF;--glass-2:#F7F8FA;--glass-3:#EDEFF3;--glass-line:rgba(12,16,26,.12);--glass-line-2:rgba(12,16,26,.24);--chrome:rgba(255,255,255,.92);--tx:#0C1017;--tx-2:#3B424F;--tx-3:#5F6775;--tx-4:#8A919D;--accent:#1E50C8;--accent-2:#12379B;--accent-dim:rgba(30,80,200,.10);--signal:#1E50C8;--signal-dim:rgba(30,80,200,.10);--private:#0C7048;--private-dim:rgba(12,112,72,.11);--public:#8A5D0B;--public-dim:rgba(138,93,11,.11);--fail:#C5251E;--fail-dim:rgba(197,37,30,.10);--brand-red:#A3241A;--cyan:#1E50C8;--blue:#1E50C8;--violet:#6D3FD6;--glow-cyan:rgba(30,80,200,.00);--glow-violet:rgba(109,63,214,.00);--shadow-win:0 18px 40px rgba(18,24,38,.14), 0 0 0 1px rgba(12,16,26,.10);--shadow-sm:0 1px 3px rgba(18,24,38,.10);--shadow-pop:0 12px 30px rgba(18,24,38,.16);--blur:saturate(1.05) blur(14px);--r:3px;--r-lg:4px;--r-xl:6px;--r-pill:3px;--menubar-h:30px;--dock-h:70px;--icon-stroke:1.5;--icon-r:2px;--row-h:26px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.16,.84,.28,1);--e-in-out:cubic-bezier(.65,0,.35,1);--t-1:90ms;--t-2:140ms;--t-3:200ms;--t-4:260ms}.dicon .tile,.dk{--tile:var(--tx-2);background:var(--glass-2);border:1px solid var(--glass-line-2);border-radius:var(--r);box-shadow:none}.dicon .tile::after,.dk::after{display:none}.dicon:hover .tile{transform:translateY(-2px);box-shadow:none}.dicon:hover .tile .ico,.dk:hover .ico,.mb-btn:hover .ico,.tab:hover .ico{filter:none}.dk:hover{transform:translateY(-2px) scale(1)}.win{backdrop-filter:none}.dicon .lbl{text-shadow:none}#wallMark{opacity:.05}#neural{opacity:.26}:focus-visible{outline-color:var(--accent)}",
  cssL:":root[data-theme=\"dark\"]{--wall-1:#12161C;--wall-2:#070A0E;--wall-glow:rgba(76,134,255,.10);--bg:#0B0E12;--glass:#13171E;--glass-2:#181D25;--glass-3:#1E242E;--glass-line:rgba(255,255,255,.085);--glass-line-2:rgba(255,255,255,.17);--chrome:rgba(11,14,18,.90);--tx:#EAEDF2;--tx-2:#A8AEBA;--tx-3:#7F8798;--tx-4:#4A5160;--accent:#4C86FF;--accent-2:#7BA6FF;--accent-dim:rgba(76,134,255,.14);--signal:#4C86FF;--signal-dim:rgba(76,134,255,.14);--private:#35D08A;--private-dim:rgba(53,208,138,.13);--public:#E3A33A;--public-dim:rgba(227,163,58,.13);--fail:#FF5A52;--fail-dim:rgba(255,90,82,.14);--brand-red:#DC3232;--cyan:#4C86FF;--blue:#4C86FF;--violet:#8B5CF6;--glow-cyan:rgba(76,134,255,.00);--glow-violet:rgba(139,92,246,.00);--shadow-win:0 22px 48px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.055);--shadow-sm:0 1px 3px rgba(0,0,0,.5);--shadow-pop:0 14px 34px rgba(0,0,0,.6);--blur:saturate(1.05) blur(14px);--r:3px;--r-lg:4px;--r-xl:6px;--r-pill:3px;--menubar-h:30px;--dock-h:70px;--icon-stroke:1.5;--icon-r:2px;--row-h:26px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.16,.84,.28,1);--e-in-out:cubic-bezier(.65,0,.35,1);--t-1:90ms;--t-2:140ms;--t-3:200ms;--t-4:260ms}:root[data-theme=\"light\"]{--wall-1:#F2F4F7;--wall-2:#DBDFE6;--wall-glow:rgba(30,80,200,.07);--bg:#E8EAEE;--glass:#FFFFFF;--glass-2:#F7F8FA;--glass-3:#EDEFF3;--glass-line:rgba(12,16,26,.12);--glass-line-2:rgba(12,16,26,.24);--chrome:rgba(255,255,255,.92);--tx:#0C1017;--tx-2:#3B424F;--tx-3:#5F6775;--tx-4:#8A919D;--accent:#1E50C8;--accent-2:#12379B;--accent-dim:rgba(30,80,200,.10);--signal:#1E50C8;--signal-dim:rgba(30,80,200,.10);--private:#0C7048;--private-dim:rgba(12,112,72,.11);--public:#8A5D0B;--public-dim:rgba(138,93,11,.11);--fail:#C5251E;--fail-dim:rgba(197,37,30,.10);--brand-red:#A3241A;--cyan:#1E50C8;--blue:#1E50C8;--violet:#6D3FD6;--glow-cyan:rgba(30,80,200,.00);--glow-violet:rgba(109,63,214,.00);--shadow-win:0 18px 40px rgba(18,24,38,.14), 0 0 0 1px rgba(12,16,26,.10);--shadow-sm:0 1px 3px rgba(18,24,38,.10);--shadow-pop:0 12px 30px rgba(18,24,38,.16);--blur:saturate(1.05) blur(14px);--r:3px;--r-lg:4px;--r-xl:6px;--r-pill:3px;--menubar-h:30px;--dock-h:70px;--icon-stroke:1.5;--icon-r:2px;--row-h:26px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.16,.84,.28,1);--e-in-out:cubic-bezier(.65,0,.35,1);--t-1:90ms;--t-2:140ms;--t-3:200ms;--t-4:260ms}.dicon .tile,.dk{--tile:var(--tx-2);background:var(--glass-2);border:1px solid var(--glass-line-2);border-radius:var(--r);box-shadow:none}.dicon .tile::after,.dk::after{display:none}.dicon:hover .tile{transform:translateY(-2px);box-shadow:none}.dicon:hover .tile .ico,.dk:hover .ico,.mb-btn:hover .ico,.tab:hover .ico{filter:none}.dk:hover{transform:translateY(-2px) scale(1)}.win{backdrop-filter:none}.dicon .lbl{text-shadow:none}#wallMark{opacity:.05}#neural{opacity:.26}:focus-visible{outline-color:var(--accent)}"},
-
-  {id:"suhail", name:"Suhail", layout:"floating", dark:true,
+{id:"suhail", name:"Suhail", layout:"floating", dark:true,
  desc:"Futurism as living system",
  cssD:":root[data-theme=\"dark\"]{--wall-1:#2A2018;--wall-2:#0A0806;--wall-glow:rgba(227,154,60,.17);--bg:#131110;--glass:rgba(31,27,24,.74);--glass-2:rgba(41,35,31,.82);--glass-3:rgba(53,46,40,.88);--glass-line:rgba(255,238,220,.10);--glass-line-2:rgba(255,238,220,.20);--chrome:rgba(19,16,15,.72);--tx:#F4EFE8;--tx-2:#B7ADA1;--tx-3:#948C82;--tx-4:#5A534C;--accent:#2FA79B;--accent-2:#4FC7B9;--accent-dim:rgba(47,167,155,.16);--signal:#2FA79B;--signal-dim:rgba(47,167,155,.16);--private:#8CC63F;--private-dim:rgba(140,198,63,.14);--public:#E39A3C;--public-dim:rgba(227,154,60,.15);--fail:#F0594B;--fail-dim:rgba(240,89,75,.15);--brand-red:#DC3232;--cyan:#2FA79B;--blue:#3B7BFF;--violet:#9B7BD8;--glow-cyan:rgba(47,167,155,.24);--glow-violet:rgba(155,123,216,.18);--shadow-win:0 34px 78px rgba(0,0,0,.56), 0 2px 0 0 rgba(255,238,220,.05) inset, 0 0 0 1px rgba(255,238,220,.07);--shadow-sm:0 2px 10px rgba(0,0,0,.42);--shadow-pop:0 24px 56px rgba(0,0,0,.5);--blur:saturate(1.45) blur(24px);--r:11px;--r-lg:18px;--r-xl:26px;--r-pill:99px;--menubar-h:36px;--dock-h:86px;--icon-stroke:1.9;--icon-r:6px;--row-h:34px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.22,1,.3,1);--e-in-out:cubic-bezier(.45,0,.15,1);--t-1:180ms;--t-2:280ms;--t-3:420ms;--t-4:620ms}:root[data-theme=\"light\"]{--wall-1:#F8F3EB;--wall-2:#DFD6C8;--wall-glow:rgba(196,124,32,.14);--bg:#EFE9E0;--glass:rgba(255,253,250,.80);--glass-2:rgba(255,252,247,.90);--glass-3:#F5F0E8;--glass-line:rgba(60,44,30,.13);--glass-line-2:rgba(60,44,30,.26);--chrome:rgba(255,252,247,.72);--tx:#191410;--tx-2:#4A4038;--tx-3:#6E6459;--tx-4:#9A9088;--accent:#17756D;--accent-2:#0E5B55;--accent-dim:rgba(23,117,109,.12);--private:#436A0F;--private-dim:rgba(67,106,15,.12);--public:#8F5D0E;--public-dim:rgba(143,93,14,.12);--fail:#B93124;--fail-dim:rgba(185,49,36,.11);--signal:#17756D;--signal-dim:rgba(23,117,109,.12);--brand-red:#A3241A;--cyan:#17756D;--blue:#2C5BC8;--violet:#6E4FB0;--glow-cyan:rgba(23,117,109,.16);--glow-violet:rgba(110,79,176,.12);--shadow-win:0 30px 64px rgba(74,54,34,.16), 0 0 0 1px rgba(60,44,30,.08);--shadow-sm:0 2px 10px rgba(74,54,34,.10);--shadow-pop:0 22px 48px rgba(74,54,34,.16);--blur:saturate(1.45) blur(24px);--r:11px;--r-lg:18px;--r-xl:26px;--r-pill:99px;--menubar-h:36px;--dock-h:86px;--icon-stroke:1.9;--icon-r:6px;--row-h:34px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.22,1,.3,1);--e-in-out:cubic-bezier(.45,0,.15,1);--t-1:180ms;--t-2:280ms;--t-3:420ms;--t-4:620ms}.dicon .tile,.dk{border-radius:29%;background-image:radial-gradient(120% 110% at 32% 12%,rgba(255,255,255,.18),transparent 64%)}.dicon .tile::after,.dk::after{background:linear-gradient(168deg,rgba(255,255,255,.16),transparent 52%)}.dk{box-shadow:0 8px 22px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.16)}@media (hover:hover){.dk:hover{transform:translateY(-15px) scale(1.34)}}.win.focused{box-shadow:var(--shadow-win),0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent),0 0 30px color-mix(in srgb,var(--accent) 16%,transparent)}#wallpaper .glow{background:radial-gradient(circle,var(--wall-glow),transparent 62%);animation-duration:34s}#wallpaper .glow.b{background:radial-gradient(circle,var(--glow-cyan),transparent 62%);animation-duration:42s}#wallMark{opacity:.09}:focus-visible{outline-color:var(--accent)}",
  cssL:":root[data-theme=\"dark\"]{--wall-1:#2A2018;--wall-2:#0A0806;--wall-glow:rgba(227,154,60,.17);--bg:#131110;--glass:rgba(31,27,24,.74);--glass-2:rgba(41,35,31,.82);--glass-3:rgba(53,46,40,.88);--glass-line:rgba(255,238,220,.10);--glass-line-2:rgba(255,238,220,.20);--chrome:rgba(19,16,15,.72);--tx:#F4EFE8;--tx-2:#B7ADA1;--tx-3:#948C82;--tx-4:#5A534C;--accent:#2FA79B;--accent-2:#4FC7B9;--accent-dim:rgba(47,167,155,.16);--signal:#2FA79B;--signal-dim:rgba(47,167,155,.16);--private:#8CC63F;--private-dim:rgba(140,198,63,.14);--public:#E39A3C;--public-dim:rgba(227,154,60,.15);--fail:#F0594B;--fail-dim:rgba(240,89,75,.15);--brand-red:#DC3232;--cyan:#2FA79B;--blue:#3B7BFF;--violet:#9B7BD8;--glow-cyan:rgba(47,167,155,.24);--glow-violet:rgba(155,123,216,.18);--shadow-win:0 34px 78px rgba(0,0,0,.56), 0 2px 0 0 rgba(255,238,220,.05) inset, 0 0 0 1px rgba(255,238,220,.07);--shadow-sm:0 2px 10px rgba(0,0,0,.42);--shadow-pop:0 24px 56px rgba(0,0,0,.5);--blur:saturate(1.45) blur(24px);--r:11px;--r-lg:18px;--r-xl:26px;--r-pill:99px;--menubar-h:36px;--dock-h:86px;--icon-stroke:1.9;--icon-r:6px;--row-h:34px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.22,1,.3,1);--e-in-out:cubic-bezier(.45,0,.15,1);--t-1:180ms;--t-2:280ms;--t-3:420ms;--t-4:620ms}:root[data-theme=\"light\"]{--wall-1:#F8F3EB;--wall-2:#DFD6C8;--wall-glow:rgba(196,124,32,.14);--bg:#EFE9E0;--glass:rgba(255,253,250,.80);--glass-2:rgba(255,252,247,.90);--glass-3:#F5F0E8;--glass-line:rgba(60,44,30,.13);--glass-line-2:rgba(60,44,30,.26);--chrome:rgba(255,252,247,.72);--tx:#191410;--tx-2:#4A4038;--tx-3:#6E6459;--tx-4:#9A9088;--accent:#17756D;--accent-2:#0E5B55;--accent-dim:rgba(23,117,109,.12);--private:#436A0F;--private-dim:rgba(67,106,15,.12);--public:#8F5D0E;--public-dim:rgba(143,93,14,.12);--fail:#B93124;--fail-dim:rgba(185,49,36,.11);--signal:#17756D;--signal-dim:rgba(23,117,109,.12);--brand-red:#A3241A;--cyan:#17756D;--blue:#2C5BC8;--violet:#6E4FB0;--glow-cyan:rgba(23,117,109,.16);--glow-violet:rgba(110,79,176,.12);--shadow-win:0 30px 64px rgba(74,54,34,.16), 0 0 0 1px rgba(60,44,30,.08);--shadow-sm:0 2px 10px rgba(74,54,34,.10);--shadow-pop:0 22px 48px rgba(74,54,34,.16);--blur:saturate(1.45) blur(24px);--r:11px;--r-lg:18px;--r-xl:26px;--r-pill:99px;--menubar-h:36px;--dock-h:86px;--icon-stroke:1.9;--icon-r:6px;--row-h:34px;--ar:\"SF Arabic\",\"Segoe UI\",\"Noto Sans Arabic\",\"Geeza Pro\",Tahoma,sans-serif;--e-out:cubic-bezier(.22,1,.3,1);--e-in-out:cubic-bezier(.45,0,.15,1);--t-1:180ms;--t-2:280ms;--t-3:420ms;--t-4:620ms}.dicon .tile,.dk{border-radius:29%;background-image:radial-gradient(120% 110% at 32% 12%,rgba(255,255,255,.18),transparent 64%)}.dicon .tile::after,.dk::after{background:linear-gradient(168deg,rgba(255,255,255,.16),transparent 52%)}.dk{box-shadow:0 8px 22px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.16)}@media (hover:hover){.dk:hover{transform:translateY(-15px) scale(1.34)}}.win.focused{box-shadow:var(--shadow-win),0 0 0 1px color-mix(in srgb,var(--accent) 34%,transparent),0 0 30px color-mix(in srgb,var(--accent) 16%,transparent)}#wallpaper .glow{background:radial-gradient(circle,var(--wall-glow),transparent 62%);animation-duration:34s}#wallpaper .glow.b{background:radial-gradient(circle,var(--glow-cyan),transparent 62%);animation-duration:42s}#wallMark{opacity:.09}:focus-visible{outline-color:var(--accent)}"}
@@ -7630,24 +7600,61 @@ function applyThemeById(id){
   try{ document.dispatchEvent(new CustomEvent("mv:theme",{detail:id})); }catch(e){}
 }
 /* swatch colour for a theme card, in whichever mode is currently active */
-function themeSwatch(t){
-  var mode=themeMode(), css=(mode==="light"?t.cssL:t.cssD)||"", m;
-  var blk=css.match(new RegExp(':root\\[data-theme="'+mode+'"\\]\\{([^}]*)\\}'));
-  if(blk){ m=blk[1].match(/--bg:\s*(#[0-9a-fA-F]{3,8})/); if(m) return m[1]; }
-  m=css.match(/--bg:\s*(#[0-9a-fA-F]{3,8})/);
-  if(m && !blk) return m[1];
-  return mode==="light" ? "#E9ECF3" : "#05070C";
+/* A one-colour swatch was fine when twelve themes differed mainly by hue. With
+   three themes whose grounds are all near-black in dark mode it showed three
+   identical squares. The preview now pulls the tokens that actually carry a
+   theme's character — surface, line, text, accent and corner radius — and draws
+   a miniature desktop from them. */
+function themeTokens(t){
+  var mode = themeMode(), css = (mode === "light" ? t.cssL : t.cssD) || "";
+  var blk = css.match(new RegExp(':root\\[data-theme="' + mode + '"\\]\\{([^}]*)\\}'));
+  var body = blk ? blk[1] : ((css.match(/:root\{([^}]*)\}/) || [null, ""])[1]);
+  var dark = mode !== "light";
+  function pick(n, fb){
+    var m = body.match(new RegExp("--" + n + ":\\s*([^;]+)"));
+    return m ? m[1].trim() : fb;
+  }
+  return {
+    bg:      pick("bg",         dark ? "#05070C" : "#E9ECF3"),
+    surface: pick("glass-2",    pick("glass", dark ? "#1A1F2B" : "#FFFFFF")),
+    line:    pick("glass-line", dark ? "rgba(255,255,255,.12)" : "rgba(16,22,30,.12)"),
+    tx:      pick("tx",         dark ? "#F2F3F6" : "#0F141A"),
+    tx2:     pick("tx-2",       dark ? "#B4B9C6" : "#4C5766"),
+    accent:  pick("accent",     "#D71920"),
+    r:       pick("r",          "10px")
+  };
 }
+function themeSwatch(t){ return themeTokens(t).bg; }
 function openThemePicker(){
   var grid=$("#tpGrid"),cur=store.get("mv7.theme","grid");
   grid.innerHTML=THEMES.map(function(t){
-    var bgColor=themeSwatch(t);
+    var k=themeTokens(t), rr=parseFloat(k.r)||10;
     return '<div class="tp-opt'+(cur===t.id?" active":"")+'" data-theme-id="'+t.id+'">'+
-      '<div class="tp-preview" style="background:'+bgColor+';display:flex;flex-wrap:wrap;gap:3px;padding:8px;align-content:start">'+
-        Array.from({length:12},function(_,j){
-          var pos=LAYOUTS[t.layout](j,12,160,80);
-          return '<div style="position:absolute;left:'+(pos[0]/6)+'px;top:'+(pos[1]/6)+'px;width:12px;height:12px;border-radius:4px;background:rgba(255,255,255,.15)"></div>';
+      '<div class="tp-preview" style="background:'+k.bg+';position:relative;overflow:hidden">'+
+        /* menu bar */
+        '<div style="position:absolute;left:0;right:0;top:0;height:9px;background:'+k.surface+
+          ';border-bottom:1px solid '+k.line+'"></div>'+
+        /* desktop icons, in this theme\u2019s own layout */
+        Array.from({length:8},function(_,j){
+          var pos=LAYOUTS[t.layout](j,8,160,80);
+          return '<div style="position:absolute;left:'+(pos[0]/6)+'px;top:'+(12+pos[1]/6)+
+                 'px;width:9px;height:9px;border-radius:'+Math.min(rr/2,4).toFixed(1)+
+                 'px;background:'+k.tx2+';opacity:.30"></div>';
         }).join("")+
+        /* a window, which is where surface, line and radius read */
+        '<div style="position:absolute;right:9px;top:19px;width:52px;height:34px;border-radius:'+
+          Math.min(rr,12)+'px;background:'+k.surface+';border:1px solid '+k.line+'">'+
+          '<div style="height:5px;margin:5px 5px 0;border-radius:2px;background:'+k.tx+';opacity:.75"></div>'+
+          '<div style="height:3px;margin:4px 12px 0 5px;border-radius:2px;background:'+k.tx2+';opacity:.5"></div>'+
+          '<div style="height:6px;width:16px;margin:5px 5px 0;border-radius:'+
+            Math.min(rr/2,5).toFixed(1)+'px;background:'+k.accent+'"></div>'+
+        '</div>'+
+        /* dock */
+        '<div style="position:absolute;left:50%;bottom:4px;transform:translateX(-50%);display:flex;gap:3px;'+
+          'padding:3px 4px;border-radius:'+Math.min(rr,10)+'px;background:'+k.surface+';border:1px solid '+k.line+'">'+
+          Array.from({length:4},function(){ return '<div style="width:6px;height:6px;border-radius:'+
+            Math.min(rr/2,3).toFixed(1)+'px;background:'+k.tx2+';opacity:.55"></div>'; }).join("")+
+        '</div>'+
       '</div>'+
       '<div class="tp-name">'+esc(t.name)+'<br><span style="font-size:10px;color:var(--tx-3);font-weight:400">'+esc(t.desc)+'</span></div></div>';
   }).join("");
@@ -8277,6 +8284,83 @@ function clapStop(){
   toast("Clap detection off.", 1800);
 }
 function clapToggle(){ clap.on ? clapStop() : clapStart(); }
+
+/* ---- "Hey Magna" wake word ------------------------------------------------
+   SOVEREIGNTY NOTE, and it is not a small one. The Web Speech API in Chrome
+   and Edge streams microphone audio to the browser vendor's servers for
+   transcription. Console's Sovereignty widget reads "Egress today: 0 bytes",
+   so this feature cannot be on by default and cannot be quiet about itself:
+   it is opt-in, it is labelled "leaves your network" in the same amber the
+   Public tier uses, and enabling it prints that fact.
+
+   Clap wake, by contrast, is pure in-tab amplitude maths and sends nothing.
+   That is why clap is the default wake path and this is the opt-in one.
+
+   A production on-prem build would swap this for a local wake-word model
+   running on the Magna cluster, at which point the egress note disappears. */
+var wake = { rec:null, on:false, want:false, restart:null, heard:0 };
+function wakeSupported(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function wakeMatch(t){
+  /* tolerant: recognisers routinely return "hey magnet", "hey magma" */
+  t = String(t||"").toLowerCase().replace(/[^a-z\s]/g,"");
+  return /\bhey\s+(magna|magnaverse|magma|magnet|magner)\b/.test(t) ||
+         /\bya\s+magna\b/.test(t);
+}
+function wakeStart(){
+  if(wake.on) return;
+  if(!wakeSupported()){
+    toast("This browser has no speech recognition — clap wake still works.", 3400);
+    store.set("mv7.wake","off"); ccRender && ccRender(); return;
+  }
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var r = new SR();
+  r.continuous = true; r.interimResults = true; r.lang = "en-US"; r.maxAlternatives = 1;
+  r.onresult = function(e){
+    for(var i = e.resultIndex; i < e.results.length; i++){
+      var alt = e.results[i][0]; if(!alt) continue;
+      if(!wakeMatch(alt.transcript)) continue;
+      var now = Date.now();
+      if(now - wake.heard < 2500) return;      /* one wake per phrase */
+      wake.heard = now;
+      if(voice.on) vpState("I\u2019m here \u2014 still listening.");
+      else { voiceStart(); vpState("I\u2019m listening."); }
+      evEmit({ id:"wake_"+now, k:"result", actor:"Magna", res:"public",
+               s:"Heard \u201cHey Magna\u201d \u2014 listening." });
+      return;
+    }
+  };
+  r.onerror = function(ev){
+    if(ev && (ev.error === "not-allowed" || ev.error === "service-not-allowed")){
+      toast("Microphone blocked \u2014 allow it to use \u201cHey Magna\u201d.", 3000);
+      wakeStop(); return;
+    }
+    /* no-speech / network / aborted: let onend restart it */
+  };
+  r.onend = function(){
+    if(!wake.want) return;                     /* a real stop, not a timeout */
+    clearTimeout(wake.restart);
+    wake.restart = setTimeout(function(){
+      if(wake.want){ try{ r.start(); }catch(e){} }
+    }, 700);                                   /* recognisers stop on silence */
+  };
+  wake.rec = r; wake.want = true;
+  try{ r.start(); }catch(e){}
+  wake.on = true;
+  store.set("mv7.wake","on");
+  ccRender && ccRender();
+  toast("\u201cHey Magna\u201d is on. Speech recognition runs in the browser vendor\u2019s cloud \u2014 this is the one feature that leaves your network.", 6000);
+}
+function wakeStop(){
+  wake.want = false; wake.on = false;
+  clearTimeout(wake.restart); wake.restart = null;
+  try{ if(wake.rec){ wake.rec.onend = null; wake.rec.stop(); } }catch(e){}
+  wake.rec = null;
+  store.set("mv7.wake","off");
+  ccRender && ccRender();
+}
+function wakeToggle(){ wake.on ? wakeStop() : wakeStart(); }
 function syncClapUI(){
   var b = $(".qa-mic"); if(b) b.classList.toggle("on", clap.on);
   syncCtxLabels && syncCtxLabels();
@@ -8309,11 +8393,15 @@ function clapTick(){
   }
 }
 /* resume after reload once the user interacts (mic + AudioContext need a gesture) */
-document.addEventListener("click", function bootClap(){
-  if(store.get("mv7.clap","") === "on" && !clap.on && document.body.matches('[data-stage="os"]')){
-    syncClapUI();
-    clapStart();
-  }
+/* Mic + AudioContext need a user gesture, so wake paths resume on the first
+   click after a reload. This used to be a permanent document listener that ran
+   on every click for the life of the session; it now removes itself once it has
+   done its job. */
+document.addEventListener("click", function bootWake(){
+  if(!document.body.matches('[data-stage="os"]')) return;
+  document.removeEventListener("click", bootWake);
+  if(store.get("mv7.clap","") === "on" && !clap.on){ syncClapUI(); clapStart(); }
+  if(store.get("mv7.wake","")  === "on" && !wake.on){ wakeStart(); }
 });
 $("#quickPanel [data-qain]").addEventListener("keydown", function(e){
   if(e.key === "Enter"){
