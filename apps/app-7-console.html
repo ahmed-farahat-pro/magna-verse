@@ -2778,6 +2778,18 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
   .win-lights button{width:16px;height:16px}
   .dots i{width:12px;height:12px}
 }
+
+/* streamed agent output */
+.mv-stream{white-space:pre-wrap;word-break:break-word;line-height:1.65}
+.mv-err{color:var(--public,#c0392b);font-size:13.5px;margin-top:8px}
+.mv-meta{font-family:var(--mono,monospace);font-size:11px;opacity:.55;margin-top:10px}
+
+/* dock context menu */
+.dock-menu{position:fixed;z-index:9999;min-width:180px;padding:5px;border-radius:11px;
+  background:var(--surface);border:1px solid var(--line-2);box-shadow:0 18px 44px rgba(0,0,0,.45)}
+.dock-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;
+  color:var(--tx-2);font:inherit;font-size:13px;padding:7px 11px;border-radius:7px;cursor:pointer;min-height:auto}
+.dock-menu button:hover{background:var(--surface-3);color:var(--tx)}
 </style>
 </head>
 <body data-stage="boot">
@@ -3207,6 +3219,10 @@ p.sub{margin:0 0 16px;font-size:12.8px;color:var(--tx-2);line-height:1.6;max-wid
 <div id="evPeek" role="dialog" aria-label="Recent activity"></div>
 
 <div id="toasts" role="status" aria-live="polite"></div>
+
+<!-- The harness bridge: models, streaming, plugin apps. Loaded before the
+     app closure so MOUNT can reach it. -->
+<script src="/desktop/mv-dsh.js"></script>
 
 <script>
 (function(){
@@ -4916,27 +4932,44 @@ var APPS = {
   slides:  { name:"Slides",      icon:"i-slides", tile:"g-slides",  w:1100,h:720, minW:600, minH:440, multi:true  },
   gantt:   { name:"Gantt",       icon:"i-task",   tile:"g-gantt",   w:1100,h:680, minW:600, minH:400, multi:true  },
   files:   { name:"Files",       icon:"i-folder", tile:"g-files",   w:960, h:640, minW:480, minH:380, multi:true  },
-  word:    { name:"Word",        icon:"i-doc",    tile:"g-word",    w:900, h:660, minW:500, minH:400, multi:true  },
   ppt:     { name:"Slides",      icon:"i-slides", tile:"g-ppt",     w:1000,h:700, minW:560, minH:420, multi:true  },
   trash:   { name:"Trash",       icon:"i-x",      tile:"g-trash",   w:700, h:520, minW:400, minH:340, multi:false },
-  duel:    { name:"Quote Duel",   icon:"i-chart",  tile:"g-sheets",  w:960, h:640, minW:520, minH:400, multi:true  },
-  board:   { name:"Board Pack",   icon:"i-doc",    tile:"g-docs2",   w:900, h:640, minW:480, minH:380, multi:false },
-  prep:    { name:"Meeting Prep", icon:"i-chat",   tile:"g-chat",    w:860, h:620, minW:480, minH:380, multi:false },
-  audit:   { name:"Audit Score",  icon:"i-shield", tile:"g-agents",  w:880, h:640, minW:480, minH:380, multi:false },
   workflow:{ name:"Workflow",     icon:"i-flow",   tile:"g-flow",    w:1180,h:760, minW:560, minH:420, multi:true  }
 };
 /* Dock shows the 7 core apps. Running/contextual apps are appended with a
    separator, and renderDock shrinks --dk so the bar never overflows —
    everything else stays on the desktop and in Spotlight. */
 var DOCK_PINNED = ["chat","brain","code","mail","files","agents","workflow","settings","trash"];
-var DOCK_REST   = ["code","files","word","ppt","sheets","docs","slides","gantt","api","db","agents","autos","workflow","market","tasks",
-                   "approvals","ledger","memory","models","conn","mail","settings","trash","duel","board","prep","audit"];
-var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","word","ppt","sheets","docs","slides","gantt",
-                      "api","db","agents","autos","workflow","market","tasks","approvals","ledger","memory",
-                      "models","conn","mail","settings","trash","duel","board","prep","audit"];
+var DOCK_REST   = ["code","files","ppt","sheets","docs","slides","gantt","api","db","agents","autos","workflow","market","tasks","approvals","ledger","memory","models","conn","mail","settings","trash"];
+var DESKTOP_ORDER = ["chat","brain","code","browser","terminal","files","ppt","sheets","docs","slides","gantt","api","db","agents","autos","workflow","market","tasks","approvals","ledger","memory","models","conn","mail","settings","trash"];
 
 /* badges that make the desktop informative rather than decorative */
 var BADGES = { mail:3, agents:2, autos:1 };
+
+/* ---- host API for layer-3 apps ---------------------------------------
+   A plugin can replace a window the Console already knows about, but an app
+   that exists ONLY as a plugin also needs somewhere to appear. This is the
+   smallest surface that allows it: register the manifest into the tables the
+   desktop, dock and Spotlight already read, then re-render. Without it a new
+   plugin loads correctly and is invisible, which looks exactly like a
+   failure. */
+window.MVHost = window.MVHost || {
+  addApp: function(m){
+    if(!m || !m.id || APPS[m.id]) return false;
+    var w = m.window || {};
+    APPS[m.id] = { name:m.name||m.id, icon:m.icon||"i-agent", tile:m.tile||"g-chat",
+                   w:w.w||760, h:w.h||560, minW:w.minW||420, minH:w.minH||320, multi:!!w.multi };
+    if(DESKTOP_ORDER.indexOf(m.id) < 0) DESKTOP_ORDER.push(m.id);
+    if(m.placement && m.placement.dock && DOCK_REST.indexOf(m.id) < 0) DOCK_REST.push(m.id);
+    (m.aliases||[]).forEach(function(a){ if(!APP_ALIASES[a]) APP_ALIASES[a] = m.id; });
+    return true;
+  },
+  refresh: function(){
+    try{ renderIcons(); }catch(e){}
+    try{ renderDock(); }catch(e){}
+    try{ buildSpotActions(); }catch(e){}
+  }
+};
 
 /* ============================================================
    3 · spaces
@@ -5474,7 +5507,13 @@ function mountWindow(w){
   mtlIn(w);
   setTimeout(function(){ n.classList.remove("opening"); }, 320);
   /* content is mounted exactly once */
-  try{ (MOUNT[w.appId] || MOUNT._missing)(w.body, w); }
+  /* Plugin apps win over the built-in mount. This is the strangler seam: an
+     app installed as a layer-3 plugin takes over its window and gets the same
+     drag, resize, z-order, minimise and Spaces behaviour as everything else. */
+  try{
+    var mvTook = window.MVApps && window.MVApps.mount(w.appId, w.body, w);
+    if(!mvTook) (MOUNT[w.appId] || MOUNT._missing)(w.body, w);
+  }
   catch(err){ w.body.innerHTML = '<div class="empty-msg">This app failed to load: '+esc(err.message)+'</div>'; }
 }
 
@@ -5489,6 +5528,7 @@ function closeWin(id){
   /* Monaco holds workers and DOM listeners — let it go with the window */
   try{ if(w.__ed){ w.__ed.dispose(); w.__ed = null; } }catch(e){}
   if(w.__edTheme){ document.removeEventListener("mv:theme", w.__edTheme); w.__edTheme = null; }
+  try{ if(window.MVApps) window.MVApps.unmount(w); }catch(e){}
   mtlOut(w);
   var n = w.node;
   if(!n.classList.contains("dissolving")) n.classList.add("closing");
@@ -5700,6 +5740,10 @@ function renderDock(){
   /* only pinned + running/contextual live in the dock; the full catalogue
      stays on the desktop and in Spotlight */
   var html = pinned.map(function(id){ return APPS[id] ? dockBtn(id, run[id]) : ""; }).join("");
+  /* Anything with an open window belongs in the dock whether or not it is
+     pinned — a dock that hides what is running is a dock you cannot use to get
+     back to it. */
+  Object.keys(run).forEach(function(id){ if(ctx.indexOf(id) < 0) ctx.push(id); });
   var extra = ctx.filter(function(id){ return pinned.indexOf(id) < 0 && APPS[id]; });
   if(extra.length){
     html += '<span class="dk-sep"></span>';
@@ -6722,18 +6766,10 @@ function fakeVec(seed, n){
   return out;
 }
 
-var EMAILS = [
-  {from:"Khalid Al-Rashid", org:"Al-Rajhi Steel", subj:"Re: C2 rebar slip — revised dates",
-   when:"08:12", read:false, why:"Linked to PO 4500219871 and to your open C2 exposure thread.", node:"n7"},
-  {from:"Nouf Al-Otaibi", org:"Magna Commercial", subj:"Board pack — need the C2 figure by Thu 09:00",
-   when:"07:40", read:false, why:"Mentions a deadline inside 48h on a project you touched today.", node:"n12"},
-  {from:"P6 Nightly", org:"Automation", subj:"Slip alert — 3 activities past 5 days",
-   when:"06:00", read:true, why:"Triggered by the heartbeat you created on 09 Aug.", node:"n14"},
-  {from:"Sara Bin Zayed", org:"Magna HSE", subj:"Week 33 register — 2 LTIs on the C2 deck",
-   when:"Yesterday", read:true, why:"Same package as your active work; HSE feeds the same board pack.", node:"n9"},
-  {from:"SAP Notifications", org:"System", subj:"41 duplicate vendor candidates flagged",
-   when:"Yesterday", read:true, why:"You opened the vendor clean-up thread twice this week.", node:"n13"}
-];
+/* The EMAILS sample table is gone: real mail comes from @magna/app-mail,
+   which reads the user's own server. The Brain's email lens below reads
+   this and now correctly shows nothing until a mailbox is connected. */
+var EMAILS = [];
 
 var BEHAVIOUR = [
   {t:"Opened PO 4500219871 for the 4th time this week", d:"Console now surfaces it in the dock's contextual zone.", m:"today 08:14"},
@@ -6861,18 +6897,8 @@ var AUTOS = [
    desc:"Scores the SAP vendor master for probable duplicates and proposes safe merges."}
 ];
 
-var CONNECTORS = [
-  {k:"GitHub",    ab:"GH", bg:"#24292F", st:"linked",   d:"12 repositories · read + PR write with approval"},
-  {k:"GitLab",    ab:"GL", bg:"#E24329", st:"linked",   d:"4 groups · self-managed instance inside the DC"},
-  {k:"SAP S/4HANA",ab:"SAP",bg:"#0FAAFF", st:"linked",   d:"Purchase orders, vendor master, goods receipts"},
-  {k:"Primavera P6",ab:"P6", bg:"#164C9E", st:"linked",   d:"Activities, baselines, float · nightly snapshot"},
-  {k:"Jira",      ab:"JR", bg:"#2684FF", st:"linked",   d:"Search and read; writes need your approval"},
-  {k:"Confluence",ab:"CF", bg:"#1868DB", st:"linked",   d:"Standards, BEPs and procedures"},
-  {k:"Outlook",   ab:"OL", bg:"#0A66C2", st:"linked",   d:"Mail and calendar · feeds the Brain's email graph"},
-  {k:"SharePoint",ab:"SP", bg:"#037B62", st:"available",d:"Document libraries and site pages"},
-  {k:"ServiceNow",ab:"SN", bg:"#5FB08A", st:"available",d:"Incidents, changes and CMDB records"},
-  {k:"Teams",     ab:"TM", bg:"#5059C9", st:"available",d:"Channel posts and meeting transcripts"}
-];
+/* The CONNECTORS sample table is gone with MOUNT.conn: every row was an
+   invented integration, six of them showing as live. */
 
 /* ============================================================
    7 · the OS-wide approval gate
@@ -7171,7 +7197,7 @@ document.addEventListener("dblclick", function(e){
   } else {
     var ext = (f.ext||"").toLowerCase();
     if(ext === "docx" || ext === "doc" || ext === "txt" || ext === "md"){
-      openApp("word", {fileId: f.id});
+      openDocument(f);
     } else if(ext === "pptx" || ext === "ppt"){
       openApp("ppt", {fileId: f.id});
     } else if(ext === "xlsx" || ext === "xls" || ext === "csv"){
@@ -7276,9 +7302,53 @@ function beginInlineRename(fileId){
   });
 }
 document.addEventListener("click", hideCtx);
+/* Dock menu: open, reveal, and close. Kept separate from showCtx because the
+   options are about a RUNNING app rather than a desktop object, and folding
+   both into one menu makes each half read oddly. */
+function showDockMenu(x, y, appId){
+  hideDockMenu();
+  var a = APPS[appId]; if(!a) return;
+  var open = wins.filter(function(w){ return w.appId === appId; });
+  var m = el("div","ctx-menu dock-menu");
+  m.id = "dockMenu";
+  m.setAttribute("role","menu");
+  var rows = [];
+  rows.push({ k:"open", t: open.length ? "New window" : "Open" });
+  if(open.length){
+    rows.push({ k:"show", t:"Bring to front" });
+    rows.push({ k:"close", t: open.length > 1 ? ("Close all " + open.length + " windows") : "Close window" });
+  }
+  m.innerHTML = rows.map(function(r){
+    return '<button type="button" role="menuitem" data-dockact="'+r.k+'">'+esc(r.t)+'</button>';
+  }).join("");
+  document.body.appendChild(m);
+  var r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, window.innerWidth - r.width - 8) + "px";
+  m.style.top  = Math.max(8, y - r.height - 6) + "px";
+  m.addEventListener("click", function(ev){
+    var b = ev.target.closest("[data-dockact]"); if(!b) return;
+    var act = b.getAttribute("data-dockact");
+    hideDockMenu();
+    if(act === "open"){ openApp(appId); return; }
+    if(act === "show"){ focusWin(open[open.length-1].id); return; }
+    if(act === "close"){ open.forEach(function(w){ closeWin(w.id); }); toast(a.name + " closed."); }
+  });
+}
+function hideDockMenu(){ var m = $("#dockMenu"); if(m) m.remove(); }
+document.addEventListener("click", function(e){ if(!e.target.closest("#dockMenu")) hideDockMenu(); });
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") hideDockMenu(); });
+
 document.addEventListener("contextmenu", function(e){
   /* native menus stay inside app windows, the dock, the menu bar, modals
      and text fields — everywhere else the OS menu takes over */
+  /* The dock used to be excluded here, which handed right-click straight to
+     the browser's own menu — the one thing a desktop must never do. */
+  var dk = e.target.closest("#dock .dk");
+  if(dk){
+    e.preventDefault();
+    showDockMenu(e.clientX, e.clientY, dk.getAttribute("data-open"));
+    return;
+  }
   if(e.target.closest(".win") || e.target.closest("#dock") || e.target.closest("#menubar") ||
      e.target.closest(".modal-overlay") || e.target.closest("input") || e.target.closest("textarea") ||
      e.target.closest("[contenteditable]") || e.target.closest("[contenteditable=true]")) return;
@@ -8436,7 +8506,7 @@ function quickAIRun(mode, q){
     var fid = qaArtifact(nm + ".docx", "docx",
       "<h1>"+nm+"</h1><p>Dear Al-Yamama Steel,</p><p>Re: Package C2 — goods receipt outstanding on 4 of 6 PO lines.</p>"+
       "<p><b>Exposure at 45 days: SAR 5.32M.</b> Per GC-8 8.4 we reserve our position on liquidated damages.</p>");
-    openApp("word", {fileId: fid});
+    openDocument(VFS.get(fid));
     toast("Drafted “"+nm+".docx” from Chat + Brain — open on the desktop.", 3000);
     return;
   }
@@ -8448,7 +8518,7 @@ function quickAIRun(mode, q){
     return;
   }
   if(mode === "doc"){
-    openApp("word", {fileId: qaArtifact("Untitled.docx", "docx", "<h1>Untitled</h1><p></p>")});
+    openDocument(VFS.get(qaArtifact("Untitled.docx", "docx", "<h1>Untitled</h1><p></p>")));
     toast("New document created on the desktop.", 2200);
     return;
   }
@@ -8651,19 +8721,15 @@ var APP_ALIASES = {
   browser:"browser", web:"browser", safari:"browser", terminal:"terminal", shell:"terminal",
   agents:"agents", agent:"agents", automations:"autos", automation:"autos", autos:"autos",
   approvals:"approvals", approval:"approvals", mail:"mail", email:"mail", inbox:"mail",
-  files:"files", finder:"files", folders:"files", word:"word", writer:"word", doc:"word",
+  files:"files", finder:"files", folders:"files", word:"docs", writer:"docs", doc:"docs",
   slides:"slides", powerpoint:"slides", presentation:"slides", deck:"slides",
   sheets:"sheets", excel:"sheets", spreadsheet:"sheets", docs:"docs", documents:"docs",
   gantt:"gantt", schedule:"gantt", timeline:"gantt", api:"api", studio:"api",
   database:"db", db:"db", data:"db", market:"market", marketplace:"market",
   tasks:"tasks", task:"tasks", todo:"tasks", memory:"memory", models:"models", model:"models",
   connections:"conn", connectors:"conn", settings:"settings", preferences:"settings",
-  trash:"trash", bin:"trash", recycle:"trash",
-  duel:"duel", "quote duel":"duel", vendor:"duel", comparison:"duel", quotes:"duel",
-  board:"board", "board pack":"board", "board narrative":"board", briefing:"board",
-  prep:"prep", "meeting prep":"prep", "meeting card":"prep", "before meeting":"prep",
-  audit:"audit", "audit score":"audit", "hse audit":"audit", compliance:"audit"
-};
+  trash:"trash", bin:"trash", recycle:"trash"
+  };
 function findAppByName(s){
   s = (s||"").toLowerCase().trim();
   var keys = Object.keys(APPS);
@@ -8681,7 +8747,7 @@ function voiceHandle(text){
   text = (text||"").trim(); if(!text) return;
   vpLogAdd("u", text);
   tsPush("Voice", "You said: \u201c"+text+"\u201d");
-  var lq = text.toLowerCase().replace(/[!.?,]/g, "");
+  var lq = text.toLowerCase().replace(/[!.?]/g, "");
 
   if(/^(stop|stop listening|goodbye|bye|that'?s all|enough)\b/.test(lq)){
     say("Closing voice. Clap twice whenever you need me.", function(){ voiceStop(); });
@@ -9125,6 +9191,23 @@ MOUNT.chat = function(body, w){
     dockActivity("chat", "thinking", 1400 + Math.random()*1400);   /* dock breathes while model thinks */
     tsPush("Chat","thinking · "+w.state.effort.toLowerCase()+" effort · searching indexed sources");
     scroll.scrollTop = scroll.scrollHeight;
+    /* Real agent turn. CHAT_REPLIES stays only for the artifact demos below;
+       anything a live model can answer, it now answers. */
+    if(window.MVDsh){
+      var label = MVDsh.model.label || MVDsh.model.model || "model";
+      a.querySelector(".who").innerHTML = ico("i-magna") + "MagnaVERSE · " + esc(label);
+      MVDsh.send("win"+w.id, text, a, function(reason, ms){
+        send.disabled = false;
+        if(reason.kind !== "error"){
+          var meta = el("div","mv-meta"); meta.textContent = label + " · " + ms + " ms";
+          a.appendChild(meta);
+        }
+        scroll.scrollTop = scroll.scrollHeight;
+        tsPush("Chat", reason.kind === "error" ? "turn failed" : "answered in " + ms + " ms");
+      }, function(){ scroll.scrollTop = scroll.scrollHeight; });
+      return;
+    }
+
     setTimeout(function(){
       var rule = CHAT_REPLIES.filter(function(r){ return r.match.test(text); })[0];
       var out = rule.build(text);
@@ -9201,174 +9284,12 @@ MOUNT.chat = function(body, w){
 };
 
 /* ---------------------------------------------------------- VENDOR QUOTE DUEL (RAG-extracted) */
-MOUNT.duel = function(body, w){
-  setWinTitle(w, "Vendor Quote Duel");
-  var Q = {
-    a:{name:"Al-Rajhi Steel Co.", items:[
-      {item:"B500B 16mm rebar", qty:"320 t", unit:"SAR 3,850/t", total:"SAR 1,232,000", delivery:"19 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 20mm rebar", qty:"280 t", unit:"SAR 3,790/t", total:"SAR 1,061,200", delivery:"19 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 25mm rebar", qty:"240 t", unit:"SAR 3,740/t", total:"SAR 897,600",  delivery:"19 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 32mm rebar", qty:"180 t", unit:"SAR 3,920/t", total:"SAR 705,600",  delivery:"26 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 12mm rebar", qty:"140 t", unit:"SAR 4,010/t", total:"SAR 561,400",  delivery:"03 Oct 2026", tax:"15% VAT incl."},
-      {item:"Couplers (BS 8597)", qty:"80 ea", unit:"SAR 215/ea", total:"SAR 17,200",   delivery:"03 Oct 2026", tax:"15% VAT incl."}
-    ], total:"SAR 4,475,000", lead:"19 Sep", notes:"Existing vendor · already cleared for site access · 4 lines still outstanding on current PO"},
-    b:{name:"Fabricator Direct (NEW)", items:[
-      {item:"B500B 16mm rebar", qty:"320 t", unit:"SAR 3,920/t", total:"SAR 1,254,400", delivery:"12 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 20mm rebar", qty:"280 t", unit:"SAR 3,860/t", total:"SAR 1,080,800", delivery:"12 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 25mm rebar", qty:"240 t", unit:"SAR 3,810/t", total:"SAR 914,400",  delivery:"12 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 32mm rebar", qty:"180 t", unit:"SAR 3,990/t", total:"SAR 718,200",  delivery:"19 Sep 2026", tax:"15% VAT incl."},
-      {item:"B500B 12mm rebar", qty:"140 t", unit:"SAR 4,080/t", total:"SAR 571,200",  delivery:"26 Sep 2026", tax:"15% VAT incl."},
-      {item:"Couplers (BS 8597)", qty:"80 ea", unit:"SAR 235/ea", total:"SAR 18,800",   delivery:"26 Sep 2026", tax:"15% VAT incl."}
-    ], total:"SAR 4,557,800", lead:"12 Sep", notes:"New vendor · +1.8% unit rate but 7-day earlier delivery on critical lines · requires onboarding clearance"}
-  };
-  var diff = ((4557800-4475000)/4475000*100).toFixed(1);
-  var items = Q.a.items.map(function(a,i){
-    var b = Q.b.items[i];
-    var aN = parseFloat(a.total.replace(/[^0-9.]/g,""));
-    var bN = parseFloat(b.total.replace(/[^0-9.]/g,""));
-    var d = ((bN-aN)/aN*100).toFixed(1);
-    return '<div class="duel-row"><span class="dr-label">'+esc(a.item)+'</span>'+
-      '<span class="dr-val">'+esc(a.total)+'</span><span class="dr-val">'+esc(b.total)+'</span></div>';
-  }).join("");
-  body.innerHTML = '<div class="rag-hd">'+ico("i-chart","sm")+'<h4>Vendor Quote Duel</h4>'+
-    '<span class="tag" style="color:var(--cyan)">RAG-extracted</span></div>'+
-    '<div class="rag-body">'+
-    '<div class="rag-card"><h5>'+ico("i-spark","sm")+'Agent verdict</h5>'+
-    '<p><b>+1.8% on unit cost buys 7 days of schedule relief.</b> At standby SAR 94,000/day, the cost of 7 crew idle days (SAR 658,000) far exceeds the SAR 82,800 premium on the Fabricator quote. The dual-source recommendation stands: accept Fabricator Direct for the 4 outstanding lines and retain Al-Rajhi for future pours.</p>'+
-    '<div class="rag-cite" data-cite="n19">'+ico("i-brain","xs")+'Source: Rate card 2026 Q3 · Exposure model · GC-8 clause 8.4</div></div>'+
-    '<div class="duel-split">'+
-    '<div class="duel-col"><h5>'+ico("i-chart","xs")+' '+esc(Q.a.name)+'</h5>'+
-    '<div class="duel-row"><span class="dr-label"><b>Total</b></span><span class="dr-val" style="font-weight:700">'+esc(Q.a.total)+'</span><span></span></div>'+
-    '<div class="duel-row"><span class="dr-label">Earliest delivery</span><span class="dr-val">'+esc(Q.a.lead)+'</span><span></span></div>'+
-    '<div class="duel-row"><span class="dr-label">Vendor status</span><span class="dr-val" style="color:var(--private)">Existing</span><span></span></div>'+
-    '<div class="duel-row"><span class="dr-label">Onboarding</span><span class="dr-val" style="color:var(--private)">Cleared</span><span></span></div>'+
-    '<div style="border-top:1px solid var(--glass-line);margin-top:8px;padding-top:8px;font-size:11px;color:var(--tx-3)">'+esc(Q.a.notes)+'</div></div>'+
-    '<div class="duel-col winner"><h5>'+ico("i-chart","xs")+' '+esc(Q.b.name)+'</h5>'+
-    '<div class="duel-row"><span class="dr-label"><b>Total</b></span><span class="dr-val" style="font-weight:700">'+esc(Q.b.total)+'</span><span class="dr-diff up">+'+diff+'%</span></div>'+
-    '<div class="duel-row"><span class="dr-label">Earliest delivery</span><span class="dr-val" style="color:var(--private)">'+esc(Q.b.lead)+'</span><span class="dr-diff down">7d faster</span></div>'+
-    '<div class="duel-row"><span class="dr-label">Vendor status</span><span class="dr-val" style="color:var(--accent-2)">New</span><span></span></div>'+
-    '<div class="duel-row"><span class="dr-label">Onboarding</span><span class="dr-val" style="color:#F0B44E">Pending</span><span></span></div>'+
-    '<div style="border-top:1px solid var(--glass-line);margin-top:8px;padding-top:8px;font-size:11px;color:var(--tx-3)">'+esc(Q.b.notes)+'</div></div></div>'+
-    '<div class="rag-card" style="margin-top:14px"><h5>'+ico("i-doc","sm")+'Line-by-line comparison</h5>'+items+'</div></div>';
-  body.addEventListener("click", function(e){
-    var c = e.target.closest("[data-cite]");
-    if(c){ openApp("brain"); }
-  });
-};
 
 /* ---------------------------------------------------------- BOARD PACK NARRATIVE */
-MOUNT.board = function(body, w){
-  setWinTitle(w, "Board Pack Narrative");
-  var PARAGRAPHS = [
-    {heading:"Financial Exposure", text:"Package C2 exposure stands at SAR 5.32M at 45 days. The standby crew rate of SAR 94,000/day is the single largest sensitivity — a 10% increase would add SAR 423,000 to the total. The LD cap under GC-8 8.4 binds at day 67 (10% of package value), but the standby cost curve overtakes it before that threshold.", cite:"n2", citeLabel:"Exposure model"},
-    {heading:"Schedule Status", text:"P6 baseline r7 shows 11 days behind on the rebar-fixing sequence, all traceable to PO 4500219871 delivery delays. 4 of 6 order lines remain outstanding against a promised date of 03 August. The critical path is the C2 deck pour — each day of rebar delay translates one-for-one to the pour sequence.", cite:"n4", citeLabel:"P6 schedule snapshot"},
-    {heading:"Vendor Action", text:"Al-Rajhi Steel proposed 19 September for the remaining 498 tonnes — 47 days late. A dual-source option from Fabricator Direct offers the same volume by 12 September at +1.8% unit premium. At the current standby rate, the 7-day saving is worth SAR 658,000 versus the SAR 82,800 price premium. Recommendation: accept the dual-source and issue VN-C2-0114.", cite:"n18", citeLabel:"Variation notice draft"},
-    {heading:"Risk Highlights", text:"Two LTIs on the C2 deck under HSE investigation — Sara Bin Zayed has escalated the crew-safety briefing to this week. Vendor onboarding for Fabricator Direct is pending Procurement clearance — expected by Wednesday. The variation notice assessed sum remains blank and requires your figure before Thursday 09:00.", cite:"n9", citeLabel:"HSE register"},
-    {heading:"Decisions Needed", text:"1. Approve dual-source rate (SAR 4,557,800 vs SAR 4,475,000 single-source). 2. Sign off the VN-C2-0114 assessed sum. 3. Confirm the board exposure figure of SAR 5.32M for Thursday's pack.", cite:"n1", citeLabel:"Approval queue"}
-  ];
-  var html = '<div class="rag-hd">'+ico("i-doc","sm")+'<h4>Board Pack Narrative</h4>'+
-    '<span class="tag" style="color:var(--cyan)">AI-generated from Brain</span></div>'+
-    '<div class="rag-body">'+
-    '<div class="rag-card"><h5>'+ico("i-spark","sm")+'What the board should know this week</h5>'+
-    '<p style="font-size:11.5px;color:var(--tx-3)">Synthesised from '+PARAGRAPHS.length+' Brain clusters: exposure model, P6 schedule, vendor quotes, HSE register, and your approval queue. Each paragraph cites its primary source node.</p></div>';
-  PARAGRAPHS.forEach(function(p){
-    html += '<div class="rag-card"><h5>'+esc(p.heading)+'</h5><p>'+esc(p.text)+'</p>'+
-      '<div class="rag-cite" data-cite="'+p.cite+'">'+ico("i-brain","xs")+' '+esc(p.citeLabel)+'</div></div>';
-  });
-  html += '<div class="rag-card" style="background:rgba(14,165,183,.06);border-color:rgba(14,165,183,.2)">'+
-    '<h5>'+ico("i-check","sm")+'Ready for Thursday 09:00</h5>'+
-    '<p>All figures cited are sourced from the Brain knowledge graph. The narrative was generated by the board drafter agent using the latest VFS data. Export as PDF from the Docs editor, or say "draft the board deck" to generate slides.</p></div></div>';
-  body.innerHTML = html;
-  body.addEventListener("click", function(e){
-    var c = e.target.closest("[data-cite]");
-    if(c){
-      var bw = openApp("brain");
-      if(bw) brainSelect(bw, c.getAttribute("data-cite"));
-    }
-  });
-};
 
 /* ---------------------------------------------------------- MEETING PREP CARD */
-MOUNT.prep = function(body, w){
-  setWinTitle(w, "Meeting Prep — C2 Commercial Review");
-  body.innerHTML = '<div class="rag-hd">'+ico("i-chat","sm")+'<h4>Meeting Prep Card</h4>'+
-    '<span class="tag" style="color:var(--cyan)">Auto-synthesised</span></div>'+
-    '<div class="rag-body">'+
-    '<div class="rag-card"><h5>'+ico("i-calendar","sm")+'C2 Commercial Review — Thu 09:00</h5>'+
-    '<p style="font-size:11.5px;color:var(--tx-3)">Synthesised from: 7 email threads, 4 Brain documents, 3 pending approvals, and P6 schedule data. Last updated just now.</p></div>'+
-    '<div class="rag-card"><h5>'+ico("i-brain","sm")+'Context (what you need to know)</h5>'+
-    '<p><b>Exposure:</b> SAR 5.32M at 45 days. Standby rate SAR 94k/day is the dominant cost driver. LD cap under GC-8 8.4 binds at day 67 but is overtaken by standby costs before that.</p>'+
-    '<p style="margin-top:6px"><b>Vendor:</b> Al-Rajhi 498t outstanding, promised 19 Sep. Fabricator Direct can deliver by 12 Sep at +1.8% premium. Dual-source saves 7 crew days at current standby rate.</p>'+
-    '<p style="margin-top:6px"><b>Schedule:</b> 11 days behind baseline r7 on rebar-fixing. All delay traceable to PO 4500219871. Critical path: C2 deck pour.</p>'+
-    '<div class="rag-cite" data-cite="n2">'+ico("i-brain","xs")+' Exposure model · n2</div></div>'+
-    '<div class="rag-card"><h5>'+ico("i-approve","sm")+'Decisions (what you need to decide)</h5>'+
-    '<p><b>1. Dual-source rate</b> — Accept Fabricator Direct at SAR 4,557,800 (vs SAR 4,475,000 single-source). The 7-day saving is worth SAR 658k vs SAR 83k premium.</p>'+
-    '<p style="margin-top:6px"><b>2. VN-C2-0114 assessed sum</b> — Blank. Your figure needed before Thursday.</p>'+
-    '<p style="margin-top:6px"><b>3. Board exposure figure</b> — SAR 5.32M to be confirmed for Thursday pack.</p></div>'+
-    '<div class="rag-card"><h5>'+ico("i-x","sm")+'Escalations (what needs your attention)</h5>'+
-    '<p><b>HSE:</b> Two LTIs on C2 deck under investigation. Sara wants crew-safety briefing this week.</p>'+
-    '<p style="margin-top:6px"><b>Procurement:</b> Fabricator Direct onboarding pending clearance — expected Wed. If delayed, dual-source option closes.</p></div>'+
-    '<div class="rag-card"><h5>'+ico("i-file","sm")+'Documents (what to read beforehand)</h5>'+
-    '<p style="font-size:12px;color:var(--tx-2)">1. Variation Notice VN-C2-0114 (draft) — <span class="rag-cite" data-cite="n18" style="display:inline">open in Brain</span></p>'+
-    '<p style="font-size:12px;color:var(--tx-2)">2. PO 4500219871 line status — <span class="rag-cite" data-cite="n3" style="display:inline">open in Brain</span></p>'+
-    '<p style="font-size:12px;color:var(--tx-2)">3. Rate card 2026 Q3 — <span class="rag-cite" data-cite="n19" style="display:inline">open in Brain</span></p>'+
-    '<p style="font-size:12px;color:var(--tx-2)">4. GC-8 clause 8.4 (LD provisions) — <span class="rag-cite" data-cite="n2" style="display:inline">open in Brain</span></p></div></div>';
-  body.addEventListener("click", function(e){
-    var c = e.target.closest("[data-cite]");
-    if(c){ openApp("brain"); }
-  });
-};
 
 /* ---------------------------------------------------------- AUDIT READINESS SCORE */
-MOUNT.audit = function(body, w){
-  setWinTitle(w, "Audit Readiness — HSE");
-  var CHECKS = [
-    {label:"Method statement for deck pour", status:"done", source:"Confluence", doc:"MS-C2-DP-003"},
-    {label:"Crew competency matrix", status:"done", source:"SharePoint", doc:"COMP-C2-Q3.xlsx"},
-    {label:"Toolbox talk records (last 4 weeks)", status:"done", source:"SharePoint", doc:"TBT-C2-W32-W35"},
-    {label:"Risk assessment — rebar fixing", status:"done", source:"Confluence", doc:"RA-C2-RF-001"},
-    {label:"Lifting plan for rebar bundles", status:"done", source:"SharePoint", doc:"LP-C2-012"},
-    {label:"PPE compliance records", status:"partial", source:"SharePoint", doc:"PPE-C2-Aug (missing 3 sign-offs)"},
-    {label:"Equipment calibration certificates", status:"done", source:"Network share", doc:"CAL-2026-Q3"},
-    {label:"Incident register (last 90 days)", status:"done", source:"SharePoint", doc:"INC-C2-Q3"},
-    {label:"LTI investigation reports", status:"missing", source:"—", doc:"2 open investigations, reports not filed"},
-    {label:"Emergency response plan", status:"done", source:"Confluence", doc:"ERP-C2-2026"},
-    {label:"Subcontractor insurance certificates", status:"done", source:"SharePoint", doc:"INS-GC8-2026"},
-    {label:"Material test certificates (rebar)", status:"done", source:"SAP S/4HANA", doc:"MTC-PO4500219871"},
-    {label:"Concrete mix design approvals", status:"done", source:"Confluence", doc:"MIX-C2-DP-003"},
-    {label:"Environmental monitoring logs", status:"partial", source:"SharePoint", doc:"ENV-C2-Aug (Week 3 pending)"}
-  ];
-  var done = CHECKS.filter(function(c){ return c.status === "done"; }).length;
-  var partial = CHECKS.filter(function(c){ return c.status === "partial"; }).length;
-  var missing = CHECKS.filter(function(c){ return c.status === "missing"; }).length;
-  var score = Math.round(((done + partial * 0.5) / CHECKS.length) * 100);
-  var circ = 2 * Math.PI * 26;  /* r=26 */
-  var offset = circ * (1 - score / 100);
-  body.innerHTML = '<div class="rag-hd">'+ico("i-shield","sm")+'<h4>Audit Readiness — HSE</h4>'+
-    '<span class="tag" style="color:var(--cyan)">RAG-checked</span></div>'+
-    '<div class="rag-body">'+
-    '<div class="rag-card"><h5>'+ico("i-shield","sm")+'Overall readiness</h5>'+
-    '<div class="audit-bar">'+
-    '<div class="audit-ring"><svg viewBox="0 0 56 56"><circle class="bg" cx="28" cy="28" r="26"/>'+
-    '<circle class="fg" cx="28" cy="28" r="26" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'"/></svg>'+
-    '<span class="audit-pct">'+score+'%</span></div>'+
-    '<div><div style="font-size:13px;font-weight:700;color:var(--tx)">'+done+' complete · '+partial+' partial · '+missing+' missing</div>'+
-    '<div style="font-size:11.5px;color:var(--tx-3);margin-top:2px">'+CHECKS.length+' checks across '+new Set(CHECKS.map(function(c){return c.source})).size+' sources. RAG scanned '+
-    'SharePoint, Confluence, SAP and Network share.</div></div></div></div>'+
-    '<div class="rag-card"><h5>'+ico("i-doc","sm")+'Checklist</h5>'+
-    CHECKS.map(function(c){
-      var dotClass = c.status === "done" ? "done" : c.status === "partial" ? "partial" : "missing";
-      var statusLabel = c.status === "done" ? "Complete" : c.status === "partial" ? "Partial" : "Missing";
-      return '<div class="audit-check"><span class="ac-dot '+dotClass+'"></span>'+
-        '<span class="ac-label">'+esc(c.label)+'</span>'+
-        '<span class="ac-source">'+esc(c.doc)+'</span>'+
-        '<span class="tag" style="color:'+(dotClass==="done"?"var(--private)":dotClass==="partial"?"#F0B44E":"var(--accent-2)")+'">'+statusLabel+'</span></div>';
-    }).join("")+'</div>'+
-    '<div class="rag-card" style="background:rgba(240,53,60,.05);border-color:rgba(240,53,60,.2)"><h5>'+ico("i-x","sm")+'Action items</h5>'+
-    '<p><b>1. LTI investigation reports</b> — Two open investigations on the C2 deck. Reports must be filed before audit. Escalate to Sara Bin Zayed.</p>'+
-    '<p style="margin-top:6px"><b>2. PPE compliance</b> — Three sign-offs missing from Week 32. Crew leads to complete by Wednesday.</p>'+
-    '<p style="margin-top:6px"><b>3. Environmental monitoring</b> — Week 3 data pending from site lab. Expected Monday.</p></div></div>';
-};
 
 /* ---------------------------------------------------------- BRAIN (Knowledge Graph) */
 MOUNT.brain = function(body, w){
@@ -10211,7 +10132,7 @@ function cxReview(f){
         "</code> will take a string or a negative number and return NaN.");
     var magic = [];
     lines.forEach(function(l, i){
-      if(l.match(/[^\w.]\d{4,}(?![\w.])/) && !/^\s*(?:export\s+)?(?:const|let|var)\s/.test(l)) magic.push(i+1);
+      if(l.match(/[^\w.]\d{4}(?![\w.])/) && !/^\s*(?:export\s+)?(?:const|let|var)\s/.test(l)) magic.push(i+1);
     });
     if(magic.length) hit("info", magic[0], magic.length+" magic number(s) outside a named constant — first at line "+magic[0]+".");
     if(/export\s+/.test(t) && !/\/\*\*/.test(t))
@@ -10639,7 +10560,7 @@ function cxInline(instr, text, path, variant){
   }
   if(/magic number|constant|extract the number|name the number/.test(q)){
     var nums = [], seen = {};
-    (text.match(/(?:^|[^\w.])(\d{3,})(?![\w.])/g) || []).forEach(function(x){
+    (text.match(/(?:^|[^\w.])(\d{3})(?![\w.])/g) || []).forEach(function(x){
       var n = x.replace(/[^\d]/g,"");
       if(n && !seen[n]){ seen[n] = true; nums.push(n); }
     });
@@ -10665,7 +10586,7 @@ function cxInline(instr, text, path, variant){
   }
   if(/tidy|format|indent|clean|whitespace|normalise|normalize/.test(q)){
     var tidy = text.split("\n").map(function(l){ return l.replace(/\t/g,"  ").replace(/\s+$/,""); })
-      .join("\n").replace(/\n{3,}/g,"\n\n");
+      .join("\n").replace(/\n{3}/g,"\n\n");
     return { next:tidy, note:tidy === text ? "Already tidy — no tabs, no trailing whitespace, no triple blank lines."
       : "Tabs to two spaces, trailing whitespace stripped, runs of blank lines collapsed. No token was moved." };
   }
@@ -12791,87 +12712,21 @@ function autosDraft(w, sentence){
 }
 
 /* ---------------------------------------------------------- CONNECTIONS */
-MOUNT.conn = function(body, w){
-  body.innerHTML = '<div class="pane"><div class="pane-scroll">'+
-    '<h4 class="sec">Connections</h4>'+
-    '<p class="sub">Seven systems linked, three available. Every connector runs inside the DC — a linked system '+
-    'does not imply anything leaves the network.</p>'+
-    '<div class="grid2">'+ CONNECTORS.map(function(c){
-      return '<div class="conn-card"><div class="top">'+
-        '<span class="bt" style="background:'+c.bg+'">'+esc(c.ab)+'</span>'+
-        '<span class="nm">'+esc(c.k)+'</span>'+
-        (c.st==="linked"?'<span class="tag pv">'+ico("i-check","xs")+'linked</span>':'<span class="tag">available</span>')+
-        '</div><p>'+esc(c.d)+'</p>'+
-        '<button class="btn sm" data-conn="'+esc(c.k)+'" data-st="'+c.st+'">'+
-        (c.st==="linked"?"Manage":"Link")+'</button></div>';
-    }).join("") + '</div>'+
-    '<div class="card" style="margin-top:14px"><h5>'+ico("i-warn","sm")+'What is simulated</h5>'+
-    '<p>This prototype has no backend, so no OAuth handshake happens and no token is stored. Linking shows the '+
-    'shape of the flow and the scopes a real integration would request.</p></div>'+
-    '</div></div>';
-  body.addEventListener("click", function(e){
-    var b = e.target.closest("[data-conn]"); if(!b) return;
-    var k = b.getAttribute("data-conn");
-    if(b.getAttribute("data-st") === "linked"){ toast(k + " — read scopes active; writes ask each time."); return; }
-    requestApproval(w, {
-      title:"Link " + k + " to this workspace?",
-      detail:"Requests read scopes only. Console will ask again before its first write.",
-      confirm:"Link", okToast:k + " linked (simulated)."
-    });
-  });
-};
+/* MOUNT.conn removed. Connections is @magna/app-connections now, and it shows
+   only what the harness can actually observe: configured model providers, a
+   connected mailbox, and apps whose manifests declare egress. The version
+   here showed six enterprise systems as `linked` — GitHub, GitLab, SAP
+   S/4HANA, Primavera P6, Jira, Confluence — and admitted underneath that no
+   OAuth handshake ever happened and no token was ever stored. For a product
+   whose claim is sovereignty, that was the worst screen in the build to
+   fake. */
 
 /* ---------------------------------------------------------- MAIL */
-MOUNT.mail = function(body, w){
-  body.innerHTML =
-    '<div class="cd">'+
-      '<div class="side">'+
-        '<div class="side-h">Mailboxes</div>'+
-        '<button class="side-i" aria-current="true">'+ico("i-mail","sm")+'Inbox<span class="cnt">2</span></button>'+
-        '<button class="side-i">'+ico("i-file","sm")+'Drafts<span class="cnt">1</span></button>'+
-        '<button class="side-i">'+ico("i-send","sm")+'Sent</button>'+
-        '<div class="side-h" style="margin-top:8px">Brain</div>'+
-        '<button class="side-i" data-openbrain>'+ico("i-brain","sm")+'Email graph</button>'+
-        '<button class="side-i" data-openbrain-docs>'+ico("i-knowledge","sm")+'Documents &amp; Knowledge</button>'+
-      '</div>'+
-      '<div class="cd-main"><div class="pane-scroll">'+
-        '<h4 class="sec">Inbox</h4>'+
-        '<p class="sub">Console reads mail to place it in the Brain — it never replies on its own. Each message shows '+
-        'which Brain nodes it connects to and why it matters today.</p>'+
-        EMAILS.map(function(m){
-          var node = nodeById(m.node);
-          var brainLinks = node ? neighbours(node.id).slice(0,3) : [];
-          return '<div class="erow"><div class="av">'+esc(m.from.split(" ").map(function(p){return p[0];}).join("").slice(0,2))+'</div>'+
-          '<div class="mid"><div class="fr">'+esc(m.from)+
-          (m.read?"":' <span class="tag ac">unread</span>')+'<span class="tag">'+esc(m.org)+'</span></div>'+
-          '<div class="sj">'+esc(m.subj)+'</div>'+
-          '<div class="ex">'+ico("i-brain","xs")+' '+esc(m.why)+'</div>'+
-          (brainLinks.length ? '<div class="brain-links">'+brainLinks.map(function(l){
-            return '<button class="brain-link-chip" data-brnode="'+l.node.id+'">'+ico("i-brain","xs")+
-              '<span>'+esc(l.node.label)+'</span><span class="bl-score">'+l.score.toFixed(2)+'</span></button>';
-          }).join("")+'</div>' : '')+
-          '</div>'+
-          '<span class="rt">'+esc(m.when)+'</span></div>';
-        }).join("")+
-      '</div></div>'+
-    '</div>';
-  body.addEventListener("click", function(e){
-    if(e.target.closest("[data-openbrain]")){
-      var b = openApp("brain");
-      if(b){ b.state.tab = "emails";
-             $$(".tab", b.body).forEach(function(x){ x.setAttribute("aria-selected", String(x.getAttribute("data-brtab")==="emails")); });
-             b.state.drawTab(); }
-    }
-    if(e.target.closest("[data-openbrain-docs]")){
-      var b = openApp("brain");
-      if(b){ b.state.tab = "docs";
-             $$(".tab", b.body).forEach(function(x){ x.setAttribute("aria-selected", String(x.getAttribute("data-brtab")==="docs")); });
-             b.state.drawTab(); }
-    }
-    var chip = e.target.closest(".brain-link-chip");
-    if(chip){ brainSelect(openApp("brain"), chip.getAttribute("data-brnode")); }
-  });
-};
+/* MOUNT.mail removed. Mail is @magna/app-mail now, and the five invented
+   messages that used to live here are gone with it. MVApps.mount() claims
+   the `mail` window whether the plugin is installed or not — it mounts the
+   plugin, or offers to install it — so there is no path back to a built-in
+   demo inbox. */
 
 /* ---------------------------------------------------------- SETTINGS */
 var SET_PANES = {
@@ -13160,126 +13015,12 @@ MOUNT.terminal = function(body, w){
 };
 
 /* ---------------------------------------------------------- API STUDIO */
-var API_COLLECTIONS = [
-  { nm:"Magna Internal", reqs:[
-    { id:"r1", m:"GET",  u:"/api/po/4500219871",  d:"PO header and lines" },
-    { id:"r2", m:"GET",  u:"/api/exposure/C2?days=45", d:"Exposure model output" },
-    { id:"r3", m:"POST", u:"/api/variation",      d:"Raise a variation notice" }
-  ]},
-  { nm:"SAP Bridge", reqs:[
-    { id:"r4", m:"GET",  u:"/sap/vendors?dup=true", d:"Duplicate vendor candidates" },
-    { id:"r5", m:"PATCH",u:"/sap/po/4500219871/line/40", d:"Amend a PO line" }
-  ]},
-  { nm:"P6 Bridge", reqs:[
-    { id:"r6", m:"GET",  u:"/p6/baseline/r7/slip", d:"Activities past 5 days slip" }
-  ]}
-];
-var API_RESPONSES = {
-  r1:{ s:200, t:"142 ms", sz:"1.9 KB", b:{ po:"4500219871", vendor:"Al-Rajhi Steel Co.",
-      currency:"SAR", promised:"2026-08-03", lines:[
-      {line:10,material:"B500B 16mm",qty_t:320,received_t:320,status:"complete"},
-      {line:20,material:"B500B 20mm",qty_t:280,received_t:280,status:"complete"},
-      {line:30,material:"B500B 25mm",qty_t:240,received_t:142,status:"partial"},
-      {line:40,material:"B500B 32mm",qty_t:180,received_t:0,status:"awaiting"},
-      {line:50,material:"B500B 12mm",qty_t:140,received_t:0,status:"awaiting"},
-      {line:60,material:"couplers",qty_t:80,received_t:0,status:"awaiting"}]}},
-  r2:{ s:200, t:"318 ms", sz:"412 B", b:{ package:"C2", days:45,
-      liquidated_damages_sar:2821500, standby_sar:4230000, escalation_sar:878000,
-      total_sar:5320000, ld_cap_binds_at_day:67, dominant_term:"standby" }},
-  r3:{ s:202, t:"96 ms", sz:"180 B", b:{ accepted:true, ref:"VN-C2-0114", assessed_sum:null,
-      note:"Draft created. Assessed sum left blank for human entry." }},
-  r4:{ s:200, t:"1.2 s", sz:"8.4 KB", b:{ scanned:18420, candidates:41,
-      top:[{a:"ALRAJHI STEEL CO",b:"Al-Rajhi Steel Co.",score:.97},
-           {a:"AL RAJHI STEEL",b:"Al-Rajhi Steel Co.",score:.94}] }},
-  r5:{ s:200, t:"240 ms", sz:"210 B", b:{ updated:true, line:40, new_promised:"2026-09-19" }},
-  r6:{ s:200, t:"602 ms", sz:"3.1 KB", b:{ baseline:"r7", threshold_days:5, slipping:3,
-      activities:[{id:"C2-RB-1180",name:"Rebar fix L2 deck",slip_days:11,critical:true},
-                  {id:"C2-RB-1210",name:"Rebar fix L3 deck",slip_days:8,critical:true},
-                  {id:"C2-CN-0440",name:"Coupler install",slip_days:6,critical:false}] }}
-};
-MOUNT.api = function(body, w){
-  w.state.req = "r1"; w.state.tab = "params";
-  body.innerHTML = '<div class="cd">'+
-    '<div class="side">'+
-      API_COLLECTIONS.map(function(c){
-        return '<div class="side-h">'+esc(c.nm)+'</div>'+ c.reqs.map(function(r){
-          return '<button class="side-i" data-areq="'+r.id+'" aria-current="'+(r.id==="r1")+'">'+
-            '<span class="tag" style="min-width:44px;justify-content:center">'+r.m+'</span>'+
-            '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11.5px">'+
-            esc(r.u.split("?")[0])+'</span></button>'; }).join("");
-      }).join("")+
-    '</div><div class="cd-main" data-abody></div></div>';
-  function reqById(id){
-    for(var i=0;i<API_COLLECTIONS.length;i++){
-      var f = API_COLLECTIONS[i].reqs.filter(function(r){ return r.id===id; })[0];
-      if(f) return f;
-    } return null;
-  }
-  function draw(){
-    var r = reqById(w.state.req), resp = API_RESPONSES[w.state.req];
-    setWinTitle(w, "API Studio", r.m + " " + r.u);
-    var mCol = r.m === "GET" ? "var(--private)" : r.m === "DELETE" ? "var(--accent-2)" : "var(--public)";
-    body.querySelector("[data-abody]").innerHTML =
-      '<div style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;'+
-        'border-bottom:1px solid var(--glass-line)">'+
-        '<span class="tag" style="color:'+mCol+';border-color:'+mCol+'66;font-weight:700">'+r.m+'</span>'+
-        '<input class="bw-url" value="'+esc(r.u)+'" spellcheck="false" style="flex:1">'+
-        '<button class="btn primary sm" data-asend>'+ico("i-play","xs")+'Send</button></div>'+
-      '<div class="tabs">'+ ["params","headers","auth","body","tests"].map(function(t){
-          return '<button class="tab" data-atab="'+t+'" aria-selected="'+(t===w.state.tab)+'">'+
-                 t.charAt(0).toUpperCase()+t.slice(1)+'</button>'; }).join("") +'</div>'+
-      '<div style="flex:none;max-height:150px;overflow:auto;padding:12px 14px;'+
-        'border-bottom:1px solid var(--glass-line)">'+ tabBody(r) +'</div>'+
-      '<div style="flex:1;min-height:0;display:flex;flex-direction:column">'+
-        '<div style="flex:none;display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:11.5px;'+
-          'border-bottom:1px solid var(--glass-line)">'+
-          '<span class="tag pv">'+resp.s+' OK</span>'+
-          '<span style="color:var(--tx-3);font-family:var(--mono)">'+resp.t+' · '+resp.sz+'</span>'+
-          '<span class="sp" style="flex:1"></span>'+
-          '<span style="color:var(--tx-4)">response</span></div>'+
-        '<div class="cd-editor" style="flex:1"><pre>'+
-          esc(JSON.stringify(resp.b, null, 2))+'</pre></div>'+
-      '</div>';
-  }
-  function tabBody(r){
-    var t = w.state.tab;
-    if(t === "headers") return '<div class="kv"><span class="k">Content-Type</span><span class="v">application/json</span></div>'+
-      '<div class="kv"><span class="k">X-Magna-Tier</span><span class="v">private</span></div>'+
-      '<div class="kv"><span class="k">X-Request-Id</span><span class="v">rq_8f2a41c9</span></div>';
-    if(t === "auth") return '<div class="kv"><span class="k">Scheme</span><span class="v">Bearer (workspace token)</span></div>'+
-      '<div class="kv"><span class="k">Source</span><span class="v">Secret vault · never shown</span></div>'+
-      '<div class="kv"><span class="k">Scope</span><span class="v">po:read exposure:read</span></div>';
-    if(t === "body") return r.m === "GET"
-      ? '<p class="sub" style="margin:0">No body on a GET.</p>'
-      : '<pre style="margin:0;font-family:var(--mono);font-size:11.5px;color:var(--tx-2)">'+
-        esc('{\n  "package": "C2",\n  "clause": "GC-8 8.4",\n  "assessed_sum": null\n}')+'</pre>';
-    if(t === "tests") return '<div class="kv"><span class="k">status is 2xx</span><span class="v" style="color:var(--private)">pass</span></div>'+
-      '<div class="kv"><span class="k">total_sar &gt; 0</span><span class="v" style="color:var(--private)">pass</span></div>'+
-      '<div class="kv"><span class="k">response &lt; 2s</span><span class="v" style="color:var(--private)">pass</span></div>';
-    return '<div class="kv"><span class="k">days</span><span class="v">45</span></div>'+
-      '<div class="kv"><span class="k">tier</span><span class="v">private</span></div>'+
-      '<p class="sub" style="margin:8px 0 0;font-size:11.5px">'+esc(r.d)+'</p>';
-  }
-  body.addEventListener("click", function(e){
-    var q = e.target.closest("[data-areq]");
-    if(q){ w.state.req = q.getAttribute("data-areq");
-           $$("[data-areq]", body).forEach(function(x){ x.setAttribute("aria-current", String(x===q)); });
-           draw(); return; }
-    var t = e.target.closest("[data-atab]");
-    if(t){ w.state.tab = t.getAttribute("data-atab"); draw(); return; }
-    if(e.target.closest("[data-asend]")){
-      var r = reqById(w.state.req);
-      if(r.m === "GET"){ toast("200 OK · " + API_RESPONSES[r.id].t); return; }
-      requestApproval(w, {
-        title:"Send a " + r.m + " request?",
-        detail:r.m + " " + r.u + " changes data in a production system. This is a write.",
-        confirm:"Send " + r.m,
-        okToast:"Sent · " + API_RESPONSES[r.id].s
-      });
-    }
-  });
-  draw();
-};
+/* API_COLLECTIONS and API_RESPONSES are gone with MOUNT.api: three
+   collections of endpoints that were never called, and their canned bodies. */
+/* MOUNT.api removed. API Studio is @magna/app-api now and it sends the
+   request. Everything here was canned: API_RESPONSES was an object keyed by
+   request id, so pressing Send looked up a body and printed an invented
+   `200 OK · 142 ms · 1.9 KB` for endpoints that do not exist. */
 
 /* ---------------------------------------------------------- DATABASE STUDIO */
 var DB_CONNS = [
@@ -13390,7 +13131,7 @@ MOUNT.db = function(body, w){
         detail:"Only SELECT runs freely on magna-prod. “"+q.split(/\s+/)[0].toUpperCase()+
                "” changes or removes data and cannot be undone.",
         confirm:"Run anyway",
-        okToast:"Executed (simulated). 0 rows changed — read-only role.",
+        okToast:"Executed (simulated). 0 rows changed — read-only role."
       });
       return;
     }
@@ -14257,8 +13998,7 @@ MOUNT.files = function(body, w){
       var nfId = nf.id;
       draw();
       /* name it inline, right on the row/tile */
-      var row = w.body.querySelector('[data-fmren="'+nfId+'"] .fm-name') ||
-                w.body.querySelector('[data-fmopen="'+nfId+'"] .fm-name');
+      var row = w.body.querySelector('[data-file="'+nfId+'"] .fm-name');
       if(row){
         var stem = kind==="folder" ? uname : uname.replace(/\.[^.]+$/,"");
         var inp = document.createElement("input");
@@ -14286,8 +14026,11 @@ MOUNT.files = function(body, w){
     if(t = e.target.closest("[data-fmren]")){ var rid = t.getAttribute("data-fmren");
       var rf = VFS.get(rid); if(!rf) return;
       /* inline rename on the name span — same Apple flow as the desktop */
-      var span = w.body.querySelector('[data-fmren="'+rid+'"] .fm-name');
-      if(!span){ var np = prompt("Rename:", rf.name); if(np && np.trim()){ VFS.rename(rid, np.trim()); draw(); } return; }
+      var span = w.body.querySelector('[data-file="'+rid+'"] .fm-name');
+      /* No prompt() fallback. If the row cannot be found the right answer is to
+         do nothing visible rather than to open a Chrome dialog in the middle of
+         a desktop that has its own. */
+      if(!span) return;
       var stemF = rf.type==="folder" ? rf.name : rf.name.replace(/\.[^.]+$/,"");
       var ip = document.createElement("input");
       ip.className = "inline-rename fm"; ip.value = rf.name;
@@ -14332,15 +14075,47 @@ MOUNT.files = function(body, w){
       });
       return;
     }
+
+    /* The tile itself opens. This is LAST on purpose: every specific control
+       above — rename, cut, delete, the explicit open button — gets first
+       refusal, so clicking one of them never also opens the file underneath.
+
+       Before this, the only way to open anything was a 20px button inside
+       .fm-actions-row, which CSS reveals on hover. Clicking the icon or the
+       name — which is what a file manager has trained everyone to do — hit the
+       tile div, matched no selector, and silently did nothing. */
+    if(t = e.target.closest(".fm-item")){
+      var fid = t.getAttribute("data-file");
+      var ff = fid ? VFS.get(fid) : null;
+      if(!ff) return;
+      if(ff.type === "folder"){ w.state.folderId = ff.id; draw(); }
+      else openFile(ff);
+      return;
+    }
   });
   draw();
 };
+
+/* Every route into a document goes through here, so there is exactly one place
+   that decides which app opens a .docx — and that app is the Docs PLUGIN. When
+   it is not installed, openApp hands the window to MVApps, which offers to
+   install it. The Console's built-in Word used to be a second, un-removable
+   route to the same files. */
+function openDocument(f){
+  if(!f) return;
+  openApp("docs", {fileId:f.id, fileName:f.name, content:f.content||""});
+}
 
 /* shared: open a file in the right editor */
 function openFile(f){
   if(!f) return;
   var ext = (f.ext||"").toLowerCase();
-  if(ext==="docx"||ext==="doc"||ext==="txt"||ext==="md") openApp("word",{fileId:f.id});
+  /* Document files go to the Docs PLUGIN, not to the Console's built-in Word.
+     That is what makes uninstalling Docs actually mean something: openApp goes
+     through MVApps.mount, which claims the window and offers to install the
+     plugin when it is missing. Routing to a built-in editor instead meant a
+     removed app kept opening its files as if nothing had changed. */
+  if(ext==="docx"||ext==="doc"||ext==="txt"||ext==="md"){ openDocument(f); }
   else if(ext==="pptx"||ext==="ppt") openApp("ppt",{fileId:f.id});
   else if(ext==="xlsx"||ext==="xls"||ext==="csv") openApp("sheets",{fileId:f.id});
   else openApp("files",{folderId:f.parentId});
@@ -14353,122 +14128,11 @@ function formatSize(bytes){
 }
 
 /* ---------------------------------------------------------- WORD (rich text editor) */
-MOUNT.word = function(body, w){
-  var fileId = w.params && w.params.fileId;
-  var file = fileId ? VFS.get(fileId) : null;
-  var content = file ? (file.content || "<p>Start typing…</p>") : "<p>Start typing…</p>";
-  if(!file){
-    file = VFS.create("desktop", "Untitled.docx", "file", content, "docx");
-    w.params.fileId = file.id;
-    renderDesktopFiles();
-  }
-  w.state.fileId = file.id;
-  setWinTitle(w, "Word — " + file.name);
-  body.innerHTML = '<div class="pane" style="display:flex;flex-direction:column">'+
-    '<div class="word-toolbar" data-wtoolbar">'+
-      '<button class="btn xs" data-cmd="bold" title="Bold"><b>B</b></button>'+
-      '<button class="btn xs" data-cmd="italic" title="Italic"><i>I</i></button>'+
-      '<button class="btn xs" data-cmd="underline" title="Underline"><u>U</u></button>'+
-      '<button class="btn xs" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>'+
-      '<span class="fm-sep"></span>'+
-      '<button class="btn xs" data-cmd="formatBlock" data-val="H1" title="Heading 1">H1</button>'+
-      '<button class="btn xs" data-cmd="formatBlock" data-val="H2" title="Heading 2">H2</button>'+
-      '<button class="btn xs" data-cmd="formatBlock" data-val="H3" title="Heading 3">H3</button>'+
-      '<button class="btn xs" data-cmd="formatBlock" data-val="P" title="Paragraph">¶</button>'+
-      '<span class="fm-sep"></span>'+
-      '<button class="btn xs" data-cmd="insertUnorderedList" title="Bullet list">•≡</button>'+
-      '<button class="btn xs" data-cmd="insertOrderedList" title="Numbered list">1.</button>'+
-      '<span class="fm-sep"></span>'+
-      '<button class="btn xs" data-cmd="justifyLeft" title="Align left">⫷</button>'+
-      '<button class="btn xs" data-cmd="justifyCenter" title="Align centre">⫿</button>'+
-      '<button class="btn xs" data-cmd="justifyRight" title="Align right">⫸</button>'+
-      '<span class="fm-sep"></span>'+
-      '<button class="btn xs" data-cmd="removeFormat" title="Clear formatting">✕</button>'+
-      '<span class="sp"></span>'+
-      '<span class="word-fname" data-wfname>'+esc(file.name)+'</span>'+
-      '<button class="btn sm" data-wopen>'+ico("i-open","xs")+' Open…</button>'+
-      '<button class="btn sm" data-wdisk>'+ico("i-download","xs")+' To disk</button>'+
-      '<button class="btn sm primary" data-wsave>'+ico("i-check","xs")+' Save</button>'+
-      '<button class="btn sm" data-wdownload>'+ico("i-file","xs")+' Download</button>'+
-    '</div>'+
-    '<div class="word-editor" data-weditor contenteditable="true" spellcheck="true">'+content+'</div>'+
-    '<div class="word-statusbar">'+
-      '<span data-wstatus>Ready</span><span class="sp"></span>'+
-      '<span data-wwords>0 words</span><span class="fm-sep"></span>'+
-      '<span data-wchars>0 chars</span>'+
-    '</div></div>';
-  var editor = body.querySelector("[data-weditor]");
-  function updateStats(){
-    var txt = editor.innerText || "";
-    var words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
-    body.querySelector("[data-wwords]").textContent = words + " word"+(words!==1?"s":"");
-    body.querySelector("[data-wchars]").textContent = txt.length + " char"+(txt.length!==1?"s":"");
-  }
-  editor.addEventListener("input", function(){ updateStats(); });
-  updateStats();
-  body.addEventListener("click", function(e){
-    var t;
-    if(t = e.target.closest("[data-cmd]")){
-      e.preventDefault();
-      var cmd = t.getAttribute("data-cmd"), val = t.getAttribute("data-val")||null;
-      document.execCommand(cmd, false, val);
-      editor.focus();
-      return;
-    }
-    if(t = e.target.closest("[data-wsave]")){
-      var html = editor.innerHTML;
-      VFS.write(w.state.fileId, html);
-      var f = VFS.get(w.state.fileId);
-      body.querySelector("[data-wstatus]").textContent = "Saved — " + new Date().toLocaleTimeString();
-      toast("Document saved.", 2000);
-      renderDesktopFiles();
-      return;
-    }
-    if(t = e.target.closest("[data-wdownload]")){
-      var html = editor.innerHTML;
-      var blob = new Blob(["<!DOCTYPE html><html><head><meta charset='utf-8'><title>"+
-        esc(VFS.get(w.state.fileId).name)+"</title><style>body{font:16px -apple-system,system-ui,sans-serif;"+
-        "max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;color:#222}"+
-        "h1,h2,h3{margin-top:1.2em}table{border-collapse:collapse;width:100%}"+
-        "td,th{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body>"+
-        html+"</body></html>"],{type:"text/html"});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a"); a.href = url; a.download = VFS.get(w.state.fileId).name.replace(/\.[^.]+$/,"")+".html";
-      a.click(); URL.revokeObjectURL(url);
-      toast("Downloaded as HTML.", 2000);
-      return;
-    }
-    if(t = e.target.closest("[data-wdisk]")){
-      var fD = VFS.get(w.state.fileId);
-      var htmlD = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>"+esc(fD.name)+
-        "</title></head><body style='font:16px -apple-system,sans-serif;max-width:800px;margin:40px auto;line-height:1.7'>"+
-        editor.innerHTML+"</body></html>";
-      fsaSave(fD.name.replace(/\.[^.]+$/,"") + ".html", htmlD, "text/html", function(direct){
-        toast(direct ? "Saved to your disk — a real .html wherever you pointed." : "Saved via download (no direct disk save in this browser).", 3000);
-      });
-      return;
-    }
-    if(t = e.target.closest("[data-wopen]")){
-      fsaOpen(["text/plain","text/html","text/markdown"], function(name, txt){
-        if(txt == null) return;
-        var ext = (name.split(".").pop()||"txt").toLowerCase();
-        var isHtml = ext === "html" || /^\s*<.+>/.test(txt);
-        var fN = VFS.create("desktop", vfsUniqueName("desktop", name), "file",
-          isHtml ? txt : "<p>"+esc(txt).replace(/\n{2,}/g,"</p><p>").replace(/\n/g,"<br>")+"</p>",
-          isHtml ? "docx" : (ext === "md" ? "md" : "txt"));
-        renderDesktopFiles();
-        openApp("word", {fileId:fN.id});
-        toast("“"+fN.name+"” opened from your disk.", 2600);
-      });
-      return;
-    }
-  });
-  /* autosave every 30s */
-  w.state.autosave = setInterval(function(){
-    if(editor){ VFS.write(w.state.fileId, editor.innerHTML); }
-  }, 30000);
-  w._cleanup = function(){ clearInterval(w.state.autosave); };
-};
+/* MOUNT.word removed. There were two document editors — the Console's own
+   Word and the Docs plugin — and only one of them could be uninstalled.
+   Keeping both meant a .docx still opened in a built-in editor after Docs
+   was removed, which made removing Docs meaningless. Documents now have one
+   home: @magna/app-docs. */
 
 /* ---------------------------------------------------------- PPT (presentation editor) */
 MOUNT.ppt = function(body, w){

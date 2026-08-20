@@ -1,0 +1,1493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE — 50 user flows, honestly scored</title>
+<meta name="description" content="Fifty concrete things a person sits down to do in MagnaVERSE, each with its happy path, and each marked Works, Partial or Gap against what is actually built.">
+<style>
+/* ─────────────────────────────  TOKENS  ───────────────────────────── */
+:root{
+  --bg:#F6F7F9; --bg-2:#EFF1F5; --surface:#FFFFFF; --surface-2:#F8F9FB; --surface-3:#F1F3F7;
+  --line:rgba(16,24,40,.11); --line-2:rgba(16,24,40,.20);
+  --tx:#0E1420; --tx-2:#4A5568; --tx-3:#6B7688;
+  --accent:#1E50C8; --accent-2:#1740A8; --accent-soft:rgba(30,80,200,.09); --accent-line:rgba(30,80,200,.28); --accent-ink:#FFFFFF;
+  --ok:#046C4E; --ok-bg:#E9F8F0; --ok-line:#9DE0BF;
+  --warn:#9A4B06; --warn-bg:#FEF6E7; --warn-line:#F6D08A;
+  --bad:#A4231C; --bad-bg:#FDF0EF; --bad-line:#F3B7B2;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 26px -18px rgba(16,24,40,.35);
+  --r:14px; --r-sm:9px; --r-pill:999px;
+  --mono:ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --maxw:1240px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0A0D13; --bg-2:#0D111A; --surface:#131822; --surface-2:#171D28; --surface-3:#1D2431;
+    --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.19);
+    --tx:#E8EDF5; --tx-2:#A2ADBE; --tx-3:#75808F;
+    --accent:#8DB0FF; --accent-2:#B0C8FF; --accent-soft:rgba(141,176,255,.13); --accent-line:rgba(141,176,255,.34); --accent-ink:#080C13;
+    --ok:#63D9A0; --ok-bg:rgba(34,197,94,.13); --ok-line:rgba(52,211,153,.34);
+    --warn:#F2B95C; --warn-bg:rgba(245,165,36,.13); --warn-line:rgba(245,165,36,.34);
+    --bad:#FF9490; --bad-bg:rgba(244,63,94,.13); --bad-line:rgba(244,63,94,.34);
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A0D13; --bg-2:#0D111A; --surface:#131822; --surface-2:#171D28; --surface-3:#1D2431;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.19);
+  --tx:#E8EDF5; --tx-2:#A2ADBE; --tx-3:#75808F;
+  --accent:#8DB0FF; --accent-2:#B0C8FF; --accent-soft:rgba(141,176,255,.13); --accent-line:rgba(141,176,255,.34); --accent-ink:#080C13;
+  --ok:#63D9A0; --ok-bg:rgba(34,197,94,.13); --ok-line:rgba(52,211,153,.34);
+  --warn:#F2B95C; --warn-bg:rgba(245,165,36,.13); --warn-line:rgba(245,165,36,.34);
+  --bad:#FF9490; --bad-bg:rgba(244,63,94,.13); --bad-line:rgba(244,63,94,.34);
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px -20px rgba(0,0,0,.9);
+}
+:root[data-theme="light"]{
+  --bg:#F6F7F9; --bg-2:#EFF1F5; --surface:#FFFFFF; --surface-2:#F8F9FB; --surface-3:#F1F3F7;
+  --line:rgba(16,24,40,.11); --line-2:rgba(16,24,40,.20);
+  --tx:#0E1420; --tx-2:#4A5568; --tx-3:#6B7688;
+  --accent:#1E50C8; --accent-2:#1740A8; --accent-soft:rgba(30,80,200,.09); --accent-line:rgba(30,80,200,.28); --accent-ink:#FFFFFF;
+  --ok:#046C4E; --ok-bg:#E9F8F0; --ok-line:#9DE0BF;
+  --warn:#9A4B06; --warn-bg:#FEF6E7; --warn-line:#F6D08A;
+  --bad:#A4231C; --bad-bg:#FDF0EF; --bad-line:#F3B7B2;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 26px -18px rgba(16,24,40,.35);
+}
+
+/* ─────────────────────────────  BASE  ───────────────────────────── */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--tx); font-family:var(--sans);
+  font-size:15.5px; line-height:1.58; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{line-height:1.2; margin:0; letter-spacing:-.018em; font-weight:660}
+p{margin:0}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-3); border:1px solid var(--line); border-radius:5px; padding:1px 5px; color:var(--tx)}
+a{color:var(--accent); text-underline-offset:3px}
+a:hover{color:var(--accent-2)}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer}
+:focus-visible{outline:2.5px solid var(--accent); outline-offset:2px; border-radius:4px}
+::selection{background:var(--accent-soft)}
+.wrap{width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:clamp(14px,3.4vw,32px)}
+.sr{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.skip{position:absolute; left:8px; top:-60px; z-index:80; background:var(--accent); color:#fff; padding:11px 16px; border-radius:var(--r-sm); font-weight:600; transition:top .16s}
+.skip:focus{top:8px}
+
+/* ─────────────────────────────  MARK  ───────────────────────────── */
+.magna-mark{width:26px; height:auto; display:block; flex:none}
+.magna-mark path{stroke-dasharray:1200; stroke-dashoffset:0}
+@media (prefers-reduced-motion:no-preference){
+  .magna-mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--tx); min-height:44px}
+.brand .wm{font-weight:650; letter-spacing:-.02em; font-size:16.5px; white-space:nowrap}
+.brand .wm span{color:var(--tx-3); font-weight:560}
+
+/* ─────────────────────────────  HEADER  ───────────────────────────── */
+header.top{
+  position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:saturate(150%) blur(12px); -webkit-backdrop-filter:saturate(150%) blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar{display:flex; align-items:center; gap:12px; min-height:60px; flex-wrap:wrap; padding-block:6px}
+.topnav{display:flex; align-items:center; gap:2px; margin-left:auto; flex-wrap:wrap}
+.topnav a, .topnav button{
+  display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 11px;
+  border-radius:var(--r-sm); color:var(--tx-2); text-decoration:none; font-size:13.6px; font-weight:540;
+}
+.topnav a:hover, .topnav button:hover{background:var(--surface-3); color:var(--tx)}
+.themeseg{display:inline-flex; gap:2px; padding:3px; background:var(--surface-3); border:1px solid var(--line); border-radius:var(--r-pill); margin-left:6px}
+.themeseg button{min-height:44px; min-width:44px; padding:0 12px; border-radius:var(--r-pill); font-size:12.6px; color:var(--tx-3)}
+.themeseg button[aria-pressed="true"]{background:var(--surface); color:var(--tx); box-shadow:var(--shadow); font-weight:620}
+
+/* ─────────────────────────────  HERO  ───────────────────────────── */
+.hero{padding:clamp(30px,5.5vw,60px) 0 22px}
+.eyebrow{font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--tx-3); font-weight:640; margin-bottom:14px}
+h1{font-size:clamp(29px,5.1vw,50px); letter-spacing:-.03em; max-width:19ch}
+.lede{margin-top:16px; font-size:clamp(15.5px,1.7vw,18.5px); color:var(--tx-2); max-width:64ch}
+.lede strong{color:var(--tx); font-weight:620}
+
+/* ─────────────────────────────  SUMMARY  ───────────────────────────── */
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:12px; margin-top:28px}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px 17px; box-shadow:var(--shadow)}
+.tile .k{font-size:12.2px; letter-spacing:.06em; text-transform:uppercase; color:var(--tx-3); font-weight:640; display:flex; align-items:center; gap:7px}
+.tile .v{font-size:clamp(30px,4.4vw,40px); font-weight:700; letter-spacing:-.035em; margin-top:8px; line-height:1}
+.tile .s{font-size:13px; color:var(--tx-3); margin-top:5px}
+.tile.t-ok{border-color:var(--ok-line)} .tile.t-ok .v{color:var(--ok)}
+.tile.t-warn{border-color:var(--warn-line)} .tile.t-warn .v{color:var(--warn)}
+.tile.t-bad{border-color:var(--bad-line)} .tile.t-bad .v{color:var(--bad)}
+.dot{width:9px; height:9px; border-radius:50%; flex:none}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+
+.stack{display:flex; height:12px; border-radius:var(--r-pill); overflow:hidden; border:1px solid var(--line); background:var(--surface-3); margin-top:22px}
+.stack i{display:block; height:100%}
+.stack i.ok{background:var(--ok)} .stack i.warn{background:var(--warn)} .stack i.bad{background:var(--bad)}
+.stackkey{display:flex; flex-wrap:wrap; gap:16px; margin-top:10px; font-size:13px; color:var(--tx-2)}
+.stackkey span{display:inline-flex; align-items:center; gap:7px}
+
+.grouptable{margin-top:26px; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); overflow:hidden; box-shadow:var(--shadow)}
+.tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+table{border-collapse:collapse; width:100%; min-width:600px; font-size:14px}
+caption{text-align:left; padding:14px 17px 0; font-weight:640; font-size:14.6px}
+th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:middle}
+thead th{font-size:11.6px; letter-spacing:.07em; text-transform:uppercase; color:var(--tx-3); font-weight:640; white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums; font-family:var(--mono); font-size:13px}
+.minibar{display:flex; height:8px; width:130px; border-radius:var(--r-pill); overflow:hidden; background:var(--surface-3); border:1px solid var(--line)}
+.minibar i{display:block; height:100%}
+.minibar i.ok{background:var(--ok)} .minibar i.warn{background:var(--warn)} .minibar i.bad{background:var(--bad)}
+
+/* ─────────────────────────────  SECTIONS  ───────────────────────────── */
+section{scroll-margin-top:74px}
+.sechead{margin-top:clamp(46px,7vw,78px)}
+.sechead h2{font-size:clamp(22px,3.2vw,31px); letter-spacing:-.026em}
+.sechead p{margin-top:11px; color:var(--tx-2); max-width:70ch}
+.rule{height:1px; background:var(--line); border:0; margin:20px 0 0}
+
+/* ─────────────────────────────  FILTERS  ───────────────────────────── */
+.filters{
+  position:sticky; top:60px; z-index:30; background:color-mix(in srgb, var(--bg) 93%, transparent);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  padding:14px 0 12px; border-bottom:1px solid var(--line); margin-bottom:18px;
+}
+.frow{display:flex; gap:9px; flex-wrap:wrap; align-items:center}
+.field{position:relative; flex:1 1 230px; min-width:0}
+.field input{
+  width:100%; min-height:44px; padding:0 40px 0 38px; border-radius:var(--r-sm);
+  border:1px solid var(--line-2); background:var(--surface); color:var(--tx); font-size:15px;
+}
+.field input::placeholder{color:var(--tx-3)}
+.field .ico{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--tx-3); pointer-events:none; display:flex}
+.field .clr{position:absolute; right:0; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:var(--r-sm); color:var(--tx-3); display:none; align-items:center; justify-content:center}
+.field .clr:hover{background:var(--surface-3); color:var(--tx)}
+.field input:not(:placeholder-shown) ~ .clr{display:flex}
+select{
+  min-height:44px; padding:0 34px 0 12px; border-radius:var(--r-sm); border:1px solid var(--line-2);
+  background:var(--surface); color:var(--tx); font-size:14px; appearance:none; cursor:pointer; max-width:100%;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 17px) 51%, calc(100% - 12px) 51%;
+  background-size:5px 5px, 5px 5px; background-repeat:no-repeat;
+}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:44px; padding:0 15px;
+  border-radius:var(--r-sm); border:1px solid var(--line-2); background:var(--surface); color:var(--tx);
+  font-size:14px; font-weight:560; white-space:nowrap;
+}
+.btn:hover{background:var(--surface-3)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-2); border-color:var(--accent-2)}
+.btn.ghost{border-color:transparent; background:transparent; color:var(--tx-2)}
+.btn.ghost:hover{background:var(--surface-3); color:var(--tx)}
+.countline{margin-top:11px; font-size:13.4px; color:var(--tx-2); display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.countline b{color:var(--tx); font-weight:660; font-variant-numeric:tabular-nums}
+
+/* ─────────────────────────────  FLOW ROWS  ───────────────────────────── */
+.groupwrap{margin-top:30px}
+.grouphead{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; padding-bottom:9px; border-bottom:1px solid var(--line); margin-bottom:12px}
+.grouphead h3{font-size:16.5px; letter-spacing:-.014em}
+.grouphead .gid{font-family:var(--mono); font-size:12.4px; color:var(--accent); background:var(--accent-soft); border:1px solid var(--accent-line); padding:2px 8px; border-radius:var(--r-pill); font-weight:600}
+.grouphead .gc{font-size:12.8px; color:var(--tx-3); margin-left:auto; font-variant-numeric:tabular-nums}
+
+.flow{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); margin-bottom:9px; overflow:hidden; scroll-margin-top:150px}
+.flow.hit{border-color:var(--accent-line); box-shadow:0 0 0 3px var(--accent-soft)}
+.fhead{display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; width:100%; text-align:left; padding:13px 15px; min-height:60px}
+.fhead:hover{background:var(--surface-2)}
+.fno{font-family:var(--mono); font-size:12.6px; color:var(--tx-3); font-weight:600; min-width:26px; font-variant-numeric:tabular-nums}
+.fmain{min-width:0}
+.ftitle{display:block; font-weight:610; font-size:15.4px; letter-spacing:-.012em}
+.fmeta{margin-top:3px; font-size:12.7px; color:var(--tx-3); display:flex; gap:9px; flex-wrap:wrap; align-items:center}
+.fmeta .who{color:var(--tx-2)}
+.fright{display:flex; align-items:center; gap:10px}
+.chev{color:var(--tx-3); transition:transform .18s ease; flex:none; display:flex}
+.fhead[aria-expanded="true"] .chev{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+
+.pill{
+  display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:var(--r-pill);
+  font-size:12.1px; font-weight:640; letter-spacing:.012em; white-space:nowrap; border:1px solid transparent;
+}
+.pill.works{background:var(--ok-bg); color:var(--ok); border-color:var(--ok-line)}
+.pill.partial{background:var(--warn-bg); color:var(--warn); border-color:var(--warn-line)}
+.pill.gap{background:var(--bad-bg); color:var(--bad); border-color:var(--bad-line)}
+
+.fbody{padding:2px 15px 18px; border-top:1px solid var(--line); display:grid; grid-template-columns:1.35fr 1fr; gap:22px}
+.fbody[hidden]{display:none}
+.blk h4{font-size:11.6px; letter-spacing:.09em; text-transform:uppercase; color:var(--tx-3); margin:17px 0 8px; font-weight:660}
+.ask{
+  font-size:15px; color:var(--tx); background:var(--surface-2); border:1px solid var(--line);
+  border-left:3px solid var(--accent); border-radius:0 var(--r-sm) var(--r-sm) 0; padding:11px 14px; font-style:italic;
+}
+ol.path{margin:0; padding-left:0; list-style:none; counter-reset:st}
+ol.path li{
+  counter-increment:st; position:relative; padding-left:32px; margin-bottom:9px; font-size:14.3px; color:var(--tx-2);
+}
+ol.path li::before{
+  content:counter(st); position:absolute; left:0; top:1px; width:21px; height:21px; border-radius:50%;
+  background:var(--surface-3); border:1px solid var(--line); color:var(--tx-3);
+  font-size:11.4px; font-weight:660; display:flex; align-items:center; justify-content:center; font-family:var(--mono);
+}
+ol.path li b{color:var(--tx); font-weight:620}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{
+  font-family:var(--mono); font-size:11.7px; padding:3px 9px; border-radius:var(--r-pill);
+  background:var(--surface-3); border:1px solid var(--line); color:var(--tx-2); white-space:nowrap;
+}
+.miss{
+  background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:var(--r-sm); padding:12px 14px; font-size:14.2px; color:var(--tx);
+}
+.miss.gapful{background:var(--bad-bg); border-color:var(--bad-line)}
+.miss .lbl{display:block; font-size:11.6px; letter-spacing:.09em; text-transform:uppercase; font-weight:680; margin-bottom:6px}
+.miss.gapful .lbl{color:var(--bad)} .miss .lbl{color:var(--warn)}
+.live{font-size:13.4px; color:var(--tx-2); border-left:2px solid var(--line-2); padding-left:12px}
+.live b{color:var(--tx-3); font-weight:640; letter-spacing:.05em; text-transform:uppercase; font-size:11.2px; display:block; margin-bottom:3px}
+.protolink{display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 13px; border:1px solid var(--line-2); border-radius:var(--r-sm); text-decoration:none; color:var(--tx); font-size:13.6px; font-weight:560; background:var(--surface-2)}
+.protolink:hover{background:var(--surface-3); border-color:var(--accent-line); color:var(--tx)}
+.protolink em{font-style:normal; color:var(--tx-3); font-size:12.4px}
+
+.empty{
+  text-align:center; padding:56px 20px; border:1px dashed var(--line-2); border-radius:var(--r); background:var(--surface-2); color:var(--tx-2);
+}
+.empty h3{font-size:18px; margin-bottom:8px}
+.empty p{max-width:46ch; margin:0 auto 18px; font-size:14.4px}
+
+/* ─────────────────────────────  GAP SUMMARY  ───────────────────────────── */
+.caps{display:grid; gap:12px; margin-top:24px}
+.cap{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow)}
+.cap.top{border-color:var(--accent-line)}
+.caphead{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; padding:15px 17px; width:100%; text-align:left; min-height:64px}
+.caphead:hover{background:var(--surface-2)}
+.rank{
+  font-family:var(--mono); font-size:13px; font-weight:700; width:30px; height:30px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center; background:var(--surface-3); border:1px solid var(--line); color:var(--tx-3); flex:none;
+}
+.cap.top .rank{background:var(--accent-soft); border-color:var(--accent-line); color:var(--accent)}
+.capname{display:block; font-weight:640; font-size:16px; letter-spacing:-.014em}
+.capsub{display:block; font-size:13.2px; color:var(--tx-2); margin-top:3px}
+.capcount{display:flex; align-items:center; gap:9px; flex:none}
+.bignum{font-size:24px; font-weight:700; letter-spacing:-.03em; font-variant-numeric:tabular-nums; line-height:1}
+.bignum small{display:block; font-size:10.6px; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-3); font-weight:640; margin-top:2px}
+.capbody{padding:0 17px 17px; border-top:1px solid var(--line)}
+.capbody[hidden]{display:none}
+.capbody .why{margin:14px 0 4px; font-size:14.3px; color:var(--tx-2)}
+.capbody .why b{color:var(--tx)}
+.flowrefs{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px}
+.flowref{
+  display:inline-flex; align-items:center; gap:7px; min-height:44px; padding:0 11px; border-radius:var(--r-pill);
+  border:1px solid var(--line); background:var(--surface-2); font-size:13.1px; color:var(--tx); text-decoration:none;
+}
+.flowref:hover{border-color:var(--accent-line); background:var(--accent-soft); color:var(--tx)}
+.flowref .n{font-family:var(--mono); font-size:11.6px; color:var(--tx-3); font-weight:640}
+.flowref .st{width:7px; height:7px; border-radius:50%}
+.flowref .st.partial{background:var(--warn)} .flowref .st.gap{background:var(--bad)}
+
+.livegrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:12px; margin-top:22px}
+.livecard{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:15px 16px}
+.livecard h3{font-size:14.6px; margin-bottom:7px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-weight:640}
+.livecard .tag{font-family:var(--mono); font-size:11px; color:var(--bad); background:var(--bad-bg); border:1px solid var(--bad-line); padding:1px 7px; border-radius:var(--r-pill); font-weight:640}
+.livecard p{font-size:13.6px; color:var(--tx-2)}
+.livecard .aff{margin-top:9px; font-size:12.5px; color:var(--tx-3); font-family:var(--mono)}
+
+/* ─────────────────────────────  MODAL  ───────────────────────────── */
+.scrim{position:fixed; inset:0; background:rgba(8,11,17,.62); z-index:60; display:none; padding:16px; overflow-y:auto}
+.scrim.open{display:flex; align-items:flex-start; justify-content:center}
+@media (min-width:700px){.scrim.open{align-items:center}}
+.modal{
+  background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r); max-width:640px; width:100%;
+  padding:22px clamp(18px,3vw,26px) 24px; box-shadow:0 30px 80px -30px rgba(0,0,0,.6); margin-block:auto;
+}
+.modal h2{font-size:20px; margin-bottom:6px}
+.modal .mh{display:flex; align-items:flex-start; gap:12px; margin-bottom:14px}
+.modal .mh .x{margin-left:auto; width:44px; height:44px; border-radius:var(--r-sm); display:flex; align-items:center; justify-content:center; color:var(--tx-3); flex:none}
+.modal .mh .x:hover{background:var(--surface-3); color:var(--tx)}
+.modal p{font-size:14.3px; color:var(--tx-2); margin-bottom:12px}
+.modal ul{margin:0 0 14px; padding-left:19px; font-size:14.1px; color:var(--tx-2)}
+.modal li{margin-bottom:7px}
+.modal dl{display:grid; grid-template-columns:auto 1fr; gap:8px 14px; font-size:14px; margin:0 0 6px}
+.modal dt{font-weight:640; color:var(--tx)} .modal dd{margin:0; color:var(--tx-2)}
+
+/* ─────────────────────────────  FOOTER  ───────────────────────────── */
+footer{margin-top:clamp(56px,8vw,96px); border-top:1px solid var(--line); background:var(--bg-2)}
+.foot{display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; padding:30px 0 42px}
+.foot .fb{flex:1 1 240px; min-width:0}
+.foot p{font-size:13.4px; color:var(--tx-3); margin-top:11px; max-width:46ch}
+.footlinks{display:flex; flex-wrap:wrap; gap:4px}
+.footlinks a{display:inline-flex; align-items:center; min-height:44px; padding:0 12px; border-radius:var(--r-sm); text-decoration:none; color:var(--tx-2); font-size:13.8px}
+.footlinks a:hover{background:var(--surface-3); color:var(--tx)}
+
+/* ─────────────────────────────  RESPONSIVE  ───────────────────────────── */
+@media (max-width:860px){
+  .fbody{grid-template-columns:1fr; gap:2px}
+}
+@media (max-width:640px){
+  .filters{top:0; position:sticky}
+  header.top{position:static}
+  .fhead{grid-template-columns:auto 1fr; padding:12px 13px; gap:9px}
+  .fright{grid-column:1/-1; justify-content:space-between; padding-left:35px}
+  .frow > select, .frow > .btn{flex:1 1 calc(50% - 5px)}
+  .caphead{grid-template-columns:auto 1fr; gap:11px; align-items:start}
+  .rank{margin-top:2px}
+  .capcount{grid-column:1/-1; padding-left:41px}
+  .topnav{width:100%; margin-left:0}
+  .themeseg{margin-left:auto}
+}
+@media (min-width:1500px){:root{--maxw:1400px}}
+@media (min-width:1900px){:root{--maxw:1560px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#flows">Skip to the 50 flows</a>
+
+<header class="top">
+  <div class="wrap topbar">
+    <a class="brand" href="../index.html" aria-label="MagnaVERSE home">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-hdr" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-hdr" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-hdr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-hdr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wm">Magna<span>VERSE</span></span>
+    </a>
+    <nav class="topnav" aria-label="Related pages">
+      <a href="how-to.html">How-to</a>
+      <a href="before-after.html">Before / after</a>
+      <a href="functionality-map.html">Functionality map</a>
+      <button type="button" id="aboutBtn" aria-haspopup="dialog">Method</button>
+      <div class="themeseg" role="group" aria-label="Colour theme">
+        <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+        <button type="button" data-theme-set="system" aria-pressed="false">Auto</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <div class="hero">
+    <p class="eyebrow">Coverage tracker · 16 Aug 2026</p>
+    <h1>Fifty things a person actually sits down to do</h1>
+    <p class="lede">Not a feature list. Fifty concrete jobs — the sentence someone types, the path they expect,
+      and an honest mark against what MagnaVERSE supports today. <strong>The gaps are the point.</strong>
+      Walk the live product against this list; every <em>Partial</em> and <em>Gap</em> carries a specific line
+      naming the thing to build.</p>
+
+    <div class="tiles" id="tiles"></div>
+    <div class="stack" id="stack" role="img" aria-label="Proportion of flows by status"></div>
+    <div class="stackkey" id="stackkey"></div>
+
+    <div class="grouptable">
+      <div class="tscroll">
+        <table>
+          <caption>Coverage by group</caption>
+          <thead><tr><th scope="col">Group</th><th scope="col">Flows</th><th scope="col">Works</th><th scope="col">Partial</th><th scope="col">Gap</th><th scope="col">Split</th></tr></thead>
+          <tbody id="groupBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── FLOWS ───────── -->
+  <section id="flows" aria-labelledby="flows-h">
+    <div class="sechead">
+      <h2 id="flows-h">The 50 flows</h2>
+      <p>Every row expands to its happy path, the capabilities it needs, and — where it is not fully
+        supported — the specific thing that is missing. Filter, search, or expand everything at once.</p>
+    </div>
+
+    <div class="filters">
+      <div class="frow">
+        <div class="field">
+          <span class="ico" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+          </span>
+          <label class="sr" for="q">Search flows by title, the ask, or a step</label>
+          <input id="q" type="search" placeholder="Search titles, asks and steps…" autocomplete="off" spellcheck="false">
+          <button type="button" class="clr" id="qclr" aria-label="Clear search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <label class="sr" for="fGroup">Filter by group</label>
+        <select id="fGroup"><option value="">All groups</option></select>
+        <label class="sr" for="fStatus">Filter by status</label>
+        <select id="fStatus">
+          <option value="">All statuses</option>
+          <option value="works">Works</option>
+          <option value="partial">Partial</option>
+          <option value="gap">Gap</option>
+        </select>
+        <label class="sr" for="fWho">Filter by persona</label>
+        <select id="fWho"><option value="">All personas</option></select>
+        <button type="button" class="btn" id="expandAll" aria-pressed="false">Expand all</button>
+        <button type="button" class="btn ghost" id="clearAll">Clear filters</button>
+      </div>
+      <p class="countline" id="countline" role="status" aria-live="polite"></p>
+    </div>
+
+    <div id="list"></div>
+
+    <div class="empty" id="emptyState" hidden>
+      <h3>No flow matches that</h3>
+      <p>Try a shorter search term, or drop one of the filters — there are 50 flows and nine groups behind this view.</p>
+      <button type="button" class="btn primary" id="clearAll2">Clear filters</button>
+    </div>
+  </section>
+
+  <!-- ───────── GAP SUMMARY ───────── -->
+  <section id="gaps" aria-labelledby="gaps-h">
+    <div class="sechead">
+      <h2 id="gaps-h">What to build, in order</h2>
+      <p id="gapIntro"></p>
+    </div>
+    <div class="caps" id="caps"></div>
+  </section>
+
+  <!-- ───────── LIVE BLOCKERS ───────── -->
+  <section id="live" aria-labelledby="live-h">
+    <div class="sechead">
+      <h2 id="live-h">Already solved in the prototypes — still missing on the live app</h2>
+      <p>These are not roadmap items; they are built and clickable in <code>apps/</code>, and absent from
+        <code>app.stag.magna.ai</code> build 1.0.491. They cost nothing to decide and they hold back flows
+        that are otherwise marked <em>Works</em> above.</p>
+    </div>
+    <div class="livegrid" id="livegrid"></div>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="fb">
+      <a class="brand" href="../index.html" aria-label="MagnaVERSE home">
+        <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+          <defs>
+            <linearGradient id="mgGB-ftr" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+            </linearGradient>
+            <linearGradient id="mgR-ftr" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+            </linearGradient>
+          </defs>
+          <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ftr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ftr)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="wm">Magna<span>VERSE</span></span>
+      </a>
+      <p>Judged against the six prototypes in <code>apps/</code>, the UX audit and the 23-capability functional
+        spec. Nothing here is aspirational — if it is marked <em>Works</em>, it is clickable today.</p>
+    </div>
+    <div class="fb">
+      <div class="footlinks">
+        <a href="../index.html">Index</a>
+        <a href="how-to.html">How-to</a>
+        <a href="before-after.html">Before / after</a>
+        <a href="functionality-map.html">Functionality map</a>
+      </div>
+    </div>
+    <div class="fb">
+      <div class="footlinks" id="protoFoot"></div>
+    </div>
+  </div>
+</footer>
+
+<!-- ───────── MODAL ───────── -->
+<div class="scrim" id="scrim" role="presentation">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" id="modal">
+    <div class="mh">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:30px;margin-top:2px">
+        <defs>
+          <linearGradient id="mgGB-mod" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-mod" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-mod)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-mod)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h2 id="mTitle">How these marks were made</h2>
+        <p style="margin:4px 0 0;font-size:13.4px">Escape closes this.</p>
+      </div>
+      <button type="button" class="x" id="mClose" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <dl>
+      <dt><span class="pill works">Works</span></dt>
+      <dd>The whole happy path is built and clickable in at least one of the six prototypes.</dd>
+      <dt><span class="pill partial">Partial</span></dt>
+      <dd>Most of the path runs, but a named step does not — the answer arrives and the artefact does not,
+        or the tool exists and the worked example does not.</dd>
+      <dt><span class="pill gap">Gap</span></dt>
+      <dd>The flow cannot complete at all. Nothing in the prototypes does this.</dd>
+    </dl>
+    <p><b>Evidence.</b> Each of the six prototypes was opened and driven — signed in, workspace picked,
+      Connections, Agents, Tasks, Knowledge and Mail walked. Where a judgement turns on a detail (does a
+      chart render? is the artifact editable? does the mail stepper complete?) it was checked in the running
+      page, not inferred from the brief.</p>
+    <p><b>Two different questions.</b> <em>Status</em> answers "is it built?" and is judged against the
+      prototypes. The <em>Live app today</em> line on each flow answers "does app.stag.magna.ai do it?" —
+      often a harder no, and the reason the last section of this page exists.</p>
+    <ul>
+      <li>The live build has no maths renderer, no diagram renderer, no code copy button and no copy-full-answer (R1–R4).</li>
+      <li>No document, spreadsheet or deck export exists anywhere — live or prototype.</li>
+      <li>Live projects carry no files and no instructions; the prototypes' projects carry both.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ═══════════════════ THEME ═══════════════════ */
+var root=document.documentElement, KEY="mv-theme";
+function applyTheme(v){
+  if(v==="light"||v==="dark") root.setAttribute("data-theme",v);
+  else root.removeAttribute("data-theme");
+  var btns=document.querySelectorAll("[data-theme-set]");
+  for(var i=0;i<btns.length;i++) btns[i].setAttribute("aria-pressed", String(btns[i].getAttribute("data-theme-set")===v));
+}
+var saved="system";
+try{ saved=localStorage.getItem(KEY)||"system"; }catch(e){}
+applyTheme(saved);
+document.addEventListener("click",function(e){
+  var b=e.target.closest?e.target.closest("[data-theme-set]"):null;
+  if(!b) return;
+  var v=b.getAttribute("data-theme-set");
+  applyTheme(v);
+  try{ localStorage.setItem(KEY,v); }catch(err){}
+});
+
+/* ═══════════════════ DATA ═══════════════════ */
+var GROUPS=[
+  {id:"A", name:"Ask and understand"},
+  {id:"B", name:"Documents and writing"},
+  {id:"C", name:"Data and analysis"},
+  {id:"D", name:"Mail"},
+  {id:"E", name:"Jira and delivery"},
+  {id:"F", name:"Meetings and calendar"},
+  {id:"G", name:"Automation and agents"},
+  {id:"H", name:"Knowledge and connected systems"},
+  {id:"I", name:"Making things"}
+];
+
+var APPS={
+  a1:{href:"apps/app-1-chatgpt.html",   name:"Familiar"},
+  a2:{href:"apps/app-2-claude.html",    name:"Considered"},
+  a3:{href:"apps/app-3-sovereign.html", name:"Provable"},
+  a4:{href:"apps/app-4-launchpad.html", name:"Ready"},
+  a5:{href:"apps/app-5-twin.html",      name:"Grounded"},
+  a6:{href:"apps/app-6-horizon.html",   name:"Horizon"}
+};
+
+/* Capability keys used by the gap summary. Order here is irrelevant — the section ranks by count. */
+var CAPS={
+  "export":{name:"File generation and export", sub:"Produce a real .docx, .xlsx, .pptx, .pdf or .png the user can send to someone else",
+    why:"Nothing in the six prototypes writes a file. A conversation exports as Markdown and a diagram exports as SVG; that is the whole of it. Every flow that ends “give me that as a file” dies at the last step, after the thinking has already been done correctly. <b>One render service and a download in the message action row closes more of this list than any other single build.</b>"},
+  "ingest":{name:"Attachment ingestion in the turn", sub:"Parse a PDF, DOCX or workbook dropped into the composer, right now, with page and cell anchors",
+    why:"Documents are only answerable once they are in the knowledge index, which runs on a schedule. The composer takes an attachment but nothing parses it in the turn, so “here, read this” — the single most common thing anyone does with ChatGPT — has no path. <b>Needs an in-turn parser, page/sheet anchors in the citation, and an on-demand index that finishes before the answer.</b>"},
+  "calendar":{name:"Calendar as a first-class surface", sub:"A day view, free/busy intersection across people, and event creation behind approval",
+    why:"The Calendar connector is <em>connected</em> in the prototypes with read availability and list events, and <code>Create an event</code> is published but off. What is missing is the surface: nothing joins a meeting to the material that prepares you for it, and nothing intersects three calendars. <b>Cheapest of the top five — the tools already exist, the screens do not.</b>"},
+  "jira-depth":{name:"Jira write depth and multi-board views", sub:"Comment, assign, worklog and estimate under one approval; three boards in one answer",
+    why:"Create and transition are demonstrated end to end. The rest of the write surface is published as tools but never exercised, and every Jira answer is scoped to a single board. <b>Needs one worked multi-write example, an assignee picker validated against project members, and a saved cross-board view.</b>"},
+  "mailbox":{name:"A mailbox surface, and mail connected by default", sub:"An inbox that ranks what needs you, not just a search tool",
+    why:"Mail read, draft and send all work behind approval — the two-write example (reply plus raise a Jira issue) is the strongest thing in the prototypes. But Magna Mail is <em>Not connected</em> in the default workspace, so the first thing a client clicks returns nothing, and there is no triage view anywhere. <b>Seed the demo workspace connected, and build the needs-you / waiting-on-them / FYI grouping.</b>"},
+  "chart":{name:"A chart renderer", sub:"Turn the answer's own table into a bar, line or stacked chart",
+    why:"The only SVG in any answer is a Mermaid flowchart. There is no plotting of data at all, in any of the six prototypes or the live app. <b>A small chart component driven by the table already in the message, with a palette that survives both themes and an image export.</b>"},
+  "xsys":{name:"Cross-system query planning", sub:"Fan out across three connectors in one turn and reconcile the entities",
+    why:"Answers ground in one or two systems at a time and cite them well. Nothing plans across three, matches a purchase order to a schedule activity to a mail thread, or shows which clause of the answer came from which system. <b>Needs an entity map and a per-sentence provenance, not just a source list.</b>"},
+  "canvas":{name:"An editable document canvas", sub:"Edit the draft in place, regenerate one section, keep versions",
+    why:"Documents open as read-only artifacts beside the chat. There is no <code>contenteditable</code> surface for them in any prototype — you can copy the text out, but you cannot work on it in the product. <b>The live build's <code>magna-canvas-document</code> skill already does this and has no entry point; give it one.</b>"},
+  "sandbox":{name:"A code execution sandbox", sub:"Run the generated script against scoped data and capture its output",
+    why:"Code is produced as a proper artifact with a language label and a copy button, and it can be bound to a schedule — but it never executes. <b>Needs a sandbox with a read-only data mount, captured stdout and errors, a resource ceiling, and the run written to the audit trail.</b>"},
+  "web":{name:"A web research connector", sub:"Fetch, keep the URL and the retrieval time, and cite it as an openable link",
+    why:"The citation component already distinguishes web from internal — the styling is there. What is missing is a connector that actually fetches. Everything the prototypes cite is internal, so “sources I can check” only resolves for company documents. <b>The live build has a <code>web-search</code> skill; wire it to the citation component rather than to prose.</b>"},
+  "forecast":{name:"Forecasting and trend modelling", sub:"Extrapolate a projected date or figure with a stated confidence",
+    why:"The prototypes read the schedule, the float and the baseline correctly and stop there. Nothing extrapolates. <b>Needs a trend step that states its method, its window and its uncertainty — and refuses when the snapshot is stale, as P6 is in the demo.</b>"},
+  "arabic":{name:"Arabic and RTL document handling", sub:"Right-to-left rendering, and a translated document that keeps its numbering",
+    why:"Arabic–English summarising and clause comparison are demonstrated in prose, which matters in this market. But <code>dir=\"rtl\"</code> appears nowhere in any of the six files, so Arabic body text renders left-to-right. <b>Needs RTL in the transcript and the artifact, plus whole-document translation that preserves layout.</b>"},
+  "template":{name:"A house template store", sub:"Keep the memo, the report and the letter formats, and map data into their fields",
+    why:"Project instructions can describe a house style in prose, which is real progress on the live build. There is nowhere to keep an actual template, and no mapping from a spreadsheet column to a template field. <b>Needs a template library scoped to a workspace, and a visible field mapping step before the fill.</b>"},
+  "diagram":{name:"Diagram editing and raster export", sub:"Change the diagram after it is drawn, and get it out as an image",
+    why:"Mermaid renders to real SVG and exports as SVG — genuinely better than the live build's ASCII art. But the diagram is final once drawn, there is no PNG or copy-as-image, and with no document export there is nowhere in the product to put it. <b>Add node editing, PNG, and copy-to-clipboard as an image.</b>"}
+};
+
+/* ── The 50 ── */
+var FLOWS=[
+/* A · Ask and understand */
+{n:1,g:"A",t:"Ask a straight question about company policy",who:"HSE officer",
+ ask:"What does our working-at-height standard say about tying off on scaffold above 1.8 m?",
+ path:["You type the question in a workspace pinned to Private.",
+  "<b>Magna</b> decides the question needs company data and searches Company Knowledge — not the web.",
+  "The answer quotes the clause and names the document, the section and the revision.",
+  "A Sources block lists each document with an <em>internal</em> tag and the space it came from.",
+  "You open the citation to read the surrounding paragraph before you act on it."],
+ needs:["chat","knowledge","citations","approval:none"],status:"works",app:"a1",
+ live:"Answer quality on the live app is genuinely good, but it cites in prose and links nothing — and never says whether a fact came from your documents or the internet."},
+
+{n:2,g:"A",t:"Research a market or regulation with sources I can check",who:"Executive",
+ ask:"What are the current Saudisation thresholds for contractors our size, and where does that rule come from?",
+ path:["You ask a question the company's own documents cannot fully answer.",
+  "<b>Magna</b> answers from what it has and marks which parts are internal.",
+  "The Sources block separates web from internal with a coloured tag.",
+  "You try to open a web source to verify the figure yourself.",
+  "There is no link — the reference is a title, not something you can check."],
+ needs:["chat","web","knowledge","citations"],status:"partial",caps:["web"],
+ missing:"No web-search connector ships in the prototypes, so every citable source is internal. The citation component already styles a <code>web</code> tag — it needs a tool behind it that fetches, stores the URL and the retrieval timestamp, and renders web results as openable links beside the internal ones.",
+ app:"a2",
+ live:"The live build has a <code>web-search</code> skill with multi-engine search and URL fetch. Its output reaches the answer as prose with no links at all."},
+
+{n:3,g:"A",t:"Compare two vendors and tell me which is riskier",who:"Procurement lead",
+ ask:"Compare Tamkeen and Al-Rashid on delivery performance and exposure, and tell me which one I should be more worried about.",
+ path:["You name two suppliers in a Procurement project thread.",
+  "<b>Magna</b> pulls committed spend and receipt dates from SAP and the prequalification register from Company Knowledge.",
+  "It returns a side-by-side table — spend share, late days, sole-source lines, financial flags.",
+  "It states a position with the reason, rather than listing facts and leaving you to decide.",
+  "Every figure carries the connector and the sync time it came from."],
+ needs:["chat","sap:read","knowledge","citations","render:table"],status:"works",app:"a2",
+ live:"Available today only if you paste the numbers in yourself — the live build's four MCP servers all report <em>Sign-in required · No tools</em>."},
+
+{n:4,g:"A",t:"Explain this contract clause in plain language",who:"Delivery manager",
+ ask:"Explain clause 14.7 of subcontract GC-8 in plain language — what happens if we are 30 days late?",
+ path:["You name the clause and the contract.",
+  "<b>Magna</b> retrieves the clause from the indexed subcontract.",
+  "It gives the plain-language reading first, then the exact text underneath.",
+  "It works the 30-day case through the LD formula with real numbers.",
+  "The citation names the document and the revision, so you know which version you are reading."],
+ needs:["chat","knowledge","citations"],status:"works",app:"a2",
+ live:"Works in the live app as prose. Any numeric working it produces renders as raw LaTeX source (R1)."},
+
+{n:5,g:"A",t:"Summarise a 60-page report into one page",who:"Executive",
+ ask:"Summarise the RYD-M3 BEP v4 into one page I can read before the 09:00.",
+ path:["You drop the PDF into the composer, or name a document already indexed.",
+  "<b>Magna</b> summarises the indexed version with per-section citations.",
+  "You ask it to cut it to one page and lead with the decisions.",
+  "It reflows, but you cannot tell it which pages matter or jump to one.",
+  "You ask for it as a one-page document to circulate — nothing comes back."],
+ needs:["chat","knowledge","ingest:file","citations","export:docx"],status:"partial",caps:["ingest","export"],
+ missing:"Summarising an <em>already indexed</em> document works well, with citations. A file dropped into the composer is not parsed in the turn: no page anchors, no page-range control, no length target you can set, and no one-page document to take away.",
+ app:"a1",
+ live:"The live composer accepts an attachment and the knowledge base indexes PDFs — but with no copy-full-answer (R4), getting the summary into a document means manual selection across a scrolling region."},
+
+{n:6,g:"A",t:"Ask a follow-up that depends on what we just said",who:"Engineer",
+ ask:"And which of those are on the critical path?",
+ path:["You ask a five-word follow-up with no context of its own.",
+  "<b>Magna</b> resolves “those” against the previous answer's list.",
+  "It does not re-run the knowledge search for a conversational turn.",
+  "The answer builds on the prior table rather than restating it.",
+  "The thread keeps its residency tier and its model across the turn."],
+ needs:["chat","memory","p6:read"],status:"works",app:"a1",
+ live:"Multi-turn memory works. But the Company-knowledge toggle stays on for conversational turns — asking “what did I just ask you?” triggered a 3.3 s search that returned nothing."},
+
+{n:7,g:"A",t:"Translate a document between Arabic and English",who:"Delivery manager",
+ ask:"Translate this Arabic variation order into English and keep the clause numbers.",
+ path:["You point at an Arabic document in Company Knowledge.",
+  "<b>Magna</b> summarises it into English with the clause references preserved.",
+  "You ask for the clause-by-clause comparison against the English original.",
+  "It produces the comparison as prose — correct, but rendered left-to-right.",
+  "You ask for the translated document itself; there is no file to hand over."],
+ needs:["chat","knowledge","ingest:file","rtl","export:docx"],status:"partial",caps:["arabic","export","ingest"],
+ missing:"Arabic–English summarising and clause comparison are demonstrated and the model handles both languages. But <code>dir=\"rtl\"</code> appears nowhere in any of the six prototypes, so Arabic renders left-to-right; there is no whole-document translation that preserves layout and numbering, and no translated file back.",
+ app:"a2",
+ live:"Same gap, plus the live build ships no Arabic-first model guidance — model names are bare (<code>Latest Kimi</code>) with nothing indicating which handles Arabic best."},
+
+/* B · Documents and writing */
+{n:8,g:"B",t:"Draft a board memo in our house format",who:"Executive",
+ ask:"Draft the August board memo on vendor concentration in our house format — one page, decision at the top.",
+ path:["You work inside the <em>Q3 Procurement</em> project, which carries its own instructions and files.",
+  "<b>Magna</b> reads the project instructions — British English, decision first, short sentences.",
+  "It pulls the concentration figures from SAP and drafts the memo.",
+  "The draft opens as a document artifact beside the chat, with its sources listed.",
+  "You iterate by chatting; the artifact updates in place and keeps a version count."],
+ needs:["chat","project:instructions","sap:read","artifact","citations"],status:"works",app:"a2",
+ live:"Not possible on the live app: projects there are only a folder of chats — no files, no instructions — so there is nowhere to keep a house format."},
+
+{n:9,g:"B",t:"Rewrite this paragraph to be shorter and firmer",who:"Procurement lead",
+ ask:"Rewrite this so it is half the length and leaves no room for argument.",
+ path:["You paste a paragraph into the composer.",
+  "<b>Magna</b> returns the rewrite first, with no preamble.",
+  "It shows what it cut, in one line, underneath.",
+  "You ask for a firmer version; it re-runs on the rewrite, not the original.",
+  "Copy takes the whole message in one action."],
+ needs:["chat","style"],status:"works",app:"a1",
+ live:"Works, but there is no copy button on any message in the live build (H2 / R4) — you select the text by hand."},
+
+{n:10,g:"B",t:"Turn my rough notes into a structured brief",who:"Delivery manager",
+ ask:"Here are my notes from site. Turn them into a proper brief with a risk section.",
+ path:["You paste unstructured notes — fragments, half sentences, a list of names.",
+  "<b>Magna</b> asks one clarifying question rather than guessing the audience.",
+  "It returns a structured brief: situation, what changed, risks with owners, ask.",
+  "Anything it inferred rather than read is marked as an assumption.",
+  "The brief opens as an artifact you can keep in the project."],
+ needs:["chat","artifact"],status:"works",app:"a2",
+ live:"Works as prose. The brief cannot be saved anywhere — Workspace › Document is permanently disabled."},
+
+{n:11,g:"B",t:"Draft a contract-amendment letter and let me edit it",who:"Procurement lead",
+ ask:"Draft the amendment letter to Al-Rashid extending the steel package by six weeks, and let me edit it before it goes anywhere.",
+ path:["You ask for the letter and name the change.",
+  "<b>Magna</b> reads the signed contract for the parties, the notice clause and the format.",
+  "The letter opens beside the chat as an artifact with its sources shown.",
+  "You want to change one paragraph yourself — the panel is read-only.",
+  "You copy the text out into Word to finish it, and the provenance stays behind."],
+ needs:["chat","knowledge","artifact","canvas","export:docx"],status:"partial",caps:["canvas","export"],
+ missing:"The letter is drafted correctly and opens beside the chat, but the artifact panel is read-only — no prototype puts an editable surface on a document. Needs in-place editing with section-level regenerate, a version history, and a .docx out.",
+ app:"a2",
+ live:"The live build already has a <code>magna-canvas-document</code> skill that opens a live editable document panel and exports .docx — with no entry point anywhere in the UI. You have to guess the right sentence in chat."},
+
+{n:12,g:"B",t:"Fill a template from data in a spreadsheet",who:"Finance",
+ ask:"Fill the monthly cost report template from the August SAP extract.",
+ path:["You name a template and a source workbook.",
+  "There is nowhere in the product that holds templates.",
+  "<b>Magna</b> can read the extract, but has no field mapping to fill against.",
+  "It offers to reproduce the numbers as a table in chat instead.",
+  "The report you actually needed does not get produced."],
+ needs:["chat","ingest:file","template","export:xlsx","export:docx"],status:"gap",caps:["export","ingest","template"],
+ missing:"Three missing pieces, in order: a template library scoped to a workspace; a visible mapping step from sheet columns to template fields, with a preview before the fill; and the filled file itself. None of the three exists in any prototype.",
+ app:"a6",
+ live:"The live build has <code>magna-generate-docx</code> / <code>-xlsx</code> skills, but no template store and no mapping UI — so the generation has nothing to fill."},
+
+{n:13,g:"B",t:"Proofread and flag anything commercially risky",who:"Procurement lead",
+ ask:"Read amendment 3 against the signed contract and flag anything that shifts risk onto us.",
+ path:["You name the amendment and the signed original.",
+  "<b>Magna</b> compares them clause by clause, in Arabic and English where both exist.",
+  "It lists what changed, what is new, and what quietly disappeared.",
+  "Each flag states the commercial consequence, not just the wording change.",
+  "Every claim cites the clause and the revision it came from."],
+ needs:["chat","knowledge","citations","render:table"],status:"works",app:"a2",
+ live:"Only if both documents are already in the knowledge index. On the live app the comparison is prose with no clause anchors to jump to."},
+
+{n:14,g:"B",t:"Produce a document I can hand to Legal as a file",who:"Procurement lead",
+ ask:"Give me that as a Word document I can send to Legal.",
+ path:["You have a finished draft in the thread.",
+  "You ask for it as a file.",
+  "<b>Magna</b> has no renderer — the only exports are the conversation as Markdown and a diagram as SVG.",
+  "You copy the text into Word by hand.",
+  "The citations, the residency receipt and the version history do not come with it."],
+ needs:["chat","artifact","export:docx","export:pdf"],status:"gap",caps:["export"],
+ missing:"There is no document generation anywhere in the six prototypes — <code>pptx</code> appears once and <code>docx</code> only as the name of a file being read. Needs a render step (artifact → .docx/.pdf), the file written into the workspace, a download in the action row, and the citations carried into the document as footnotes.",
+ app:"a2",
+ live:"Blocked twice over: no export, and no copy-full-message (R4), so even the manual route means dragging a selection across a scrolling region."},
+
+/* C · Data and analysis */
+{n:15,g:"C",t:"Analyse this spreadsheet and tell me what changed",who:"Finance",
+ ask:"Compare the August vendor master extract with July and tell me what changed.",
+ path:["You point at the vendor master extract already synced from SAP.",
+  "<b>Magna</b> reads it and returns the analysis with real figures and a table.",
+  "You drop last month's workbook in to diff against it.",
+  "Nothing parses it in the turn — there is no sheet picker and no key column.",
+  "You ask for the row-level differences as a file; there is nothing to download."],
+ needs:["chat","sap:read","ingest:file","render:table","export:xlsx"],status:"partial",caps:["ingest","export"],
+ missing:"Analysis over connected and indexed extracts is real and well cited. Ad-hoc comparison is not: no in-turn workbook parsing, no sheet or key-column picker, no row-level change table, and no download of the diff.",
+ app:"a3",
+ live:"The live knowledge base indexes XLSX and CSV, so the read half is possible. Nothing renders a change table and nothing exports."},
+
+{n:16,g:"C",t:"Build a chart from these numbers",who:"Finance",
+ ask:"Chart committed spend by vendor for Q3 and show me the top five.",
+ path:["You have a correct table in the answer already.",
+  "You ask for it as a chart.",
+  "<b>Magna</b> returns another table, or an ASCII approximation.",
+  "There is no plotting component in any of the six prototypes.",
+  "You paste the numbers into Excel to see the shape of them."],
+ needs:["chat","render:chart","export:png"],status:"gap",caps:["chart"],
+ missing:"No chart renderer exists — the only SVG in an answer is a Mermaid flowchart. Needs a small component (bar, line, stacked, share-of-total) driven by the table already in the message, a palette legible in both themes, an accessible text alternative, and a PNG/SVG export.",
+ app:"a5",
+ live:"Same gap, worse: the live build would render a chart request as box-drawing characters, which reflow into garbage at any other window width (R2)."},
+
+{n:17,g:"C",t:"Compute an exposure model and show the maths",who:"Finance",
+ ask:"Work out our Herfindahl index for Q3 committed spend and show me the working.",
+ path:["You ask for the concentration index over live SAP spend.",
+  "<b>Magna</b> pulls the vendor shares and states the formula.",
+  "The equation renders as typeset maths — superscripts, summation, fractions.",
+  "The substituted numbers are shown line by line, then the result and the threshold.",
+  "It says what the number means for the committee, not just what it is."],
+ needs:["chat","sap:read","render:math","citations"],status:"works",app:"a1",
+ live:"<b>Launch blocker.</b> The live app has no maths renderer: it returns ~25 consecutive lines of literal <code>$\\int x^3 , dx$</code> source, with malformed delimiters. Any technical seat is unusable until this ships (R1)."},
+
+{n:18,g:"C",t:"Find the outliers in this dataset and explain them",who:"Procurement lead",
+ ask:"Which POs moved more than SAR 250,000 this quarter, and why?",
+ path:["You set a threshold in plain language.",
+  "<b>Magna</b> queries SAP for purchase orders that crossed it.",
+  "It returns each one with the movement, the date and the stated reason.",
+  "Where no change-order text exists, it says so rather than inventing a cause.",
+  "You turn the same question into a standing watch in one click."],
+ needs:["chat","sap:read","render:table","trigger"],status:"works",app:"a4",
+ live:"Not reachable — the live build has no SAP connector and no way to add one; the MCP catalogue is frozen at four servers with no <code>+ Add server</code>."},
+
+{n:19,g:"C",t:"Reconcile two systems that disagree",who:"Finance",
+ ask:"SAP says Package 4 is 62% committed and P6 says 71% complete. Which is right?",
+ path:["You name the two systems and the number that does not agree.",
+  "<b>Magna</b> reads both and lines the figures up against the same package.",
+  "It finds the cause: the nightly P6 extract has not been posted since 10 Aug.",
+  "It says which number to trust and which to stop quoting, and why.",
+  "You ask for the unmatched rows as a file to send to the two owners — nothing comes back."],
+ needs:["chat","sap:read","p6:read","render:table","export:xlsx"],status:"partial",caps:["xsys","export"],
+ missing:"One reconciliation is demonstrated end to end, including — honestly — its failure when one side's extract is stale. It is hard-wired to that pair. Needs a general reconcile step (pick two sources, pick the key, see matched / unmatched / disputed), and a difference table you can export.",
+ app:"a4",
+ live:"Not reachable: neither system is connected, and there is no connector catalogue to connect them from."},
+
+{n:20,g:"C",t:"Forecast a schedule slip from current trend",who:"Delivery manager",
+ ask:"At the current rate of steel erection, when does Package 4 actually finish?",
+ path:["You ask for a projection, not a status.",
+  "<b>Magna</b> reads the P6 activities, the float and the baseline comparison.",
+  "It names the driving path and the total float correctly.",
+  "It reports where the plan says you will finish, not where the trend says you will.",
+  "The snapshot it used is six days old, and it says so — but cannot re-run it."],
+ needs:["chat","p6:read","forecast","render:chart"],status:"partial",caps:["forecast","chart"],
+ missing:"Schedule reads, critical path and baseline comparison are all built and correct. Nothing extrapolates: no projected date, no confidence range, no burn-up against baseline, and no chart to show the divergence. The demo P6 snapshot is six days stale with no re-run action.",
+ app:"a5",
+ live:"Not reachable — no P6 connector."},
+
+{n:21,g:"C",t:"Export the analysis as a spreadsheet",who:"Finance",
+ ask:"Give me that table as an Excel file.",
+ path:["The answer already contains the table you want.",
+  "You ask for it as a spreadsheet.",
+  "The only CSV export in the product is the audit log.",
+  "No message action offers the table itself.",
+  "You retype it, or select across the scroll container and hope the columns survive."],
+ needs:["chat","render:table","export:xlsx","export:csv"],status:"gap",caps:["export"],
+ missing:"An answer's own table cannot be exported at all. Needs table → .xlsx/.csv from the message action row, the generating query kept as a second sheet, and the residency receipt kept with the file so an exported number can still be traced.",
+ app:"a3",
+ live:"The live build has a <code>magna-generate-xlsx</code>-style skill with no UI entry point, and no copy button on the message either."},
+
+/* D · Mail */
+{n:22,g:"D",t:"What is in my inbox that needs me today?",who:"Delivery manager",
+ ask:"What is in my inbox that actually needs me today?",
+ path:["You open a new thread and ask about your mail.",
+  "<b>Magna</b> asks permission before it reads anything — the approval names the tool and the scope.",
+  "It searches the on-prem mail index and summarises what it finds.",
+  "There is no ranking: nothing separates “needs a reply” from “you are waiting on them” from “FYI”.",
+  "In the default workspace Magna Mail is <em>Not connected</em>, so this returns nothing until someone runs the five-step connect."],
+ needs:["mail:read","approval","chat"],status:"partial",caps:["mailbox"],
+ missing:"Mail search and read are built and correctly gated. What is missing is the surface: a triage view that ranks by what needs you, detects commitments and deadlines in the body, and shows the ones you are blocking. Also: seed the demo workspace with Mail connected — the first thing a client clicks currently returns nothing.",
+ app:"a1",
+ live:"Nothing at all — all four live MCP servers report <em>Sign-in required · No tools</em>."},
+
+{n:23,g:"D",t:"Summarise this long email thread",who:"Delivery manager",
+ ask:"Summarise the Al-Rashid rebar thread — who said what, and what was actually agreed.",
+ path:["You name the thread, or forward it into the chat.",
+  "<b>Magna</b> asks approval for <code>magna-mail.search_messages</code> and shows what it will read.",
+  "It returns the sequence of positions, then the commitments, then the open questions.",
+  "Each claim cites the specific message and its date.",
+  "Nothing is drafted or sent — reading is a read tool and stays one."],
+ needs:["mail:read","approval","citations","chat"],status:"works",app:"a1",
+ live:"Not reachable."},
+
+{n:24,g:"D",t:"Draft a reply in my voice and let me edit it",who:"Procurement lead",
+ ask:"Draft a reply to Al-Rashid pushing back on the six-week slip, in my usual tone.",
+ path:["You ask for a reply to a thread Magna has already read.",
+  "<b>Magna</b> drafts it using your writing-style settings and the thread's history.",
+  "The draft opens in an editable composer beside the chat, addressed and threaded.",
+  "The status line is explicit: <em>edit it, then press Enter — nothing has been sent.</em>",
+  "You change two sentences and the draft keeps your edits."],
+ needs:["mail:read","mail:draft","style","approval"],status:"works",app:"a2",
+ live:"Not reachable."},
+
+{n:25,g:"D",t:"Send the reply, with a confirmation before it goes",who:"Procurement lead",
+ ask:"Send it.",
+ path:["You approve the finished draft.",
+  "<b>Magna</b> shows one confirmation naming the recipient, the subject and what leaves your network.",
+  "If the send scope was never granted, it says so and stops — it does not half-run.",
+  "On confirm the message goes and the action lands in the audit trail with a timestamp.",
+  "Sending to anyone outside <code>magna.ai</code> raises a second, separate warning."],
+ needs:["mail:send","approval","audit"],status:"works",app:"a2",
+ live:"Not reachable. Worse, the live permission model defaults <em>Trust built-in tools and skills</em> to on, so the approval bubble that teaches this never appears."},
+
+{n:26,g:"D",t:"Find the email where the supplier committed to a date",who:"Procurement lead",
+ ask:"Find the email where Tamkeen committed to the 12 September delivery.",
+ path:["You describe the message rather than remembering its subject.",
+  "<b>Magna</b> searches sender, subject, date range and body text against the on-prem index.",
+  "It returns the matching message with the committing sentence quoted.",
+  "The citation opens the message so you can read it in context.",
+  "The whole search runs inside your network — zero bytes egress."],
+ needs:["mail:read","approval","citations"],status:"works",app:"a1",
+ live:"Not reachable."},
+
+{n:27,g:"D",t:"Turn an email into a task or a Jira issue",who:"Delivery manager",
+ ask:"Reply to Al-Rashid about the rebar slip and raise a Jira issue for the delay.",
+ path:["You ask for two actions across two systems in one sentence.",
+  "<b>Magna</b> asks approval to draft both, and states plainly that nothing is sent yet.",
+  "It drafts the mail into an editable composer and the issue with project, type, summary, description, priority and assignee.",
+  "One confirmation covers <b>both</b> actions and shows exactly what each will do.",
+  "On confirm both complete, and both appear in the audit trail."],
+ needs:["mail:draft","mail:send","jira:write","approval","audit"],status:"works",app:"a2",
+ live:"Not reachable — and the live Atlassian MCP card shows a raw Kubernetes hostname and no tools."},
+
+/* E · Jira and delivery */
+{n:28,g:"E",t:"What is blocking the sprint right now?",who:"Delivery manager",
+ ask:"What is actually blocking the Riyadh Metro delivery sprint right now?",
+ path:["You ask about the current sprint by name.",
+  "<b>Magna</b> runs a JQL search against the board and reads the blocked issues.",
+  "It groups them by what is blocking them, not by issue key.",
+  "It names the person each one is waiting on and how long it has waited.",
+  "Every issue links back to Jira, and the read is logged."],
+ needs:["jira:read","chat","citations"],status:"works",app:"a1",
+ live:"Not reachable — the Atlassian MCP server is present but signed out with zero tools."},
+
+{n:29,g:"E",t:"Raise a Jira issue from this conversation",who:"Engineer",
+ ask:"Raise a Jira issue for the P6 ETL failure — put it in DC2 and make it a P2.",
+ path:["You ask for the issue at the end of a diagnostic thread.",
+  "<b>Magna</b> drafts it from the conversation: summary, description with the evidence, project, type, priority.",
+  "The approval card shows the full payload before anything is written.",
+  "You edit the summary in the card itself.",
+  "On confirm the issue is created and its key is returned with a link."],
+ needs:["jira:write","approval","chat","audit"],status:"works",app:"a1",
+ live:"Not reachable. The live build has a <code>jira-ticket-definer</code> company skill whose trigger list contains Chinese phrases and which targets a hard-coded <code>MGAI</code> project."},
+
+{n:30,g:"E",t:"Comment on an issue and reassign it",who:"Delivery manager",
+ ask:"Comment on DC2-418 that the vendor confirmed 12 September, and reassign it to Noura.",
+ path:["You ask for two writes against one issue.",
+  "<b>Magna</b> resolves the issue and shows you the current assignee.",
+  "<code>Comment</code> and <code>Assign</code> are published write tools — both off until enabled.",
+  "There is no worked example that runs the pair, and no picker that checks Noura is on the project.",
+  "You do the reassignment in Jira instead."],
+ needs:["jira:write","approval","audit"],status:"partial",caps:["jira-depth"],
+ missing:"Comment and assign exist as named write tools behind approval, but the only write demonstrated end to end is issue creation. Needs a worked example that comments and reassigns under one approval, an assignee picker validated against project members, and the resulting change echoed back with a before/after.",
+ app:"a1",
+ live:"Not reachable."},
+
+{n:31,g:"E",t:"Move an issue through its workflow",who:"Engineer",
+ ask:"Move DC2-418 to In Review.",
+ path:["You name the issue and the target status.",
+  "<b>Magna</b> calls <code>List transitions available</code> first rather than guessing.",
+  "If the transition is not legal from the current status, it says which ones are.",
+  "The approval warns that the transition will fire whatever automation is bound to it.",
+  "On confirm the issue moves and the new status is echoed back."],
+ needs:["jira:read","jira:write","approval","audit"],status:"works",app:"a1",
+ live:"Not reachable."},
+
+{n:32,g:"E",t:"Give me a stand-up summary across three projects",who:"Delivery manager",
+ ask:"Give me a stand-up across DC2, RYD-M3 and MEP — what moved, what is stuck, who is blocked.",
+ path:["You name three boards in one question.",
+  "<b>Magna</b> answers well for one board — blockers, owners, ages.",
+  "Nothing composes three boards into a single grouped answer.",
+  "There is no per-person view, and no yesterday / today / blocked shape.",
+  "You cannot save it as a view, and cannot schedule it into the 08:30."],
+ needs:["jira:read","schedule","render:table"],status:"partial",caps:["jira-depth"],
+ missing:"Single-board sprint answers are solid. Needs a saved multi-board view (three JQL scopes, one answer), grouping by person rather than by issue, the yesterday / today / blocked shape a stand-up actually uses, and a schedule that posts it to a channel before the meeting.",
+ app:"a4",
+ live:"Not reachable."},
+
+{n:33,g:"E",t:"Log work and update a remaining estimate",who:"Engineer",
+ ask:"Log 3 hours against DC2-418 and drop the remaining estimate to 5.",
+ path:["You log time in the same breath as the update.",
+  "<b>Magna</b> has <code>Log work</code> as a published write tool, described as feeding timesheet reporting.",
+  "The remaining-estimate field is not in the write payload.",
+  "There is no worked example, so the approval card for this pair is undesigned.",
+  "The half that works still needs the write scope switched on first."],
+ needs:["jira:write","approval","audit"],status:"partial",caps:["jira-depth"],
+ missing:"<code>Log work</code> is published; remaining estimate is not exposed at all. Needs the estimate in the write payload, a confirmation that shows logged / remaining before and after, and a worked run in the audit trail so a delivery manager can see it is safe.",
+ app:"a1",
+ live:"Not reachable."},
+
+/* F · Meetings and calendar */
+{n:34,g:"F",t:"What is on my day, and what should I prepare?",who:"Executive",
+ ask:"What is on my day, and what should I have read before each one?",
+ path:["You ask first thing in the morning.",
+  "<b>Magna</b> can read your calendar — the connector is connected, with availability and events.",
+  "It lists overnight agent results on the launchpad, which is the right instinct.",
+  "Nothing joins the two: no meeting is tied to the thread, document or agent output that prepares you for it.",
+  "You open each meeting and go looking for the material yourself."],
+ needs:["calendar:read","knowledge","agent","chat"],status:"partial",caps:["calendar"],
+ missing:"The read tools are connected and the overnight digest exists. The day view does not: needs a screen that lists today's meetings and, against each, the thread, document, issue or agent output that prepares you — with a one-line “what changed since last time”.",
+ app:"a4",
+ live:"No calendar connector at all. Google Workspace and Microsoft 365 MCP servers exist but are signed out with no tools."},
+
+{n:35,g:"F",t:"Find a time three people can meet",who:"Delivery manager",
+ ask:"Find 45 minutes next week for me, Noura and Faisal.",
+ path:["You name the people and the length.",
+  "<b>Magna</b> has <code>Read availability</code> and <code>List events</code> connected.",
+  "It can report one person's availability at a time.",
+  "There is no intersection across three calendars and no slot picker.",
+  "<code>Create an event</code> is published but off by default, so the invite cannot go."],
+ needs:["calendar:read","calendar:write","approval"],status:"partial",caps:["calendar"],
+ missing:"Free/busy for one person is available; the intersection is not. Needs multi-attendee free/busy, a ranked slot picker that respects working hours and prayer times, room/resource booking, and <code>Create an event</code> promoted out of the off-by-default writes with the invite send behind the usual approval.",
+ app:"a2",
+ live:"Not reachable."},
+
+{n:36,g:"F",t:"Turn meeting notes into decisions and owners",who:"Delivery manager",
+ ask:"Turn Thursday's progress call transcript into minutes with decisions and owners.",
+ path:["You paste the transcript, or point at the notes in the project.",
+  "<b>Magna</b> separates decisions from discussion and discards the rest.",
+  "Each decision gets an owner and a date, taken from what was actually said.",
+  "Anything agreed without an owner is listed separately as unowned — not invented.",
+  "The minutes open as an artifact you can keep with the project."],
+ needs:["chat","artifact","meeting-notes"],status:"works",app:"a2",
+ live:"The <code>meeting-notes</code> skill exists in the live build and works, but it is buried in an 18-item checkbox list with a truncated description and no entry point."},
+
+{n:37,g:"F",t:"Prepare a briefing pack before a specific meeting",who:"Executive",
+ ask:"Before Sunday's steering committee, pull together where we are on cost, schedule and risk.",
+ path:["You ask for a pack ahead of a named meeting.",
+  "<b>Magna</b>'s Board Pack Drafter agent assembles it from SAP, P6, Jira and Company Knowledge.",
+  "It produces a 14-page draft and says honestly which section is incomplete and why.",
+  "It is bound to a monthly cron, not to the meeting — there is no “two hours before this event” trigger.",
+  "The pack cannot leave the product as a file, so it never reaches the committee."],
+ needs:["agent","calendar:read","sap:read","p6:read","jira:read","export:pptx","export:docx"],status:"partial",caps:["calendar","export"],
+ missing:"The assembly is genuinely built, including an honest incomplete-section state. Two things are missing: a calendar-event trigger (“run two hours before this meeting”) rather than a fixed cron, and a file at the end — the pack exists only inside the chat.",
+ app:"a2",
+ live:"Neither the connectors nor the export exist."},
+
+/* G · Automation and agents */
+{n:38,g:"G",t:"Do this every weekday at six and send me the result",who:"HSE officer",
+ ask:"Every weekday at 06:00, summarise the night's incidents and near-misses and send it to me.",
+ path:["You describe the job in plain language, not in cron.",
+  "<b>Magna</b> shows the cron it derived and the plain-English preview beside it.",
+  "You choose where the result goes: chat, mail, a Jira comment, or a knowledge space.",
+  "<em>Auto-approve tools</em> is off by default — if the run needs a write, it stops and notifies you.",
+  "The schedule appears with its last run, its next run, and a one-line outcome."],
+ needs:["schedule","agent","knowledge","approval"],status:"works",app:"a2",
+ live:"The live Schedules modal is the best-designed component in the product and does most of this. But Heartbeat and Schedules are two engines for the same idea, no run history is visible, and nothing surfaces the result — if a 06:00 run found three incidents you will not know unless you go looking."},
+
+{n:39,g:"G",t:"Watch for a condition and tell me when it happens",who:"Procurement lead",
+ ask:"Tell me the moment any PO moves past SAR 250,000 without a change order.",
+ path:["You describe a condition rather than a time.",
+  "<b>Magna</b> offers <em>when something happens</em> as a trigger type alongside schedule and on-request.",
+  "You set the threshold, the systems it may read, and a maximum runs-per-day guardrail.",
+  "The PO Slippage Watch agent runs hourly in business hours and reports only on a hit.",
+  "A hit shows as <em>Needs you</em> on the agent card and in the overnight digest."],
+ needs:["trigger","agent","sap:read","schedule"],status:"works",app:"a2",
+ live:"Heartbeat is the nearest live equivalent — but it edits a file called <code>HEARTBEAT.md</code> with a word counter, and its helper text says “the pod runs a heartbeat tick automatically”."},
+
+{n:40,g:"G",t:"Build an agent that triages my inbox",who:"Delivery manager",
+ ask:"Build me something that reads my inbox each morning and tells me what actually needs an answer.",
+ path:["You start from the agent template gallery.",
+  "<b>Magna</b> walks you through purpose, model, allow-list, trigger, autonomy, guardrails and destination.",
+  "<em>New mail matching a filter</em> is offered as a trigger type.",
+  "You dry-run it — the trace shows what it would do without performing any write.",
+  "It cannot actually fire: Magna Mail is not connected in this workspace."],
+ needs:["agent","trigger","mail:read","approval","guardrails"],status:"partial",caps:["mailbox"],
+ missing:"The builder, the mail trigger, the autonomy levels and the guardrails are all real and well made. What is missing is the other end: Magna Mail is disconnected in the default workspace, no inbox-triage agent ships configured, and the mail trigger has no run in any history — so the most requested agent in the catalogue cannot be demonstrated.",
+ app:"a3",
+ live:"The live build has a <em>Message Triage</em> template and a working agent editor, but four flat checkbox lists (18 skills + 4 MCPs + 10 tools), <code>__inherit__</code> in the model dropdown, and no mail connector to trigger on."},
+
+{n:41,g:"G",t:"Chain two agents — one gathers, one writes",who:"Executive",
+ ask:"Have the slippage watcher feed the board-pack drafter, so the pack always has this week's numbers.",
+ path:["You ask for one agent to call another.",
+  "<b>Magna</b> shows a <em>How they work together</em> view with the delegation drawn.",
+  "Board Pack Drafter calls PO Slippage Watch and waits for its output.",
+  "The run history records both legs, with the caller named on the callee's run.",
+  "Each agent keeps its own guardrails — the caller cannot lend the callee a scope it lacks."],
+ needs:["agent","agent-chain","schedule","audit"],status:"works",app:"a2",
+ live:"The live build has five built-in agent-to-agent messaging tools — send task request, send task response, check messages, list contacts, message a contact — and <b>no UI for any of them</b>."},
+
+{n:42,g:"G",t:"Show me what ran overnight and what needs me",who:"Delivery manager",
+ ask:"What ran overnight, and what needs me?",
+ path:["You open the product in the morning.",
+  "The launchpad leads with <em>While you slept</em> — 13 runs between 22:00 and 08:00.",
+  "Four are marked <em>needs you</em> and are separated from the ones that simply finished.",
+  "Each names what it produced in one sentence, with the thread one click away.",
+  "A failed run states the cause in readable terms, not a stack trace."],
+ needs:["agent","schedule","notifications"],status:"works",app:"a4",
+ live:"Nothing surfaces overnight results in the live app. Notifications says only <em>Nothing new.</em> and shares its popover with a menagerie of 12 companion animals."},
+
+{n:43,g:"G",t:"Stop an agent, edit it, and roll back a change",who:"IT admin",
+ ask:"Pause the slippage watcher, raise its threshold, and if it gets noisy put it back.",
+ path:["You pause the agent from its card — paused, not deleted, and it says so.",
+  "You edit its instructions; the change is saved as a new version.",
+  "The version list shows v1, v2, v3 with what changed between them.",
+  "<b>Roll back to v2</b> restores the previous instructions in one action.",
+  "The rollback is written to the audit trail with who did it and when."],
+ needs:["agent","versioning","audit"],status:"works",app:"a1",
+ live:"No versioning, no pause-without-delete, no test/preview before saving, and no usage history — the live agent editor is four tabs and a Save."},
+
+/* H · Knowledge and connected systems */
+{n:44,g:"H",t:"Answer from our own documents, not the web",who:"HSE officer",
+ ask:"Answer from our own documents only — what is our confined-space permit validity?",
+ path:["You scope the question to company knowledge explicitly.",
+  "<b>Magna</b> searches the 8,400-document index and nothing else.",
+  "The answer states the validity with the procedure, the section and the revision.",
+  "The residency line confirms it never left Riyadh DC-1 — zero bytes egress.",
+  "If the index cannot answer, it says so rather than falling back to general knowledge."],
+ needs:["knowledge","citations","residency"],status:"works",app:"a3",
+ live:"The toggle exists (<em>Search your documents before answering</em>) but there is no scope picker, no spaces, no permissions, and no way to see which documents were in play for an answer."},
+
+{n:45,g:"H",t:"Add a document to knowledge and ask about it",who:"Procurement lead",
+ ask:"I have just uploaded amendment 3 — what changed in the LD clause?",
+ path:["You drop the PDF into Knowledge; it appears in the table immediately.",
+  "The row shows source, scope, size, and a <em>Pending</em> state with no chunk count yet.",
+  "The page explains it will be searchable at the next index run — 04:00.",
+  "You ask about it now and the answer cannot see it.",
+  "One prototype offers a re-index action; the rest wait for the schedule."],
+ needs:["knowledge","ingest:file","citations"],status:"partial",caps:["ingest"],
+ missing:"Upload, scope, chunk counts, Pending / Indexed / Failed states and a re-index action are all built — this is close. What is missing is on-demand ingest that completes inside the turn, so a document uploaded a minute ago is answerable now, plus an “ask about this document” action on the row itself.",
+ app:"a1",
+ live:"The live knowledge page reports <code>Indexed documents 0 · Total chunks 0</code>, has one flat index with no spaces or permissions, and its Search tab returns raw chunks with no answer and no handoff into chat."},
+
+{n:46,g:"H",t:"Ask a question that spans SAP, P6 and mail at once",who:"Delivery manager",
+ ask:"Package 4 — what is committed in SAP, where is it in P6, and what did the supplier last promise by email?",
+ path:["You ask one question that needs three systems.",
+  "<b>Magna</b> answers the SAP leg and the P6 leg well, each cited to its connector.",
+  "The mail leg needs a connector that is not connected in this workspace.",
+  "Nothing matches the purchase order to the schedule activity to the mail thread as one entity.",
+  "You get two good answers side by side rather than one joined answer."],
+ needs:["sap:read","p6:read","mail:read","xsys","citations"],status:"partial",caps:["xsys","mailbox"],
+ missing:"Grounding across one or two connectors is strong and well cited. There is no planner that fans out across three, resolves the same entity across them (PO ↔ activity ↔ thread), or attributes each sentence of the answer to the system that produced it — and the third leg is disconnected by default.",
+ app:"a5",
+ live:"Not reachable — none of the three connectors is live."},
+
+{n:47,g:"H",t:"Tell me which system a number came from",who:"Finance",
+ ask:"Where did the SAR 398,000 come from?",
+ path:["You challenge a figure in an answer.",
+  "<b>Magna</b> names the connector, the object and the field — <code>sap-s4hana · po_receipts</code>.",
+  "It shows the sync time, so you know how fresh the number is.",
+  "The residency receipt states the node it ran on and that nothing left the network.",
+  "Where a source is stale or degraded, it is marked amber rather than presented as current."],
+ needs:["citations","residency","sap:read","audit"],status:"works",app:"a3",
+ live:"The most commercially dangerous gap in the live build: the UI shows a green <em>Private</em> badge while the Usage table reports every request routed through <code>azure/*</code> and <code>bedrock/*</code>."},
+
+/* I · Making things */
+{n:48,g:"I",t:"Build me a slide deck for Sunday's steering committee",who:"Executive",
+ ask:"Build me eight slides for Sunday's steering committee on vendor concentration.",
+ path:["You ask for slides, with an audience and a date.",
+  "<b>Magna</b> can produce the content — the analysis behind it already exists in the thread.",
+  "There is no deck surface: no outline step, no layouts, no speaker notes.",
+  "<code>pptx</code> appears once across 3.6 MB of prototype source, and never as an output.",
+  "You build the deck yourself from the chat."],
+ needs:["chat","canvas","export:pptx"],status:"gap",caps:["export"],
+ missing:"No deck generation of any kind. Needs a slide canvas — outline first, then layouts, then speaker notes — the Magna template applied, per-slide regenerate, and a real .pptx download. The content half is already solved; only the making is missing.",
+ app:"a2",
+ live:"The live build ships a <code>magna-canvas-slide</code> skill that opens a live slide canvas and exports a branded .pptx — with <b>no entry point anywhere in the UI</b>. This may be the single largest value/visibility gap in the product."},
+
+{n:49,g:"I",t:"Write and run a script against our data",who:"Engineer",
+ ask:"Write me something that recomputes the concentration index weekly and run it against the SAP extract.",
+ path:["You ask for the script and the run in one sentence.",
+  "<b>Magna</b> writes it as a proper code artifact — language label, filename, copy button.",
+  "The artifact can be attached to a weekly schedule.",
+  "It never executes: nothing in the product runs code against live data.",
+  "You copy it out and run it on your own machine, outside every guardrail."],
+ needs:["chat","artifact","render:code","sandbox","schedule"],status:"partial",caps:["sandbox"],
+ missing:"The code is produced properly and can be bound to a schedule — that half is real. Execution is not: needs a sandbox with a read-only, scoped data mount, captured stdout and errors, CPU and time ceilings, and every run written to the audit trail with what it read.",
+ app:"a2",
+ live:"Code blocks in the live app are a bare dark rectangle — no language label, no filename, no wrap toggle, and no copy button (R3)."},
+
+{n:50,g:"I",t:"Make a diagram of this process I can put in a document",who:"Delivery manager",
+ ask:"Draw me the escalation path for a late delivery so I can drop it into the memo.",
+ path:["You ask for a diagram of a process described earlier in the thread.",
+  "<b>Magna</b> writes Mermaid and renders it as real SVG in the answer — nodes, edges, labels.",
+  "<b>Export SVG</b> saves the drawing as a vector file.",
+  "You want to move one box — the diagram is final once drawn.",
+  "There is no PNG, no copy-as-image, and no document in the product to put it into."],
+ needs:["chat","render:diagram","export:svg","export:png","export:docx"],status:"partial",caps:["diagram","export"],
+ missing:"Mermaid → SVG rendering and SVG export are built and are a real advance. Missing: editing after generation (move or relabel a node), PNG and copy-as-image for people who live in Word and PowerPoint, and — because there is no document export — anywhere inside the product to place it.",
+ app:"a4",
+ live:"The live app announced it would “sketch a visual flowchart” and then drew box-drawing characters, which reflow into garbage at any other window width (R2)."}
+];
+
+/* Live-build blockers: solved in the prototypes, absent from app.stag.magna.ai */
+var LIVE_BLOCKERS=[
+ {t:"A maths renderer", tag:"R1", d:"The model emits correct LaTeX and the live app prints it as source — ~25 consecutive lines of <code>$\\int x^3 , dx$</code>. The prompt template's delimiters are malformed too, so both need fixing together.", aff:"holds back 17, 4, 5"},
+ {t:"A diagram renderer", tag:"R2", d:"Mermaid → SVG works in the prototypes. The live app draws box-drawing characters and calls it the visual version.", aff:"holds back 50"},
+ {t:"Code-block chrome with copy", tag:"R3", d:"Language label, filename, wrap toggle and a copy button. The live block is a bare dark rectangle.", aff:"holds back 49, 17"},
+ {t:"Copy the whole answer", tag:"R4", d:"Nothing on a live message copies the response. Combined with R3, getting an answer out means dragging a selection across a scrolling region.", aff:"holds back 9, 14, 21 and every flow that ends in a hand-off"},
+ {t:"Projects that carry files and instructions", tag:"live", d:"The prototypes' projects hold both, which is what makes a house format possible. Live projects are a folder of chats with a colour.", aff:"holds back 8, 10, 36"},
+ {t:"A connector catalogue you can add to", tag:"live", d:"Twelve connectors with named tools, read/write marks and egress statements, versus four hard-coded MCP cards showing raw Kubernetes hostnames and no <code>+ Add server</code>.", aff:"holds back 3, 18, 19, 20, 22–35, 46"},
+ {t:"An approval card for write actions", tag:"live", d:"Every write in the prototypes names the system, the payload and what leaves. Live, <em>Trust built-in tools</em> defaults on, so the permission bubble that teaches this never appears.", aff:"holds back 25, 27, 29–31"},
+ {t:"⌘K bound, and focus that survives a modal", tag:"live", d:"The live palette is the best thing in the product, reachable only from an unlabelled magnifier, with ⌘K unbound and keystrokes discarded after it closes.", aff:"friction on all 50"}
+];
+
+/* ═══════════════════ HELPERS ═══════════════════ */
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function el(html){var d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstElementChild;}
+var STATUS_LABEL={works:"Works", partial:"Partial", gap:"Gap"};
+var groupById={}; GROUPS.forEach(function(g){groupById[g.id]=g;});
+
+/* ═══════════════════ SUMMARY (computed at runtime) ═══════════════════ */
+var totals={works:0,partial:0,gap:0};
+FLOWS.forEach(function(f){ totals[f.status]++; });
+var TOTAL=FLOWS.length;
+
+(function renderSummary(){
+  var pct=function(n){ return Math.round(n/TOTAL*100); };
+  var tiles=[
+    {cls:"", k:"Flows documented", v:TOTAL, s:GROUPS.length+" groups · 7 personas", dot:""},
+    {cls:"t-ok", k:"Works", v:totals.works, s:pct(totals.works)+"% · built and clickable in the prototypes", dot:"ok"},
+    {cls:"t-warn", k:"Partial", v:totals.partial, s:pct(totals.partial)+"% · a named step does not run", dot:"warn"},
+    {cls:"t-bad", k:"Gap", v:totals.gap, s:pct(totals.gap)+"% · cannot complete at all", dot:"bad"}
+  ];
+  document.getElementById("tiles").innerHTML=tiles.map(function(t){
+    return '<div class="tile '+t.cls+'"><div class="k">'+(t.dot?'<span class="dot '+t.dot+'"></span>':'')+esc(t.k)+'</div>'+
+      '<div class="v">'+t.v+'</div><div class="s">'+esc(t.s)+'</div></div>';
+  }).join("");
+
+  document.getElementById("stack").innerHTML=
+    '<i class="ok" style="width:'+(totals.works/TOTAL*100)+'%"></i>'+
+    '<i class="warn" style="width:'+(totals.partial/TOTAL*100)+'%"></i>'+
+    '<i class="bad" style="width:'+(totals.gap/TOTAL*100)+'%"></i>';
+  document.getElementById("stackkey").innerHTML=
+    '<span><span class="dot ok"></span> Works — <b>'+totals.works+'</b></span>'+
+    '<span><span class="dot warn"></span> Partial — <b>'+totals.partial+'</b></span>'+
+    '<span><span class="dot bad"></span> Gap — <b>'+totals.gap+'</b></span>'+
+    '<span style="color:var(--tx-3)">'+(totals.partial+totals.gap)+' of '+TOTAL+' flows need work</span>';
+
+  document.getElementById("groupBody").innerHTML=GROUPS.map(function(g){
+    var fs=FLOWS.filter(function(f){return f.g===g.id;});
+    var w=fs.filter(function(f){return f.status==="works";}).length;
+    var p=fs.filter(function(f){return f.status==="partial";}).length;
+    var x=fs.filter(function(f){return f.status==="gap";}).length;
+    return '<tr><th scope="row" style="font-weight:600"><span style="font-family:var(--mono);color:var(--tx-3)">'+g.id+'</span> &nbsp;'+esc(g.name)+'</th>'+
+      '<td class="num">'+fs.length+'</td><td class="num" style="color:var(--ok)">'+w+'</td>'+
+      '<td class="num" style="color:var(--warn)">'+p+'</td><td class="num" style="color:var(--bad)">'+x+'</td>'+
+      '<td><span class="minibar" role="img" aria-label="'+w+' works, '+p+' partial, '+x+' gap">'+
+        '<i class="ok" style="width:'+(w/fs.length*100)+'%"></i><i class="warn" style="width:'+(p/fs.length*100)+'%"></i>'+
+        '<i class="bad" style="width:'+(x/fs.length*100)+'%"></i></span></td></tr>';
+  }).join("");
+})();
+
+/* ═══════════════════ FILTER CONTROLS ═══════════════════ */
+var gSel=document.getElementById("fGroup"), wSel=document.getElementById("fWho");
+GROUPS.forEach(function(g){
+  var o=document.createElement("option"); o.value=g.id; o.textContent=g.id+" · "+g.name; gSel.appendChild(o);
+});
+var personas=[]; FLOWS.forEach(function(f){ if(personas.indexOf(f.who)<0) personas.push(f.who); });
+personas.sort().forEach(function(p){
+  var o=document.createElement("option"); o.value=p; o.textContent=p; wSel.appendChild(o);
+});
+
+/* ═══════════════════ FLOW RENDERING ═══════════════════ */
+var listEl=document.getElementById("list");
+
+function flowMarkup(f){
+  var app=f.app?APPS[f.app]:null;
+  var needs=(f.needs||[]).map(function(c){return '<span class="chip">'+esc(c)+'</span>';}).join("");
+  var missBlock="";
+  if(f.status!=="works" && f.missing){
+    missBlock='<div class="blk"><h4>What is missing</h4><div class="miss'+(f.status==="gap"?" gapful":"")+'">'+
+      '<span class="lbl">'+(f.status==="gap"?"Build this":"Finish this")+'</span>'+f.missing+'</div></div>';
+  }
+  return ''+
+  '<article class="flow" id="flow-'+f.n+'" data-n="'+f.n+'" data-g="'+f.g+'" data-status="'+f.status+'" data-who="'+esc(f.who)+'">'+
+    '<button class="fhead" type="button" aria-expanded="false" aria-controls="body-'+f.n+'">'+
+      '<span class="fno">'+String(f.n).padStart(2,"0")+'</span>'+
+      '<span class="fmain"><span class="ftitle">'+esc(f.t)+'</span>'+
+        '<span class="fmeta"><span class="who">'+esc(f.who)+'</span><span aria-hidden="true">·</span>'+
+        '<span>'+f.g+' · '+esc(groupById[f.g].name)+'</span></span></span>'+
+      '<span class="fright"><span class="pill '+f.status+'">'+STATUS_LABEL[f.status]+'</span>'+
+        '<span class="chev" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></span>'+
+    '</button>'+
+    '<div class="fbody" id="body-'+f.n+'" hidden>'+
+      '<div>'+
+        '<div class="blk"><h4>The ask</h4><p class="ask">“'+esc(f.ask)+'”</p></div>'+
+        '<div class="blk"><h4>Happy path</h4><ol class="path">'+f.path.map(function(s){return '<li>'+s+'</li>';}).join("")+'</ol></div>'+
+      '</div>'+
+      '<div>'+
+        '<div class="blk"><h4>Needs</h4><div class="chips">'+needs+'</div></div>'+
+        missBlock+
+        '<div class="blk"><h4>Live app today</h4><p class="live"><b>app.stag.magna.ai · 1.0.491</b>'+f.live+'</p></div>'+
+        (app?'<div class="blk"><h4>Best demonstrated in</h4><a class="protolink" href="'+app.href+'">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>'+
+          esc(app.name)+' <em>'+esc(app.href.replace("apps/",""))+'</em></a></div>':'')+
+      '</div>'+
+    '</div>'+
+  '</article>';
+}
+
+GROUPS.forEach(function(g){
+  var fs=FLOWS.filter(function(f){return f.g===g.id;});
+  var wrap=el('<div class="groupwrap" data-group="'+g.id+'">'+
+    '<div class="grouphead"><span class="gid">'+g.id+'</span><h3>'+esc(g.name)+'</h3>'+
+    '<span class="gc" data-gc>'+fs.length+' flows</span></div>'+
+    '<div data-rows></div></div>');
+  var rows=wrap.querySelector("[data-rows]");
+  fs.forEach(function(f){ rows.appendChild(el(flowMarkup(f))); });
+  listEl.appendChild(wrap);
+});
+
+/* expand / collapse */
+function setOpen(article, open){
+  var head=article.querySelector(".fhead"), body=article.querySelector(".fbody");
+  head.setAttribute("aria-expanded", String(open));
+  body.hidden=!open;
+}
+listEl.addEventListener("click", function(e){
+  var head=e.target.closest(".fhead"); if(!head) return;
+  var art=head.closest(".flow");
+  setOpen(art, head.getAttribute("aria-expanded")!=="true");
+});
+
+/* ═══════════════════ FILTERING ═══════════════════ */
+var qEl=document.getElementById("q"), sSel=document.getElementById("fStatus"),
+    countEl=document.getElementById("countline"), emptyEl=document.getElementById("emptyState");
+
+function haystack(f){
+  return (f.n+" "+f.t+" "+f.who+" "+f.ask+" "+f.path.join(" ")+" "+(f.needs||[]).join(" ")+" "+(f.missing||"")+" "+f.live+" "+groupById[f.g].name)
+    .replace(/<[^>]+>/g," ").toLowerCase();
+}
+FLOWS.forEach(function(f){ f._h=haystack(f); });
+
+function apply(){
+  var q=qEl.value.trim().toLowerCase(), g=gSel.value, s=sSel.value, w=wSel.value;
+  var shown=0, byStatus={works:0,partial:0,gap:0};
+  FLOWS.forEach(function(f){
+    var ok=(!g||f.g===g)&&(!s||f.status===s)&&(!w||f.who===w)&&(!q||f._h.indexOf(q)>=0);
+    var art=document.getElementById("flow-"+f.n);
+    art.hidden=!ok;
+    if(ok){ shown++; byStatus[f.status]++; }
+  });
+  GROUPS.forEach(function(gr){
+    var wrap=listEl.querySelector('[data-group="'+gr.id+'"]');
+    var vis=wrap.querySelectorAll('.flow:not([hidden])').length;
+    wrap.hidden=vis===0;
+    wrap.querySelector("[data-gc]").textContent=vis+(vis===1?" flow":" flows");
+  });
+  emptyEl.hidden=shown>0;
+  var filtered=(q||g||s||w);
+  countEl.innerHTML='<b>'+shown+'</b> of '+TOTAL+' flows'+
+    (filtered?' <span style="color:var(--tx-3)">· filtered</span>':'')+
+    ' <span style="color:var(--tx-3)">·</span> '+
+    '<span style="display:inline-flex;gap:9px;flex-wrap:wrap">'+
+      '<span><span class="dot ok" style="display:inline-block;vertical-align:middle;margin-right:5px"></span>'+byStatus.works+' works</span>'+
+      '<span><span class="dot warn" style="display:inline-block;vertical-align:middle;margin-right:5px"></span>'+byStatus.partial+' partial</span>'+
+      '<span><span class="dot bad" style="display:inline-block;vertical-align:middle;margin-right:5px"></span>'+byStatus.gap+' gap</span>'+
+    '</span>';
+}
+[qEl,gSel,sSel,wSel].forEach(function(c){ c.addEventListener("input", apply); c.addEventListener("change", apply); });
+document.getElementById("qclr").addEventListener("click", function(){ qEl.value=""; apply(); qEl.focus(); });
+
+function clearFilters(){
+  qEl.value=""; gSel.value=""; sSel.value=""; wSel.value=""; apply(); qEl.focus();
+}
+document.getElementById("clearAll").addEventListener("click", clearFilters);
+document.getElementById("clearAll2").addEventListener("click", clearFilters);
+
+var expandBtn=document.getElementById("expandAll");
+expandBtn.addEventListener("click", function(){
+  var open=expandBtn.getAttribute("aria-pressed")!=="true";
+  expandBtn.setAttribute("aria-pressed", String(open));
+  expandBtn.textContent=open?"Collapse all":"Expand all";
+  var arts=listEl.querySelectorAll(".flow");
+  for(var i=0;i<arts.length;i++) setOpen(arts[i], open);
+});
+apply();
+
+/* ═══════════════════ GAP SUMMARY (ranked at runtime) ═══════════════════ */
+(function renderCaps(){
+  var index={};
+  FLOWS.forEach(function(f){
+    if(f.status==="works") return;
+    (f.caps||[]).forEach(function(k){
+      if(!index[k]) index[k]={key:k, flows:[]};
+      index[k].flows.push(f);
+    });
+  });
+  var rows=Object.keys(index).map(function(k){
+    var o=index[k];
+    o.gaps=o.flows.filter(function(f){return f.status==="gap";}).length;
+    o.meta=CAPS[k]||{name:k, sub:"", why:""};
+    return o;
+  }).sort(function(a,b){
+    if(b.flows.length!==a.flows.length) return b.flows.length-a.flows.length;
+    if(b.gaps!==a.gaps) return b.gaps-a.gaps;
+    return a.meta.name.localeCompare(b.meta.name);
+  });
+
+  var stuck=FLOWS.filter(function(f){return f.status!=="works";}).length;
+  document.getElementById("gapIntro").innerHTML=
+    'The '+stuck+' flows that are not fully supported reduce to <b>'+rows.length+' capabilities</b>. '+
+    'This is the ranked build list: the top item alone unblocks <b>'+rows[0].flows.length+
+    ' of the '+stuck+'</b>. Ordered by how many flows each one releases, then by how many of those are hard '+
+    '<em>Gaps</em> rather than <em>Partials</em>. Open any capability to see exactly which flows it frees.';
+
+  var host=document.getElementById("caps");
+  rows.forEach(function(o,i){
+    var refs=o.flows.sort(function(a,b){return a.n-b.n;}).map(function(f){
+      return '<a class="flowref" href="#flow-'+f.n+'" data-goto="'+f.n+'">'+
+        '<span class="st '+f.status+'" aria-hidden="true"></span>'+
+        '<span class="n">'+String(f.n).padStart(2,"0")+'</span>'+esc(f.t)+'</a>';
+    }).join("");
+    var card=el('<div class="cap'+(i<3?" top":"")+'">'+
+      '<button class="caphead" type="button" aria-expanded="'+(i<5?"true":"false")+'" aria-controls="cap-'+i+'">'+
+        '<span class="rank">'+(i+1)+'</span>'+
+        '<span><span class="capname">'+esc(o.meta.name)+'</span><span class="capsub">'+esc(o.meta.sub)+'</span></span>'+
+        '<span class="capcount"><span class="bignum">'+o.flows.length+'<small>flows</small></span>'+
+          (o.gaps?'<span class="pill gap">'+o.gaps+' gap'+(o.gaps>1?"s":"")+'</span>':'<span class="pill partial">all partial</span>')+
+        '</span>'+
+      '</button>'+
+      '<div class="capbody" id="cap-'+i+'"'+(i<5?"":" hidden")+'>'+
+        '<p class="why">'+o.meta.why+'</p>'+
+        '<div class="flowrefs">'+refs+'</div>'+
+      '</div></div>');
+    card.querySelector(".caphead").addEventListener("click", function(){
+      var b=card.querySelector(".capbody"), h=card.querySelector(".caphead");
+      var open=h.getAttribute("aria-expanded")!=="true";
+      h.setAttribute("aria-expanded", String(open)); b.hidden=!open;
+    });
+    host.appendChild(card);
+  });
+
+  /* clicking a flow reference opens and highlights that flow */
+  host.addEventListener("click", function(e){
+    var a=e.target.closest("[data-goto]"); if(!a) return;
+    var n=a.getAttribute("data-goto");
+    clearFilters();
+    var art=document.getElementById("flow-"+n);
+    setOpen(art,true);
+    art.classList.add("hit");
+    setTimeout(function(){ art.classList.remove("hit"); }, 2400);
+  });
+})();
+
+/* ═══════════════════ LIVE BLOCKERS ═══════════════════ */
+document.getElementById("livegrid").innerHTML=LIVE_BLOCKERS.map(function(b){
+  return '<div class="livecard"><h3>'+esc(b.t)+' <span class="tag">'+esc(b.tag)+'</span></h3>'+
+    '<p>'+b.d+'</p><p class="aff">'+esc(b.aff)+'</p></div>';
+}).join("");
+
+/* ═══════════════════ PROTOTYPE FOOTER LINKS ═══════════════════ */
+document.getElementById("protoFoot").innerHTML=Object.keys(APPS).map(function(k){
+  return '<a href="'+APPS[k].href+'">'+esc(APPS[k].name)+'</a>';
+}).join("");
+
+/* ═══════════════════ MODAL ═══════════════════ */
+var scrim=document.getElementById("scrim"), aboutBtn=document.getElementById("aboutBtn"), lastFocus=null;
+function openModal(){
+  lastFocus=document.activeElement; scrim.classList.add("open");
+  document.body.style.overflow="hidden";
+  document.getElementById("mClose").focus();
+}
+function closeModal(){
+  scrim.classList.remove("open"); document.body.style.overflow="";
+  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+}
+aboutBtn.addEventListener("click", openModal);
+document.getElementById("mClose").addEventListener("click", closeModal);
+scrim.addEventListener("mousedown", function(e){ if(e.target===scrim) closeModal(); });
+document.addEventListener("keydown", function(e){
+  if(e.key==="Escape"){
+    if(scrim.classList.contains("open")){ closeModal(); return; }
+    if(document.activeElement===qEl && qEl.value){ qEl.value=""; apply(); return; }
+  }
+  if(e.key==="Tab" && scrim.classList.contains("open")){
+    var f=scrim.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if(!f.length) return;
+    var first=f[0], last=f[f.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  }
+});
+
+/* deep link: #flow-N opens that flow */
+(function(){
+  var m=/^#flow-(\d+)$/.exec(location.hash||"");
+  if(!m) return;
+  var art=document.getElementById("flow-"+m[1]);
+  if(art){ setOpen(art,true); art.classList.add("hit"); }
+})();
+
+})();
+</script>
+</body>
+</html>

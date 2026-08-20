@@ -1,0 +1,29 @@
+{
+  "name": "@magna/app-market",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Install and remove desktop apps. Real plugins, real scopes, real removal.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "market",
+    "title": "Marketplace",
+    "publisher": "Magna",
+    "category": "System",
+    "tagline": "Install and remove desktop apps. Real plugins, real scopes.",
+    "glyph": "\u229e"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

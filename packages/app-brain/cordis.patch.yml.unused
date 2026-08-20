@@ -1,0 +1,4 @@
+- insert:
+    - id: magna-app-brain
+      name: '@magna/app-brain'
+      config: {}

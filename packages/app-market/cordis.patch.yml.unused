@@ -1,0 +1,4 @@
+- insert:
+    - id: magna-app-market
+      name: '@magna/app-market'
+      config: {}

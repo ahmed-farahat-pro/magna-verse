@@ -1,0 +1,37 @@
+{
+  "name": "@magna/app-terminal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Run shell commands through the agent, gated by the same approval bar as everything else.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "terminal",
+    "title": "Terminal",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "shell:execute"
+      ],
+      "deny": [
+        "shell:unattended"
+      ]
+    },
+    "category": "Work with the agent",
+    "tagline": "Shell commands through the agent, gated by approvals.",
+    "glyph": "\u203a_"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

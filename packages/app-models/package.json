@@ -1,0 +1,39 @@
+{
+  "name": "@magna/app-models",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Add, edit and remove model providers without touching YAML.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "models",
+    "title": "Models",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "settings:read",
+        "settings:write",
+        "credentials:write"
+      ],
+      "deny": [
+        "net:egress"
+      ]
+    },
+    "category": "System",
+    "tagline": "Add and remove model providers without touching YAML.",
+    "glyph": "\u2699"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

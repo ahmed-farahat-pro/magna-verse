@@ -1,0 +1,24 @@
+{
+  "name": "@magna/app-connections",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Everything that connects this machine to something outside it.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": { ".": "./lib/index.js", "./package.json": "./package.json" },
+  "files": ["lib", "client"],
+  "magna": {
+    "appId": "conn",
+    "title": "Connections",
+    "publisher": "Magna",
+    "permissions": { "grant": ["conn:read"], "deny": ["fs:write", "net:egress"] },
+    "category": "System",
+    "tagline": "Everything that connects this machine to something outside it.",
+    "glyph": "⇄"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.7"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@magna/os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MagnaVERSE desktop as a DeepSeek Harness plugin: the ctx.magnaOS app registry, the /desktop surface, and the session brain tap.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "public",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  }
+}

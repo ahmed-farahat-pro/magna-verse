@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MagnaVERSE — watch it work</title>
+<meta name="description" content="MagnaVERSE is an enterprise AI workspace that runs on Magna's own GPUs, inside your network, in your country. This page runs the workspace rather than describing it.">
+<meta name="color-scheme" content="light dark">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#EDEFF1;
+  --bg-deep:#E3E6EA;
+  --surface:#FFFFFF;
+  --surface-2:#F6F7F9;
+  --surface-3:#EDEFF2;
+  --line:#D8DCE1;
+  --line-soft:#E6E9ED;
+  --ink:#111519;
+  --ink-2:#454E58;
+  --ink-3:#6E7883;
+  --accent:#0E6F68;
+  --accent-hi:#0B564F;
+  --accent-soft:#DFEFEC;
+  --accent-line:#9CCCC5;
+  --flag:#A3241A;
+  --flag-soft:#F6E4E1;
+  --focus:#1E50C8;
+  --shadow-1:0 1px 2px rgba(16,22,28,.06), 0 6px 18px rgba(16,22,28,.06);
+  --shadow-2:0 2px 6px rgba(16,22,28,.07), 0 22px 50px rgba(16,22,28,.11);
+  --frame-glow:0 1px 0 rgba(255,255,255,.9) inset;
+  --r-s:6px; --r-m:10px; --r-l:16px; --r-xl:22px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --maxw:1240px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0B0E11;
+    --bg-deep:#07090B;
+    --surface:#14181C;
+    --surface-2:#1A1F24;
+    --surface-3:#20262C;
+    --line:#2A3138;
+    --line-soft:#20262C;
+    --ink:#E9EDF1;
+    --ink-2:#AEB8C2;
+    --ink-3:#7C8794;
+    --accent:#3FC3B0;
+    --accent-hi:#63D8C7;
+    --accent-soft:#0F302D;
+    --accent-line:#1E5B54;
+    --flag:#E4776B;
+    --flag-soft:#331B18;
+    --focus:#7AA2FF;
+    --shadow-1:0 1px 2px rgba(0,0,0,.5), 0 6px 18px rgba(0,0,0,.4);
+    --shadow-2:0 2px 6px rgba(0,0,0,.5), 0 26px 60px rgba(0,0,0,.55);
+    --frame-glow:0 1px 0 rgba(255,255,255,.05) inset;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EDEFF1; --bg-deep:#E3E6EA; --surface:#FFFFFF; --surface-2:#F6F7F9; --surface-3:#EDEFF2;
+  --line:#D8DCE1; --line-soft:#E6E9ED;
+  --ink:#111519; --ink-2:#454E58; --ink-3:#6E7883;
+  --accent:#0E6F68; --accent-hi:#0B564F; --accent-soft:#DFEFEC; --accent-line:#9CCCC5;
+  --flag:#A3241A; --flag-soft:#F6E4E1; --focus:#1E50C8;
+  --shadow-1:0 1px 2px rgba(16,22,28,.06), 0 6px 18px rgba(16,22,28,.06);
+  --shadow-2:0 2px 6px rgba(16,22,28,.07), 0 22px 50px rgba(16,22,28,.11);
+  --frame-glow:0 1px 0 rgba(255,255,255,.9) inset;
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E11; --bg-deep:#07090B; --surface:#14181C; --surface-2:#1A1F24; --surface-3:#20262C;
+  --line:#2A3138; --line-soft:#20262C;
+  --ink:#E9EDF1; --ink-2:#AEB8C2; --ink-3:#7C8794;
+  --accent:#3FC3B0; --accent-hi:#63D8C7; --accent-soft:#0F302D; --accent-line:#1E5B54;
+  --flag:#E4776B; --flag-soft:#331B18; --focus:#7AA2FF;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5), 0 6px 18px rgba(0,0,0,.4);
+  --shadow-2:0 2px 6px rgba(0,0,0,.5), 0 26px 60px rgba(0,0,0,.55);
+  --frame-glow:0 1px 0 rgba(255,255,255,.05) inset;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+img,svg{max-width:100%}
+h1,h2,h3,h4{margin:0; font-weight:640; letter-spacing:-.022em; line-height:1.12}
+p{margin:0}
+a{color:inherit}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px}
+.wrap{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 24px}
+@media (max-width:520px){ .wrap{padding:0 16px} }
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase}
+
+/* ============================================================
+   MAGNA MARK
+   ============================================================ */
+.magna-mark{ width:26px; height:auto; display:block; flex:none }
+.magna-mark path{ stroke-dasharray:1200; stroke-dashoffset:0 }
+@media (prefers-reduced-motion:no-preference){
+  .magna-mark path{ animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both }
+  .magna-mark path:nth-of-type(2){ animation-delay:.18s }
+}
+@keyframes mgDraw{ from{stroke-dashoffset:1200} to{stroke-dashoffset:0} }
+@media (prefers-reduced-motion:no-preference){
+  .mg-thinking path{ animation:mgLoop 1.9s ease-in-out infinite }
+  .mg-thinking path:nth-of-type(2){ animation-delay:.22s }
+}
+@keyframes mgLoop{
+  0%{stroke-dashoffset:1200; opacity:.35}
+  45%{stroke-dashoffset:0; opacity:1}
+  100%{stroke-dashoffset:-1200; opacity:.35}
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none}
+.brand-word{font-weight:650; letter-spacing:-.02em; font-size:1.02rem; white-space:nowrap}
+.brand-word span{color:var(--ink-3); font-weight:560}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.hdr{
+  position:sticky; top:0; z-index:60;
+  background:color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter:saturate(1.4) blur(14px);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);
+  border-bottom:1px solid var(--line-soft);
+}
+.hdr-in{display:flex; align-items:center; gap:20px; height:60px}
+.hdr-nav{display:flex; gap:4px; margin-left:auto}
+.hdr-nav a{
+  text-decoration:none; color:var(--ink-2); font-size:.86rem;
+  padding:10px 11px; border-radius:var(--r-s);
+}
+.hdr-nav a:hover{color:var(--ink); background:var(--surface-2)}
+.tbtn{
+  display:inline-flex; align-items:center; gap:7px;
+  min-height:44px; padding:0 13px;
+  background:var(--surface); border:1px solid var(--line); border-radius:99px;
+  cursor:pointer; font-size:.78rem; color:var(--ink-2);
+}
+.tbtn:hover{border-color:var(--ink-3); color:var(--ink)}
+.tbtn svg{width:15px;height:15px;flex:none}
+@media (max-width:860px){ .hdr-nav{display:none} }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{padding:64px 0 28px}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:9px;
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--accent); background:var(--accent-soft);
+  border:1px solid var(--accent-line); border-radius:99px; padding:6px 12px;
+}
+h1{
+  margin:22px 0 0; max-width:17ch;
+  font-size:clamp(2.35rem,7.2vw,4.6rem); line-height:.99; letter-spacing:-.038em; font-weight:660;
+}
+h1 em{font-style:normal; color:var(--accent)}
+.hero-sub{
+  margin-top:22px; max-width:62ch; font-size:clamp(1.02rem,1.9vw,1.22rem);
+  color:var(--ink-2); line-height:1.5;
+}
+.hero-sub strong{color:var(--ink); font-weight:600}
+.hero-acts{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:46px; padding:0 20px; border-radius:99px;
+  font-size:.92rem; font-weight:560; text-decoration:none; cursor:pointer;
+  border:1px solid transparent;
+}
+.btn-pri{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.btn-pri:hover{background:var(--accent); border-color:var(--accent); color:#fff}
+:root[data-theme="dark"] .btn-pri:hover, .btn-pri:hover{color:#fff}
+.btn-sec{background:var(--surface); color:var(--ink); border-color:var(--line)}
+.btn-sec:hover{border-color:var(--ink-3)}
+
+/* ============================================================
+   STAGE — the demo + the annotations
+   ============================================================ */
+.stage{padding:26px 0 40px; position:relative}
+.stage-grid{display:grid; grid-template-columns:1fr; gap:0}
+@media (min-width:1000px){
+  .stage-grid{grid-template-columns:minmax(0,1.42fr) minmax(288px,.88fr); gap:52px; align-items:start}
+}
+.stage-demo{position:sticky; top:70px; z-index:20}
+@media (min-width:1000px){ .stage-demo{top:88px} }
+/* single column: block flow so the sticky demo can travel past the beats */
+@media (max-width:999px){
+  .stage-grid{display:block}
+  .stage-demo{top:64px; background:var(--bg); padding:6px 0 12px}
+}
+
+.demo-shell{position:relative}
+
+/* --- the simulated workspace ------------------------------- */
+.vw{
+  position:relative; z-index:2;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-l); box-shadow:var(--shadow-2);
+  overflow:hidden; display:flex; flex-direction:column;
+  height:min(560px,68vh); min-height:380px;
+}
+@media (max-width:999px){ .vw{height:min(460px,54vh); min-height:340px} }
+@media (max-width:600px){ .vw{height:min(410px,50vh); min-height:320px; border-radius:var(--r-m)} }
+.vw.frozen *{animation-play-state:paused!important}
+/* if playback is frozen mid-cycle no mark may be caught undrawn */
+.vw.frozen .magna-mark path{stroke-dashoffset:0!important; opacity:1!important}
+
+.vw-bar{
+  display:flex; align-items:center; gap:10px; flex:none;
+  padding:0 12px; height:42px;
+  background:var(--surface-2); border-bottom:1px solid var(--line-soft);
+}
+.vw-dots{display:flex; gap:6px; flex:none}
+.vw-dots i{width:9px;height:9px;border-radius:99px;background:var(--line);display:block}
+.vw-title{
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.04em; color:var(--ink-3);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.res-chip{
+  margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:.63rem; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--accent); background:var(--accent-soft);
+  border:1px solid var(--accent-line); border-radius:99px; padding:3px 9px;
+}
+.res-chip b{width:6px;height:6px;border-radius:99px;background:var(--accent);display:block}
+@media (max-width:600px){ .res-chip span{display:none} .vw-title{font-size:.62rem} }
+
+.vw-body{display:flex; flex:1 1 auto; min-height:0}
+
+.vw-side{
+  flex:none; width:184px; border-right:1px solid var(--line-soft);
+  background:var(--surface-2); padding:12px 10px; display:flex; flex-direction:column; gap:12px;
+  overflow:hidden;
+}
+@media (max-width:900px){ .vw-side{display:none} }
+.vw-side .brand-word{font-size:.9rem}
+.side-new{
+  display:flex; align-items:center; gap:8px; width:100%;
+  border:1px dashed var(--line); background:transparent; border-radius:var(--r-s);
+  padding:8px 10px; font-size:.78rem; color:var(--ink-3); cursor:default;
+}
+.side-lbl{font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding:0 4px}
+.side-list{display:flex; flex-direction:column; gap:2px}
+.side-item{
+  font-size:.78rem; color:var(--ink-3); padding:7px 8px; border-radius:var(--r-s);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:background .25s, color .25s;
+}
+.side-item.on{background:var(--surface-3); color:var(--ink); font-weight:540}
+.side-foot{margin-top:auto; display:flex; flex-direction:column; gap:6px}
+.tier{
+  display:flex; align-items:center; gap:7px; font-size:.7rem; color:var(--ink-2);
+  border:1px solid var(--line); border-radius:var(--r-s); padding:6px 8px; background:var(--surface);
+}
+.tier b{width:6px;height:6px;border-radius:99px;background:var(--accent);display:block;flex:none}
+.model-line{font-family:var(--mono); font-size:.6rem; color:var(--ink-3); padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+.vw-main{flex:1 1 auto; min-width:0; display:flex; flex-direction:column}
+.vw-thread{
+  flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
+  padding:16px 18px 8px; scrollbar-width:thin;
+  display:flex; flex-direction:column;
+}
+@media (max-width:600px){ .vw-thread{padding:12px 13px 6px} }
+.vw-thread::-webkit-scrollbar{width:8px}
+.vw-thread::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px}
+
+.turn{display:flex; flex-direction:column; gap:12px; min-width:0; margin-top:auto}
+.vw-empty{
+  margin:auto; padding:0 6px; text-align:center; display:flex; flex-direction:column; gap:7px;
+  align-items:center; color:var(--ink-3);
+}
+.vw-empty .magna-mark{width:34px; margin-bottom:2px}
+.vw-empty b{font-size:.82rem; font-weight:560; color:var(--ink-2)}
+.vw-empty span{font-family:var(--mono); font-size:.62rem; letter-spacing:.04em; line-height:1.7; max-width:46ch}
+.msg-user{
+  align-self:flex-end; max-width:88%;
+  background:var(--surface-3); border:1px solid var(--line-soft);
+  border-radius:14px 14px 4px 14px; padding:9px 13px;
+  font-size:.85rem; line-height:1.45; color:var(--ink);
+}
+@media (max-width:600px){ .msg-user{font-size:.8rem; max-width:94%} }
+.msg-ai{display:flex; flex-direction:column; gap:10px; min-width:0; font-size:.85rem; line-height:1.6; color:var(--ink-2)}
+@media (max-width:600px){ .msg-ai{font-size:.8rem} }
+.msg-ai p strong{color:var(--ink); font-weight:620}
+.msg-ai .note{font-size:.78rem; color:var(--ink-3)}
+
+.think{display:flex; align-items:center; gap:10px; min-height:26px}
+.think .magna-mark{width:24px}
+.think-txt{font-size:.8rem; color:var(--ink-3)}
+
+.tool{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  border:1px solid var(--line); background:var(--surface-2);
+  border-radius:var(--r-s); padding:7px 10px;
+}
+.tool-name{font-family:var(--mono); font-size:.68rem; color:var(--ink); font-weight:600}
+.tool-meta{font-family:var(--mono); font-size:.63rem; color:var(--ink-3)}
+.tag{
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.06em; text-transform:uppercase;
+  border:1px solid var(--line); border-radius:99px; padding:2px 7px; color:var(--ink-3);
+  background:var(--surface);
+}
+.tag.ok{color:var(--accent); border-color:var(--accent-line); background:var(--accent-soft)}
+
+.tbl-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--r-s); -webkit-overflow-scrolling:touch}
+table{border-collapse:collapse; width:100%; min-width:400px; font-size:.73rem}
+th,td{text-align:left; padding:7px 9px; border-bottom:1px solid var(--line-soft); white-space:nowrap}
+th:last-child,td:last-child{white-space:normal; min-width:92px}
+th{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-3); background:var(--surface-2); font-weight:600;
+}
+td{color:var(--ink-2)}
+td:first-child{font-family:var(--mono); font-size:.7rem; color:var(--ink)}
+tr:last-child td{border-bottom:0}
+td.num{text-align:right; font-family:var(--mono)}
+td.flag{color:var(--flag)}
+
+.cite{border:1px solid var(--accent-line); background:var(--accent-soft); border-radius:var(--r-s); padding:9px 11px}
+.cite-hd{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:.63rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-hi)}
+:root[data-theme="dark"] .cite-hd, .cite-hd{color:var(--accent)}
+.cite-hd svg{width:13px;height:13px;flex:none}
+.cite-list{display:flex; flex-direction:column; gap:4px; margin-top:7px}
+.cite-item{display:flex; gap:8px; font-size:.72rem; color:var(--ink-2); align-items:baseline}
+.cite-item i{
+  font-style:normal; font-family:var(--mono); font-size:.6rem; color:var(--accent);
+  border:1px solid var(--accent-line); border-radius:3px; padding:0 4px; flex:none; background:var(--surface)
+}
+.cite-item b{font-weight:560; color:var(--ink)}
+.cite-item span{color:var(--ink-3)}
+
+.residency{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  border-top:1px dashed var(--line); padding-top:9px; margin-top:2px;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.04em; color:var(--ink-3);
+}
+.residency b{color:var(--accent); font-weight:600}
+
+.vw-comp{
+  flex:none; border-top:1px solid var(--line-soft); background:var(--surface);
+  padding:10px 14px 12px;
+}
+@media (max-width:600px){ .vw-comp{padding:8px 11px 10px} }
+.comp-box{
+  display:flex; align-items:flex-end; gap:8px;
+  border:1px solid var(--line); border-radius:12px; background:var(--surface-2);
+  padding:6px 6px 6px 12px; min-height:44px;
+}
+.comp-txt{
+  flex:1 1 auto; min-width:0; font-size:.82rem; color:var(--ink);
+  line-height:1.45; padding:5px 0 4px;
+  overflow:hidden; max-height:4.4em; overflow-wrap:anywhere;
+}
+.comp-val:empty::before{content:attr(data-ph); color:var(--ink-3)}
+.caret{
+  display:inline-block; width:1.5px; height:1em; background:var(--accent);
+  vertical-align:-.16em; margin-left:1px; opacity:0;
+}
+.caret.on{opacity:1}
+@media (prefers-reduced-motion:no-preference){ .caret.on{animation:blink 1.05s steps(1,end) infinite} }
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.comp-send{
+  flex:none; width:32px; height:32px; border-radius:8px; border:0;
+  background:var(--ink); color:var(--bg); display:grid; place-items:center; cursor:default;
+  transition:background .2s, transform .2s;
+}
+.comp-send.hot{background:var(--accent); color:#fff}
+.comp-send svg{width:15px;height:15px}
+.comp-hint{
+  display:flex; gap:12px; margin-top:7px; padding:0 2px;
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.06em; color:var(--ink-3);
+}
+@media (max-width:700px){ .comp-hint{display:none} }
+
+/* --- annotations pinned to the frame ----------------------- */
+.callouts{
+  display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; min-height:38px;
+  align-items:flex-start;
+}
+.callout{
+  display:flex; align-items:flex-start; gap:9px; max-width:min(340px,100%);
+  background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:8px 14px 8px 12px; box-shadow:var(--shadow-1);
+  font-size:.76rem; color:var(--ink-2); line-height:1.4;
+}
+.callout::before{
+  content:""; width:7px; height:7px; border-radius:99px; background:var(--accent);
+  flex:none; margin-top:.42em;
+}
+.callout.neg::before{background:var(--flag)}
+.callout > span{display:block; min-width:0}
+.callout b{color:var(--ink); font-weight:600}
+.callout{opacity:0; transform:translateY(6px); transition:opacity .5s ease, transform .5s cubic-bezier(.16,1,.3,1)}
+.callout.on{opacity:1; transform:none}
+@media (prefers-reduced-motion:reduce){ .callout{opacity:1; transform:none; transition:none} }
+/* wide screens: let the annotations sit out in the left margin, never over the frame */
+@media (min-width:1400px){ .callouts{margin-left:-72px} }
+@media (min-width:1700px){ .callouts{margin-left:-120px} }
+@media (max-width:640px){
+  .callouts .callout:nth-child(n+2){display:none}
+}
+
+/* --- transport: pause / play + dots ------------------------ */
+.transport{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-top:14px; padding:8px 10px;
+  border:1px solid var(--line); border-radius:99px; background:var(--surface);
+  box-shadow:var(--shadow-1);
+}
+.tp-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  min-height:44px; padding:0 16px 0 12px; border-radius:99px;
+  border:1px solid var(--line); background:var(--surface-2); cursor:pointer;
+  font-size:.78rem; font-weight:540; color:var(--ink);
+}
+.tp-btn:hover:not(:disabled){border-color:var(--ink-3)}
+.tp-btn:disabled{opacity:.6; cursor:not-allowed}
+.tp-btn svg{width:14px;height:14px;flex:none}
+.tp-dots{display:flex; gap:6px; align-items:center}
+.tp-dot{
+  position:relative; width:46px; height:44px; padding:0; border:0; background:none; cursor:pointer;
+  display:grid; place-items:center;
+}
+.tp-dot::after{
+  content:""; width:100%; height:4px; border-radius:99px;
+  background:var(--line); transition:background .3s;
+}
+.tp-dot[aria-current="true"]::after{background:var(--accent)}
+.tp-dot:hover::after{background:var(--ink-3)}
+.tp-dot[aria-current="true"]:hover::after{background:var(--accent)}
+.tp-status{
+  font-family:var(--mono); font-size:.63rem; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-3); margin-left:auto; padding-right:6px; white-space:nowrap;
+}
+@media (max-width:600px){ .tp-status{display:none} .transport{border-radius:var(--r-m)} }
+
+/* --- beats (the annotation column) ------------------------- */
+.beats{display:flex; flex-direction:column}
+.beat{
+  padding:34px 0; border-top:1px solid var(--line-soft);
+}
+.beat:first-child{border-top:0}
+@media (min-width:1000px){
+  .beat{
+    min-height:82vh; display:flex; flex-direction:column; justify-content:center;
+    padding:40px 0; border-top:0;
+  }
+  .beat:first-child{padding-top:0; min-height:74vh}
+}
+.beat-num{
+  display:inline-flex; align-items:center; gap:9px;
+  font-family:var(--mono); font-size:.64rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3);
+}
+.beat-num i{
+  font-style:normal; display:grid; place-items:center; width:22px; height:22px;
+  border-radius:99px; border:1px solid var(--line); font-size:.62rem; color:var(--ink-2);
+}
+.beat.active .beat-num{color:var(--accent)}
+.beat.active .beat-num i{border-color:var(--accent-line); background:var(--accent-soft); color:var(--accent-hi)}
+:root[data-theme="dark"] .beat.active .beat-num i{color:var(--accent)}
+.beat h2{margin-top:14px; font-size:clamp(1.4rem,3.4vw,1.92rem); letter-spacing:-.028em; max-width:20ch}
+.beat p{margin-top:14px; color:var(--ink-2); font-size:.98rem; max-width:46ch}
+.beat p code{
+  font-family:var(--mono); font-size:.85em; background:var(--surface-3);
+  border:1px solid var(--line-soft); border-radius:4px; padding:1px 5px; color:var(--ink);
+}
+.beat-meta{
+  display:flex; flex-wrap:wrap; gap:6px; margin-top:18px;
+}
+.beat-meta span{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.05em;
+  border:1px solid var(--line); border-radius:99px; padding:4px 9px; color:var(--ink-3);
+}
+.beat{transition:opacity .5s ease}
+.has-io .beat{opacity:.44}
+.has-io .beat.active{opacity:1}
+@media (max-width:999px){ .has-io .beat{opacity:1} }
+@media (prefers-reduced-motion:reduce){ .beat{transition:none} .has-io .beat{opacity:1} }
+
+/* reduced-motion helper text */
+.rm-note{
+  display:none; margin-top:12px; padding:10px 14px;
+  border:1px dashed var(--line); border-radius:var(--r-m);
+  font-size:.8rem; color:var(--ink-2);
+}
+@media (prefers-reduced-motion:reduce){ .rm-note{display:block} }
+
+/* ============================================================
+   GENERIC SECTIONS
+   ============================================================ */
+.sec{padding:76px 0; border-top:1px solid var(--line-soft)}
+@media (max-width:700px){ .sec{padding:54px 0} }
+.sec-kicker{
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3);
+}
+.sec h2{margin-top:14px; font-size:clamp(1.7rem,4.2vw,2.6rem); letter-spacing:-.032em; max-width:22ch}
+.sec-lede{margin-top:16px; max-width:60ch; color:var(--ink-2); font-size:1.02rem}
+
+.reveal{opacity:1; transform:none}
+.has-io .reveal{opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s cubic-bezier(.16,1,.3,1)}
+.has-io .reveal.in{opacity:1; transform:none}
+@media (prefers-reduced-motion:reduce){ .has-io .reveal{opacity:1; transform:none; transition:none} }
+
+/* did-not-happen ledger */
+.ledger{display:grid; grid-template-columns:1fr; gap:0; margin-top:34px; border-top:1px solid var(--line)}
+.led-row{
+  display:grid; grid-template-columns:1fr; gap:6px;
+  padding:20px 0; border-bottom:1px solid var(--line-soft);
+}
+@media (min-width:760px){
+  .led-row{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); gap:32px; align-items:baseline}
+}
+.led-k{display:flex; align-items:baseline; gap:10px; font-weight:600; font-size:1.02rem; letter-spacing:-.015em}
+.led-k s{
+  text-decoration:none; font-family:var(--mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--flag); background:var(--flag-soft); border-radius:99px; padding:3px 8px; flex:none;
+}
+.led-v{color:var(--ink-2); font-size:.94rem}
+
+.specs{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
+  margin-top:36px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-m); overflow:hidden;
+}
+.spec{background:var(--surface); padding:18px 16px}
+.spec dt{font-family:var(--mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.spec dd{margin:8px 0 0; font-size:1.16rem; font-weight:600; letter-spacing:-.02em}
+.spec dd small{display:block; font-size:.72rem; font-weight:400; color:var(--ink-3); letter-spacing:0; margin-top:3px}
+
+/* deployment */
+.deploy{display:grid; grid-template-columns:1fr; gap:14px; margin-top:36px}
+@media (min-width:840px){ .deploy{grid-template-columns:repeat(3,1fr)} }
+.dep{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-m);
+  padding:22px 20px 20px; display:flex; flex-direction:column; gap:10px;
+}
+.dep h3{font-size:1.12rem; letter-spacing:-.02em}
+.dep .mono{color:var(--ink-3)}
+.dep p{color:var(--ink-2); font-size:.9rem}
+.dep ul{margin:4px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:7px}
+.dep li{position:relative; padding-left:16px; font-size:.85rem; color:var(--ink-2)}
+.dep li::before{content:""; position:absolute; left:0; top:.55em; width:5px; height:5px; border-radius:99px; background:var(--accent-line)}
+
+/* prototypes */
+.protos{display:grid; grid-template-columns:1fr; gap:1px; margin-top:36px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-m); overflow:hidden}
+@media (min-width:640px){ .protos{grid-template-columns:repeat(2,1fr)} }
+@media (min-width:1040px){ .protos{grid-template-columns:repeat(3,1fr)} }
+.proto{
+  background:var(--surface); padding:20px 18px; text-decoration:none;
+  display:flex; flex-direction:column; gap:6px; min-height:112px; transition:background .2s;
+}
+.proto:hover{background:var(--surface-2)}
+.proto .mono{color:var(--accent)}
+.proto b{font-size:1rem; font-weight:600; letter-spacing:-.018em; display:flex; align-items:center; gap:8px}
+.proto b svg{width:13px;height:13px;opacity:.5;flex:none}
+.proto span{font-size:.85rem; color:var(--ink-2)}
+.proto-extra{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
+.proto-extra a{
+  display:inline-flex; align-items:center; min-height:44px; padding:0 16px; gap:8px;
+  border:1px solid var(--line); border-radius:99px; background:var(--surface);
+  text-decoration:none; font-size:.85rem; color:var(--ink-2);
+}
+.proto-extra a:hover{border-color:var(--ink-3); color:var(--ink)}
+
+/* CTA */
+.cta{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-l); padding:38px 30px; box-shadow:var(--shadow-1)}
+@media (max-width:600px){ .cta{padding:26px 20px} }
+.cta-grid{display:grid; grid-template-columns:1fr; gap:30px}
+@media (min-width:900px){ .cta-grid{grid-template-columns:minmax(0,1fr) minmax(300px,.85fr); gap:52px} }
+form{display:flex; flex-direction:column; gap:12px}
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-family:var(--mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.field input, .field select{
+  font:inherit; font-size:.92rem; color:var(--ink);
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-s);
+  padding:11px 12px; min-height:46px; width:100%;
+}
+.field input:focus, .field select:focus{outline:2px solid var(--focus); outline-offset:1px; border-color:transparent}
+.form-row{display:grid; grid-template-columns:1fr; gap:12px}
+@media (min-width:560px){ .form-row{grid-template-columns:1fr 1fr} }
+.form-note{font-size:.76rem; color:var(--ink-3)}
+.form-ok{
+  display:none; align-items:flex-start; gap:10px; margin-top:4px;
+  border:1px solid var(--accent-line); background:var(--accent-soft); border-radius:var(--r-s);
+  padding:12px 14px; font-size:.85rem; color:var(--ink-2);
+}
+.form-ok.on{display:flex}
+.form-ok b{color:var(--ink); display:block; margin-bottom:2px}
+
+/* footer */
+footer{border-top:1px solid var(--line-soft); padding:38px 0 54px; color:var(--ink-3); font-size:.82rem}
+.ft-in{display:flex; flex-wrap:wrap; gap:18px; align-items:center}
+.ft-links{display:flex; flex-wrap:wrap; gap:14px; margin-left:auto}
+.ft-links a{color:var(--ink-3); text-decoration:none; min-height:44px; min-width:44px; display:inline-flex; align-items:center; justify-content:center}
+.ft-links a:hover{color:var(--ink)}
+.ft-note{width:100%; margin-top:12px; max-width:70ch; line-height:1.6}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <a class="brand" href="#top">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-hd" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-hd" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-hd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-hd)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-word">Magna<span>VERSE</span></span>
+    </a>
+    <nav class="hdr-nav" aria-label="Sections">
+      <a href="#demo">The workspace</a>
+      <a href="#sovereignty">Sovereignty</a>
+      <a href="#deployment">Deployment</a>
+      <a href="#prototypes">Prototypes</a>
+    </nav>
+    <button class="tbtn" id="themeBtn" type="button" aria-label="Theme: follow system">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>
+      </svg>
+      <span id="themeLbl">System</span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Live simulation &middot; not a screenshot</span>
+      <h1>Watch it answer. Nothing <em>leaves the building.</em></h1>
+      <p class="hero-sub">MagnaVERSE is an enterprise AI workspace that behaves like the assistant your teams already want &mdash; and runs on <strong>Magna&rsquo;s own GPUs, inside your network, in your country.</strong> Rather than describe it, this page runs it. Below, the workspace answers three real questions, end to end, while the margin notes tell you what just happened and where it happened.</p>
+      <div class="hero-acts">
+        <a class="btn btn-pri" href="#book">Book a walkthrough</a>
+        <a class="btn btn-sec" href="#prototypes">Open the working prototypes</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== THE STAGE ===================== -->
+  <section class="stage" id="demo" aria-labelledby="demoH">
+    <div class="wrap">
+      <h2 id="demoH" class="vh">The MagnaVERSE workspace, running</h2>
+      <div class="stage-grid">
+
+        <!-- ---------- the demo ---------- -->
+        <div class="stage-demo">
+          <div class="demo-shell">
+            <div class="vw" id="vw" role="group" aria-label="Simulated MagnaVERSE workspace">
+
+              <div class="vw-bar">
+                <div class="vw-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                <div class="vw-title" id="vwTitle">magnaverse &mdash; northgate industrial &middot; tenancy riyadh-1</div>
+                <div class="res-chip" id="resChip"><b></b>Riyadh DC-1 <span>&middot; 8&times;H200</span></div>
+              </div>
+
+              <div class="vw-body">
+                <aside class="vw-side" aria-hidden="true">
+                  <div class="brand" style="padding:2px 4px 0">
+                    <svg class="magna-mark" viewBox="0 0 640 440" style="width:20px" role="img" aria-label="Magna">
+                      <defs>
+                        <linearGradient id="mgGB-sb" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+                          <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+                        </linearGradient>
+                        <linearGradient id="mgR-sb" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+                          <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-sb)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-sb)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="brand-word">Magna<span>VERSE</span></span>
+                  </div>
+                  <div class="side-new">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;flex:none"><path d="M12 5v14M5 12h14"/></svg>
+                    New chat
+                  </div>
+                  <div>
+                    <div class="side-lbl">Today</div>
+                    <div class="side-list" id="sideList"></div>
+                  </div>
+                  <div class="side-foot">
+                    <div class="model-line" id="modelLine">kimi-k2-instruct &middot; private</div>
+                    <div class="tier"><b></b> Private tier &middot; in-country</div>
+                  </div>
+                </aside>
+
+                <div class="vw-main">
+                  <div class="vw-thread" id="thread"></div>
+                  <div class="vw-comp">
+                    <div class="comp-box">
+                      <div class="comp-txt"><span class="comp-val" id="compTxt" data-ph="Ask MagnaVERSE&hellip;"></span><span class="caret" id="caret" aria-hidden="true"></span></div>
+                      <button class="comp-send" id="sendBtn" type="button" tabindex="-1" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                      </button>
+                    </div>
+                    <div class="comp-hint"><span>&#8629; send</span><span>/ commands</span><span>&#8984;K palette</span><span>private tier</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="callouts" id="callouts"></div>
+          </div>
+
+          <div class="transport" role="group" aria-label="Demo playback controls">
+            <button class="tp-btn" id="playBtn" type="button" aria-label="Pause the demo">
+              <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <span id="playLbl">Pause</span>
+            </button>
+            <div class="tp-dots" id="dots"></div>
+            <div class="tp-status" id="tpStatus">Scenario 1 of 3</div>
+          </div>
+          <p class="vh" id="srStatus" aria-live="polite"></p>
+          <p class="rm-note">Reduced motion is on, so the demo is not animating. Each scenario is shown as a finished result &mdash; the question, the tools it called, the answer, the citations and the residency line. Use the three buttons above to switch between them.</p>
+        </div>
+
+        <!-- ---------- the annotations ---------- -->
+        <div class="beats" id="beats">
+
+          <article class="beat" id="beat-0" data-idx="0">
+            <div class="beat-num"><i>1</i> Connected systems</div>
+            <h2>It reaches into the systems that already run the business.</h2>
+            <p>That answer did not come from a model&rsquo;s memory. MagnaVERSE queried <strong>SAP S/4HANA</strong> directly &mdash; the live open purchase-order report &mdash; then joined the result against <strong>Primavera P6</strong> milestone dates to work out which delays actually threaten a handover.</p>
+            <p>Connectors are read-only unless you grant otherwise, every call is named in the transcript, and every call lands in the audit trail with the user, the tier and the arguments.</p>
+            <div class="beat-meta"><span>SAP S/4HANA</span><span>Primavera P6</span><span>Jira</span><span>Confluence</span><span>read-only by default</span></div>
+          </article>
+
+          <article class="beat" id="beat-1" data-idx="1">
+            <div class="beat-num"><i>2</i> Provenance</div>
+            <h2>Every claim carries the document it came from.</h2>
+            <p>An answer about contract exposure is only useful if you can defend it in a meeting. The grounding chip names the file, the sheet, the clause and the row &mdash; four sources for four assertions, each one openable.</p>
+            <p>Nothing was retrieved from the public web. The corpus is your own repository, indexed inside your network by the digital-twin context graph, and the model is only permitted to answer from what it can cite.</p>
+            <div class="beat-meta"><span>Company Knowledge</span><span>digital-twin context graph</span><span>clause-level citation</span><span>audit trail</span></div>
+          </article>
+
+          <article class="beat" id="beat-2" data-idx="2">
+            <div class="beat-num"><i>3</i> Mail over MCP</div>
+            <h2>Mail is a declared tool, not a leak.</h2>
+            <p>The inbox arrives through <code>magna-mail</code>, an MCP server registered with the workspace under an explicit scope: <code>search_messages</code> and <code>get_thread</code>. No send. No delete. Nothing cached outside the tenancy.</p>
+            <p>The mailbox stays exactly where it is. The model reads it from inside the perimeter, and the transcript records which tool ran, with which arguments, over how many messages.</p>
+            <div class="beat-meta"><span>magna-mail &middot; MCP</span><span>scoped tools</span><span>80+ prebuilt agents</span><span>34 verticals</span></div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SOVEREIGNTY ===================== -->
+  <section class="sec" id="sovereignty">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="sec-kicker">What did not happen</div>
+        <h2>The interesting part of that demo is the part with no events in it.</h2>
+        <p class="sec-lede">Three answers, three enterprise systems, one mailbox. Here is the network ledger for the whole run &mdash; because on a private-tier answer, the honest number is zero.</p>
+      </div>
+
+      <div class="ledger reveal">
+        <div class="led-row">
+          <div class="led-k"><s>did not</s> Call a public model API</div>
+          <div class="led-v">Inference ran on Magna hardware in the customer&rsquo;s tenancy &mdash; 8&times;H200 in Riyadh DC-1. Kimi K2 Instruct, DeepSeek V3.1, Qwen 3 235B and NVIDIA Nemotron 120B all run privately, on the same racks.</div>
+        </div>
+        <div class="led-row">
+          <div class="led-k"><s>did not</s> Move a byte across the border</div>
+          <div class="led-v">Data residency is guaranteed in-country. The SAP rows, the contract PDFs and the mailbox never left the network they started in. Egress on a private-tier answer: 0 bytes.</div>
+        </div>
+        <div class="led-row">
+          <div class="led-k"><s>did not</s> Train anyone else&rsquo;s model on your data</div>
+          <div class="led-v">There is no vendor-side corpus. Prompts, documents and tool results stay in the tenancy; retention is policy-set by you, and the policy is enforced rather than promised.</div>
+        </div>
+        <div class="led-row">
+          <div class="led-k"><s>did not</s> Leave the answer unaccountable</div>
+          <div class="led-v">Every turn carries the model, the tier, the tools called and the sources cited. Governance is policy-enforced with an audit trail your CISO can read without asking anyone for a log export.</div>
+        </div>
+      </div>
+
+      <dl class="specs reveal">
+        <div class="spec"><dt>Peak compute</dt><dd>1.2 exaflops<small>MagnaREACTOR AI POD</small></dd></div>
+        <div class="spec"><dt>Memory</dt><dd>28.4 TB<small>HBM3e</small></dd></div>
+        <div class="spec"><dt>Racks</dt><dd>GB300 NVL72<small>NVIDIA, liquid-cooled</small></dd></div>
+        <div class="spec"><dt>Fabric</dt><dd>800 Gbps<small>per node</small></dd></div>
+        <div class="spec"><dt>Efficiency</dt><dd>1.2&ndash;1.7<small>PUE</small></dd></div>
+        <div class="spec"><dt>Validated</dt><dd>1,000+<small>use cases</small></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ===================== DEPLOYMENT ===================== -->
+  <section class="sec" id="deployment">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="sec-kicker">Deployment</div>
+        <h2>Same workspace. Three places to stand it up.</h2>
+        <p class="sec-lede">The demo above is one tenancy on one POD. The architecture does not change when the location does &mdash; only the perimeter around it.</p>
+      </div>
+      <div class="deploy reveal">
+        <div class="dep">
+          <div class="mono">01 &middot; On-prem</div>
+          <h3>In your own data centre</h3>
+          <p>MagnaREACTOR racks behind your firewall, operated by your team or ours. The strictest reading of sovereignty: the GPUs are on your floor.</p>
+          <ul>
+            <li>Air-gap capable</li>
+            <li>Customer-held keys</li>
+            <li>Your change-control process</li>
+          </ul>
+        </div>
+        <div class="dep">
+          <div class="mono">02 &middot; Sovereign cloud</div>
+          <h3>In-country, single tenant</h3>
+          <p>A dedicated tenancy in a Magna region with residency guaranteed in-country. Capacity elastic, jurisdiction fixed. This is what the demo is running on.</p>
+          <ul>
+            <li>Five global regions</li>
+            <li>24/7 managed operations</li>
+            <li>ISO 27001 aligned, red-team audited</li>
+          </ul>
+        </div>
+        <div class="dep">
+          <div class="mono">03 &middot; Edge</div>
+          <h3>At the site</h3>
+          <p>A compact node at a plant, a rig or a project office, for sites where the link is thin or intermittent and the answer still has to arrive.</p>
+          <ul>
+            <li>Runs disconnected</li>
+            <li>Syncs when the link returns</li>
+            <li>Same policy engine, same audit trail</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PROTOTYPES ===================== -->
+  <section class="sec" id="prototypes">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="sec-kicker">Working prototypes</div>
+        <h2>The demo above is a simulation. These are not.</h2>
+        <p class="sec-lede">Six full interface studies, each a complete working front-end for the same product. Open them, type in them, switch conversations, change the sovereignty tier.</p>
+      </div>
+      <div class="protos reveal">
+        <a class="proto" href="../apps/app-1-chatgpt.html">
+          <span class="mono">App 1</span>
+          <b>Familiar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></b>
+          <span>The layout every employee already knows, with sovereignty made visible in the margins.</span>
+        </a>
+        <a class="proto" href="../apps/app-2-claude.html">
+          <span class="mono">App 2</span>
+          <b>Considered <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></b>
+          <span>Long-form reasoning, artifacts and a calmer reading measure for document work.</span>
+        </a>
+        <a class="proto" href="../apps/app-3-sovereign.html">
+          <span class="mono">App 3</span>
+          <b>Provable <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></b>
+          <span>The CISO&rsquo;s build: residency, tier, egress and the audit trail as first-class interface.</span>
+        </a>
+        <a class="proto" href="../apps/app-4-launchpad.html">
+          <span class="mono">App 4</span>
+          <b>Ready <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></b>
+          <span>Agent-first. 80+ prebuilt agents across 34 verticals, launched rather than prompted.</span>
+        </a>
+        <a class="proto" href="../apps/app-5-twin.html">
+          <span class="mono">App 5</span>
+          <b>Grounded <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></b>
+          <span>The digital-twin context graph, with every answer traced back through it.</span>
+        </a>
+        <a class="proto" href="../apps/app-6-horizon.html">
+          <span class="mono">App 6</span>
+          <b>Horizon <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></b>
+          <span>Where the workspace goes next &mdash; workflow automation across the whole estate.</span>
+        </a>
+      </div>
+      <div class="proto-extra reveal">
+        <a href="functionality-map.html">Functionality map &mdash; every screen and state</a>
+        <a href="../index.html">Deliverables index</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CTA ===================== -->
+  <section class="sec" id="book">
+    <div class="wrap">
+      <div class="cta reveal">
+        <div class="cta-grid">
+          <div>
+            <div class="sec-kicker">Book a walkthrough</div>
+            <h2 style="margin-top:12px">See it answer your questions, on your data, on our racks.</h2>
+            <p class="sec-lede">A walkthrough runs about 45 minutes: the workspace live, one connector wired to a system you choose, and the residency and audit story reviewed with whoever has to sign it off. Bring the CISO &mdash; the first half is written for them.</p>
+            <p class="sec-lede" style="margin-top:14px">Magna AI is a joint venture of <strong>Trend Micro</strong> and <strong>Wistron</strong>, powered by <strong>NVIDIA</strong>.</p>
+          </div>
+          <div>
+            <form id="bookForm" novalidate>
+              <div class="form-row">
+                <div class="field">
+                  <label for="f-name">Name</label>
+                  <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Full name">
+                </div>
+                <div class="field">
+                  <label for="f-org">Organisation</label>
+                  <input id="f-org" name="org" type="text" autocomplete="organization" placeholder="Company">
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-email">Work email</label>
+                <input id="f-email" name="email" type="email" autocomplete="email" placeholder="name@company.com">
+              </div>
+              <div class="field">
+                <label for="f-dep">Deployment you are considering</label>
+                <select id="f-dep" name="deployment">
+                  <option>On-prem</option>
+                  <option selected>Sovereign cloud, in-country</option>
+                  <option>Edge / site</option>
+                  <option>Not decided yet</option>
+                </select>
+              </div>
+              <button class="btn btn-pri" type="submit" style="align-self:flex-start; margin-top:4px">Request the walkthrough</button>
+              <p class="form-note">This page is a design prototype. The form is deliberately not wired to a backend.</p>
+              <div class="form-ok" id="formOk" role="status">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:none;margin-top:2px;color:var(--accent)" aria-hidden="true"><path d="m4 12 5 5L20 7"/></svg>
+                <span><b>Nothing was submitted.</b>This is a static prototype with no backend and no analytics &mdash; your details stayed in the browser and were not sent or stored anywhere.</span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap ft-in">
+    <a class="brand" href="#top">
+      <svg class="magna-mark" viewBox="0 0 640 440" style="width:22px" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-ft" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-ft" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-ft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-ft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-word">Magna<span>VERSE</span></span>
+    </a>
+    <div class="ft-links">
+      <a href="#demo">The workspace</a>
+      <a href="#sovereignty">Sovereignty</a>
+      <a href="#deployment">Deployment</a>
+      <a href="#prototypes">Prototypes</a>
+      <a href="../index.html">Index</a>
+    </div>
+    <p class="ft-note">The workspace on this page is a scripted simulation built to show the product&rsquo;s behaviour, using representative figures &mdash; not live customer data. Magna AI is a joint venture of Trend Micro and Wistron, powered by NVIDIA.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ==========================================================
+     THEME
+     ========================================================== */
+  var KEY = "magnaverse-theme";
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("themeBtn");
+  var themeLbl = document.getElementById("themeLbl");
+  var themeIcon = document.getElementById("themeIcon");
+  var MODES = ["system","light","dark"];
+  var ICONS = {
+    system:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>',
+    light:'<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>',
+    dark:'<path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"/>'
+  };
+  var mode = "system";
+  try { var s = localStorage.getItem(KEY); if (MODES.indexOf(s) > -1) mode = s; } catch(e){}
+  function applyTheme(){
+    if (mode === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", mode);
+    themeLbl.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+    themeIcon.innerHTML = ICONS[mode];
+    themeBtn.setAttribute("aria-label", "Theme: " + (mode === "system" ? "follow system" : mode) + ". Activate to change.");
+  }
+  applyTheme();
+  themeBtn.addEventListener("click", function(){
+    mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+    try { localStorage.setItem(KEY, mode); } catch(e){}
+    applyTheme();
+  });
+
+  /* ==========================================================
+     THE MARK, GENERATED (unique gradient ids per instance)
+     ========================================================== */
+  var markSeq = 0;
+  function markHTML(cls, w){
+    var id = "d" + (++markSeq);
+    return '<svg class="magna-mark ' + cls + '" viewBox="0 0 640 440" style="width:' + w + 'px" role="img" aria-label="Magna">' +
+      '<defs>' +
+        '<linearGradient id="mgGB-' + id + '" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="mgR-' + id + '" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      '<path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-' + id + ')" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-' + id + ')" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+  }
+
+  /* ==========================================================
+     SCENARIO DATA
+     ========================================================== */
+  var SCENARIOS = [
+    {
+      key:"sap",
+      context:"Connected · SAP S/4HANA · Primavera P6 · Company Knowledge",
+      dot:"Scenario 1 — purchase orders from SAP",
+      title:"magnaverse — northgate industrial · procurement",
+      convs:["Riyadh Metro — PO exposure","Vendor scorecard Q2","Shutdown parts list"],
+      active:0,
+      model:"kimi-k2-instruct · private",
+      residency:"Riyadh DC-1",
+      prompt:"Which open POs on the Riyadh Metro package are past their confirmed delivery date, and what's the value at risk?",
+      steps:[
+        {t:"Thinking…", ms:800},
+        {t:"Querying SAP S/4HANA — open PO report…", ms:1350},
+        {t:"Joining Primavera P6 milestone dates…", ms:1150},
+        {t:"Writing…", ms:700}
+      ],
+      blocks:[
+        {k:"tool", name:"sap-s4hana", meta:"ME2N · open purchase orders · package RM-04",
+         tags:["read-only","412 rows scanned","0 written"]},
+        {k:"p", text:"**Nine** open POs on RM-04 are past their confirmed delivery date. Combined open value is **SAR 41.6M**, of which **SAR 12.4M** sits on the critical path for the tunnel-boring handover in November."},
+        {k:"table",
+         cols:["PO","Vendor","Days late","Open value (SAR)","Milestone at risk"],
+         rows:[
+           ["4500091142","Cable &amp; Conduit Co.","34","6,200,000","TBM handover"],
+           ["4500090877","Precast Segments Ltd","21","4,050,000","Segment ring D"],
+           ["4500091310","HV Switchgear","12","2,150,000","Traction power"]
+         ],
+         late:2},
+        {k:"p", text:"The remaining six are each under SAR 1M and none of them touch a milestone before Q1. I'd escalate the first two this week; the switchgear line has 9 days of float left."},
+        {k:"note", text:"Source of truth is SAP. I read it; I did not change it."}
+      ],
+      residencyLine:["8×H200 · Riyadh DC-1","kimi-k2-instruct","private tier","0 bytes egress"],
+      callouts:[
+        {html:"<b>This ran on 8&times;H200 in Riyadh DC-1.</b> The rows never left the tenancy."},
+        {html:"Read-only connector. <b>412 rows scanned, 0 written</b> &mdash; and both numbers are in the audit trail."}
+      ]
+    },
+    {
+      key:"co",
+      context:"Connected · Company Knowledge · 12,480 documents indexed",
+      dot:"Scenario 2 — change orders with citations",
+      title:"magnaverse — northgate industrial · contracts",
+      convs:["Change orders — exposure","Riyadh Metro — PO exposure","Claim RM04-118 pack"],
+      active:0,
+      model:"deepseek-v3.1 · private",
+      residency:"Riyadh DC-1",
+      prompt:"Summarise the change orders raised against us since March, and tell me which ones we have already accepted in writing.",
+      steps:[
+        {t:"Thinking…", ms:850},
+        {t:"Searching Company Knowledge…", ms:1350},
+        {t:"Grounding against 4 documents…", ms:1200},
+        {t:"Writing…", ms:700}
+      ],
+      blocks:[
+        {k:"p", text:"**Fourteen** change orders have been raised since 3 March, worth **SAR 18.9M**. Four are accepted in writing; the rest are under review or formally contested."},
+        {k:"table",
+         cols:["CO ref","Value (SAR)","Position","Where that is written"],
+         rows:[
+           ["CO-041","5,400,000","Accepted","Amend-3 §14.2"],
+           ["CO-047","3,150,000","Accepted","Letter Ref-1188"],
+           ["CO-052","2,900,000","Contested","Minutes 19 May, item 7"],
+           ["CO-055","1,780,000","Under review","CO register, row 54"]
+         ]},
+        {k:"cite", label:"Grounded · 4 sources · Company Knowledge", items:[
+          {n:"1", doc:"Contract-RM04_Amend-3.pdf", loc:"clause 14.2, p. 31"},
+          {n:"2", doc:"Letter_Ref-1188.pdf", loc:"para. 3, signed 2 Jun"},
+          {n:"3", doc:"Minutes_2026-05-19.docx", loc:"item 7"},
+          {n:"4", doc:"CO-Log_2026.xlsx", loc:"sheet “Register”, rows 41–54"}
+        ]},
+        {k:"note", text:"Nothing here came from the public web. Every line traces to a document in your own repository."}
+      ],
+      residencyLine:["8×H200 · Riyadh DC-1","deepseek-v3.1","4 sources cited","0 bytes egress"],
+      callouts:[
+        {html:"<b>It cited your own documents, not the web.</b> Clause, page, sheet and row."},
+        {html:"Retrieval is scoped to Company Knowledge. <b>No public index was queried.</b>"}
+      ]
+    },
+    {
+      key:"mail",
+      context:"Connected · magna-mail (MCP) · Company Knowledge",
+      dot:"Scenario 3 — inbox via the magna-mail MCP tool",
+      title:"magnaverse — northgate industrial · inbox",
+      convs:["Inbox — waiting on me","Change orders — exposure","Riyadh Metro — PO exposure"],
+      active:0,
+      model:"qwen3-235b · private",
+      residency:"Riyadh DC-1",
+      prompt:"What's still waiting on me from the client side this week, and what did I promise them last week?",
+      steps:[
+        {t:"Thinking…", ms:850},
+        {t:"Calling magna-mail (MCP)…", ms:1300},
+        {t:"Reading 38 messages · scope read-only…", ms:1200},
+        {t:"Writing…", ms:700}
+      ],
+      blocks:[
+        {k:"tool", name:"magna-mail", meta:"MCP · search_messages, get_thread",
+         tags:["scope: read","no send","no delete","mailbox in-country"]},
+        {k:"p", text:"**Three** client-side threads are waiting on you. Two have been open longer than your own SLA of 48 hours."},
+        {k:"table",
+         cols:["From","Thread","Waiting","They need"],
+         rows:[
+           ["A. Al-Harbi","RM-04 segment delivery","4 days","Revised ring D date"],
+           ["Client PMO","CO-052 position","3 days","Written response"],
+           ["QA / HSE","Night works permit","1 day","Countersignature"]
+         ],
+         late:2},
+        {k:"p", text:"Last week you committed to two things in writing: a revised delivery schedule for ring D **by Thursday**, and the CO-052 written position **before the 20th**. Neither has gone out yet."},
+        {k:"note", text:"I can draft either reply, but I cannot send mail — the tool is registered read-only."}
+      ],
+      residencyLine:["8×H200 · Riyadh DC-1","qwen3-235b","magna-mail (MCP)","0 bytes egress"],
+      callouts:[
+        {html:"<b>magna-mail is an MCP tool</b> with a declared scope: search and read. It cannot send."},
+        {html:"<b>0 bytes left the network.</b> The mailbox stayed where it lives."}
+      ]
+    }
+  ];
+
+  /* ==========================================================
+     DOM
+     ========================================================== */
+  var vw        = document.getElementById("vw");
+  var thread    = document.getElementById("thread");
+  var compTxt   = document.getElementById("compTxt");
+  var caret     = document.getElementById("caret");
+  var sendBtn   = document.getElementById("sendBtn");
+  var sideList  = document.getElementById("sideList");
+  var modelLine = document.getElementById("modelLine");
+  var vwTitle   = document.getElementById("vwTitle");
+  var resChip   = document.getElementById("resChip");
+  var callouts  = document.getElementById("callouts");
+  var dotsWrap  = document.getElementById("dots");
+  var playBtn   = document.getElementById("playBtn");
+  var playIcon  = document.getElementById("playIcon");
+  var playLbl   = document.getElementById("playLbl");
+  var tpStatus  = document.getElementById("tpStatus");
+  var srStatus  = document.getElementById("srStatus");
+  var beatEls   = [].slice.call(document.querySelectorAll(".beat"));
+
+  var ICON_PAUSE = '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
+  var ICON_PLAY  = '<path d="M8 5.2v13.6L19 12z"/>';
+
+  var mqReduce = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  var reduced  = mqReduce ? mqReduce.matches : false;
+
+  /* ==========================================================
+     CLOCK — one rAF driver, no intervals. Freezes when paused,
+     when the demo is off-screen, or when the tab is hidden.
+     ========================================================== */
+  var waiters = [];
+  var tickId = null, lastT = 0;
+  var paused = false, inView = true;
+  var token = 0;
+  var CANCEL = { cancelled:true };
+
+  function tick(){
+    var now = Date.now();
+    var dt = Math.min(200, now - lastT);   // capped, so a throttled tab never jumps
+    lastT = now;
+    for (var i = waiters.length - 1; i >= 0; i--){
+      var w = waiters[i];
+      if (w.tok !== token){ waiters.splice(i,1); w.rej(CANCEL); continue; }
+      w.ms -= dt;
+      if (w.ms <= 0){ waiters.splice(i,1); w.res(); }
+    }
+  }
+  function startClock(){
+    if (tickId === null){ lastT = Date.now(); tickId = window.setInterval(tick, 25); }
+  }
+  function stopClock(){
+    if (tickId !== null){ window.clearInterval(tickId); tickId = null; }
+  }
+  function syncClock(){
+    var run = !reduced && !paused && inView;
+    if (run) startClock(); else stopClock();
+    vw.classList.toggle("frozen", !run);
+  }
+  function wait(ms){
+    var tok = token;
+    return new Promise(function(res, rej){ waiters.push({ ms:ms, res:res, rej:rej, tok:tok }); });
+  }
+  function cancelRun(){
+    token++;
+    while (waiters.length){ waiters.pop().rej(CANCEL); }
+  }
+
+  /* ==========================================================
+     RENDER HELPERS
+     ========================================================== */
+  function el(tag, cls, html){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  }
+  function toBottom(){ thread.scrollTop = thread.scrollHeight; }
+
+  function segments(text){
+    var out = [], parts = String(text).split(/(\*\*[^*]+\*\*)/);
+    for (var i=0;i<parts.length;i++){
+      var p = parts[i];
+      if (!p) continue;
+      if (p.slice(0,2) === "**" && p.slice(-2) === "**") out.push(["b", p.slice(2,-2)]);
+      else out.push(["t", p]);
+    }
+    return out;
+  }
+
+  function buildTool(b){
+    var n = el("div","tool");
+    n.appendChild(el("span","tool-name", b.name));
+    n.appendChild(el("span","tool-meta", b.meta));
+    for (var i=0;i<b.tags.length;i++){
+      n.appendChild(el("span","tag" + (i === 0 ? " ok" : ""), b.tags[i]));
+    }
+    return n;
+  }
+  function buildTableShell(b){
+    var wrap = el("div","tbl-wrap");
+    var t = el("table");
+    var thead = el("thead");
+    var tr = el("tr");
+    for (var i=0;i<b.cols.length;i++) tr.appendChild(el("th", null, b.cols[i]));
+    thead.appendChild(tr); t.appendChild(thead);
+    t.appendChild(el("tbody"));
+    wrap.appendChild(t);
+    return wrap;
+  }
+  function tableRow(b, r){
+    var tr = el("tr");
+    for (var i=0;i<r.length;i++){
+      var cls = null;
+      var numeric = /^[\d,]+$/.test(r[i]);
+      if (i === b.late) cls = numeric ? "num flag" : "flag";
+      else if (i > 0 && numeric) cls = "num";
+      tr.appendChild(el("td", cls, r[i]));
+    }
+    return tr;
+  }
+  function buildCite(b){
+    var n = el("div","cite");
+    n.appendChild(el("div","cite-hd",
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 3 4 6.4v5c0 4.5 3.2 8.2 8 9.6 4.8-1.4 8-5.1 8-9.6v-5Z"/><path d="m9 12 2.2 2.2L15.4 10"/></svg>' +
+      "<span>" + b.label + "</span>"));
+    var list = el("div","cite-list");
+    for (var i=0;i<b.items.length;i++){
+      var it = b.items[i];
+      list.appendChild(el("div","cite-item", "<i>" + it.n + "</i><span><b>" + it.doc + "</b> &middot; " + it.loc + "</span>"));
+    }
+    n.appendChild(list);
+    return n;
+  }
+  function buildResidency(parts){
+    var n = el("div","residency");
+    for (var i=0;i<parts.length;i++){
+      var b = el("b", null, parts[i]);
+      if (i > 0){ b.style.color = "var(--ink-3)"; b.style.fontWeight = "400"; }
+      n.appendChild(b);
+      if (i < parts.length - 1) n.appendChild(el("span", null, "&middot;"));
+    }
+    return n;
+  }
+
+  /* ==========================================================
+     SHELL / STATIC RENDER
+     ========================================================== */
+  function renderShell(sc){
+    vwTitle.innerHTML = sc.title;
+    modelLine.innerHTML = sc.model;
+    resChip.innerHTML = "<b></b>" + sc.residency + " <span>&middot; 8&times;H200</span>";
+    sideList.innerHTML = "";
+    for (var i=0;i<sc.convs.length;i++){
+      sideList.appendChild(el("div","side-item" + (i === sc.active ? " on" : ""), sc.convs[i]));
+    }
+    thread.innerHTML = "";
+    var empty = el("div","vw-empty",
+      markHTML("", 34) +
+      "<b>Ask anything. It stays in the tenancy.</b>" +
+      "<span>" + sc.context + "<br>Private tier &middot; Riyadh DC-1 &middot; 0 bytes egress</span>");
+    thread.appendChild(empty);
+    compTxt.textContent = "";
+    caret.classList.remove("on");
+    sendBtn.classList.remove("hot");
+    renderCallouts(sc, false);   // rendered but not yet revealed, so the layout does not jump
+  }
+
+  function renderCallouts(sc, instant){
+    callouts.innerHTML = "";
+    for (var i=0;i<sc.callouts.length;i++){
+      var c = el("div","callout" + (i === 1 ? " neg" : ""), "<span>" + sc.callouts[i].html + "</span>");
+      callouts.appendChild(c);
+      if (instant) c.classList.add("on");
+    }
+  }
+
+  function renderFinished(sc){
+    renderShell(sc);
+    var emptyNode = thread.querySelector(".vw-empty");
+    if (emptyNode) emptyNode.remove();
+    var turn = el("div","turn");
+    turn.appendChild(el("div","msg-user", sc.prompt));
+    var ai = el("div","msg-ai");
+    for (var i=0;i<sc.blocks.length;i++){
+      var b = sc.blocks[i];
+      if (b.k === "tool") ai.appendChild(buildTool(b));
+      else if (b.k === "p"){
+        var p = el("p");
+        var segs = segments(b.text);
+        for (var j=0;j<segs.length;j++){
+          p.appendChild(el(segs[j][0] === "b" ? "strong" : "span", null, segs[j][1]));
+        }
+        ai.appendChild(p);
+      }
+      else if (b.k === "table"){
+        var w = buildTableShell(b);
+        var tb = w.querySelector("tbody");
+        for (var r=0;r<b.rows.length;r++) tb.appendChild(tableRow(b, b.rows[r]));
+        ai.appendChild(w);
+      }
+      else if (b.k === "cite") ai.appendChild(buildCite(b));
+      else if (b.k === "note") ai.appendChild(el("p","note", b.text));
+    }
+    ai.appendChild(buildResidency(sc.residencyLine));
+    turn.appendChild(ai);
+    thread.appendChild(turn);
+    compTxt.textContent = "";
+    renderCallouts(sc, true);
+    thread.scrollTop = 0;
+  }
+
+  /* ==========================================================
+     PLAYBACK
+     ========================================================== */
+  var current = 0;
+  var finished = false;
+
+  // Two chunks per step keeps the visible rate independent of the tick interval.
+  function streamInto(node, text, rate){
+    var chunks = String(text).match(/\S+\s*|\s+/g) || [];
+    var i = 0;
+    function step(){
+      if (i >= chunks.length) return Promise.resolve();
+      node.appendChild(document.createTextNode(chunks[i++]));
+      if (i < chunks.length) node.appendChild(document.createTextNode(chunks[i++]));
+      toBottom();
+      return wait(rate).then(step);
+    }
+    return step();
+  }
+
+  function playBlock(ai, b){
+    if (b.k === "tool"){
+      var t = buildTool(b); ai.appendChild(t); toBottom();
+      return wait(700);
+    }
+    if (b.k === "p" || b.k === "note"){
+      var p = el("p", b.k === "note" ? "note" : null);
+      ai.appendChild(p); toBottom();
+      var segs = segments(b.text);
+      var idx = 0;
+      function nextSeg(){
+        if (idx >= segs.length) return wait(220);
+        var s = segs[idx++];
+        var node = el(s[0] === "b" ? "strong" : "span");
+        p.appendChild(node);
+        return streamInto(node, s[1], 44).then(nextSeg);
+      }
+      return nextSeg();
+    }
+    if (b.k === "table"){
+      var w = buildTableShell(b);
+      ai.appendChild(w); toBottom();
+      var tb = w.querySelector("tbody");
+      var r = 0;
+      function nextRow(){
+        if (r >= b.rows.length) return wait(260);
+        tb.appendChild(tableRow(b, b.rows[r++]));
+        toBottom();
+        return wait(240).then(nextRow);
+      }
+      return wait(260).then(nextRow);
+    }
+    if (b.k === "cite"){
+      ai.appendChild(buildCite(b)); toBottom();
+      return wait(900);
+    }
+    return Promise.resolve();
+  }
+
+  function play(i){
+    cancelRun();
+    var sc = SCENARIOS[i];
+    finished = false;
+    renderShell(sc);
+
+    if (reduced){ renderFinished(sc); finished = true; return; }
+
+    var myTok = token;
+    var turn = el("div","turn");
+
+    var promptChars = sc.prompt.split("");
+    var ci = 0;
+
+    function typeStep(){
+      if (ci >= promptChars.length) return Promise.resolve();
+      compTxt.textContent += promptChars[ci++];
+      if (ci < promptChars.length) compTxt.textContent += promptChars[ci++];
+      if (ci >= 6) sendBtn.classList.add("hot");
+      return wait(34 + Math.random()*16).then(typeStep);
+    }
+
+    caret.classList.add("on");
+
+    wait(560)
+      .then(typeStep)
+      .then(function(){ return wait(430); })
+      .then(function(){
+        caret.classList.remove("on");
+        sendBtn.classList.remove("hot");
+        compTxt.textContent = "";
+        var emptyNow = thread.querySelector(".vw-empty");
+        if (emptyNow) emptyNow.remove();
+        thread.appendChild(turn);
+        turn.appendChild(el("div","msg-user", sc.prompt));
+        toBottom();
+        return wait(300);
+      })
+      .then(function(){
+        var ai = el("div","msg-ai");
+        turn.appendChild(ai);
+        var think = el("div","think", markHTML("mg-thinking", 24) + '<span class="think-txt"></span>');
+        ai.appendChild(think);
+        var txt = think.querySelector(".think-txt");
+        toBottom();
+
+        var si = 0;
+        function nextStep(){
+          if (si >= sc.steps.length) return Promise.resolve();
+          var st = sc.steps[si++];
+          txt.textContent = st.t;
+          return wait(st.ms).then(nextStep);
+        }
+        return nextStep().then(function(){
+          think.remove();
+          var bi = 0;
+          function nextBlock(){
+            if (bi >= sc.blocks.length) return Promise.resolve();
+            return playBlock(ai, sc.blocks[bi++]).then(nextBlock);
+          }
+          return nextBlock().then(function(){
+            ai.appendChild(buildResidency(sc.residencyLine));
+            toBottom();
+            return wait(180);
+          });
+        });
+      })
+      .then(function(){
+        // annotations land after the answer does
+        renderCallouts(sc, false);
+        var cs = callouts.children;
+        function pop(n){
+          if (n >= cs.length) return Promise.resolve();
+          cs[n].classList.add("on");
+          return wait(650).then(function(){ return pop(n+1); });
+        }
+        return pop(0);
+      })
+      .then(function(){
+        finished = true;
+        return wait(3000);
+      })
+      .then(function(){
+        if (myTok !== token) return;
+        go((i + 1) % SCENARIOS.length, "auto");
+      })
+      .catch(function(err){
+        if (err !== CANCEL && window.console && console.warn) console.warn(err);
+      });
+
+    syncClock();
+  }
+
+  /* ==========================================================
+     NAVIGATION BETWEEN SCENARIOS
+     ========================================================== */
+  function setDots(i){
+    var btns = dotsWrap.children;
+    for (var k=0;k<btns.length;k++){
+      btns[k].setAttribute("aria-current", k === i ? "true" : "false");
+    }
+    tpStatus.textContent = "Scenario " + (i+1) + " of " + SCENARIOS.length;
+    srStatus.textContent = SCENARIOS[i].dot + ". " + SCENARIOS[i].prompt;
+    for (var b=0;b<beatEls.length;b++) beatEls[b].classList.toggle("active", b === i);
+  }
+
+  function go(i, source){
+    if (i === current && source === "scroll") return;
+    current = i;
+    setDots(i);
+    play(i);
+    if (source === "dot"){
+      var target = beatEls[i];
+      if (target && window.innerWidth >= 1000){
+        try { target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }
+        catch(e){ target.scrollIntoView(); }
+      }
+    }
+  }
+
+  for (var d=0; d<SCENARIOS.length; d++){
+    (function(idx){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "tp-dot";
+      b.setAttribute("aria-label", SCENARIOS[idx].dot);
+      b.setAttribute("aria-current", idx === 0 ? "true" : "false");
+      b.addEventListener("click", function(){ go(idx, "dot"); });
+      dotsWrap.appendChild(b);
+    })(d);
+  }
+
+  /* ==========================================================
+     PAUSE / PLAY
+     ========================================================== */
+  function setPaused(p){
+    paused = p;
+    playIcon.innerHTML = p ? ICON_PLAY : ICON_PAUSE;
+    playLbl.textContent = p ? "Play" : "Pause";
+    playBtn.setAttribute("aria-label", p ? "Play the demo" : "Pause the demo");
+    syncClock();
+  }
+  playBtn.addEventListener("click", function(){
+    if (reduced) return;
+    setPaused(!paused);
+  });
+
+  function applyReduced(){
+    if (reduced){
+      cancelRun();
+      stopClock();
+      playBtn.disabled = true;
+      playLbl.textContent = "Motion off";
+      playIcon.innerHTML = ICON_PLAY;
+      playBtn.setAttribute("aria-label", "Playback disabled because reduced motion is on");
+      vw.classList.remove("frozen");
+      renderFinished(SCENARIOS[current]);
+      setDots(current);
+    } else {
+      playBtn.disabled = false;
+      setPaused(false);
+      go(current, "dot");
+    }
+  }
+
+  /* ==========================================================
+     VISIBILITY — stop the clock when off-screen or tab hidden
+     ========================================================== */
+  // Coming back to a backgrounded tab should not fast-forward the run.
+  document.addEventListener("visibilitychange", function(){ lastT = Date.now(); });
+
+  if ("IntersectionObserver" in window){
+    var vio = new IntersectionObserver(function(entries){
+      for (var i=0;i<entries.length;i++) inView = entries[i].isIntersecting;
+      syncClock();
+    }, { threshold: 0.08 });
+    vio.observe(vw);
+  }
+
+  /* ==========================================================
+     SCROLL SYNC + REVEALS (degrade to fully visible)
+     ========================================================== */
+  var revealEls = [].slice.call(document.querySelectorAll(".reveal"));
+  if ("IntersectionObserver" in window){
+    var ioPrimed = false;
+    var rio = new IntersectionObserver(function(entries){
+      if (!ioPrimed){
+        // mark what is already on screen before hiding anything
+        for (var i=0;i<entries.length;i++){
+          if (entries[i].isIntersecting) entries[i].target.classList.add("in");
+        }
+        document.documentElement.classList.add("has-io");
+        ioPrimed = true;
+      }
+      for (var j=0;j<entries.length;j++){
+        if (entries[j].isIntersecting){
+          entries[j].target.classList.add("in");
+          rio.unobserve(entries[j].target);
+        }
+      }
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    for (var r=0;r<revealEls.length;r++) rio.observe(revealEls[r]);
+
+    var bio = new IntersectionObserver(function(entries){
+      for (var i=0;i<entries.length;i++){
+        if (entries[i].isIntersecting){
+          var idx = parseInt(entries[i].target.getAttribute("data-idx"), 10);
+          if (!isNaN(idx) && idx !== current) go(idx, "scroll");
+        }
+      }
+    }, { rootMargin: "-48% 0px -48% 0px", threshold: 0 });
+    for (var bb=0;bb<beatEls.length;bb++) bio.observe(beatEls[bb]);
+
+    // belt and braces: if the observer stalls, reveal anything that should
+    // already be on screen. Content is never left hidden because IO misfired.
+    window.setTimeout(function(){
+      for (var k=0;k<revealEls.length;k++){
+        var n = revealEls[k];
+        if (!n.classList.contains("in") && n.getBoundingClientRect().top < window.innerHeight){
+          n.classList.add("in");
+        }
+      }
+    }, 6000);
+  }
+
+  /* ==========================================================
+     FORM — honest, non-submitting
+     ========================================================== */
+  var form = document.getElementById("bookForm");
+  var formOk = document.getElementById("formOk");
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    formOk.classList.add("on");
+  });
+
+  /* ==========================================================
+     BOOT
+     ========================================================== */
+  if (mqReduce){
+    var onRM = function(){ reduced = mqReduce.matches; applyReduced(); };
+    if (mqReduce.addEventListener) mqReduce.addEventListener("change", onRM);
+    else if (mqReduce.addListener) mqReduce.addListener(onRM);
+  }
+
+  setDots(0);
+  if (reduced){
+    applyReduced();
+  } else {
+    setPaused(false);
+    play(0);
+  }
+
+})();
+</script>
+</body>
+</html>

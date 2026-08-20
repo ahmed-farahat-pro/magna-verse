@@ -1,0 +1,10 @@
+# @magna/app-docs - a layer-3 app.
+#
+# It injects `magnaOS`, so the Cordis loader holds this row until the OS
+# service exists no matter what order the bundles are composed in. That is the
+# whole dependency declaration: there is no registration order to maintain.
+
+- insert:
+    - id: magna-app-docs
+      name: '@magna/app-docs'
+      config: {}

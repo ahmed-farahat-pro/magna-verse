@@ -1,0 +1,38 @@
+{
+  "name": "@magna/app-trajectory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "See exactly what the agent did: every step, tool call, search and approval, with what it looked at and what came back.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "trajectory",
+    "title": "Trajectory",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "sessions:read"
+      ],
+      "deny": [
+        "sessions:write",
+        "net:egress"
+      ]
+    },
+    "category": "See what happened",
+    "tagline": "Every step the agent took, in order, with what it looked at.",
+    "glyph": "\u25c9"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

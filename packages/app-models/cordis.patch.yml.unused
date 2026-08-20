@@ -1,0 +1,4 @@
+- insert:
+    - id: magna-app-models
+      name: '@magna/app-models'
+      config: {}

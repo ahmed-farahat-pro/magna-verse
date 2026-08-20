@@ -1,0 +1,37 @@
+{
+  "name": "@magna/app-workflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build a workflow on a canvas and run it against the tools you actually have.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client"
+  ],
+  "magna": {
+    "appId": "workflow",
+    "title": "Workflow",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "workflow:read",
+        "workflow:write"
+      ],
+      "deny": []
+    },
+    "category": "Build",
+    "tagline": "Build a workflow on a canvas and run it against the tools you actually have.",
+    "glyph": "⎇"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.7",
+    "zod": "^4.0.0"
+  }
+}

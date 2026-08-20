@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MagnaVERSE — The prompt never leaves the building</title>
+<meta name="description" content="A paper on sovereign enterprise AI. MagnaVERSE runs frontier-class models on Magna's own GPUs, inside your network, in your country — the same capability, without the data leaving.">
+<style>
+/* ============================================================
+   MagnaVERSE — "The argument, written down"
+   A long-form paper. Cool-grey broadsheet, ink-on-stock.
+   Self-contained: no external font, image, script or style.
+   ============================================================ */
+
+/* ---- tokens: light (cool bookish stock) ---- */
+:root{
+  color-scheme: light;
+  --paper:#EDEFF1;
+  --sheet:#E4E7EA;
+  --sheet-2:#F6F7F8;
+  --ink:#11151A;
+  --ink-2:#333B44;
+  --ink-3:#5B646E;
+  --rule:#C7CCD1;
+  --rule-2:#A9B0B7;
+  --rule-3:#11151A;
+  --accent:#134FBE;
+  --accent-soft:rgba(19,79,190,.10);
+  --teal:#0F6B62;
+  --field-line:#7F868E;
+  --focus:#134FBE;
+  --sel-bg:#11151A;
+  --sel-fg:#EDEFF1;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --paper:#0F1216;
+    --sheet:#171B21;
+    --sheet-2:#141820;
+    --ink:#DEE2E6;
+    --ink-2:#B4BBC3;
+    --ink-3:#8E97A1;
+    --rule:#2A3037;
+    --rule-2:#3B434C;
+    --rule-3:#DEE2E6;
+    --accent:#82A9FF;
+    --accent-soft:rgba(130,169,255,.12);
+    --teal:#4FC0AF;
+    --field-line:#6C757E;
+    --focus:#82A9FF;
+    --sel-bg:#DEE2E6;
+    --sel-fg:#0F1216;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#0F1216;
+  --sheet:#171B21;
+  --sheet-2:#141820;
+  --ink:#DEE2E6;
+  --ink-2:#B4BBC3;
+  --ink-3:#8E97A1;
+  --rule:#2A3037;
+  --rule-2:#3B434C;
+  --rule-3:#DEE2E6;
+  --accent:#82A9FF;
+  --accent-soft:rgba(130,169,255,.12);
+  --teal:#4FC0AF;
+  --field-line:#6C757E;
+  --focus:#82A9FF;
+  --sel-bg:#DEE2E6;
+  --sel-fg:#0F1216;
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --paper:#EDEFF1;
+  --sheet:#E4E7EA;
+  --sheet-2:#F6F7F8;
+  --ink:#11151A;
+  --ink-2:#333B44;
+  --ink-3:#5B646E;
+  --rule:#C7CCD1;
+  --rule-2:#A9B0B7;
+  --rule-3:#11151A;
+  --accent:#134FBE;
+  --accent-soft:rgba(19,79,190,.10);
+  --teal:#0F6B62;
+  --field-line:#7F868E;
+  --focus:#134FBE;
+  --sel-bg:#11151A;
+  --sel-fg:#EDEFF1;
+}
+
+/* ---- type stacks: system only, chosen for character ---- */
+:root{
+  --display:"Hoefler Text","Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Charter,Georgia,"Times New Roman",serif;
+  --text:"Iowan Old Style",Charter,"Charter BT","Bitstream Charter",Georgia,"Hoefler Text","Times New Roman",serif;
+  --sans:"Avenir Next",Avenir,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Monaco,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
+  --measure:33rem;
+  --note-w:15rem;
+  --gutter:2.75rem;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{ -webkit-text-size-adjust:100%; }
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--text);
+  font-size:clamp(1.0625rem,1.005rem + .27vw,1.1875rem);
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+::selection{background:var(--sel-bg);color:var(--sel-fg)}
+a{color:inherit}
+img,svg{max-width:100%}
+
+:focus-visible{
+  outline:2px solid var(--focus);
+  outline-offset:3px;
+  border-radius:2px;
+}
+.skip{
+  position:absolute;left:.75rem;top:-4rem;z-index:99;
+  background:var(--ink);color:var(--paper);
+  font-family:var(--sans);font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:.85rem 1.1rem;text-decoration:none;transition:top .15s;
+}
+.skip:focus{top:.75rem}
+
+/* ---- the Magna mark ---- */
+.magna-mark{display:block;height:auto}
+.magna-mark path{stroke-dasharray:1200;stroke-dashoffset:0}
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both}
+  .magna-mark path:nth-of-type(2){animation-delay:.18s}
+}
+@keyframes mgDraw{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+
+/* ---- masthead ---- */
+.masthead{
+  position:sticky;top:0;z-index:40;
+  background:var(--paper);
+  border-bottom:1px solid var(--rule);
+}
+.masthead-in{
+  max-width:84rem;margin:0 auto;
+  display:flex;align-items:center;gap:.9rem;
+  padding:.55rem clamp(1.15rem,3vw,2.5rem);
+  min-height:56px;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;color:var(--ink);
+  font-family:var(--sans);
+  min-height:44px;
+}
+.brand .magna-mark{width:26px}
+.brand-word{font-size:1.0625rem;letter-spacing:-.005em;line-height:1}
+.brand-word b{font-weight:650}
+.brand-word span{color:var(--ink-3);font-weight:500}
+.mast-spacer{flex:1 1 auto}
+#nowSection{
+  font-family:var(--sans);font-size:.75rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);white-space:nowrap;
+  display:none;
+}
+.mast-nav{display:none;gap:.25rem;align-items:center}
+.mast-nav a{
+  font-family:var(--sans);font-size:.8125rem;letter-spacing:.02em;
+  color:var(--ink-2);text-decoration:none;
+  padding:.7rem .6rem;display:inline-flex;align-items:center;min-height:44px;
+  border-bottom:1px solid transparent;
+}
+.mast-nav a:hover{color:var(--ink);border-bottom-color:var(--rule-3)}
+.mast-nav a.cta{color:var(--accent)}
+.toggle{
+  appearance:none;-webkit-appearance:none;
+  width:44px;height:44px;flex:0 0 auto;
+  display:grid;place-items:center;
+  background:transparent;border:1px solid var(--rule);border-radius:50%;
+  color:var(--ink-2);cursor:pointer;
+}
+.toggle:hover{border-color:var(--rule-2);color:var(--ink)}
+.toggle svg{width:17px;height:17px;display:none}
+.toggle[data-theme="light"] .i-moon{display:block}
+.toggle[data-theme="dark"] .i-sun{display:block}
+#progress{
+  position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--accent);
+  transform:scaleX(0);transform-origin:0 50%;
+  will-change:transform;
+}
+
+/* ---- the essay grid ---- */
+.essay{
+  display:grid;
+  grid-template-columns:
+    [full-start] minmax(1.15rem,1fr)
+    [text-start] minmax(0,var(--measure)) [text-end]
+    minmax(1.15rem,1fr) [full-end];
+}
+.essay > *{grid-column:text;min-width:0}
+.essay > .wide,.essay > .bleed{grid-column:full}
+
+/* ---- running head / folio ---- */
+.folio{
+  border-bottom:1px solid var(--rule);
+  padding:1.6rem 0 .55rem;
+  margin-bottom:2.2rem;
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--ink-3);
+  display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;
+}
+.folio b{font-weight:600;color:var(--ink-2)}
+
+/* ---- opening ---- */
+h1{
+  font-family:var(--display);
+  font-weight:400;
+  font-size:clamp(2.5rem,1.05rem + 6.4vw,5.25rem);
+  line-height:.96;
+  letter-spacing:-.021em;
+  margin:.1rem 0 0;
+  text-wrap:balance;
+}
+h1 em{font-style:italic}
+.deck{
+  font-family:var(--display);
+  font-size:clamp(1.1875rem,1.02rem + .85vw,1.6rem);
+  line-height:1.44;
+  color:var(--ink-2);
+  margin:1.5rem 0 0;
+  max-width:31rem;
+  text-wrap:pretty;
+}
+.byline{
+  margin:1.9rem 0 0;
+  padding-top:.85rem;
+  border-top:1px solid var(--rule);
+  font-family:var(--sans);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);
+  line-height:1.7;
+}
+.byline b{color:var(--ink-2);font-weight:600}
+
+/* the line a CISO repeats */
+.lede{
+  margin:2.9rem 0 0;
+  padding:1.5rem 0 1.6rem;
+  border-top:2px solid var(--rule-3);
+  border-bottom:1px solid var(--rule);
+}
+.lede p{
+  font-family:var(--display);
+  font-size:clamp(1.4rem,1.05rem + 1.55vw,2.15rem);
+  line-height:1.24;
+  letter-spacing:-.012em;
+  margin:0;
+  text-wrap:balance;
+}
+.lede .src{
+  display:block;margin-top:1rem;
+  font-family:var(--sans);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+
+/* ---- contents ---- */
+.contents{
+  margin:3.4rem 0 0;
+  padding:1.2rem 0 0;
+  border-top:1px solid var(--rule);
+}
+.contents h2{
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;margin:0 0 1rem;
+}
+.contents ol{list-style:none;margin:0;padding:0;counter-reset:toc}
+.contents li{border-bottom:1px solid var(--rule)}
+.contents a{
+  display:grid;
+  grid-template-columns:2.6rem 1fr;
+  align-items:baseline;gap:.4rem;
+  padding:.7rem 0;min-height:44px;
+  text-decoration:none;color:var(--ink);
+}
+.contents a:hover .t{text-decoration:underline;text-underline-offset:3px}
+.contents .n{
+  font-family:var(--display);font-size:.95rem;color:var(--ink-3);
+  font-variant-numeric:lining-nums;letter-spacing:.04em;
+}
+.contents .t{display:block;font-family:var(--display);font-size:1.05rem;line-height:1.3}
+.contents .d{
+  display:block;
+  font-family:var(--sans);font-size:.78rem;line-height:1.45;color:var(--ink-3);
+  margin-top:.18rem;
+}
+
+/* ---- section heads ---- */
+.sec{margin-top:4.6rem}
+.sec-head{
+  border-top:2px solid var(--rule-3);
+  padding-top:.85rem;
+  margin-bottom:1.7rem;
+}
+.sec-num{
+  display:block;
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:.55rem;
+}
+h2.sec-title{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(1.7rem,1.28rem + 1.85vw,2.55rem);
+  line-height:1.08;letter-spacing:-.017em;
+  margin:0;text-wrap:balance;
+}
+h3{
+  font-family:var(--display);font-weight:600;
+  font-size:1.15rem;line-height:1.3;letter-spacing:-.005em;
+  margin:2.1rem 0 .6rem;
+}
+h3 .h3n{
+  font-family:var(--sans);font-weight:600;
+  font-size:.6875rem;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ink-3);
+  display:block;margin-bottom:.34rem;
+}
+
+/* ---- body copy ---- */
+.essay p{margin:0 0 1.3em;text-wrap:pretty;hanging-punctuation:first}
+.p-wrap{margin:0 0 1.3em}
+.p-wrap > p:last-child{margin-bottom:0}
+.essay strong{font-weight:600}
+.essay em{font-style:italic}
+/* Two-line drop cap. `initial-letter` sinks it correctly where supported;
+   the float fallback is tuned so its box height lands inside two line boxes
+   (>1.62em, <=3.24em) and the third line clears it cleanly. */
+.dropcap::first-letter{
+  font-family:var(--display);
+  font-weight:400;
+  color:var(--ink);
+  -webkit-initial-letter:2;
+  initial-letter:2;
+  margin-right:.08em;
+}
+@supports not ((initial-letter:2) or (-webkit-initial-letter:2)){
+  .dropcap::first-letter{
+    float:left;
+    font-size:3.55em;
+    line-height:.9;
+    margin:.06em .1em -.09em 0;
+  }
+}
+a.link{
+  color:var(--accent);
+  text-decoration:underline;
+  text-decoration-thickness:from-font;
+  text-underline-offset:2px;
+}
+a.link:hover{background:var(--accent-soft)}
+
+/* ---- marginal notes ---- */
+.note{
+  margin:1.3rem 0 1.4rem;
+  padding:.15rem 0 .15rem 1rem;
+  border-left:2px solid var(--rule-2);
+  font-family:var(--sans);
+  font-size:.8125rem;line-height:1.55;
+  color:var(--ink-3);
+}
+.note p{margin:0 0 .6em;text-wrap:pretty}
+.note p:last-child{margin-bottom:0}
+.note .nh{
+  display:block;
+  font-size:.625rem;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ink-2);font-weight:600;margin-bottom:.3rem;
+}
+
+/* ---- pull quote ---- */
+.pull{
+  margin:2.6rem 0;
+  padding:1.4rem 0 1.5rem;
+  border-top:1px solid var(--rule-2);
+  border-bottom:1px solid var(--rule-2);
+}
+.pull p{
+  font-family:var(--display);
+  font-size:clamp(1.45rem,1.08rem + 1.6vw,2.3rem);
+  line-height:1.2;letter-spacing:-.014em;
+  margin:0;text-wrap:balance;
+  hanging-punctuation:first;
+}
+.pull .attr{
+  display:block;margin-top:.9rem;
+  font-family:var(--sans);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+
+/* ---- display figures ---- */
+.figures{
+  margin:2.6rem 0;
+  border-top:2px solid var(--rule-3);
+  border-bottom:1px solid var(--rule);
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.figures > div{
+  min-width:0;
+  padding:1.05rem 1rem 1.15rem;
+  border-left:1px solid var(--rule);
+}
+.figures > div:nth-child(2n+1){padding-left:0;border-left:0}
+.figures > div:nth-child(n+3){border-top:1px solid var(--rule)}
+.figures .v{
+  display:block;
+  font-family:var(--display);
+  font-size:clamp(1.85rem,1.2rem + 2.1vw,2.9rem);
+  line-height:1;letter-spacing:-.025em;
+  font-variant-numeric:lining-nums tabular-nums;
+}
+.figures .u{font-size:.42em;letter-spacing:.02em;margin-left:.12em;color:var(--ink-2)}
+.figures .l{
+  display:block;margin-top:.55rem;
+  font-family:var(--sans);font-size:.6875rem;line-height:1.4;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.figures .zero .v{color:var(--teal)}
+
+/* ---- the trace ---- */
+.trace{list-style:none;margin:2rem 0 2.4rem;padding:0;counter-reset:tr}
+.trace li{
+  counter-increment:tr;
+  position:relative;
+  padding:1.05rem 0 1.05rem 2.9rem;
+  border-top:1px solid var(--rule);
+}
+.trace li:last-child{border-bottom:1px solid var(--rule)}
+.trace li::before{
+  content:counter(tr,decimal-leading-zero);
+  position:absolute;left:0;top:1.15rem;
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.1em;
+  color:var(--ink-3);
+  font-variant-numeric:tabular-nums;
+}
+.trace .th{
+  font-family:var(--display);font-weight:600;
+  display:block;margin-bottom:.2rem;
+}
+.trace p{margin:0;font-size:.97em;color:var(--ink-2)}
+
+/* ---- ledger ---- */
+.ledger{
+  margin:2.4rem 0;
+  background:var(--sheet);
+  border-top:2px solid var(--rule-3);
+  border-bottom:1px solid var(--rule);
+}
+.ledger figcaption{
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ink-3);
+  padding:.8rem 1rem .1rem;
+}
+.ledger pre{
+  margin:0;
+  padding:.7rem 1rem 1.1rem;
+  overflow-x:auto;
+  font-family:var(--mono);
+  font-size:.775rem;line-height:1.85;
+  color:var(--ink-2);
+  -webkit-overflow-scrolling:touch;
+}
+.ledger .b{color:var(--ink);font-weight:600}
+.ledger .ok{color:var(--teal);font-weight:600}
+
+/* ---- statement line ---- */
+.statement{
+  margin:2.6rem 0;
+  font-family:var(--display);
+  font-size:clamp(1.35rem,1.05rem + 1.3vw,1.95rem);
+  line-height:1.24;letter-spacing:-.012em;
+  padding-left:1.1rem;
+  border-left:3px solid var(--rule-3);
+  text-wrap:balance;
+}
+
+/* ---- exhibits ---- */
+.exhibits{list-style:none;margin:1.8rem 0 0;padding:0;border-top:2px solid var(--rule-3)}
+.exhibits li{border-bottom:1px solid var(--rule)}
+.exhibits a{
+  display:grid;
+  grid-template-columns:2.7rem 1fr;
+  gap:.2rem .5rem;
+  padding:.95rem 0;
+  min-height:44px;
+  text-decoration:none;color:var(--ink);
+}
+.exhibits a:hover .xt{text-decoration:underline;text-underline-offset:3px}
+.exhibits a:hover .xn{color:var(--accent)}
+.xn{
+  font-family:var(--display);font-size:.9rem;color:var(--ink-3);
+  letter-spacing:.05em;padding-top:.22rem;
+}
+.xt{font-family:var(--display);font-size:1.2rem;line-height:1.25;font-weight:600}
+.xd{
+  font-family:var(--sans);font-size:.8125rem;line-height:1.5;color:var(--ink-3);
+  grid-column:2;margin-top:.15rem;
+}
+.xf{
+  font-family:var(--mono);font-size:.7rem;color:var(--ink-3);
+  grid-column:2;margin-top:.35rem;
+  overflow-wrap:anywhere;
+}
+
+/* ---- aside: small set-off block ---- */
+.inset{
+  margin:2.2rem 0;
+  padding:1.15rem 1.2rem 1.25rem;
+  background:var(--sheet);
+  border-left:3px solid var(--rule-2);
+}
+.inset h3{
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ink-2);font-weight:600;margin:0 0 .55rem;line-height:1.5;
+}
+.inset p{margin:0 0 .7em;font-size:.94em;color:var(--ink-2)}
+.inset p:last-child{margin-bottom:0}
+
+/* ---- closing / form ---- */
+.close-block{
+  margin-top:3rem;
+  padding:1.8rem 0 0;
+  border-top:2px solid var(--rule-3);
+}
+form{margin:1.6rem 0 0}
+.field{margin:0 0 1.05rem}
+.field label{
+  display:block;
+  font-family:var(--sans);font-size:.6875rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:.4rem;font-weight:600;
+}
+.field input,.field select{
+  width:100%;
+  min-height:48px;
+  padding:.6rem .75rem;
+  background:var(--sheet-2);
+  border:1px solid var(--field-line);
+  border-radius:0;
+  color:var(--ink);
+  font-family:var(--text);
+  font-size:1rem;
+}
+.field input:hover,.field select:hover{border-color:var(--ink-3)}
+.field input::placeholder{color:var(--ink-3);opacity:.75}
+.form-row{display:grid;gap:0}
+.btn{
+  appearance:none;-webkit-appearance:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  min-height:50px;padding:.75rem 1.5rem;
+  background:var(--ink);color:var(--paper);
+  border:1px solid var(--ink);border-radius:0;
+  font-family:var(--sans);font-size:.875rem;letter-spacing:.05em;font-weight:600;
+  text-decoration:none;cursor:pointer;
+}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{
+  background:transparent;color:var(--ink);
+  border-color:var(--field-line);font-weight:500;
+}
+.btn.ghost:hover{border-color:var(--ink);background:var(--sheet)}
+.btn-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:.3rem}
+#formNote{
+  margin:1.2rem 0 0;
+  padding:.95rem 1rem;
+  background:var(--sheet);
+  border-left:3px solid var(--teal);
+  font-family:var(--sans);font-size:.8125rem;line-height:1.55;color:var(--ink-2);
+}
+#formNote[hidden]{display:none}
+#formNote b{color:var(--ink);font-weight:600}
+
+/* ---- colophon ---- */
+.colophon{
+  margin-top:4.5rem;
+  border-top:1px solid var(--rule);
+  background:var(--sheet-2);
+}
+.colophon .essay{padding:2.6rem 0 3.4rem}
+.col-brand{display:flex;align-items:center;gap:10px;margin-bottom:1.4rem}
+.col-brand .magna-mark{width:30px}
+.col-brand .brand-word{font-family:var(--sans);font-size:1.0625rem;line-height:1}
+.col-grid{
+  display:grid;grid-template-columns:1fr;gap:1.6rem 2.5rem;
+  font-family:var(--sans);font-size:.8125rem;line-height:1.6;color:var(--ink-3);
+}
+.col-grid h2{
+  font-family:var(--sans);
+  font-size:.625rem;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--ink-2);font-weight:600;margin:0 0 .55rem;line-height:1.5;
+}
+.col-grid ul{list-style:none;margin:0;padding:0}
+.col-grid li{margin:0 0 .1rem}
+.col-grid a{
+  color:var(--ink-2);text-decoration:none;
+  display:inline-flex;align-items:center;min-height:44px;
+  border-bottom:1px solid transparent;
+}
+.col-grid a:hover{color:var(--ink);border-bottom-color:var(--rule-2)}
+.col-foot{
+  margin-top:2.2rem;padding-top:1.1rem;border-top:1px solid var(--rule);
+  font-family:var(--sans);font-size:.72rem;line-height:1.7;color:var(--ink-3);
+}
+
+/* ---- reveal (JS-gated; content is never hidden without JS) ---- */
+.anim [data-reveal]{
+  opacity:0;transform:translateY(10px);
+  transition:opacity .75s ease,transform .75s cubic-bezier(.16,1,.3,1);
+}
+.anim [data-reveal].is-in{opacity:1;transform:none}
+
+/* ---- responsive ---- */
+@media (min-width:600px){
+  .form-row{grid-template-columns:1fr 1fr;gap:0 1rem}
+  .col-grid{grid-template-columns:1fr 1fr}
+}
+@media (min-width:700px){
+  .figures{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .figures > div{padding-left:1rem;border-left:1px solid var(--rule);border-top:0}
+  .figures > div:first-child{padding-left:0;border-left:0}
+}
+@media (min-width:760px){
+  .mast-nav{display:flex}
+  .col-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (min-width:1024px){
+  #nowSection{display:block}
+  .folio{padding-top:2.4rem}
+}
+/* margin column: notes float into the gutter, out of flow, so the
+   text column never gains a gap where a note sits. */
+@media (min-width:1120px){
+  .essay{
+    grid-template-columns:
+      [full-start] minmax(1.5rem,1fr)
+      [text-start] minmax(0,var(--measure)) [text-end]
+      var(--gutter)
+      [note-start] minmax(0,var(--note-w)) [note-end]
+      minmax(1.5rem,1fr) [full-end];
+  }
+  .essay > .wide,
+  .essay > .folio,
+  .essay > h1,
+  .essay > .lede,
+  .essay > .contents{grid-column:text-start / note-end}
+  .contents ol{columns:2;column-gap:var(--gutter)}
+  .contents li{break-inside:avoid}
+  /* sections are themselves grid items in the text column, so their own
+     wide children extend to the right across the margin column instead */
+  .sec .wide{width:calc(100% + var(--gutter) + var(--note-w));max-width:none}
+  .colophon .col-brand,
+  .colophon .col-grid,
+  .colophon .col-foot{grid-column:text-start / note-end}
+  .p-wrap{position:relative}
+  .p-wrap > .note{
+    position:absolute;
+    top:.25em;
+    left:calc(100% + var(--gutter));
+    width:var(--note-w);
+    margin:0;
+    padding-left:.85rem;
+  }
+  h1{font-size:clamp(3.6rem,1.6rem + 4.6vw,5.25rem)}
+}
+@media (min-width:1500px){
+  :root{--measure:34rem;--note-w:16rem;--gutter:3rem}
+}
+
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-behavior:smooth}
+}
+[id]{scroll-margin-top:5rem}
+
+@media print{
+  .masthead,.toggle{display:none}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#paper">Skip to the paper</a>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <a class="brand" href="#top" aria-label="MagnaVERSE — top of paper">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-mast" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/>
+            <stop offset=".52" stop-color="#1F8F86"/>
+            <stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-mast" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/>
+            <stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-mast)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-mast)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-word"><b>Magna</b><span>VERSE</span></span>
+    </a>
+    <span class="mast-spacer"></span>
+    <span id="nowSection" aria-hidden="true"></span>
+    <nav class="mast-nav" aria-label="Sections">
+      <a href="#evidence">The evidence</a>
+      <a href="#exhibits">Prototypes</a>
+      <a href="#walkthrough" class="cta">Book a walkthrough</a>
+    </nav>
+    <button class="toggle" id="themeToggle" type="button" data-theme="light" aria-label="Switch to dark theme">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.6 8.6 0 1 0 10.8 10.8Z" stroke-linejoin="round"/>
+      </svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div id="progress" aria-hidden="true"></div>
+  </div>
+</header>
+
+<main id="top">
+
+<article class="essay" id="paper">
+
+  <div class="folio">
+    <span><b>Magna AI</b></span>
+    <span>Sovereign enterprise AI</span>
+    <span>Paper No. 1</span>
+    <span>Riyadh · 2026</span>
+  </div>
+
+  <h1>The prompt never leaves the building.</h1>
+
+  <p class="deck">Every large enterprise in the Kingdom wants frontier AI. No chief information security officer will send a contract, a bid margin or a well log to a public API. There is exactly one way to hold both positions at once — and it is not a policy document. It is a rack.</p>
+
+  <p class="byline">
+    <b>MagnaVERSE</b> — the enterprise AI workspace from Magna AI, a joint venture of Trend Micro and Wistron, powered by NVIDIA<br>
+    A twelve-minute read
+  </p>
+
+  <div class="lede">
+    <p>“The same models. Our own GPUs. Our own country. Zero bytes of egress.”</p>
+    <span class="src">The sentence this paper exists to make true</span>
+  </div>
+
+  <nav class="contents" aria-labelledby="contents-h">
+    <h2 id="contents-h">Contents</h2>
+    <ol>
+      <li><a href="#veto"><span class="n">I</span><span><span class="t">The veto</span><span class="d">Why approved AI budgets stall in the second meeting.</span></span></a></li>
+      <li><a href="#false"><span class="n">II</span><span><span class="t">Three false resolutions</span><span class="d">Ban it, redact it, or buy something called private.</span></span></a></li>
+      <li><a href="#changed"><span class="n">III</span><span><span class="t">What changed</span><span class="d">Open weights caught up; the hardware got a postcode.</span></span></a></li>
+      <li><a href="#evidence"><span class="n">IV</span><span><span class="t">What happens to a prompt</span><span class="d">The trace: where it runs, what leaves, what is written down.</span></span></a></li>
+      <li><a href="#workspace"><span class="n">V</span><span><span class="t">The workspace</span><span class="d">What people actually do with it all day — and six prototypes.</span></span></a></li>
+      <li><a href="#where"><span class="n">VI</span><span><span class="t">Where it runs</span><span class="d">On-premises, sovereign cloud, edge.</span></span></a></li>
+      <li><a href="#walkthrough"><span class="n">VII</span><span><span class="t">What we are asking for</span><span class="d">Not your trust. Two hours and your hardest question.</span></span></a></li>
+    </ol>
+  </nav>
+
+  <!-- ================= I ================= -->
+  <section class="sec" id="veto" data-label="I · The veto">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section One</span>
+      <h2 class="sec-title">The veto</h2>
+    </header>
+
+    <div class="p-wrap">
+      <p class="dropcap">There is a meeting that happens in every large organisation in the Kingdom, usually twice. In the first, the chief information officer explains that generative AI will take three weeks out of tender preparation, read forty years of drilling reports in an afternoon, and answer the procurement questions that currently consume a person a day. Everyone agrees. A budget is approved.</p>
+      <aside class="note">
+        <span class="nh">Marginal</span>
+        <p>The second meeting is the one that decides the programme. It is rarely on the same agenda, and it is almost never attended by the vendor.</p>
+      </aside>
+    </div>
+
+    <p>In the second meeting, the chief information security officer asks one question: <em>where does the text go?</em></p>
+
+    <div class="p-wrap">
+      <p>It is not an obstructive question. It is the only question. A prompt is not a search query — a prompt is a document. To be useful it has to carry the thing that matters: the unpriced clause, the bid margin, the incident report, the salary band, the geological survey the company paid eleven million riyals to commission. The value of the answer is directly proportional to the sensitivity of the input. That is the uncomfortable arithmetic sitting at the centre of enterprise AI, and no amount of executive enthusiasm dissolves it.</p>
+      <aside class="note">
+        <span class="nh">The arithmetic</span>
+        <p>Useful answer ← sensitive input. There is no third variable. Every architecture that claims otherwise is quietly redacting something.</p>
+      </aside>
+    </div>
+
+    <p>So the programme stalls — not because anybody doubts the technology, but because nobody can answer that question in a form that survives an audit. A vendor's assurance is not an answer. A data-processing agreement is not an answer. A regional endpoint is not an answer, because a region is a billing address, not a boundary.</p>
+
+    <blockquote class="pull wide" data-reveal>
+      <p>A data-processing agreement is a promise. A network diagram is a fact.</p>
+      <span class="attr">The distinction this whole paper turns on</span>
+    </blockquote>
+
+    <p>What the CISO wants is not reassurance. It is a diagram: this machine, in this building, on this VLAN, holding these weights, writing these log lines to this SIEM. Give an auditor that, and the veto disappears in an afternoon. Nothing else works, and everybody in the room already knows it.</p>
+  </section>
+
+  <!-- ================= II ================= -->
+  <section class="sec" id="false" data-label="II · False resolutions">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section Two</span>
+      <h2 class="sec-title">Three false resolutions</h2>
+    </header>
+
+    <p>Organisations facing that veto reach for one of three answers. Each fails, and each fails in a way worth naming precisely, because the failures are what make the real resolution obvious.</p>
+
+    <h3><span class="h3n">One </span>Ban it</h3>
+    <p>The cleanest answer on paper and the worst in practice. Staff who are measured on output do not stop using a tool that doubles their output; they move it onto a personal phone and a consumer account. The ban does not stop the data leaving the organisation. It stops the organisation knowing that it left. Shadow AI is not a discipline problem — it is what a policy looks like when it is cheaper to break than to follow.</p>
+
+    <h3><span class="h3n">Two </span>Redact it</h3>
+    <div class="p-wrap">
+      <p>Strip the names, the numbers, the clauses; send the husk to a public API. This works, in the narrow sense that nothing sensitive leaves. It also removes precisely the content that would have made the answer worth having. A model that cannot see the contract cannot review the contract. Redaction converts a strategic capability into a grammar checker, and the users notice within a fortnight.</p>
+      <aside class="note">
+        <span class="nh">Observed</span>
+        <p>Redaction pipelines are also where the leaks come from. Every one of them is a regex someone wrote on a Thursday.</p>
+      </aside>
+    </div>
+
+    <h3><span class="h3n">Three </span>Buy something called “private”</h3>
+    <p>The most seductive of the three, because the word <em>private</em> is doing an enormous amount of work. A dedicated tenancy in a hyperscaler region is still a network path out of your estate; still keys held in somebody else's key-management service; still a control plane you do not operate; still a jurisdiction whose courts you did not choose; still a vendor who can change the terms of the deal on ninety days' notice, and has. It is a better promise than the public API. It is still a promise.</p>
+
+    <blockquote class="pull wide" data-reveal>
+      <p><em>Private</em> is a word about intent. <em>Sovereign</em> is a word about location.</p>
+    </blockquote>
+
+    <p>Notice what all three have in common. They accept as fixed the one thing that is not fixed — that the model must run on somebody else's hardware. Remove that assumption and every one of the three problems evaporates at once. You do not need a redaction pipeline if the prompt never crosses the boundary. You do not need a policy against shadow AI if the sanctioned tool is the better one. You do not need to read the sub-processor list if there are no sub-processors.</p>
+  </section>
+
+  <!-- ================= III ================= -->
+  <section class="sec" id="changed" data-label="III · What changed">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section Three</span>
+      <h2 class="sec-title">What changed</h2>
+    </header>
+
+    <p>For several years that assumption <em>was</em> fixed, and the CISOs were right to veto. Two things changed, and they changed at roughly the same time.</p>
+
+    <div class="p-wrap">
+      <p><strong>Frontier-class capability stopped being something you can only rent.</strong> Open-weight models now land within touching distance of the closed frontier: Kimi K2 Instruct at a trillion parameters of mixture-of-experts, DeepSeek V3.1 at 671 billion, Qwen 3 at 235 billion, NVIDIA Nemotron at 120 billion. These are not distillations or toys. They are the same class of system — long-context, tool-using, genuinely good at reading a document nobody wants to read — and their weights can sit on a disk you own, in a building you can walk into.</p>
+      <aside class="note">
+        <span class="nh">Run privately</span>
+        <p>Kimi K2 Instruct · 1T MoE<br>DeepSeek V3.1 · 671B MoE<br>Qwen 3 · 235B<br>NVIDIA Nemotron · 120B</p>
+        <p>Selected per workload, not per contract. Swapping models does not renegotiate anything.</p>
+      </aside>
+    </div>
+
+    <p><strong>And the hardware to serve them at enterprise concurrency became something you can put in a building in Riyadh.</strong> MagnaREACTOR — the Magna AI POD — is 1.2 exaflops across NVIDIA GB300 NVL72 liquid-cooled racks: 28.4 TB of HBM3e, 800 Gbps of fabric per node, running between 1.2 and 1.7 PUE. Most customers do not buy a POD. They buy a slice of one: a typical workspace tenancy is eight H200s in Riyadh DC-1, which is enough to serve a few thousand people who all think the answer arrived instantly.</p>
+
+    <div class="figures wide" data-reveal>
+      <div>
+        <span class="v">1.2<span class="u">EF</span></span>
+        <span class="l">Peak compute, one POD</span>
+      </div>
+      <div>
+        <span class="v">28.4<span class="u">TB</span></span>
+        <span class="l">HBM3e per POD</span>
+      </div>
+      <div>
+        <span class="v">800<span class="u">Gb/s</span></span>
+        <span class="l">Fabric per node</span>
+      </div>
+      <div class="zero">
+        <span class="v">0<span class="u">bytes</span></span>
+        <span class="l">Egress, private-tier answer</span>
+      </div>
+    </div>
+
+    <p>Put those two facts side by side and the contradiction that stalled the programme simply dissolves. You are no longer choosing between the capability and the control, because the capability has stopped demanding that you give up the control. That is the entire argument of this paper. Everything after this point is engineering — which is to say, everything after this point is the part you are allowed to verify.</p>
+  </section>
+
+  <!-- ================= IV ================= -->
+  <section class="sec" id="evidence" data-label="IV · What happens to a prompt">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section Four</span>
+      <h2 class="sec-title">What happens to a prompt</h2>
+    </header>
+
+    <p>Argument is cheap; a trace is not. Here is what happens between a user pressing Enter in MagnaVERSE and the first token arriving back, on the private tier, in the default configuration.</p>
+
+    <ol class="trace">
+      <li>
+        <span class="th">The keystroke</span>
+        <p>The workspace is served from inside your estate. The browser resolves an internal name to a virtual IP on your own VLAN, and TLS terminates on hardware in the building. There is no step here where the request touches the public internet, because there is no route by which it could.</p>
+      </li>
+      <li>
+        <span class="th">The policy check</span>
+        <p>Before a single token is generated, the request is evaluated against your policy set: who the user is, which sovereignty tier they selected, which connectors this workspace may touch, what this user's group is permitted to ask for. Denials happen here — in front of the model, not after it has already read the document.</p>
+      </li>
+      <li>
+        <span class="th">Retrieval</span>
+        <p>If the question needs context, it is retrieved from your own index — the digital-twin context graph built across your SAP S/4HANA records, your Primavera P6 schedules, your Confluence spaces, your Jira projects and your mail. The index was built on your hardware and has never been anywhere else. Retrieval respects the same permissions the source systems do, so a user cannot read through the model what they could not read directly.</p>
+      </li>
+      <li>
+        <span class="th">Inference</span>
+        <p>The prompt, the retrieved passages and the system policy are assembled and sent to eight H200s in Riyadh DC-1 — a tenancy inside a MagnaREACTOR POD, or a rack in your own building if that is the deployment you chose. The weights are on local NVMe. The KV cache lives in HBM and dies with the request.</p>
+      </li>
+      <li>
+        <span class="th">Tools</span>
+        <p>If the answer requires an action — raise the ticket, pull the float on activity 4120, draft the reply — the agent calls it over MCP from inside the network, using the user's own credentials and the user's own permissions. Nothing is performed by a service account nobody can name.</p>
+      </li>
+      <li>
+        <span class="th">The answer</span>
+        <p>Tokens stream back along the same path they came. Citations point at document IDs in your systems, so a sceptical reader can open the source rather than trust the summary.</p>
+      </li>
+      <li>
+        <span class="th">The record</span>
+        <p>An audit record is written and shipped to your SIEM: identity, timestamp, tier, model, prompt hash, every document ID retrieved, every policy decision, every tool call, token counts. It is written for the auditor rather than for the dashboard, which is why it is boring and complete.</p>
+      </li>
+    </ol>
+
+    <figure class="ledger wide" data-reveal>
+      <figcaption>Egress ledger — one answer, private tier</figcaption>
+      <pre>prompt bytes to a third party ......... <span class="ok">0</span>
+completion bytes from a third party ... <span class="ok">0</span>
+telemetry to vendor ................... <span class="ok">none by default</span>
+model weights, at rest ................ <span class="b">local NVMe, your rack</span>
+KV cache, lifetime .................... <span class="b">the request</span>
+retrieval index, location ............. <span class="b">in-country, your storage</span>
+audit record, destination ............. <span class="b">your SIEM</span>
+inference, physical location .......... <span class="b">8 × H200, Riyadh DC-1</span></pre>
+    </figure>
+
+    <p class="statement">What left the building: nothing. That is not a marketing claim. It is a property of the network, and you can prove it with a packet capture.</p>
+
+    <div class="inset">
+      <h3>The honest part: there is a public tier</h3>
+      <p>MagnaVERSE can route to a public model, because sometimes the honest answer is that a task does not need sovereignty — rewriting a job advert, summarising a press release. Pretending otherwise would push people back to their phones, which is the failure mode in Section Two.</p>
+      <p>So the public tier exists, and it cannot be entered by accident. It requires an explicit confirmation naming what is about to leave, it is stamped visibly on the transcript, and it is in the audit log permanently. The point of a boundary is not that nothing ever crosses it. The point is that every crossing has a name, a time and a person attached.</p>
+    </div>
+
+    <blockquote class="pull wide" data-reveal>
+      <p>Ask any AI vendor two questions. Where do the weights live, and where does the KV cache die?</p>
+      <span class="attr">If the second answer is “we don't publish that”, you have your answer</span>
+    </blockquote>
+  </section>
+
+  <!-- ================= V ================= -->
+  <section class="sec" id="workspace" data-label="V · The workspace">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section Five</span>
+      <h2 class="sec-title">The workspace</h2>
+    </header>
+
+    <div class="p-wrap">
+      <p>None of the above matters if nobody uses it. This is where most sovereign AI projects die: the architecture is impeccable and the interface is a research demo with a submit button, so the organisation buys a beautiful private cluster and the staff keep using the thing on their phones.</p>
+      <aside class="note">
+        <span class="nh">Design brief</span>
+        <p>Zero training. If a new user needs a session to learn the chat box, the security argument has already lost.</p>
+      </aside>
+    </div>
+
+    <p>So MagnaVERSE looks like the tool everyone has already learned. A thread on the left, a conversation in the middle, a composer at the bottom; attachments, history, a model picker. That familiarity is deliberate and it is not a small thing — it is the mechanism by which a security decision becomes a product people actually adopt. The only visible difference is a residency indicator that tells you, on every answer, which tier and which model produced it.</p>
+
+    <p>Underneath, it does rather more than chat. There are <strong>eighty-plus pre-built agents across thirty-four verticals</strong> — tender comparison, HSE incident triage, schedule-delay analysis, invoice reconciliation — each one a starting point rather than a blank prompt. There is <strong>workflow automation</strong>, so the ones that earn their place stop being asked and start running. There are <strong>enterprise connectors</strong>: SAP S/4HANA, Primavera P6, Jira, Confluence and mail, reached over MCP from inside the network. And there is the <strong>digital-twin context graph</strong>, which is the part that makes answers specific — it knows that this purchase order belongs to that package on that project, and that the delay in one is the reason for the variation in the other.</p>
+
+    <p>Governance runs across all of it: policy enforcement in front of the model, full audit trails behind it, and more than a thousand validated use cases already documented so that the first question in a workshop is “which of these” rather than “what could we possibly do with this”.</p>
+
+    <h3 id="exhibits"><span class="h3n">Evidence </span>Six working prototypes</h3>
+    <p>Six prototypes accompany this paper. They run in the browser, they contain no live data, and they are the fastest available way to disagree with anything written above.</p>
+
+    <ol class="exhibits" data-reveal>
+      <li><a href="../apps/app-1-chatgpt.html">
+        <span class="xn">I</span><span class="xt">Familiar</span>
+        <span class="xd">The workspace as most people already know it — and the Magna mark doing the thinking while an answer is generated.</span>
+        <span class="xf">apps/app-1-chatgpt.html</span>
+      </a></li>
+      <li><a href="../apps/app-2-claude.html">
+        <span class="xn">II</span><span class="xt">Considered</span>
+        <span class="xd">A slower reading room: artifacts beside the thread, reasoning you can open rather than infer.</span>
+        <span class="xf">apps/app-2-claude.html</span>
+      </a></li>
+      <li><a href="../apps/app-3-sovereign.html">
+        <span class="xn">III</span><span class="xt">Provable</span>
+        <span class="xd">Residency made visible. Every answer carries its tier, region, model and the documents it read.</span>
+        <span class="xf">apps/app-3-sovereign.html</span>
+      </a></li>
+      <li><a href="../apps/app-4-launchpad.html">
+        <span class="xn">IV</span><span class="xt">Ready</span>
+        <span class="xd">The agent launchpad — eighty-plus pre-built agents across thirty-four verticals, one keystroke from work.</span>
+        <span class="xf">apps/app-4-launchpad.html</span>
+      </a></li>
+      <li><a href="../apps/app-5-twin.html">
+        <span class="xn">V</span><span class="xt">Grounded</span>
+        <span class="xd">The digital-twin context graph: the answer, and the records underneath the answer.</span>
+        <span class="xf">apps/app-5-twin.html</span>
+      </a></li>
+      <li><a href="../apps/app-6-horizon.html">
+        <span class="xn">VI</span><span class="xt">Horizon</span>
+        <span class="xd">Where the workspace goes next — workflows that run on a schedule instead of waiting to be asked.</span>
+        <span class="xf">apps/app-6-horizon.html</span>
+      </a></li>
+      <li><a href="functionality-map.html">
+        <span class="xn">§</span><span class="xt">The functionality map</span>
+        <span class="xd">Every screen, state and control in the workspace, written down in one place.</span>
+        <span class="xf">functionality-map.html</span>
+      </a></li>
+      <li><a href="../index.html">
+        <span class="xn">§</span><span class="xt">The index</span>
+        <span class="xd">All deliverables, including the prototypes above and the notes behind them.</span>
+        <span class="xf">index.html</span>
+      </a></li>
+    </ol>
+  </section>
+
+  <!-- ================= VI ================= -->
+  <section class="sec" id="where" data-label="VI · Where it runs">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section Six</span>
+      <h2 class="sec-title">Where it runs</h2>
+    </header>
+
+    <p>“Sovereign” is not one deployment. It is a question about who holds the boundary, and there are three defensible answers depending on what your regulator, your network and your power budget will allow.</p>
+
+    <h3><span class="h3n">One </span>On-premises</h3>
+    <p>Racks in your building, on your power, behind your firewall, under your change-control process. Magna installs and can operate it, but the boundary is drawn at your property line and nothing crosses it. This is the deployment for the customer whose regulator asks for a floor plan rather than a certificate — defence-adjacent manufacturing, critical infrastructure, anyone whose data classification has the word <em>national</em> in it.</p>
+
+    <h3><span class="h3n">Two </span>Sovereign cloud</h3>
+    <div class="p-wrap">
+      <p>Magna-operated, in-country, single-tenant. You get the elasticity of a cloud and a written residency guarantee that the data stays inside the Kingdom, with 24/7 managed operations and someone else holding the pager at three in the morning. Five global regions exist for organisations that operate across borders and need each subsidiary's data to stay in its own jurisdiction rather than pooling in a convenient one.</p>
+      <aside class="note">
+        <span class="nh">Assurance</span>
+        <p>ISO 27001 aligned. Red-team audited. 24/7 managed operations. Data residency guaranteed in-country.</p>
+      </aside>
+    </div>
+
+    <h3><span class="h3n">Three </span>Edge</h3>
+    <p>A plant, a rig, a remote site, a vessel. Compute that sits with the asset and keeps working when the link to headquarters does not, then reconciles when it returns. The interesting property of the edge deployment is not latency — it is that the operational data with the shortest half-life never has to travel at all.</p>
+
+    <p>All three run the same workspace, the same agents and the same governance model. Moving between them is a deployment decision, not a migration, and it does not change what your users see.</p>
+  </section>
+
+  <!-- ================= VII ================= -->
+  <section class="sec" id="walkthrough" data-label="VII · What we are asking">
+    <header class="sec-head" data-reveal>
+      <span class="sec-num">Section Seven</span>
+      <h2 class="sec-title">What we are asking for</h2>
+    </header>
+
+    <p>Not your trust. Trust is what the other architecture requires, and it is exactly what your security team is right to withhold.</p>
+
+    <p>We are asking for two hours and your hardest question — the document you would never paste into a public model, the workflow that touches four systems and three approvals, the audit requirement you assume no vendor can meet. Bring the CISO. The walkthrough is designed for the person who says no, because that is the only person whose agreement changes anything.</p>
+
+    <p class="statement">The capability, without the data leaving. Everything else in this paper is a consequence of that one sentence.</p>
+
+    <div class="close-block">
+      <form id="walkForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="f-org">Organisation</label>
+            <input id="f-org" name="org" type="text" autocomplete="organization" placeholder="e.g. a contractor, an operator, a ministry">
+          </div>
+          <div class="field">
+            <label for="f-email">Work email</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" placeholder="name@organisation.sa">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-dep">Deployment you are considering</label>
+          <select id="f-dep" name="deployment">
+            <option>On-premises — our building, our racks</option>
+            <option>Sovereign cloud — in-country, single tenant</option>
+            <option>Edge — sites, rigs, plants, vessels</option>
+            <option>Not decided — that is part of the question</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="btn" type="submit">Request a walkthrough</button>
+          <a class="btn ghost" href="../apps/app-3-sovereign.html">Open the residency prototype</a>
+        </div>
+        <p id="formNote" role="status" hidden></p>
+      </form>
+    </div>
+  </section>
+
+</article>
+
+</main>
+
+<footer class="colophon">
+  <div class="essay">
+    <div class="col-brand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/>
+            <stop offset=".52" stop-color="#1F8F86"/>
+            <stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/>
+            <stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)"
+              stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-word"><b>Magna</b><span>VERSE</span></span>
+    </div>
+
+    <div class="col-grid">
+      <div>
+        <h2>The prototypes</h2>
+        <ul>
+          <li><a href="../apps/app-1-chatgpt.html">Familiar</a></li>
+          <li><a href="../apps/app-2-claude.html">Considered</a></li>
+          <li><a href="../apps/app-3-sovereign.html">Provable</a></li>
+          <li><a href="../apps/app-4-launchpad.html">Ready</a></li>
+          <li><a href="../apps/app-5-twin.html">Grounded</a></li>
+          <li><a href="../apps/app-6-horizon.html">Horizon</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Reference</h2>
+        <ul>
+          <li><a href="functionality-map.html">Functionality map</a></li>
+          <li><a href="../index.html">Index of deliverables</a></li>
+          <li><a href="#evidence">What happens to a prompt</a></li>
+          <li><a href="#where">Deployment options</a></li>
+          <li><a href="#walkthrough">Book a walkthrough</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Magna AI</h2>
+        <p style="margin:0 0 .7rem">A joint venture of Trend Micro and Wistron, powered by NVIDIA. On-premises, sovereign cloud and edge deployment, with data residency guaranteed in-country.</p>
+        <p style="margin:0">ISO 27001 aligned · five global regions · 24/7 managed operations · red-team audited.</p>
+      </div>
+    </div>
+
+    <p class="col-foot">
+      <b>Colophon.</b> Set in Hoefler Text and Iowan Old Style, with Avenir Next for marginalia and the labels — system faces only, so this page reads identically with the network unplugged. One file, no scripts loaded from anywhere, no images fetched, nothing tracked. Light and dark are both drawn deliberately; the toggle in the masthead overrides your system preference and remembers the choice.<br>
+      This is a design prototype for MagnaVERSE. Figures describing compute, models and deployment are the product facts supplied by Magna AI; no customer names, logos or testimonials appear on this page because none were available to verify.
+    </p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.documentElement;
+
+  /* ---------- theme ---------- */
+  var stored = null;
+  try { stored = localStorage.getItem("mv-theme"); } catch (e) {}
+  if (stored === "dark" || stored === "light") root.setAttribute("data-theme", stored);
+
+  var btn = document.getElementById("themeToggle");
+  var mqDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+  function currentTheme(){
+    var t = root.getAttribute("data-theme");
+    if (t === "dark" || t === "light") return t;
+    return (mqDark && mqDark.matches) ? "dark" : "light";
+  }
+  function syncToggle(){
+    var c = currentTheme();
+    btn.setAttribute("data-theme", c);
+    var label = (c === "dark") ? "Switch to light theme" : "Switch to dark theme";
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("title", label);
+  }
+  btn.addEventListener("click", function(){
+    var next = currentTheme() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("mv-theme", next); } catch (e) {}
+    syncToggle();
+  });
+  if (mqDark && mqDark.addEventListener) {
+    mqDark.addEventListener("change", function(){
+      if (!root.getAttribute("data-theme")) syncToggle();
+    });
+  }
+  syncToggle();
+
+  /* ---------- reading progress + running section ---------- */
+  var bar = document.getElementById("progress");
+  var out = document.getElementById("nowSection");
+  var sections = Array.prototype.slice.call(document.querySelectorAll("section[data-label]"));
+  var queued = false;
+
+  function frame(){
+    queued = false;
+    var doc = document.documentElement;
+    var span = doc.scrollHeight - window.innerHeight;
+    var p = span > 0 ? Math.min(1, Math.max(0, (window.pageYOffset || doc.scrollTop) / span)) : 0;
+    bar.style.transform = "scaleX(" + p.toFixed(4) + ")";
+
+    var label = "";
+    for (var i = 0; i < sections.length; i++){
+      if (sections[i].getBoundingClientRect().top <= 140) label = sections[i].getAttribute("data-label");
+    }
+    if (out.textContent !== label) out.textContent = label;
+  }
+  function onScroll(){
+    if (!queued){ queued = true; window.requestAnimationFrame ? requestAnimationFrame(frame) : frame(); }
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  frame();
+
+  /* ---------- reveal on entry (never hides content without JS) ---------- */
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var targets = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
+  function showAll(){ for (var i = 0; i < targets.length; i++) targets[i].classList.add("is-in"); }
+
+  if (!reduce && "IntersectionObserver" in window && targets.length){
+    root.classList.add("anim");
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){ en.target.classList.add("is-in"); io.unobserve(en.target); }
+      });
+    }, { rootMargin: "0px 0px -6% 0px", threshold: 0.04 });
+    targets.forEach(function(t){ io.observe(t); });
+    /* belt and braces: nothing stays invisible, whatever the observer does */
+    setTimeout(showAll, 2600);
+  }
+
+  /* ---------- the form is honest about being a prototype ---------- */
+  var form = document.getElementById("walkForm");
+  var note = document.getElementById("formNote");
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var org = (document.getElementById("f-org").value || "").trim();
+    note.textContent = "";
+    var strong = document.createElement("b");
+    strong.textContent = org ? ("Noted for " + org + " — but nothing was sent. ") : "Nothing was sent. ";
+    note.appendChild(strong);
+    note.appendChild(document.createTextNode(
+      "This page is a static prototype with no server behind it, so the form does not submit anywhere and nothing you typed has been stored or transmitted. In a live deployment this would open a scheduling request with the Magna AI team, and you would hear back with a two-hour slot and a list of what to bring."
+    ));
+    note.hidden = false;
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# @magna/os bundle patch.
+#
+# Applied after dsh-base and dsh-web-app, so every service this row injects
+# already exists by the time the loader reaches it. One row, one plugin — the
+# app plugins that sit above it are separate rows appended by their own
+# bundles, and they inject `magnaOS` so Cordis holds them until this one is up.
+
+- insert:
+    - id: magna-os
+      name: '@magna/os'
+      config:
+        mount: /desktop
+        logEvents: true
+        recentLimit: 200
+        # Absolute path to the MagnaVERSE repo: the Console HTML is served from
+        # <repo>/apps and Monaco from <repo>/vendor, unmodified.
+        #
+        # Defaults to the directory `dsh web` was launched from, which is the
+        # repo root if you followed the README. Set MAGNA_REPO to run it from
+        # anywhere else. It must not be hardcoded — a checked-in absolute path
+        # is correct on exactly one machine and silently wrong on every other.
+        consoleRoot: !!js process.env.MAGNA_REPO || process.cwd()
+        profile: web
+        # The marketplace shells out to this to install and remove plugins.
+        # `dsh` resolves on PATH after `npm i -g @deepseek-ai/dsh`; set
+        # MAGNA_DSH_BIN to an absolute path if yours does not.
+        dshBin: !!js process.env.MAGNA_DSH_BIN || "dsh"

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What is real, what is left — MagnaVERSE build status</title>
+<meta name="description" content="An honest inventory of the MagnaVERSE desktop: which apps are real plugins backed by the DeepSeek Harness, which screens are still built-in fiction, and the exact work left to finish — with the evidence for each claim.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+    --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+    --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+    --signal:#7C6BFF; --signal-dim:rgba(124,107,255,.16);
+    --amber:#F0A83C; --amber-dim:rgba(240,168,60,.16);
+    --green:#3FD07E; --green-dim:rgba(63,208,126,.15);
+    --red:#FF6B6B; --red-dim:rgba(255,107,107,.15);
+    --violet:#A78BFA; --violet-dim:rgba(167,139,250,.16);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow:0 14px 40px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#7C6BFF; --signal-dim:rgba(124,107,255,.16);
+  --amber:#F0A83C; --amber-dim:rgba(240,168,60,.16);
+  --green:#3FD07E; --green-dim:rgba(63,208,126,.15);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.15);
+  --violet:#A78BFA; --violet-dim:rgba(167,139,250,.16);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow:0 14px 40px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);
+  font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:44px 22px 96px}
+a{color:inherit}
+h1{font-size:clamp(28px,4.4vw,44px);line-height:1.1;letter-spacing:-.025em;margin:0 0 14px;font-weight:660}
+h2{font-size:clamp(19px,2.4vw,25px);line-height:1.2;letter-spacing:-.015em;margin:56px 0 6px;font-weight:640}
+h3{font-size:16px;margin:26px 0 8px;font-weight:640}
+p{margin:0 0 14px;color:var(--tx-2);max-width:76ch}
+.lede{font-size:17px;color:var(--tx-2);max-width:74ch}
+.sub{font-size:13.5px;color:var(--tx-3);max-width:76ch}
+code{font-family:var(--mono);font-size:.885em;background:var(--surface-3);
+  padding:1px 5px;border-radius:5px;word-break:break-word}
+.rule{height:1px;background:var(--line);margin:34px 0;border:0}
+
+.crumb{font-size:12.5px;color:var(--tx-4);margin-bottom:20px}
+.crumb a{color:var(--tx-3);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.crumb a:hover{color:var(--tx)}
+
+.stamp{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;
+  color:var(--tx-3);background:var(--surface-2);border:1px solid var(--line);
+  padding:5px 11px;border-radius:99px;margin-bottom:18px}
+.dot{width:7px;height:7px;border-radius:99px;background:var(--green);flex:none}
+
+.grid{display:grid;gap:12px;margin:18px 0 0}
+@media(min-width:720px){ .grid.g4{grid-template-columns:repeat(4,1fr)} .grid.g2{grid-template-columns:repeat(2,1fr)} }
+.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px}
+.stat .n{font-size:27px;font-weight:660;letter-spacing:-.02em;line-height:1.1}
+.stat .l{font-size:12px;color:var(--tx-3);margin-top:3px}
+.stat[data-tone="good"] .n{color:var(--green)}
+.stat[data-tone="warn"] .n{color:var(--amber)}
+.stat[data-tone="bad"] .n{color:var(--red)}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4);font-weight:640}
+td code{white-space:nowrap}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:5px;
+  border:1px solid var(--line-2);color:var(--tx-3);white-space:nowrap}
+.pill.good{color:var(--green);border-color:var(--green);background:var(--green-dim)}
+.pill.warn{color:var(--amber);border-color:var(--amber);background:var(--amber-dim)}
+.pill.bad{color:var(--red);border-color:var(--red);background:var(--red-dim)}
+.pill.info{color:var(--signal);border-color:var(--signal);background:var(--signal-dim)}
+
+.card{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:18px 19px;margin:14px 0}
+.card h3{margin-top:0}
+.card.bad{border-color:var(--red);background:var(--red-dim)}
+.card.warn{border-color:var(--amber);background:var(--amber-dim)}
+
+.item{display:flex;gap:13px;padding:15px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.item:last-child{border-bottom:0}
+.item .num{flex:none;width:26px;height:26px;border-radius:99px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:11.5px;font-weight:700;background:var(--surface-3);color:var(--tx-3)}
+.item .body{flex:1;min-width:0}
+.item .body b{display:block;font-size:15px;font-weight:640;margin-bottom:3px}
+.item .body p{margin:0;font-size:13.5px}
+.item .meta{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+
+.ev{font-family:var(--mono);font-size:12px;background:var(--surface-3);border:1px solid var(--line);
+  border-radius:8px;padding:10px 12px;margin:9px 0 0;color:var(--tx-2);white-space:pre-wrap;
+  word-break:break-word;overflow-x:auto}
+
+ul{margin:0 0 14px;padding-left:20px;color:var(--tx-2);max-width:76ch}
+li{margin-bottom:5px}
+.foot{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--tx-4)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="crumb"><a href="../index.html">← All deliverables</a></div>
+  <div class="stamp"><span class="dot"></span> Verified against the running build · 20 August 2026</div>
+
+  <h1>What is real, and what is left</h1>
+  <p class="lede">The MagnaVERSE desktop began as one 16,656-line HTML file in which every screen was a
+  convincing picture. This is an inventory of how much of it now runs on the DeepSeek Harness for real,
+  what is still a picture, and the exact work remaining. Every claim below was checked against the
+  running system, and the evidence is printed with it.</p>
+
+  <div class="grid g4">
+    <div class="stat" data-tone="good"><div class="n">13</div><div class="l">real app plugins</div></div>
+    <div class="stat" data-tone="warn"><div class="n">14</div><div class="l">screens still fiction</div></div>
+    <div class="stat"><div class="n">16,380</div><div class="l">Console lines (−276)</div></div>
+    <div class="stat" data-tone="bad"><div class="n">1</div><div class="l">screen contradicting another</div></div>
+  </div>
+
+  <hr class="rule">
+
+  <h2>The one thing that is now provably false</h2>
+  <div class="card bad">
+    <h3>“Egress today: 0 bytes”</h3>
+    <p>The Sovereignty widget prints this in the corner of every screen. Beside it, the Connections app —
+    which reads the machine's real configuration — lists <b>four external sources</b>: three cloud model
+    providers and API Studio. One of those two screens is wrong, and it is the counter. There is no byte
+    accounting anywhere in the system; the number is a literal in the HTML, in ten places.</p>
+    <p class="sub">This matters more than any other item here. Sovereignty is the product's central claim,
+    and this is the only number on screen that states it numerically.</p>
+  </div>
+
+  <h2>Real — backed by the harness</h2>
+  <p>Each of these is an installable plugin with a host half and a browser half. Removing one takes its
+  window, its assets and its agent tools with it; the marketplace install/remove path was verified end
+  to end.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>App</th><th>What makes it real</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td><b>Workflow</b></td>
+        <td>73 node types generated from the live tool registry. A topological executor, an approval gate
+            on every write and exec, and three trigger types.</td>
+        <td class="ev">sys.list → filter
+11 entries, 10 of 11 kept
+(ls packages = 11, 10 match)</td></tr>
+      <tr><td><b>Mail</b></td>
+        <td>IMAP/SMTP and Microsoft 365, both resolving to one entity via the RFC 5322 Message-ID.
+            Opens on a Connect screen, never a sample inbox.</td>
+        <td class="ev">imap.gmail.com → AUTHENTICATIONFAILED
+Azure AD → AADSTS700038
+(both real servers, real refusals)</td></tr>
+      <tr><td><b>API Studio</b></td>
+        <td>Sends the request. Status, duration, byte count and body are measured or received.</td>
+        <td class="ev">GET api.github.com/repos/nodejs/node
+200 · 397 ms · 5.8 KB · 119,020 stars</td></tr>
+      <tr><td><b>Connectors</b></td>
+        <td>GitHub, GitLab and Atlassian verified against the live services. ServiceNow and the generic
+            REST connector are real code that no public instance exists to test.</td>
+        <td class="ev">bad GitHub token → "GitHub rejected that token."
+bad GitLab token → "GitLab rejected that token."
+wrong Atlassian site → real 404 from Atlassian
+failed test stores nothing</td></tr>
+      <tr><td><b>Connections</b></td>
+        <td>Two tabs. <b>Connections</b> holds real connectors — GitHub, GitLab, Jira/Confluence,
+            ServiceNow, a generic REST endpoint for SAP and P6, and Microsoft (owned by Mail). A card says
+            <i>linked</i> only because the service answered. <b>Models &amp; egress</b> is derived from
+            configured providers and app manifests.</td>
+        <td class="ev">Ollama → local
+http://127.0.0.1:11434/v1
+(read from settings.yaml)</td></tr>
+      <tr><td><b>Docs · Sheets · Brain · Market · Approvals · Ledger · Models · Terminal · Trajectory</b></td>
+        <td>Extracted from the Console as plugins earlier in the build.</td>
+        <td class="ev">12 registered at boot
+os.apps() = 13</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Still fiction — 14 screens</h2>
+  <p>These render from hardcoded tables. Nothing behind them exists.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Screen</th><th>Table</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Agents</td><td><code>AGENTS</code>, <code>NEU_AGENTS</code></td>
+        <td>The Workflow executor is what these are pretending to be.</td></tr>
+      <tr><td>Automations</td><td><code>AUTOS</code></td>
+        <td>Same — triggers and capability grants already exist.</td></tr>
+      <tr><td>Memory</td><td><code>KNOWLEDGE_SOURCES</code>, <code>RAG_PIPELINE</code>, <code>INGESTION_FEED</code></td>
+        <td>Shows a RAG pipeline that was never built. No embeddings exist anywhere in the harness.</td></tr>
+      <tr><td>Database</td><td><code>DB_TABLES</code></td><td>Executes nothing; prints “simulated”.</td></tr>
+      <tr><td>Chat</td><td><code>TS_SCRIPT</code>, <code>DREAM_LINES</code></td>
+        <td>Real model replies work; the scripted panel beside them does not.</td></tr>
+      <tr><td>Files</td><td>—</td>
+        <td><span class="pill warn">half real</span> Holds your actual files, but in browser
+            <code>localStorage</code>. The agent cannot see them.</td></tr>
+      <tr><td>Code · Browser · Slides · PPT · Gantt · Tasks · Settings · Trash</td><td>assorted</td>
+        <td>Untouched.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">Nine places still print the word “simulated” to the user. Roughly 2,000 further lines are
+  dead code — <code>MOUNT.brain</code>, <code>MOUNT.docs</code>, <code>MOUNT.sheets</code> and their
+  tables are unreachable now that plugins claim those windows, but still sit in the file.</p>
+
+  <h2>The work left, in the order I would take it</h2>
+
+  <div class="item">
+    <div class="num">1</div>
+    <div class="body">
+      <b>Make the egress counter real, or remove it</b>
+      <p>Count bytes at the two places that leave the machine — the LLM stream and the HTTP node — or
+      delete the number. A hardcoded zero next to a screen listing four external providers is worse than
+      no number at all.</p>
+      <div class="meta"><span class="pill bad">contradiction</span><span class="pill">~half a day</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="num">2</div>
+    <div class="body">
+      <b>Persist Docs and Sheets</b>
+      <p>Both still hold their data in memory: zero uses of <code>storageDomain</code>. Entity ids
+      evaporate on restart, so brain provenance points at nothing after a reboot — the Brain looks
+      correct and is quietly built on sand. The pattern is already proven in Workflow, Mail and API
+      Studio.</p>
+      <div class="meta"><span class="pill warn">silent data loss</span><span class="pill">oldest open item</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="num">3</div>
+    <div class="body">
+      <b>Put Agents and Automations onto the Workflow executor</b>
+      <p>Two fiction screens describing exactly what the executor already does: scheduled runs, webhook
+      triggers, capability grants, a run history. This is mostly a UI change over an engine that exists
+      and is tested.</p>
+      <div class="meta"><span class="pill info">largest honesty gain</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="num">4</div>
+    <div class="body">
+      <b>Connect a mailbox</b>
+      <p>Both connectors are verified up to the credential boundary and no further. This one is not
+      engineering — it needs a real account, which is the owner's to supply. Until then the Brain has no
+      email graph.</p>
+      <div class="meta"><span class="pill">blocked on credentials</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="num">5</div>
+    <div class="body">
+      <b>Move Files onto the harness</b>
+      <p>Today it is browser <code>localStorage</code>: the agent cannot read your files and an origin
+      change loses them. Making it a plugin over the real filesystem also gives every other app a
+      genuine file picker.</p>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="num">6</div>
+    <div class="body">
+      <b>Let the agent draft mail</b>
+      <p>There is deliberately no <code>mail_send</code> tool — every other gate in this system is
+      recoverable, and a delivered message is not. A <code>mail_draft</code> that stages a message for
+      human approval is the right shape, and does not exist yet.</p>
+      <div class="meta"><span class="pill good">deliberate omission</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="num">7</div>
+    <div class="body">
+      <b>Delete the dead code and the “simulated” notices</b>
+      <p>Nine user-facing admissions of simulation, and ~2,000 lines of unreachable mounts and tables.
+      Harmless to run, misleading to read.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <h2>Bugs found by chasing symptoms</h2>
+  <p>Each of these was reported as one problem and turned out to be several. They are listed because the
+  pattern matters: in every case the system reported success while doing nothing.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Symptom</th><th>Actual cause</th></tr></thead>
+    <tbody>
+      <tr><td>“Uninstall doesn't remove the app”</td>
+        <td>Removal had <b>never run</b>. The guard compared a directory path against a list of package
+            names, never matched, and returned <code>noop: true</code> — while the UI said “Removed.”
+            Underneath, pnpm needs a directory for <code>add</code> and a package name for
+            <code>remove</code>.</td></tr>
+      <tr><td>“Pick a model” with a model picked</td>
+        <td>Three bugs stacked: the executor dropped <code>params.model</code>; the stream chunk type was
+            <code>text-delta</code>, not <code>text</code>; and <code>listModels()</code> was called with
+            the display name instead of the route id, which silently deleted Ollama and DeepSeek from the
+            picker.</td></tr>
+      <tr><td>“The model doesn't write to the file”</td>
+        <td>The Content field defaulted to empty, so the node wrote 0 bytes and reported success. It now
+            defaults to <code>{{main}}</code> — the value from the node you just connected.</td></tr>
+      <tr><td>“Clicking a file does nothing”</td>
+        <td>The open handler lived only on a 20px button revealed on hover. Rename and new-file naming
+            were broken the same way and fell through to a Chrome <code>prompt()</code>.</td></tr>
+      <tr><td>A plugin vanished from the profile</td>
+        <td>An <code>npm install</code> inside a linked package left a lockfile; the next
+            <code>pnpm add</code> re-resolved and dropped an unrelated plugin. Caught by a smoke test,
+            not by a user.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="card warn">
+    <h3>The pattern worth naming</h3>
+    <p>Every bug above is the same failure: <b>something reported success while doing nothing</b>. An
+    empty file written, an empty model response returned, a removal that removed nothing, a provider list
+    missing half its entries. None of them threw. All of them looked fine on screen.</p>
+    <p style="margin-bottom:0">That is the argument for the rule this build has followed throughout: a
+    screen must show what the system can actually observe, and when it cannot observe something it must
+    say so rather than round it to the comfortable answer.</p>
+  </div>
+
+  <div class="foot">
+    Generated from the running build. Counts come from <code>os.apps()</code>, the Console source, and the
+    workflow palette; every latency and byte count quoted was measured, not estimated.
+  </div>
+
+</div>
+</body>
+</html>

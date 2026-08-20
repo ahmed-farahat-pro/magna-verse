@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagnaVERSE as a plugin platform — three layers on DeepSeek Harness</title>
+<meta name="description" content="The proposed architecture: DeepSeek Harness as the kernel, the MagnaVERSE Console as a plugin above it, and every app — Docs, Sheets, Code, Slides, Gantt — as an installable plugin above that. Interactive flow diagrams for install, removal, and the two observation paths that build the session brain.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px; --topbar:58px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+    --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+    --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+    --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+    --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+    --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+    --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+    --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+    --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+  --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+  --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+  --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+  --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0; max-width:100%; overflow-x:hidden}
+html{scroll-behavior:smooth; scroll-padding-top:calc(var(--topbar) + 14px)}
+body{background:var(--bg); color:var(--tx); font-family:var(--sans); font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal-bright); outline-offset:2px; border-radius:4px}
+button{font:inherit; cursor:pointer}
+h1,h2,h3,h4{text-wrap:balance; line-height:1.24; margin:0}
+p{margin:0 0 14px}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-3); padding:.12em .38em; border-radius:5px; word-break:break-word}
+b,strong{font-weight:650}
+
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+@media (max-width:560px){ .wrap{padding:0 16px} }
+
+/* ---------- brand mark ---------- */
+.magna-mark{width:28px; height:auto; display:block; flex:none}
+.magna-mark path{ stroke-dasharray:1200; stroke-dashoffset:0; }
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{ animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both; }
+  .magna-mark path:nth-of-type(2){ animation-delay:.18s; }
+}
+@keyframes mgDraw{ from{ stroke-dashoffset:1200 } to{ stroke-dashoffset:0 } }
+
+/* ---------- top bar ---------- */
+.top{position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:saturate(1.6) blur(14px); border-bottom:1px solid var(--line)}
+.top-in{max-width:1080px; margin:0 auto; padding:0 24px; height:var(--topbar); display:flex; align-items:center; gap:12px}
+@media (max-width:560px){ .top-in{padding:0 12px} }
+.brand{display:flex; align-items:center; gap:10px; min-width:0}
+.brand .wm{font-weight:650; font-size:15px; letter-spacing:-.01em; white-space:nowrap}
+.brand .wm span{color:var(--tx-4); font-weight:650}
+.topnav{display:flex; gap:2px; margin-left:auto; overflow-x:auto; scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.topnav a{color:var(--tx-3); font-size:13px; padding:8px 9px; border-radius:8px; white-space:nowrap; min-height:44px; display:inline-flex; align-items:center}
+.topnav a:hover{background:var(--surface-2); color:var(--tx); text-decoration:none}
+@media (max-width:1023px){ .topnav{display:none} }
+.seg{display:flex; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; margin-left:auto; flex:none}
+@media (min-width:1024px){ .seg{margin-left:10px} }
+.seg button{min-width:44px; min-height:44px; padding:0 10px; border:0; background:transparent; color:var(--tx-3); font-size:12px; border-radius:7px}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--tx); box-shadow:var(--shadow-sm)}
+.menub{display:none; min-width:44px; min-height:44px; align-items:center; justify-content:center; border:1px solid var(--line); background:var(--surface-2); color:var(--tx); border-radius:9px; flex:none}
+@media (max-width:1023px){ .menub{display:inline-flex} }
+
+.scrim{position:fixed; inset:0; z-index:70; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .18s ease}
+.scrim.on{opacity:1; pointer-events:auto}
+.drawer{position:fixed; z-index:71; inset:0 0 0 auto; width:min(320px,86vw); background:var(--surface); border-left:1px solid var(--line); transform:translateX(102%); visibility:hidden; transition:transform .22s cubic-bezier(.2,.8,.2,1), visibility 0s linear .22s; overflow-y:auto; padding:14px}
+.drawer.on{transform:none; visibility:visible; transition:transform .22s cubic-bezier(.2,.8,.2,1), visibility 0s}
+.drawer .drawer-h{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--tx-4); margin:6px 4px 10px}
+.drawer a{display:block; color:var(--tx-2); padding:11px 10px; border-radius:9px; font-size:14.5px; min-height:44px}
+.drawer a:hover{background:var(--surface-2); text-decoration:none}
+.drawer .closeb{width:100%; min-height:44px; margin-top:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--tx); border-radius:9px}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 28px; border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:650; margin-bottom:12px}
+.hero h1{font-size:clamp(28px,5.4vw,46px); letter-spacing:-.025em; margin-bottom:14px}
+.hero .lede{font-size:clamp(16px,2.2vw,19px); color:var(--tx-2); max-width:62ch}
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; margin-top:24px}
+.facts div{background:var(--surface); padding:13px 14px}
+.facts dt{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-4); font-weight:650}
+.facts dd{margin:3px 0 0; font-size:14.5px; font-weight:600; color:var(--tx)}
+.facts dd small{display:block; font-weight:400; color:var(--tx-3); font-size:12px; margin-top:2px}
+
+/* ---------- sections ---------- */
+section{padding:44px 0; border-bottom:1px solid var(--line)}
+.sec-n{font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.04em}
+h2{font-size:clamp(22px,3.6vw,31px); letter-spacing:-.02em; margin:6px 0 12px}
+h3{font-size:clamp(17px,2.4vw,20px); letter-spacing:-.012em; margin:30px 0 10px}
+h4{font-size:15.5px; margin:22px 0 8px; color:var(--tx)}
+.sub{color:var(--tx-3); max-width:70ch; font-size:16.5px}
+.body{max-width:72ch}
+.body p{color:var(--tx-2)}
+ul,ol{max-width:72ch; color:var(--tx-2); padding-left:22px; margin:0 0 14px}
+li{margin:0 0 7px}
+
+/* ---------- badges ---------- */
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:650; letter-spacing:.02em; padding:3px 8px; border-radius:999px; border:1px solid; vertical-align:middle; white-space:nowrap}
+.badge.v{color:var(--green); border-color:color-mix(in srgb,var(--green) 40%,transparent); background:var(--green-dim)}
+.badge.p{color:var(--violet); border-color:color-mix(in srgb,var(--violet) 40%,transparent); background:var(--violet-dim)}
+.badge.u{color:var(--amber); border-color:color-mix(in srgb,var(--amber) 40%,transparent); background:var(--amber-dim)}
+.badge::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor}
+
+/* ---------- callouts ---------- */
+.note{border:1px solid var(--line); border-left:3px solid var(--tx-4); border-radius:var(--r); background:var(--surface-2); padding:14px 16px; margin:18px 0; max-width:78ch}
+.note p:last-child{margin-bottom:0}
+.note .t{font-weight:650; font-size:14px; margin-bottom:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.note.warn{border-left-color:var(--amber); background:var(--amber-dim)}
+.note.hon{border-left-color:var(--accent); background:var(--accent-dim)}
+.note.ok{border-left-color:var(--green); background:var(--green-dim)}
+.note.mag{border-left-color:var(--signal); background:var(--signal-dim)}
+
+/* ---------- cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px; margin:20px 0}
+.card{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:16px 17px}
+.card h4{margin:0 0 7px; font-size:15.5px}
+.card p{color:var(--tx-3); font-size:14.2px; margin:0 0 9px}
+.card p:last-child{margin-bottom:0}
+.card .idx{font-family:var(--mono); font-size:11px; color:var(--tx-4); display:block; margin-bottom:7px}
+
+/* ---------- table ---------- */
+.tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); margin:18px 0; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:14.2px}
+th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--tx-2)}
+th{font-size:11.5px; text-transform:uppercase; letter-spacing:.055em; color:var(--tx-4); font-weight:650; background:var(--surface-2); position:sticky; top:0}
+tbody tr:last-child td{border-bottom:0}
+td b{color:var(--tx)}
+
+/* ---------- code ---------- */
+.codeblk{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface-2); margin:16px 0; overflow:hidden}
+.codebar{display:flex; align-items:center; gap:10px; padding:6px 7px 6px 14px; border-bottom:1px solid var(--line); background:var(--surface-3)}
+.codebar .fn{font-family:var(--mono); font-size:11.5px; color:var(--tx-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0}
+.copyb{min-height:44px; min-width:66px; padding:0 12px; border:1px solid var(--line-2); background:var(--surface); color:var(--tx-2); border-radius:8px; font-size:12px; font-weight:600; flex:none}
+.copyb:hover{color:var(--tx)}
+.copyb[data-done="1"]{color:var(--green); border-color:color-mix(in srgb,var(--green) 45%,transparent)}
+.codeblk pre{margin:0; padding:14px; overflow-x:auto; -webkit-overflow-scrolling:touch; max-height:640px; overflow-y:auto}
+.codeblk code{background:none; padding:0; font-size:12.6px; line-height:1.62; display:block; white-space:pre; color:var(--tx-2)}
+@media (max-width:560px){ .codeblk code{font-size:11.6px} }
+
+/* ---------- figures ---------- */
+figure{margin:22px 0}
+.figscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:14px}
+.figscroll > svg{display:block; height:auto}
+figcaption{font-size:13.2px; color:var(--tx-3); margin-top:10px; max-width:78ch}
+figcaption b{color:var(--tx-2)}
+.legend{display:flex; flex-wrap:wrap; gap:8px 16px; margin:12px 0 0; font-size:12.4px; color:var(--tx-3)}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.legend i{width:13px; height:13px; border-radius:4px; display:inline-block; flex:none}
+
+/* svg text helpers */
+.dg-t{font-family:var(--sans); font-size:12.5px; fill:var(--tx)}
+.dg-s{font-family:var(--sans); font-size:11px; fill:var(--tx-3)}
+.dg-m{font-family:var(--mono); font-size:12px; fill:var(--tx)}
+.dg-ms{font-family:var(--mono); font-size:10.5px; fill:var(--tx-3)}
+.dg-h{font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.07em; fill:var(--tx-4)}
+
+/* ---------- steps ---------- */
+.stage{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:17px 18px; margin:14px 0}
+.stage .hd{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin-bottom:9px}
+.stage .hd .w{font-family:var(--mono); font-size:11.5px; color:var(--accent); font-weight:650; letter-spacing:.03em}
+.stage .hd h3,.stage .hd h4{margin:0; font-size:15.5px}
+.stage ul{margin:0; padding-left:20px}
+.stage li{font-size:14.4px}
+
+footer{padding:36px 0 56px; color:var(--tx-4); font-size:13.4px}
+footer .fbrand{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.skip{position:absolute; left:-9999px}
+.skip:focus{left:12px; top:12px; z-index:99; background:var(--surface); color:var(--tx); padding:11px 15px; border:1px solid var(--line-2); border-radius:9px}
+
+/* ---------- layer chrome ---------- */
+.l1{--lc:var(--teal); --lcd:var(--teal-dim)}
+.l2{--lc:var(--signal); --lcd:var(--signal-dim)}
+.l3{--lc:var(--violet); --lcd:var(--violet-dim)}
+.ltag{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px; font-weight:650; letter-spacing:.04em; padding:3px 9px; border-radius:999px; border:1px solid color-mix(in srgb,var(--lc) 42%,transparent); background:var(--lcd); color:var(--lc)}
+
+/* ---------- the plug-and-play demo ---------- */
+.demo{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); overflow:hidden; margin:22px 0}
+.demo-cmd{font-family:var(--mono); font-size:12.4px; color:var(--tx-2); background:var(--surface-3); border-bottom:1px solid var(--line); padding:12px 15px; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch}
+.demo-cmd b{color:var(--tx); font-weight:650}
+.demo-log{font-size:13.2px; color:var(--tx-3); padding:11px 15px; border-bottom:1px solid var(--line); background:var(--surface-2); min-height:44px; display:flex; align-items:center; gap:9px}
+.demo-log b{color:var(--tx-2); font-weight:600}
+.demo-body{padding:16px 15px}
+.dl{border:1px solid var(--line); border-radius:var(--r); background:var(--surface-2); padding:12px 13px; margin:0 0 9px}
+.dl:last-child{margin-bottom:0}
+.dl-h{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px}
+.dl-h .nm{font-size:14.2px; font-weight:650; color:var(--tx)}
+.dl-h .hint{font-size:12.2px; color:var(--tx-4); margin-left:auto}
+.plugrow{display:flex; flex-wrap:wrap; gap:8px}
+.plug{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:12.4px; padding:8px 12px; min-height:44px; border-radius:9px; border:1px solid color-mix(in srgb,var(--violet) 42%,transparent); background:var(--violet-dim); color:var(--violet); font-weight:600}
+.plug:hover{border-color:var(--violet)}
+.plug[aria-pressed="false"]{background:transparent; border-color:var(--line); border-style:dashed; color:var(--tx-4)}
+.plug .dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
+.dockrow{display:flex; flex-wrap:wrap; gap:7px}
+.dockit{display:inline-flex; align-items:center; gap:6px; font-size:12.6px; padding:6px 11px; border-radius:8px; background:var(--surface); border:1px solid var(--line); color:var(--tx-2)}
+.dockit.core{color:var(--tx-4)}
+.toolrow{display:flex; flex-wrap:wrap; gap:6px}
+.tool{font-family:var(--mono); font-size:11.8px; padding:5px 9px; border-radius:7px; background:var(--surface); border:1px solid var(--line); color:var(--tx-3)}
+.tool.os{color:var(--signal); border-color:color-mix(in srgb,var(--signal) 34%,transparent); background:var(--signal-dim)}
+.mini{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:9px; margin:11px 0 0}
+.mini div{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:10px 12px}
+.mini .k{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-4); font-weight:650}
+.mini .v{font-size:21px; font-weight:650; color:var(--tx); margin:2px 0 0; line-height:1.2}
+.mini .s{font-size:12px; color:var(--tx-3)}
+.subhead{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-4); font-weight:650; margin:0 0 7px}
+.arrowlbl{display:flex; align-items:center; gap:9px; padding:7px 4px; font-size:12.6px; color:var(--tx-3); font-family:var(--mono)}
+.arrowlbl svg{flex:none; color:var(--tx-4)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="wm">Magna<span>VERSE</span></div>
+    </div>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#stack">The stack</a>
+      <a href="#demo">Plug and play</a>
+      <a href="#install">Install flow</a>
+      <a href="#brain">The brain</a>
+      <a href="#owns">Who owns what</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#limits">Limits</a>
+      <a href="#stages">Stages</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="system" aria-pressed="true">Auto</button>
+      <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+    </div>
+    <button type="button" class="menub" id="menub" aria-expanded="false" aria-controls="drawer" aria-label="Open section menu">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="Sections" aria-hidden="true">
+  <p class="drawer-h">On this page</p>
+  <a href="#stack">1 · The three layers</a>
+  <a href="#demo">2 · Plug and play, live</a>
+  <a href="#install">3 · What happens on install</a>
+  <a href="#brain">4 · How the brain gets built</a>
+  <a href="#owns">5 · Who owns what</a>
+  <a href="#evidence">6 · Verified against the harness</a>
+  <a href="#limits">7 · Three real limits</a>
+  <a href="#stages">8 · The staged path</a>
+  <button type="button" class="closeb" data-close-drawer>Close</button>
+</nav>
+
+<main id="main">
+
+<div class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Proposed architecture · 19 August 2026</p>
+    <h1>The OS is a plugin. The apps are plugins. The harness sees all of it.</h1>
+    <p class="lede">MagnaVERSE Console stops being an app that <em>calls</em> DeepSeek Harness over HTTP, and becomes a plugin that <em>runs inside</em> it. Apps like Docs, Sheets and the code editor become plugins in turn — installable and removable one at a time. The reason to invert it is the last line of the stack: a harness that only receives chat prompts can never build a session brain, but one that sits under the whole desktop can.</p>
+    <dl class="facts">
+      <div><dt>Layers</dt><dd>3<small>kernel · OS · apps</small></dd></div>
+      <div><dt>Install</dt><dd>one command<small>dsh plugin add ./packages/app-docs</small></dd></div>
+      <div><dt>Observed</dt><dd>43 event types<small>every session, one listener</small></dd></div>
+      <div><dt>Proxy needed</dt><dd>none<small>dsh serves the UI itself</small></dd></div>
+    </dl>
+  </div>
+</div>
+
+<section id="stack">
+  <div class="wrap">
+    <p class="sec-n">01</p>
+    <h2>The three layers</h2>
+    <p class="sub">Read it bottom-up. Each layer only ever talks to the one directly beneath it, and every registration is reversible — which is what makes the top layer removable at runtime.</p>
+
+    <figure>
+      <div class="figscroll">
+        <svg viewBox="0 0 1000 566" width="1000" role="img" aria-labelledby="stkT stkD">
+          <title id="stkT">The three-layer architecture</title>
+          <desc id="stkD">Layer 3, app plugins: Docs, Sheets, Code, Slides and Gantt. They register into layer 2, the MagnaVERSE OS plugin, which holds the app registry, the host API, the desktop shell and the brain tap. Layer 2 registers tools and routes into layer 1, the DeepSeek Harness kernel, and subscribes to its session event stream in return.</desc>
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <g>
+            <rect x="110" y="24" width="870" height="126" rx="16" fill="var(--violet-dim)" stroke="color-mix(in srgb,var(--violet) 34%,transparent)"/>
+            <rect x="8" y="66" width="88" height="24" rx="12" fill="var(--violet-dim)" stroke="color-mix(in srgb,var(--violet) 42%,transparent)"/>
+            <text class="dg-ms" x="52" y="82" text-anchor="middle" style="fill:var(--violet)">layer 3</text>
+            <text class="dg-h" x="128" y="47">APP PLUGINS · ONE PACKAGE EACH</text>
+            <g>
+              <rect x="126" y="60" width="160" height="74" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="140" y="84">@magna/app-docs</text>
+              <text class="dg-ms" x="140" y="103" style="fill:var(--tx-3)">docs_create · docs_insert</text>
+              <text class="dg-ms" x="140" y="120" style="fill:var(--tx-3)">docs_read</text>
+            </g>
+            <g>
+              <rect x="298" y="60" width="160" height="74" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="312" y="84">@magna/app-sheets</text>
+              <text class="dg-ms" x="312" y="103" style="fill:var(--tx-3)">sheets_read</text>
+              <text class="dg-ms" x="312" y="120" style="fill:var(--tx-3)">sheets_set_range</text>
+            </g>
+            <g>
+              <rect x="470" y="60" width="160" height="74" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="484" y="84">@magna/app-code</text>
+              <text class="dg-ms" x="484" y="103" style="fill:var(--tx-3)">code_open · code_edit</text>
+              <text class="dg-ms" x="484" y="120" style="fill:var(--tx-3)">code_run</text>
+            </g>
+            <g>
+              <rect x="642" y="60" width="160" height="74" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="656" y="84">@magna/app-slides</text>
+              <text class="dg-ms" x="656" y="103" style="fill:var(--tx-3)">slides_create</text>
+              <text class="dg-ms" x="656" y="120" style="fill:var(--tx-3)">slides_add</text>
+            </g>
+            <g>
+              <rect x="814" y="60" width="160" height="74" rx="10" fill="var(--surface)" stroke="var(--line-2)" stroke-dasharray="5 4"/>
+              <text class="dg-m" x="828" y="84" style="fill:var(--tx-3)">…marketplace</text>
+              <text class="dg-ms" x="828" y="103" style="fill:var(--tx-4)">anything installed</text>
+              <text class="dg-ms" x="828" y="120" style="fill:var(--tx-4)">later</text>
+            </g>
+          </g>
+
+          <g color="var(--violet)">
+            <path d="M300 150 L300 206" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#ah)"/>
+            <text class="dg-ms" x="316" y="171" style="fill:var(--violet)">magnaOS.registerApp(manifest)</text>
+            <text class="dg-ms" x="316" y="189" style="fill:var(--tx-3)">inject: ['magnaOS'] — Cordis waits for layer 2</text>
+          </g>
+
+          <g>
+            <rect x="110" y="210" width="870" height="140" rx="16" fill="var(--signal-dim)" stroke="color-mix(in srgb,var(--signal) 34%,transparent)"/>
+            <rect x="8" y="266" width="88" height="24" rx="12" fill="var(--signal-dim)" stroke="color-mix(in srgb,var(--signal) 42%,transparent)"/>
+            <text class="dg-ms" x="52" y="282" text-anchor="middle" style="fill:var(--signal)">layer 2</text>
+            <text class="dg-h" x="128" y="233">@MAGNA/OS · THE DESKTOP, ITSELF A PLUGIN</text>
+            <g>
+              <rect x="126" y="246" width="200" height="88" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-t" x="140" y="270">App registry</text>
+              <text class="dg-ms" x="140" y="290" style="fill:var(--tx-3)">manifest · dock · desktop</text>
+              <text class="dg-ms" x="140" y="307" style="fill:var(--tx-3)">spotlight aliases</text>
+              <text class="dg-ms" x="140" y="324" style="fill:var(--tx-3)">window defaults</text>
+            </g>
+            <g>
+              <rect x="342" y="246" width="200" height="88" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-t" x="356" y="270">Host API</text>
+              <text class="dg-ms" x="356" y="290" style="fill:var(--tx-3)">MagnaOS.apps · .win · .fs</text>
+              <text class="dg-ms" x="356" y="307" style="fill:var(--tx-3)">.ui · .security · .storage</text>
+              <text class="dg-ms" x="356" y="324" style="fill:var(--tx-4)">theme + shell stay private</text>
+            </g>
+            <g>
+              <rect x="558" y="246" width="200" height="88" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-t" x="572" y="270">Desktop shell</text>
+              <text class="dg-ms" x="572" y="290" style="fill:var(--tx-3)">windows · spaces · dock</text>
+              <text class="dg-ms" x="572" y="307" style="fill:var(--tx-3)">approvals · notifications</text>
+              <text class="dg-ms" x="572" y="324" style="fill:var(--tx-3)">served at /desktop</text>
+            </g>
+            <g>
+              <rect x="774" y="246" width="200" height="88" rx="10" fill="var(--surface)" stroke="color-mix(in srgb,var(--signal) 50%,transparent)"/>
+              <text class="dg-t" x="788" y="270" style="fill:var(--signal)">Brain tap</text>
+              <text class="dg-ms" x="788" y="290" style="fill:var(--tx-3)">observe(action)</text>
+              <text class="dg-ms" x="788" y="307" style="fill:var(--tx-3)">session projection</text>
+              <text class="dg-ms" x="788" y="324" style="fill:var(--tx-3)">prompt context</text>
+            </g>
+          </g>
+
+          <g color="var(--signal)">
+            <path d="M300 350 L300 406" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#ah)"/>
+            <text class="dg-ms" x="316" y="371" style="fill:var(--signal)">ctx.tools.register() · ctx.webServer.register()</text>
+            <text class="dg-ms" x="316" y="389" style="fill:var(--tx-3)">every call wrapped in ctx.effect — reversible by construction</text>
+          </g>
+          <g color="var(--teal)">
+            <path d="M900 406 L900 350" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#ah)"/>
+            <text class="dg-ms" x="888" y="371" text-anchor="end" style="fill:var(--teal)">ctx.on('session/event')</text>
+            <text class="dg-ms" x="888" y="389" text-anchor="end" style="fill:var(--tx-3)">every session, every append</text>
+          </g>
+
+          <g>
+            <rect x="110" y="410" width="870" height="132" rx="16" fill="var(--teal-dim)" stroke="color-mix(in srgb,var(--teal) 34%,transparent)"/>
+            <rect x="8" y="464" width="88" height="24" rx="12" fill="var(--teal-dim)" stroke="color-mix(in srgb,var(--teal) 42%,transparent)"/>
+            <text class="dg-ms" x="52" y="480" text-anchor="middle" style="fill:var(--teal)">layer 1</text>
+            <text class="dg-h" x="128" y="433">DEEPSEEK HARNESS · THE KERNEL, UNMODIFIED</text>
+            <g>
+              <rect x="126" y="446" width="160" height="80" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-t" x="140" y="470">Agent loop</text>
+              <text class="dg-ms" x="140" y="490" style="fill:var(--tx-3)">turn · step · stream</text>
+              <text class="dg-ms" x="140" y="507" style="fill:var(--tx-3)">to the local model</text>
+            </g>
+            <g>
+              <rect x="298" y="446" width="160" height="80" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="312" y="470">ctx.tools</text>
+              <text class="dg-ms" x="312" y="490" style="fill:var(--tx-3)">registry + guarded</text>
+              <text class="dg-ms" x="312" y="507" style="fill:var(--tx-3)">execution pipeline</text>
+            </g>
+            <g>
+              <rect x="470" y="446" width="160" height="80" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="484" y="470">ctx.sessions</text>
+              <text class="dg-ms" x="484" y="490" style="fill:var(--tx-3)">append-only log</text>
+              <text class="dg-ms" x="484" y="507" style="fill:var(--tx-3)">43 event types</text>
+            </g>
+            <g>
+              <rect x="642" y="446" width="160" height="80" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="656" y="470">ctx.approval</text>
+              <text class="dg-ms" x="656" y="490" style="fill:var(--tx-3)">one-shot decisions</text>
+              <text class="dg-ms" x="656" y="507" style="fill:var(--tx-3)">fails closed</text>
+            </g>
+            <g>
+              <rect x="814" y="446" width="160" height="80" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+              <text class="dg-m" x="828" y="470">ctx.webServer</text>
+              <text class="dg-ms" x="828" y="490" style="fill:var(--tx-3)">/api · /plugins</text>
+              <text class="dg-ms" x="828" y="507" style="fill:var(--tx-3)">and now /desktop</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>The inversion in one picture.</b> Today the console would sit off to the side and post to <code>/api</code>. Here it sits directly on the kernel, so the kernel's session log already contains everything the desktop does — no separate telemetry, no second source of truth.</figcaption>
+      <div class="legend">
+        <span><i style="background:var(--violet)"></i>Layer 3 — installable apps</span>
+        <span><i style="background:var(--signal)"></i>Layer 2 — the OS plugin</span>
+        <span><i style="background:var(--teal)"></i>Layer 1 — the harness</span>
+      </div>
+    </figure>
+
+    <div class="note ok">
+      <p class="t">This removes a problem rather than adding one <span class="badge v">Verified</span></p>
+      <p>A browser at <code>localhost:3000</code> calling <code>127.0.0.1:3080/api</code> gets a hard <b>403</b>. The harness refuses <code>sec-fetch-site: cross-site</code>, requires <code>Origin</code> to equal <code>Host</code>, and sends no CORS headers at all — none of it configurable. Serving the desktop from inside dsh makes it same-origin, so <code>fetch('/api/…')</code> and <code>new WebSocket('/api/events.mux')</code> simply work. No proxy, no custom Node server, no Next.js.</p>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <p class="sec-n">02</p>
+    <h2>Plug and play, live</h2>
+    <p class="sub">Click any app to remove it, then click again to put it back. One click changes four things at once: the install command, the dock, the agent's tool catalog, and what the harness is watching. That simultaneity <em>is</em> the architecture — nothing here is wired by hand.</p>
+
+    <div class="demo" id="pnp">
+      <div class="demo-cmd" id="pnpCmd"></div>
+      <div class="demo-log" id="pnpLog"></div>
+      <div class="demo-body">
+
+        <div class="dl l3">
+          <div class="dl-h"><span class="ltag">layer 3</span><span class="nm">App plugins</span><span class="hint">click to add or remove</span></div>
+          <div class="plugrow" id="pnpApps"></div>
+        </div>
+
+        <div class="arrowlbl">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+          magnaOS.registerApp() — and ctx.effect disposers on the way back up
+        </div>
+
+        <div class="dl l2">
+          <div class="dl-h"><span class="ltag">layer 2</span><span class="nm">@magna/os</span><span class="hint">the desktop</span></div>
+          <p class="subhead">Dock</p>
+          <div class="dockrow" id="pnpDock"></div>
+          <p class="subhead" style="margin-top:13px">Host API offered to every plugin</p>
+          <div class="toolrow">
+            <span class="tool">MagnaOS.apps</span><span class="tool">MagnaOS.win</span><span class="tool">MagnaOS.fs</span>
+            <span class="tool">MagnaOS.ui</span><span class="tool">MagnaOS.security</span><span class="tool">MagnaOS.storage</span><span class="tool">MagnaOS.env</span>
+          </div>
+        </div>
+
+        <div class="arrowlbl">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v18M4 17l4 4 4-4M16 21V3M12 7l4-4 4 4"/></svg>
+          ctx.tools.register() goes down · ctx.on('session/event') comes back up
+        </div>
+
+        <div class="dl l1">
+          <div class="dl-h"><span class="ltag">layer 1</span><span class="nm">DeepSeek Harness</span><span class="hint" id="pnpTc"></span></div>
+          <p class="subhead">Agent tool catalog</p>
+          <div class="toolrow" id="pnpTools"></div>
+          <div class="mini">
+            <div><p class="k">Session brain sees</p><p class="v">43</p><p class="s">event types, every session</p></div>
+            <div><p class="k">Watched surfaces</p><p class="v" id="pnpSrf">6</p><p class="s">the OS plus each installed app</p></div>
+            <div><p class="k">Restart needed</p><p class="v">never</p><p class="s">effects unwind in place</p></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="note">
+      <p class="t">Why removal actually works</p>
+      <p>Every registration in the harness goes through <code>ctx.effect(fn, label)</code>, which returns the exact disposer for whatever that work created and binds it to the calling fiber. Disposal runs in strict LIFO and is idempotent. So uninstalling Docs is not a flag that hides a menu item — it disposes the route, the tools, the manifest row and the dock entry in one pass, and the agent's catalog shrinks with it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <p class="sec-n">03</p>
+    <h2>What happens on install — and on removal</h2>
+    <p class="sub">There is no Magna-specific machinery in this path. It is the harness's own plugin flow, which exists because dsh was built expecting third-party packages: the CLI subcommand accepts local directories, and <code>~/.dsh/profiles/node_modules</code> is a symlink farm over the whole dependency closure specifically so out-of-tree plugins can resolve the service packages they name.</p>
+
+    <figure>
+      <div class="figscroll">
+        <svg viewBox="0 0 1000 408" width="1000" role="img" aria-labelledby="insT insD">
+          <title id="insT">The install and removal flow</title>
+          <desc id="insD">One command installs the package into the profile. If its package.json declares dsh.bundle.patch it is appended to the profile bundle list, otherwise it installs as a plain dependency with a warning. The Cordis loader then calls ctx.plugin on it, it waits for the magnaOS service, registers its manifest and tools, and appears in the dock and the agent catalog. Removal disposes every effect in reverse order.</desc>
+          <defs>
+            <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <g color="var(--amber)">
+            <rect x="440" y="8" width="320" height="46" rx="10" fill="var(--amber-dim)" stroke="color-mix(in srgb,var(--amber) 42%,transparent)"/>
+            <text class="dg-s" x="456" y="28" style="fill:var(--amber)">no — installed as a plain dependency, not a layer</text>
+            <text class="dg-ms" x="456" y="45" style="fill:var(--tx-3)">dsh prints a warning and the plugin never activates</text>
+            <path d="M605 76 L605 58" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+          </g>
+
+          <g color="var(--tx-4)">
+            <rect x="20" y="76" width="210" height="78" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="34" y="99">1 · one command</text>
+            <text class="dg-ms" x="34" y="119" style="fill:var(--tx-3)">dsh plugin --profile web</text>
+            <text class="dg-ms" x="34" y="136" style="fill:var(--tx-3)">add ./packages/app-docs</text>
+
+            <path d="M232 115 L256 115" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+
+            <rect x="260" y="76" width="210" height="78" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="274" y="99">2 · pnpm installs it</text>
+            <text class="dg-ms" x="274" y="119" style="fill:var(--tx-3)">~/.dsh/profiles/web</text>
+            <text class="dg-s" x="274" y="137" style="fill:var(--tx-3)">local paths are supported</text>
+
+            <path d="M472 115 L496 115" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+
+            <rect x="500" y="76" width="210" height="78" rx="10" fill="var(--surface)" stroke="color-mix(in srgb,var(--amber) 55%,transparent)"/>
+            <text class="dg-t" x="514" y="99">3 · the one check</text>
+            <text class="dg-ms" x="514" y="119" style="fill:var(--tx-3)">dsh.bundle.patch declared</text>
+            <text class="dg-s" x="514" y="137" style="fill:var(--tx-3)">in package.json?</text>
+
+            <path d="M712 115 L736 115" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+            <text class="dg-ms" x="724" y="107" text-anchor="middle" style="fill:var(--green)">yes</text>
+
+            <rect x="740" y="76" width="210" height="78" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="754" y="99">4 · becomes a layer</text>
+            <text class="dg-ms" x="754" y="119" style="fill:var(--tx-3)">appended to</text>
+            <text class="dg-ms" x="754" y="136" style="fill:var(--tx-3)">dsh.profile.bundles</text>
+
+            <path d="M845 156 L845 182 L125 182 L125 206" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+          </g>
+
+          <g color="var(--signal)">
+            <rect x="20" y="210" width="210" height="78" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="34" y="233">5 · the loader mounts it</text>
+            <text class="dg-ms" x="34" y="253" style="fill:var(--tx-3)">ctx.plugin(app, config)</text>
+            <text class="dg-s" x="34" y="271" style="fill:var(--tx-3)">one call per composed row</text>
+
+            <path d="M232 249 L256 249" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+
+            <rect x="260" y="210" width="210" height="78" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="274" y="233">6 · it waits for the OS</text>
+            <text class="dg-ms" x="274" y="253" style="fill:var(--tx-3)">inject: ['magnaOS']</text>
+            <text class="dg-s" x="274" y="271" style="fill:var(--tx-3)">Cordis holds it until ready</text>
+
+            <path d="M472 249 L496 249" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+
+            <rect x="500" y="210" width="210" height="78" rx="10" fill="var(--surface)" stroke="color-mix(in srgb,var(--signal) 50%,transparent)"/>
+            <text class="dg-t" x="514" y="233" style="fill:var(--signal)">7 · it registers</text>
+            <text class="dg-ms" x="514" y="253" style="fill:var(--tx-3)">registerApp(manifest)</text>
+            <text class="dg-ms" x="514" y="270" style="fill:var(--tx-3)">ctx.tools.register(docs_*)</text>
+
+            <path d="M712 249 L736 249" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah2)"/>
+
+            <rect x="740" y="210" width="210" height="78" rx="10" fill="var(--surface)" stroke="color-mix(in srgb,var(--green) 50%,transparent)"/>
+            <text class="dg-t" x="754" y="233" style="fill:var(--green)">8 · it is simply there</text>
+            <text class="dg-s" x="754" y="253" style="fill:var(--tx-3)">dock · desktop · spotlight</text>
+            <text class="dg-s" x="754" y="271" style="fill:var(--tx-3)">and the agent's catalog</text>
+          </g>
+
+          <g color="var(--accent)">
+            <path d="M845 290 L845 336 L125 336 L125 312" stroke="currentColor" stroke-width="1.6" fill="none" stroke-dasharray="6 5" marker-end="url(#ah2)"/>
+            <rect x="330" y="352" width="340" height="46" rx="10" fill="var(--accent-dim)" stroke="color-mix(in srgb,var(--accent) 40%,transparent)"/>
+            <text class="dg-s" x="346" y="372" style="fill:var(--accent)">remove — every ctx.effect disposer runs, in reverse</text>
+            <text class="dg-ms" x="346" y="389" style="fill:var(--tx-3)">route, tools, manifest row, dock entry — no restart</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Step 3 is the whole activation contract.</b> A package that declares <code>dsh.bundle.patch</code> becomes a composition layer; one that does not installs as an ordinary library and prints a warning. That single field is the difference between a plugin and a dependency.</figcaption>
+    </figure>
+
+    <div class="codeblk">
+      <div class="codebar"><span class="fn">packages/app-docs/package.json — the two fields that matter</span><button type="button" class="copyb">Copy</button></div>
+<pre><code>{
+  "name": "@magna/app-docs",
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis":     "^4.0.1",
+    "@deepseek-ai/dsh-tools":  "^0.1.0-rc.7"
+  }
+}</code></pre>
+    </div>
+    <p class="body" style="color:var(--tx-3); font-size:14.4px">Peer dependencies rather than direct ones, deliberately: Node's parent walk resolves them out of <code>~/.dsh/profiles/node_modules</code>, so the plugin binds to the harness the user is actually running instead of shipping a second copy of it.</p>
+  </div>
+</section>
+
+<section id="brain">
+  <div class="wrap">
+    <p class="sec-n">04</p>
+    <h2>How the brain gets built</h2>
+    <p class="sub">Two paths, in opposite directions. The agent-side one is free — the harness already records every tool call, message and approval into an append-only session log, and a listener on a plain host context sees every session. The human-side one is the part we add, and it is the whole reason for putting the OS underneath rather than beside.</p>
+
+    <h3>A human action reaching the model</h3>
+    <p class="body">This path does not exist today at all. In the current console, app code calls <code>toast()</code> 83 times and emits to the event bus zero times — so an agent watching the bus sees nothing a person does in Sheets, Files or Docs. Routing every mutating host-API call through one observe point is the single change that turns the brain on.</p>
+
+    <figure>
+      <div class="figscroll">
+        <svg viewBox="0 0 1000 300" width="1000" role="img" aria-labelledby="hbT hbD">
+          <title id="hbT">A human action reaching the model</title>
+          <desc id="hbD">A user edit calls the host API, which calls magnaOS.observe. That feeds a session projection, which broadcasts to the desktop as a mux frame, and also renders into the system prompt context. Discrete facts additionally go through agent.inject as durable request context.</desc>
+          <defs>
+            <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+          </defs>
+
+          <g color="var(--tx-4)">
+            <rect x="16" y="112" width="150" height="76" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="30" y="140">A person edits</text>
+            <text class="dg-s" x="30" y="159" style="fill:var(--tx-3)">cell B4 in Sheets</text>
+            <text class="dg-s" x="30" y="176" style="fill:var(--tx-4)">no agent involved</text>
+            <path d="M168 150 L182 150" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah3)"/>
+          </g>
+
+          <g color="var(--signal)">
+            <rect x="186" y="112" width="160" height="76" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-m" x="200" y="140">MagnaOS.fs.write</text>
+            <text class="dg-s" x="200" y="159" style="fill:var(--tx-3)">the host API — the only</text>
+            <text class="dg-s" x="200" y="176" style="fill:var(--tx-3)">door a plugin has</text>
+            <path d="M348 150 L362 150" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah3)"/>
+
+            <rect x="366" y="112" width="200" height="76" rx="10" fill="var(--signal-dim)" stroke="color-mix(in srgb,var(--signal) 50%,transparent)"/>
+            <text class="dg-m" x="380" y="140" style="fill:var(--signal)">magnaOS.observe(action)</text>
+            <text class="dg-ms" x="380" y="159" style="fill:var(--tx-3)">{ appId, verb, target, at }</text>
+            <text class="dg-s" x="380" y="176" style="fill:var(--tx-3)">one envelope for everything</text>
+
+            <path d="M568 140 C588 140 584 63 596 63" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah3)"/>
+            <path d="M568 160 C588 160 584 237 596 237" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah3)"/>
+          </g>
+
+          <g color="var(--teal)">
+            <rect x="600" y="28" width="182" height="70" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="614" y="52">Session projection</text>
+            <text class="dg-ms" x="614" y="71" style="fill:var(--tx-3)">key: 'magnaOS'</text>
+            <text class="dg-s" x="614" y="88" style="fill:var(--tx-3)">durable · replayable</text>
+            <path d="M784 63 L798 63" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah3)"/>
+
+            <rect x="802" y="28" width="182" height="70" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="816" y="52">The desktop repaints</text>
+            <text class="dg-ms" x="816" y="71" style="fill:var(--tx-3)">session/projection frame</text>
+            <text class="dg-s" x="816" y="88" style="fill:var(--tx-3)">pushed for free, no socket code</text>
+          </g>
+
+          <g color="var(--violet)">
+            <rect x="600" y="202" width="182" height="70" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="614" y="226">Into the prompt</text>
+            <text class="dg-ms" x="614" y="245" style="fill:var(--tx-3)">systemPrompt.context()</text>
+            <text class="dg-ms" x="614" y="262" style="fill:var(--tx-3)">agent.inject()</text>
+            <path d="M784 237 L798 237" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah3)"/>
+
+            <rect x="802" y="202" width="182" height="70" rx="10" fill="var(--violet-dim)" stroke="color-mix(in srgb,var(--violet) 50%,transparent)"/>
+            <text class="dg-t" x="816" y="226" style="fill:var(--violet)">The model knows</text>
+            <text class="dg-s" x="816" y="245" style="fill:var(--tx-3)">what is open, what has focus,</text>
+            <text class="dg-s" x="816" y="262" style="fill:var(--tx-3)">what just changed</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Two channels, chosen by urgency.</b> <code>systemPrompt.context()</code> takes a <em>function</em> that is re-evaluated at every prompt assembly, so ambient desktop state is always current and costs nothing while idle. <code>agent.inject()</code> is for a discrete fact that must not wait — it queues for the next step without waking a running turn, and lands as a durable <code>request/context</code> event.</figcaption>
+    </figure>
+
+    <h3>An agent action reaching the desktop</h3>
+    <p class="body">The mirror image, and mostly free. The tool pipeline already runs pre-policy, guarded dispatch, post-policy and result observation, and the approval seam already fails closed when no answerer is present. The console's existing <code>requestApproval</code> needs no signature change — it already renders in-window when it knows which window, and floats when it does not.</p>
+
+    <figure>
+      <div class="figscroll">
+        <svg viewBox="0 0 1000 300" width="1000" role="img" aria-labelledby="abT abD">
+          <title id="abT">An agent action reaching the desktop</title>
+          <desc id="abD">The model calls a tool. The tools pipeline runs it, raising an approval in the desktop if policy requires one. The app's host half executes it, a window opens, and the whole thing lands in the session log where the brain tap reads it.</desc>
+          <defs>
+            <marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+          </defs>
+
+          <g color="var(--violet)">
+            <rect x="16" y="96" width="176" height="72" rx="10" fill="var(--violet-dim)" stroke="color-mix(in srgb,var(--violet) 50%,transparent)"/>
+            <text class="dg-t" x="30" y="120" style="fill:var(--violet)">The model calls</text>
+            <text class="dg-ms" x="30" y="139" style="fill:var(--tx-3)">docs_create</text>
+            <text class="dg-s" x="30" y="156" style="fill:var(--tx-3)">a tool the plugin added</text>
+            <path d="M194 132 L208 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah4)"/>
+          </g>
+
+          <g color="var(--teal)">
+            <rect x="212" y="96" width="176" height="72" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="226" y="120">ctx.tools pipeline</text>
+            <text class="dg-s" x="226" y="139" style="fill:var(--tx-3)">pre-policy · guarded</text>
+            <text class="dg-s" x="226" y="156" style="fill:var(--tx-3)">dispatch · post-policy</text>
+            <path d="M390 132 L404 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah4)"/>
+          </g>
+
+          <g color="var(--amber)">
+            <rect x="408" y="96" width="176" height="72" rx="10" fill="var(--amber-dim)" stroke="color-mix(in srgb,var(--amber) 50%,transparent)"/>
+            <text class="dg-t" x="422" y="120" style="fill:var(--amber)">You are asked first</text>
+            <text class="dg-s" x="422" y="139" style="fill:var(--tx-3)">the approval bar, in the</text>
+            <text class="dg-s" x="422" y="156" style="fill:var(--tx-3)">window that raised it</text>
+            <path d="M586 132 L600 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah4)"/>
+            <path d="M300 94 C300 44 496 44 496 44 C496 44 692 44 692 92" stroke="var(--tx-4)" stroke-width="1.4" fill="none" stroke-dasharray="5 4" marker-end="url(#ah4)"/>
+            <text class="dg-s" x="496" y="34" text-anchor="middle" style="fill:var(--tx-4)">already allowed by policy — straight through</text>
+          </g>
+
+          <g color="var(--signal)">
+            <rect x="604" y="96" width="176" height="72" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="618" y="120">The app runs it</text>
+            <text class="dg-s" x="618" y="139" style="fill:var(--tx-3)">@magna/app-docs</text>
+            <text class="dg-s" x="618" y="156" style="fill:var(--tx-3)">host half</text>
+            <path d="M782 132 L796 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah4)"/>
+
+            <rect x="800" y="96" width="184" height="72" rx="10" fill="var(--surface)" stroke="color-mix(in srgb,var(--green) 50%,transparent)"/>
+            <text class="dg-t" x="814" y="120" style="fill:var(--green)">A window opens</text>
+            <text class="dg-s" x="814" y="139" style="fill:var(--tx-3)">Docs appears, text lands,</text>
+            <text class="dg-s" x="814" y="156" style="fill:var(--tx-3)">the centre announces it</text>
+          </g>
+
+          <g color="var(--teal)">
+            <path d="M300 170 L300 210" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah4)"/>
+            <path d="M692 170 L692 210" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah4)"/>
+            <rect x="212" y="214" width="572" height="62" rx="10" fill="var(--teal-dim)" stroke="color-mix(in srgb,var(--teal) 45%,transparent)"/>
+            <text class="dg-t" x="228" y="238" style="fill:var(--teal)">session/event — every step of this is already in the log</text>
+            <text class="dg-s" x="228" y="258" style="fill:var(--tx-3)">tool/call · approval/asked · approval/decided · tool/result — the brain tap reads it with one listener, no integration</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>One caution worth building in from the start.</b> Replying to an approval returns a <em>delivery receipt</em>, not the outcome — the decision arrives later as a separate <code>approval/resolved</code> push. A UI that treats the receipt as the answer will confirm approvals that were never applied.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="owns">
+  <div class="wrap">
+    <p class="sec-n">05</p>
+    <h2>Who owns what</h2>
+    <p class="sub">The boundaries matter more than the boxes. A plugin that can reach the theme engine or the desktop repaint is not a plugin — it is a patch with extra steps.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th style="width:19%">Layer</th><th style="width:27%">Owns</th><th style="width:27%">Offers upward</th><th style="width:27%">Never exposes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Layer 1 · dsh</b><br><span style="color:var(--tx-4); font-size:12.6px">unmodified</span></td>
+            <td>The agent loop, the session log, the tool registry and its guarded pipeline, approvals, the model route, the HTTP server</td>
+            <td><code>ctx.tools</code>, <code>ctx.sessions</code>, <code>ctx.approval</code>, <code>ctx.webServer</code>, <code>ctx.systemPrompt</code>, <code>ctx.sessionProjections</code></td>
+            <td>Nothing is hidden — but the durable event vocabulary is closed, and the mux frame union is closed</td>
+          </tr>
+          <tr>
+            <td><b>Layer 2 · @magna/os</b><br><span style="color:var(--tx-4); font-size:12.6px">one plugin</span></td>
+            <td>Windows, spaces, the dock, the desktop, notifications, the approval surface, the app registry, the marketplace</td>
+            <td><code>MagnaOS.apps</code> · <code>.win</code> · <code>.fs</code> · <code>.ui</code> · <code>.security</code> · <code>.storage</code> · <code>.env</code>, and <code>magnaOS.registerApp()</code> on the host side</td>
+            <td><code>applyTheme</code>, <code>openThemePicker</code>, <code>setNotifStyle</code>, <code>renderDesktopFiles</code> — the four shell controls Settings calls today</td>
+          </tr>
+          <tr>
+            <td><b>Layer 3 · apps</b><br><span style="color:var(--tx-4); font-size:12.6px">many plugins</span></td>
+            <td>Its own window content, its own data under <code>plugin:&lt;id&gt;:*</code>, its own agent tools</td>
+            <td>A manifest, a mount function, an optional <code>invoke</code> command surface, and its tools</td>
+            <td>Other apps' state. Cross-app calls go through <code>MagnaOS.apps.invoke()</code>, never by reaching into another window</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <p class="t">The one habit that has to change</p>
+      <p>Today <code>w.state</code> is used 325 times as private scratch <em>and</em> as a cross-window back channel — apps publish functions onto it that other apps then call directly. That cannot survive a plugin boundary, and replacing it with a named command surface is what lets the same call work whether a person or the agent made it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="evidence">
+  <div class="wrap">
+    <p class="sec-n">06</p>
+    <h2>Verified against the harness on this machine</h2>
+    <p class="sub">Everything below was read from <code>@deepseek-ai/dsh@0.1.0-rc.7</code> as installed locally, and from the live profile at <code>~/.dsh/profiles/web/</code>. Where something is a proposal rather than a finding, it says so.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th style="width:34%">Claim</th><th style="width:13%">Status</th><th style="width:53%">Where</th></tr></thead>
+        <tbody>
+          <tr><td>dsh has a CLI subcommand for third-party plugins, and it accepts local directories</td><td><span class="badge v">Verified</span></td><td><code>dsh/lib/bin.js:96</code>, path rewriting at <code>dsh/lib/plugin-*.js:90</code></td></tr>
+          <tr><td>A package activates as a layer by declaring <code>dsh.bundle.patch</code>; without it you get a warning</td><td><span class="badge v">Verified</span></td><td><code>dsh/lib/plugin-*.js:25-78</code></td></tr>
+          <tr><td>Out-of-tree plugins are an intended use case, with a module-resolution farm built for them</td><td><span class="badge v">Verified</span></td><td><code>dsh-app-boot/lib/index.js:390</code> — the source comment says so directly</td></tr>
+          <tr><td>A plugin can register HTTP routes and WebSocket upgrades on the same port as <code>/api</code></td><td><span class="badge v">Verified</span></td><td><code>dsh-host-webserver/lib/index.js:53-73</code>; <code>/api</code> itself is just a registered prefix route</td></tr>
+          <tr><td>One listener on a host context observes every session event, in every session</td><td><span class="badge v">Verified</span></td><td><code>dsh-session/lib/index.js:1467</code>; scope rule in the type declarations</td></tr>
+          <tr><td>A registered projection is broadcast to the browser automatically</td><td><span class="badge v">Verified</span></td><td><code>dsh-host-apiproxy/lib/index.js:1813</code></td></tr>
+          <tr><td>Prompt context may be a function re-evaluated at every assembly</td><td><span class="badge v">Verified</span></td><td><code>dsh-system-prompt</code> type declarations</td></tr>
+          <tr><td>Every registration is reversible through <code>ctx.effect</code>, disposing in strict LIFO</td><td><span class="badge v">Verified</span></td><td><code>cordis/lib/index.js:1168-1196</code></td></tr>
+          <tr><td>A cross-origin browser call to <code>/api</code> is refused with 403, not configurable</td><td><span class="badge v">Verified</span></td><td>tested live against <code>127.0.0.1:3080</code></td></tr>
+          <tr><td>dsh is also a full MCP client, though not mounted by default</td><td><span class="badge v">Verified</span></td><td><code>dsh-mcp-client</code>; absent from both default patch layers</td></tr>
+          <tr><td>The <code>magnaOS</code> service, the manifest shape, and the host API surface</td><td><span class="badge p">Proposed</span></td><td>this document — nothing like it exists yet</td></tr>
+          <tr><td>App plugins loaded by our own loader rather than dsh's client module graph</td><td><span class="badge p">Proposed</span></td><td>a deliberate choice to keep the shell out of React for now</td></tr>
+          <tr><td>Marketplace install wrapping the CLI behind an approval</td><td><span class="badge p">Proposed</span></td><td>the console's install flow already shows scopes before asking, and does nothing on approve</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <p class="sec-n">07</p>
+    <h2>Three real limits — and whether any of them blocks the brain</h2>
+    <p class="sub">The goal is specific: the harness collects everything every plugin does, and builds one picture of the session from it. So the only question worth asking about each limit is whether it stops that. The short answer is that none of the three do — but working through why surfaces one architectural decision that <em>does</em> have to be made, and it is not obvious.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th style="width:22%">Limit</th><th style="width:26%">What it actually stops</th><th style="width:15%">Blocks the brain?</th><th style="width:37%">What we do instead</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Closed event vocabulary</b><br><span style="color:var(--tx-4); font-size:12.6px">43 types, generated</span></td>
+            <td>Writing a <code>magna/app-action</code> event into the session log and having it replay as a first-class fact. The read path refuses unknown types.</td>
+            <td><span class="badge v">No</span></td>
+            <td>Fine-grained state lives in a projection; model-visible facts go through <code>agent.inject()</code>, which lands as <code>request/context</code> — an existing type whose entire purpose is injected context. This is the supported channel, not a detour around a locked door.</td>
+          </tr>
+          <tr>
+            <td><b>Closed mux frame union</b><br><span style="color:var(--tx-4); font-size:12.6px">9 members, private broadcast</span></td>
+            <td>Pushing a frame of our own shape down the socket the harness already owns.</td>
+            <td><span class="badge v">No</span></td>
+            <td><code>session/projection</code> carries an untyped <code>value</code> — the designed escape hatch — and registering a projection gets it broadcast automatically. Anything too chatty for the session log goes on our own upgrade route instead.</td>
+          </tr>
+          <tr>
+            <td><b>Flat tool namespace</b><br><span style="color:var(--tx-4); font-size:12.6px">duplicates throw</span></td>
+            <td>Two apps registering <code>open</code> — the second one throws and fails to load.</td>
+            <td><span class="badge v">No</span> <span style="color:var(--tx-4)">for us</span><br><span class="badge u">Later</span> <span style="color:var(--tx-4)">for a marketplace</span></td>
+            <td>Prefixing by owner is enough while we write all the apps. The moment third parties publish, a convention is not enough — so the OS rejects a manifest at registration whose declared tools do not start with its own id. An invariant, not a guideline.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The decision this forces: the brain needs two stores, not one</h3>
+    <p class="body">Because plugin activity cannot be a session event type, the obvious move is to put it all in a session projection. That works — projections are durable, replayable, cached for cold reads, and pushed to the browser for free. But a projection is <b>scoped to one session</b>, and that scoping has a consequence that is easy to miss until it bites:</p>
+
+    <div class="note warn">
+      <p class="t">Work with no conversation open has nowhere to go</p>
+      <p>Someone spends an hour in Sheets and Files without opening Chat. There is no session, so there is no projection, so the entire hour is invisible. Then they open Chat and ask "what was I just doing?" — and a brain built only on session projections has no answer, because from the harness's point of view nothing happened.</p>
+    </div>
+
+    <figure>
+      <div class="figscroll">
+        <svg viewBox="0 0 1000 348" width="1000" role="img" aria-labelledby="tsT tsD">
+          <title id="tsT">The two stores the brain needs</title>
+          <desc id="tsD">Human actions in apps and agent actions in sessions both enter the OS action bus. From there they fan into two stores: a session projection scoped to one conversation, and a workspace store that outlives every session. When a new session opens, the workspace store is folded in, so work done with no conversation open is still visible to the model.</desc>
+          <defs><marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+
+          <g color="var(--tx-4)">
+            <rect x="16" y="34" width="176" height="76" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="30" y="58" style="fill:var(--violet)">A person, in an app</text>
+            <text class="dg-s" x="30" y="78" style="fill:var(--tx-3)">edits a cell, saves a file</text>
+            <text class="dg-s" x="30" y="95" style="fill:var(--tx-4)">often with no chat open</text>
+
+            <rect x="16" y="196" width="176" height="76" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="30" y="220" style="fill:var(--teal)">An agent, in a session</text>
+            <text class="dg-s" x="30" y="240" style="fill:var(--tx-3)">calls a tool, gets approval</text>
+            <text class="dg-s" x="30" y="257" style="fill:var(--tx-4)">always inside a session</text>
+
+            <path d="M194 72 C222 72 226 130 248 130" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah5)"/>
+            <path d="M194 234 C222 234 226 176 248 176" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah5)"/>
+          </g>
+
+          <g color="var(--signal)">
+            <rect x="252" y="112" width="186" height="82" rx="10" fill="var(--signal-dim)" stroke="color-mix(in srgb,var(--signal) 50%,transparent)"/>
+            <text class="dg-t" x="266" y="138" style="fill:var(--signal)">The action bus</text>
+            <text class="dg-ms" x="266" y="158" style="fill:var(--tx-3)">magnaOS.observe()</text>
+            <text class="dg-s" x="266" y="177" style="fill:var(--tx-3)">appId stamped, not claimed</text>
+            <path d="M440 138 C466 138 470 72 492 72" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah5)"/>
+            <path d="M440 168 C466 168 470 234 492 234" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah5)"/>
+          </g>
+
+          <g color="var(--teal)">
+            <rect x="496" y="34" width="216" height="80" rx="10" fill="var(--surface)" stroke="var(--line-2)"/>
+            <text class="dg-t" x="510" y="58">Session projection</text>
+            <text class="dg-ms" x="510" y="77" style="fill:var(--tx-3)">ctx.sessionProjections</text>
+            <text class="dg-s" x="510" y="96" style="fill:var(--tx-3)">this conversation · pushed live</text>
+
+            <rect x="496" y="196" width="216" height="80" rx="10" fill="var(--surface)" stroke="color-mix(in srgb,var(--amber) 55%,transparent)"/>
+            <text class="dg-t" x="510" y="220" style="fill:var(--amber)">Workspace store</text>
+            <text class="dg-ms" x="510" y="239" style="fill:var(--tx-3)">ctx.storageDomain</text>
+            <text class="dg-s" x="510" y="258" style="fill:var(--tx-3)">outlives every session</text>
+
+            <path d="M604 192 L604 128" stroke="var(--amber)" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#ah5)"/>
+            <text class="dg-s" x="616" y="164" style="fill:var(--amber)">folded in when a session opens</text>
+          </g>
+
+          <g color="var(--violet)">
+            <path d="M714 74 C742 74 746 138 768 138" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah5)"/>
+            <path d="M714 236 C742 236 746 172 768 172" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#ah5)"/>
+            <rect x="772" y="112" width="212" height="82" rx="10" fill="var(--violet-dim)" stroke="color-mix(in srgb,var(--violet) 50%,transparent)"/>
+            <text class="dg-t" x="786" y="138" style="fill:var(--violet)">The model</text>
+            <text class="dg-ms" x="786" y="158" style="fill:var(--tx-3)">systemPrompt.context()</text>
+            <text class="dg-ms" x="786" y="176" style="fill:var(--tx-3)">agent.inject()</text>
+          </g>
+
+          <text class="dg-s" x="16" y="316" style="fill:var(--tx-4)">Both stores are already mounted in the web profile — storage, storage-json, storage-domain, session-projection and session-projection-cache are all live rows, none disabled.</text>
+        </svg>
+      </div>
+      <figcaption><b>This is the one design decision the limits force.</b> Not a workaround for a missing feature — the harness ships both stores precisely because session-scoped and workspace-scoped state are genuinely different things. Choosing only the first is the mistake, and it is silent: everything works until someone asks the agent about work they did before opening the chat.</figcaption>
+    </figure>
+
+    <h3>What could actually stop this</h3>
+    <p class="body">None of the three published limits is the real risk. These are.</p>
+
+    <div class="cards">
+      <div class="card">
+        <span class="idx">Risk 01</span>
+        <h4>Volume drowns the context</h4>
+        <p>Every keystroke is an action. Pushing all of them at the model destroys the context window and buries the signal — a brain that reports everything is as useless as one that reports nothing.</p>
+        <p><b>The rule:</b> the projection holds the fine detail, the prompt gets a summary. <code>systemPrompt.context()</code> renders current state — what is open, what has focus — and <code>agent.inject()</code> is reserved for facts that change an answer.</p>
+      </div>
+      <div class="card">
+        <span class="idx">Risk 02</span>
+        <h4>Forgeable attribution</h4>
+        <p>Once a marketplace exists, any installed plugin can call the action bus. If it can also name which app it is, one bad plugin can write history in another app's name — and a brain confidently wrong about who did what is worse than no brain.</p>
+        <p><b>The rule:</b> the OS stamps <code>appId</code> from the registration and never reads it from the caller. Each app gets a scoped handle that cannot claim to be another. <span class="badge v">Built</span></p>
+      </div>
+      <div class="card">
+        <span class="idx">Risk 03</span>
+        <h4>Compaction eats the memory</h4>
+        <p>Long sessions get compacted, and injected context is exactly the kind of material a summariser drops first. The brain would quietly lose its oldest and often most useful observations.</p>
+        <p><b>The rule:</b> the durable store is the source of truth, never the transcript. Anything the model needs must be re-derivable from the projection and the workspace store on the next turn, not remembered from the last one.</p>
+      </div>
+    </div>
+
+    <div class="note ok">
+      <p class="t">So the answer to "can the harness see everything?" is yes <span class="badge v">Verified</span></p>
+      <p>The agent half needs no work at all — one <code>ctx.on('session/event')</code> listener on a host context receives every tool call, message, approval and turn boundary, in every session, and this is already running. The human half is ours to build, and the only thing the limits change is <em>where it is stored</em>, not <em>whether it can be collected</em>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="stages">
+  <div class="wrap">
+    <p class="sec-n">08</p>
+    <h2>The staged path</h2>
+    <p class="sub">Staged deliberately as insurance. If this stops after stage 1 you have a working sovereign desktop on a real local agent; if it stops after stage 2 you have that plus a proven plugin contract. Nothing here is only valuable once everything is finished.</p>
+
+    <div class="stage">
+      <div class="hd"><span class="w">Stage 0 · 2–3 days</span><h3>The skeleton loads</h3></div>
+      <p style="color:var(--tx-2); font-size:14.6px; margin:0 0 9px">One package with the activation field, a service, a <code>/desktop</code> route, and a listener that logs every session event.</p>
+      <ul><li><b>You see:</b> the profile lists <code>@magna/os</code> as a layer, <code>/desktop</code> serves our HTML, and the terminal narrates every event while you use the stock dsh UI in another tab.</li><li><b>De-risks:</b> the entire premise, before a line of porting.</li></ul>
+    </div>
+
+    <div class="stage">
+      <div class="hd"><span class="w">Stage 1 · 1–2 weeks</span><h3>The console, on the real agent</h3></div>
+      <p style="color:var(--tx-2); font-size:14.6px; margin:0 0 9px">Serve the existing console essentially as-is, then wire exactly one seam: chat streaming, a stop button, and tool approvals.</p>
+      <ul><li><b>You see:</b> the desktop you already know, with Chat talking to the local model — streaming token by token, stoppable mid-turn, and pausing for approval before it touches anything.</li><li><b>The proof line:</b> the events socket returns <b>101, not 403</b>.</li></ul>
+    </div>
+
+    <div class="stage">
+      <div class="hd"><span class="w">Stage 2 · 3–4 weeks</span><h3>The contract, proven with one app</h3></div>
+      <p style="color:var(--tx-2); font-size:14.6px; margin:0 0 9px">The host API, a real mount and unmount lifecycle, namespaced storage, and Docs extracted as the first genuine plugin.</p>
+      <ul><li><b>You see:</b> remove Docs and it leaves the dock, the desktop, spotlight and the agent's tool catalog together. Add it back and it returns. That round trip is the whole thesis.</li></ul>
+    </div>
+
+    <div class="stage">
+      <div class="hd"><span class="w">Stage 3 · 6–8 weeks</span><h3>Marketplace, the rest of the apps, and the brain</h3></div>
+      <p style="color:var(--tx-2); font-size:14.6px; margin:0 0 9px">Install and uninstall behind an approval, the remaining apps extracted, the three CDN libraries vendored, and the projection wired end to end.</p>
+      <ul><li><b>You see:</b> work across three apps, then ask the agent what you were doing. It knows, because it watched.</li></ul>
+    </div>
+
+    <div class="note hon">
+      <p class="t">Where the cost actually sits</p>
+      <p>Not in the harness integration — that is small and mostly verified already. It sits in stage 2, because the console is 13,504 lines of JavaScript in a single scope with no module boundaries and no tests. "Extract app X" always quietly means "untangle X's free variables from the other 308 functions beside it." The plan is shaped around that, and the honest figure for a full extraction is roughly eight weeks rather than two.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fbrand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:22px">
+        <defs>
+          <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:var(--tx-3); font-weight:600">Magna<span style="color:var(--tx-4)">VERSE</span></span>
+    </div>
+    <p>Architecture proposal prepared 19 August 2026. Findings read from <code>@deepseek-ai/dsh@0.1.0-rc.7</code> as installed locally and from the live profile at <code>~/.dsh/profiles/web/</code>. Console references are to <code>apps/app-7-console.html</code> in this repository.</p>
+    <p>Claims are labelled <span class="badge v">Verified</span> or <span class="badge p">Proposed</span> throughout. The demo above is an illustration of the mechanism, not a live connection to a running harness.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- theme ---- */
+  var root = document.documentElement;
+  var btns = Array.prototype.slice.call(document.querySelectorAll("[data-theme-set]"));
+  function readTheme(){
+    try{ return localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system"; }
+    catch(e){ return "system"; }
+  }
+  function applyTheme(mode){
+    if(mode === "light" || mode === "dark"){ root.setAttribute("data-theme", mode); }
+    else{ root.removeAttribute("data-theme"); }
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-set") === mode)); });
+  }
+  function writeTheme(mode){
+    try{ localStorage.setItem("mv-theme", mode); localStorage.setItem("mv.theme", mode); }catch(e){}
+  }
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var m = b.getAttribute("data-theme-set");
+      applyTheme(m); writeTheme(m);
+    });
+  });
+  applyTheme(readTheme());
+
+  /* ---- copy buttons ---- */
+  function fallback(text, done){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly","");
+    ta.style.position = "fixed"; ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); done(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+  Array.prototype.slice.call(document.querySelectorAll(".copyb")).forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var blk = btn.closest(".codeblk");
+      var code = blk ? blk.querySelector("code") : null;
+      if(!code) return;
+      var text = code.textContent;
+      var done = function(){
+        var old = btn.textContent;
+        btn.textContent = "Copied";
+        btn.setAttribute("data-done","1");
+        window.setTimeout(function(){ btn.textContent = old || "Copy"; btn.removeAttribute("data-done"); }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done, function(){ fallback(text, done); });
+      }else{ fallback(text, done); }
+    });
+  });
+
+  /* ---- mobile drawer ---- */
+  var menub  = document.getElementById("menub");
+  var drawer = document.getElementById("drawer");
+  var scrim  = document.getElementById("scrim");
+  var lastFocus = null;
+
+  function onKey(e){
+    if(e.key === "Escape"){ e.preventDefault(); closeDrawer(); return; }
+    if(e.key !== "Tab") return;
+    var items = drawer.querySelectorAll("a, button");
+    if(!items.length) return;
+    var first = items[0], last = items[items.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+  function openDrawer(){
+    lastFocus = document.activeElement;
+    scrim.hidden = false;
+    window.requestAnimationFrame(function(){ scrim.classList.add("on"); });
+    drawer.classList.add("on");
+    drawer.setAttribute("aria-hidden","false");
+    menub.setAttribute("aria-expanded","true");
+    var first = drawer.querySelector("a");
+    if(first) first.focus();
+    document.addEventListener("keydown", onKey, true);
+  }
+  function closeDrawer(){
+    scrim.classList.remove("on");
+    drawer.classList.remove("on");
+    drawer.setAttribute("aria-hidden","true");
+    menub.setAttribute("aria-expanded","false");
+    document.removeEventListener("keydown", onKey, true);
+    window.setTimeout(function(){ if(!drawer.classList.contains("on")) scrim.hidden = true; }, 220);
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  if(menub){ menub.addEventListener("click", function(){ drawer.classList.contains("on") ? closeDrawer() : openDrawer(); }); }
+  if(scrim){ scrim.addEventListener("click", closeDrawer); }
+  Array.prototype.slice.call(drawer.querySelectorAll("a")).forEach(function(a){
+    a.addEventListener("click", closeDrawer);
+  });
+  var closeBtn = drawer.querySelector("[data-close-drawer]");
+  if(closeBtn) closeBtn.addEventListener("click", closeDrawer);
+
+  /* ---- the plug-and-play demo ---------------------------------------------
+     One state object, one render. Toggling an app has to move the command
+     line, the dock, the tool catalog and the watched count in the same frame —
+     if any of them were updated separately the demo would be lying about the
+     thing it is demonstrating. ---------------------------------------------- */
+  var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); };
+
+  var APPS = [
+    { id:"docs",   pkg:"app-docs",   name:"Docs",   tools:["docs_create","docs_insert","docs_read"] },
+    { id:"sheets", pkg:"app-sheets", name:"Sheets", tools:["sheets_read","sheets_set_range"] },
+    { id:"code",   pkg:"app-code",   name:"Code",   tools:["code_open","code_edit","code_run"] },
+    { id:"slides", pkg:"app-slides", name:"Slides", tools:["slides_create","slides_add"] },
+    { id:"gantt",  pkg:"app-gantt",  name:"Gantt",  tools:["gantt_read","gantt_shift"] }
+  ];
+  var CORE     = ["Chat","Brain","Files","Marketplace"];
+  var OS_TOOLS = ["os_open_app","os_list_windows","os_invoke"];
+  var on = { docs:1, sheets:1, code:1, slides:1, gantt:1 };
+
+  var elApps  = document.getElementById("pnpApps");
+  var elDock  = document.getElementById("pnpDock");
+  var elTools = document.getElementById("pnpTools");
+  var elCmd   = document.getElementById("pnpCmd");
+  var elLog   = document.getElementById("pnpLog");
+  var elTc    = document.getElementById("pnpTc");
+  var elSrf   = document.getElementById("pnpSrf");
+
+  function installed(){ return APPS.filter(function(a){ return on[a.id]; }); }
+
+  /* The buttons are built once and only their aria-pressed is mutated after
+     that. Rebuilding them with innerHTML on every toggle would drop keyboard
+     focus to <body> — so a keyboard user pressing Enter on a plugin would be
+     thrown back to the top of the page on every single click. */
+  function buildButtons(){
+    elApps.innerHTML = APPS.map(function(a){
+      return '<button type="button" class="plug" data-app="' + a.id + '" aria-pressed="true">' +
+             '<span class="dot"></span>@magna/' + esc(a.pkg) + '</button>';
+    }).join("");
+  }
+
+  function render(){
+    var live = installed();
+
+    APPS.forEach(function(a){
+      var b = elApps.querySelector('[data-app="' + a.id + '"]');
+      if(b) b.setAttribute("aria-pressed", String(!!on[a.id]));
+    });
+
+    elDock.innerHTML =
+      CORE.map(function(n){ return '<span class="dockit core">' + esc(n) + '</span>'; }).join("") +
+      live.map(function(a){ return '<span class="dockit">' + esc(a.name) + '</span>'; }).join("");
+
+    var tools = OS_TOOLS.slice();
+    live.forEach(function(a){ tools = tools.concat(a.tools); });
+    elTools.innerHTML = tools.map(function(n, i){
+      return '<span class="tool' + (i < OS_TOOLS.length ? " os" : "") + '">' + esc(n) + '</span>';
+    }).join("");
+
+    elTc.textContent = tools.length + " tools registered";
+    elSrf.textContent = String(live.length + 1);
+    elCmd.innerHTML = '<b>dsh</b> plugin --profile web add ./packages/os' +
+      live.map(function(a){ return " ./packages/" + esc(a.pkg); }).join("");
+  }
+
+  function toggle(id){
+    var a = APPS.filter(function(x){ return x.id === id; })[0];
+    if(!a) return;
+    on[id] = on[id] ? 0 : 1;
+    elLog.innerHTML = on[id]
+      ? '<b>Added @magna/' + esc(a.pkg) + '</b> — profile layer activated · ' + a.tools.length +
+        ' tools registered on ctx.tools · dock entry appears · the harness now watches it.'
+      : '<b>Removed @magna/' + esc(a.pkg) + '</b> — every ctx.effect disposer ran in reverse · ' +
+        a.tools.length + ' tools gone from the agent catalog · dock entry gone · no restart.';
+    render();
+  }
+
+  if(elApps){
+    elApps.addEventListener("click", function(e){
+      var b = e.target.closest("[data-app]");
+      if(b) toggle(b.getAttribute("data-app"));
+    });
+    elLog.textContent = "Five app plugins installed. Click any one to remove it.";
+    buildButtons();
+    render();
+  }
+})();
+</script>
+</body>
+</html>

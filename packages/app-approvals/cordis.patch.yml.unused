@@ -1,0 +1,4 @@
+- insert:
+    - id: magna-app-approvals
+      name: '@magna/app-approvals'
+      config: {}

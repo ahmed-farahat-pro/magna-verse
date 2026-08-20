@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marketplace — five design directions</title>
+<meta name="description" content="Five design directions for the MagnaVERSE plugin marketplace, each built from the nine real plugins actually installed — real names, real scopes, real states.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px; --topbar:58px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+    --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+    --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+    --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+    --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+    --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+    --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+    --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+    --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+    --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#8B7CFF; --signal-bright:#A99BFF; --signal-dim:rgba(139,124,255,.14);
+  --amber:#E0A33C; --amber-dim:rgba(224,163,60,.14);
+  --green:#3FCF95; --green-dim:rgba(63,207,149,.14);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.14);
+  --violet:#B79CFF; --violet-dim:rgba(183,156,255,.14);
+  --teal:#4FD1C5; --teal-dim:rgba(79,209,197,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-bright:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow-sm:0 1px 2px rgba(16,22,30,.06);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0; max-width:100%; overflow-x:hidden}
+html{scroll-behavior:smooth; scroll-padding-top:calc(var(--topbar) + 14px)}
+body{background:var(--bg); color:var(--tx); font-family:var(--sans); font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal-bright); outline-offset:2px; border-radius:4px}
+button{font:inherit; cursor:pointer}
+h1,h2,h3,h4{text-wrap:balance; line-height:1.24; margin:0}
+p{margin:0 0 14px}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-3); padding:.12em .38em; border-radius:5px; word-break:break-word}
+b,strong{font-weight:650}
+
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+@media (max-width:560px){ .wrap{padding:0 16px} }
+
+/* ---------- brand mark ---------- */
+.magna-mark{width:28px; height:auto; display:block; flex:none}
+.magna-mark path{ stroke-dasharray:1200; stroke-dashoffset:0; }
+@media (prefers-reduced-motion: no-preference){
+  .magna-mark path{ animation:mgDraw 1.5s cubic-bezier(.16,1,.3,1) both; }
+  .magna-mark path:nth-of-type(2){ animation-delay:.18s; }
+}
+@keyframes mgDraw{ from{ stroke-dashoffset:1200 } to{ stroke-dashoffset:0 } }
+
+/* ---------- top bar ---------- */
+.top{position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:saturate(1.6) blur(14px); border-bottom:1px solid var(--line)}
+.top-in{max-width:1080px; margin:0 auto; padding:0 24px; height:var(--topbar); display:flex; align-items:center; gap:12px}
+@media (max-width:560px){ .top-in{padding:0 12px} }
+.brand{display:flex; align-items:center; gap:10px; min-width:0}
+.brand .wm{font-weight:650; font-size:15px; letter-spacing:-.01em; white-space:nowrap}
+.brand .wm span{color:var(--tx-4); font-weight:650}
+.topnav{display:flex; gap:2px; margin-left:auto; overflow-x:auto; scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.topnav a{color:var(--tx-3); font-size:13px; padding:8px 9px; border-radius:8px; white-space:nowrap; min-height:44px; display:inline-flex; align-items:center}
+.topnav a:hover{background:var(--surface-2); color:var(--tx); text-decoration:none}
+@media (max-width:1023px){ .topnav{display:none} }
+.seg{display:flex; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; margin-left:auto; flex:none}
+@media (min-width:1024px){ .seg{margin-left:10px} }
+.seg button{min-width:44px; min-height:44px; padding:0 10px; border:0; background:transparent; color:var(--tx-3); font-size:12px; border-radius:7px}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--tx); box-shadow:var(--shadow-sm)}
+.menub{display:none; min-width:44px; min-height:44px; align-items:center; justify-content:center; border:1px solid var(--line); background:var(--surface-2); color:var(--tx); border-radius:9px; flex:none}
+@media (max-width:1023px){ .menub{display:inline-flex} }
+
+.scrim{position:fixed; inset:0; z-index:70; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .18s ease}
+.scrim.on{opacity:1; pointer-events:auto}
+.drawer{position:fixed; z-index:71; inset:0 0 0 auto; width:min(320px,86vw); background:var(--surface); border-left:1px solid var(--line); transform:translateX(102%); visibility:hidden; transition:transform .22s cubic-bezier(.2,.8,.2,1), visibility 0s linear .22s; overflow-y:auto; padding:14px}
+.drawer.on{transform:none; visibility:visible; transition:transform .22s cubic-bezier(.2,.8,.2,1), visibility 0s}
+.drawer .drawer-h{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--tx-4); margin:6px 4px 10px}
+.drawer a{display:block; color:var(--tx-2); padding:11px 10px; border-radius:9px; font-size:14.5px; min-height:44px}
+.drawer a:hover{background:var(--surface-2); text-decoration:none}
+.drawer .closeb{width:100%; min-height:44px; margin-top:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--tx); border-radius:9px}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 28px; border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-4); font-weight:650; margin-bottom:12px}
+.hero h1{font-size:clamp(28px,5.4vw,46px); letter-spacing:-.025em; margin-bottom:14px}
+.hero .lede{font-size:clamp(16px,2.2vw,19px); color:var(--tx-2); max-width:62ch}
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; margin-top:24px}
+.facts div{background:var(--surface); padding:13px 14px}
+.facts dt{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-4); font-weight:650}
+.facts dd{margin:3px 0 0; font-size:14.5px; font-weight:600; color:var(--tx)}
+.facts dd small{display:block; font-weight:400; color:var(--tx-3); font-size:12px; margin-top:2px}
+
+/* ---------- sections ---------- */
+section{padding:44px 0; border-bottom:1px solid var(--line)}
+.sec-n{font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.04em}
+h2{font-size:clamp(22px,3.6vw,31px); letter-spacing:-.02em; margin:6px 0 12px}
+h3{font-size:clamp(17px,2.4vw,20px); letter-spacing:-.012em; margin:30px 0 10px}
+h4{font-size:15.5px; margin:22px 0 8px; color:var(--tx)}
+.sub{color:var(--tx-3); max-width:70ch; font-size:16.5px}
+.body{max-width:72ch}
+.body p{color:var(--tx-2)}
+ul,ol{max-width:72ch; color:var(--tx-2); padding-left:22px; margin:0 0 14px}
+li{margin:0 0 7px}
+
+/* ---------- badges ---------- */
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:650; letter-spacing:.02em; padding:3px 8px; border-radius:999px; border:1px solid; vertical-align:middle; white-space:nowrap}
+.badge.v{color:var(--green); border-color:color-mix(in srgb,var(--green) 40%,transparent); background:var(--green-dim)}
+.badge.p{color:var(--violet); border-color:color-mix(in srgb,var(--violet) 40%,transparent); background:var(--violet-dim)}
+.badge.u{color:var(--amber); border-color:color-mix(in srgb,var(--amber) 40%,transparent); background:var(--amber-dim)}
+.badge::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor}
+
+/* ---------- callouts ---------- */
+.note{border:1px solid var(--line); border-left:3px solid var(--tx-4); border-radius:var(--r); background:var(--surface-2); padding:14px 16px; margin:18px 0; max-width:78ch}
+.note p:last-child{margin-bottom:0}
+.note .t{font-weight:650; font-size:14px; margin-bottom:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.note.warn{border-left-color:var(--amber); background:var(--amber-dim)}
+.note.hon{border-left-color:var(--accent); background:var(--accent-dim)}
+.note.ok{border-left-color:var(--green); background:var(--green-dim)}
+.note.mag{border-left-color:var(--signal); background:var(--signal-dim)}
+
+/* ---------- cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px; margin:20px 0}
+.card{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:16px 17px}
+.card h4{margin:0 0 7px; font-size:15.5px}
+.card p{color:var(--tx-3); font-size:14.2px; margin:0 0 9px}
+.card p:last-child{margin-bottom:0}
+.card .idx{font-family:var(--mono); font-size:11px; color:var(--tx-4); display:block; margin-bottom:7px}
+
+/* ---------- table ---------- */
+.tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); margin:18px 0; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:14.2px}
+th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--tx-2)}
+th{font-size:11.5px; text-transform:uppercase; letter-spacing:.055em; color:var(--tx-4); font-weight:650; background:var(--surface-2); position:sticky; top:0}
+tbody tr:last-child td{border-bottom:0}
+td b{color:var(--tx)}
+
+/* ---------- code ---------- */
+.codeblk{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface-2); margin:16px 0; overflow:hidden}
+.codebar{display:flex; align-items:center; gap:10px; padding:6px 7px 6px 14px; border-bottom:1px solid var(--line); background:var(--surface-3)}
+.codebar .fn{font-family:var(--mono); font-size:11.5px; color:var(--tx-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0}
+.copyb{min-height:44px; min-width:66px; padding:0 12px; border:1px solid var(--line-2); background:var(--surface); color:var(--tx-2); border-radius:8px; font-size:12px; font-weight:600; flex:none}
+.copyb:hover{color:var(--tx)}
+.copyb[data-done="1"]{color:var(--green); border-color:color-mix(in srgb,var(--green) 45%,transparent)}
+.codeblk pre{margin:0; padding:14px; overflow-x:auto; -webkit-overflow-scrolling:touch; max-height:640px; overflow-y:auto}
+.codeblk code{background:none; padding:0; font-size:12.6px; line-height:1.62; display:block; white-space:pre; color:var(--tx-2)}
+@media (max-width:560px){ .codeblk code{font-size:11.6px} }
+
+/* ---------- figures ---------- */
+figure{margin:22px 0}
+.figscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:14px}
+.figscroll > svg{display:block; height:auto}
+figcaption{font-size:13.2px; color:var(--tx-3); margin-top:10px; max-width:78ch}
+figcaption b{color:var(--tx-2)}
+.legend{display:flex; flex-wrap:wrap; gap:8px 16px; margin:12px 0 0; font-size:12.4px; color:var(--tx-3)}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.legend i{width:13px; height:13px; border-radius:4px; display:inline-block; flex:none}
+
+/* svg text helpers */
+.dg-t{font-family:var(--sans); font-size:12.5px; fill:var(--tx)}
+.dg-s{font-family:var(--sans); font-size:11px; fill:var(--tx-3)}
+.dg-m{font-family:var(--mono); font-size:12px; fill:var(--tx)}
+.dg-ms{font-family:var(--mono); font-size:10.5px; fill:var(--tx-3)}
+.dg-h{font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.07em; fill:var(--tx-4)}
+
+/* ---------- steps ---------- */
+.stage{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); padding:17px 18px; margin:14px 0}
+.stage .hd{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin-bottom:9px}
+.stage .hd .w{font-family:var(--mono); font-size:11.5px; color:var(--accent); font-weight:650; letter-spacing:.03em}
+.stage .hd h3,.stage .hd h4{margin:0; font-size:15.5px}
+.stage ul{margin:0; padding-left:20px}
+.stage li{font-size:14.4px}
+
+footer{padding:36px 0 56px; color:var(--tx-4); font-size:13.4px}
+footer .fbrand{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.skip{position:absolute; left:-9999px}
+.skip:focus{left:12px; top:12px; z-index:99; background:var(--surface); color:var(--tx); padding:11px 15px; border:1px solid var(--line-2); border-radius:9px}
+
+/* ---------- mockup chrome ---------- */
+.mock{border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); overflow:hidden; margin:18px 0}
+.mock-top{display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:var(--surface-2)}
+.mock-top i{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--line-2)}
+.mock-top .t{font-size:12px;color:var(--tx-4);margin-left:6px}
+.mock-in{padding:16px 18px}
+@media (max-width:560px){ .mock-in{padding:12px} }
+.pill-s{font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+.pill-s[data-s="running"]{color:var(--green);border-color:color-mix(in srgb,var(--green) 42%,transparent)}
+.pill-s[data-s="restart"]{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 42%,transparent)}
+.pill-s[data-s="available"]{color:var(--tx-4);border-color:var(--line)}
+.scope{font-family:var(--mono);font-size:10.5px;color:var(--tx-3)}
+.scope b{color:var(--green);font-weight:600}
+.scope u{color:var(--amber);text-decoration:none}
+.btn-s{min-height:30px;padding:0 12px;border-radius:8px;font:inherit;font-size:12.5px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--tx);cursor:pointer}
+.btn-s.go{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent)}
+.btn-s.rm{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)}
+
+/* A — shelf */
+.hero{border:1px solid var(--line);border-radius:14px;padding:20px 22px;background:linear-gradient(180deg,var(--surface-2),var(--surface));margin:0 0 16px}
+.hero .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-4);font-weight:650}
+.hero h4{margin:6px 0 6px;font-size:20px}
+.hero p{margin:0 0 12px;color:var(--tx-3);max-width:56ch;font-size:14px}
+.shelf-h{display:flex;align-items:baseline;gap:10px;margin:18px 0 9px}
+.shelf-h h5{margin:0;font-size:13.5px}
+.shelf-h span{font-size:12px;color:var(--tx-4)}
+.shelf{display:flex;gap:11px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.shelf .c{flex:none;width:196px;border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surface)}
+.shelf .c .ic{width:34px;height:34px;border-radius:9px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:9px}
+.shelf .c h6{margin:0 0 2px;font-size:13.5px}
+.shelf .c .pub{font-size:11px;color:var(--tx-4)}
+.shelf .c p{margin:7px 0 9px;font-size:12px;color:var(--tx-3);min-height:48px}
+
+/* B — rail + grid */
+.rail-wrap{display:grid;grid-template-columns:158px 1fr;gap:16px}
+@media (max-width:640px){ .rail-wrap{grid-template-columns:1fr} }
+.rail button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--tx-3);font:inherit;font-size:13px;padding:7px 10px;border-radius:8px;cursor:pointer}
+.rail button[aria-current="true"]{background:var(--surface-3);color:var(--tx)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.chips span{font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--tx-3)}
+.chips span[data-on="1"]{border-color:var(--tx-4);color:var(--tx)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:11px}
+.pgrid .c{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface)}
+.pgrid .c .r1{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.pgrid .c .ic{width:30px;height:30px;border-radius:8px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.pgrid .c h6{margin:0;font-size:13px}
+.pgrid .c p{margin:0 0 9px;font-size:11.8px;color:var(--tx-3);min-height:42px}
+
+/* C — ledger */
+.lt{width:100%;border-collapse:collapse;font-size:12.8px;min-width:640px}
+.lt th{text-align:left;font-size:10.5px;letter-spacing:.05em;color:var(--tx-4);font-weight:650;padding:8px 10px;border-bottom:1px solid var(--line)}
+.lt td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--tx-2);vertical-align:middle}
+.lt tr:last-child td{border-bottom:0}
+.lt td.n{font-weight:600;color:var(--tx)}
+
+/* D — split */
+.split{display:grid;grid-template-columns:210px 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;min-height:320px}
+@media (max-width:640px){ .split{grid-template-columns:1fr} }
+.split .l{border-right:1px solid var(--line);background:var(--surface-2)}
+.split .l button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--tx-3);font:inherit;font-size:12.8px;padding:10px 12px;cursor:pointer}
+.split .l button[aria-current="true"]{background:var(--surface);color:var(--tx)}
+.split .r{padding:16px 18px}
+.split .r h5{margin:0 0 3px;font-size:15px}
+.split .r .sub{font-family:var(--mono);font-size:11px;color:var(--tx-4);margin:0 0 12px}
+.kv{display:grid;grid-template-columns:104px 1fr;gap:6px 12px;font-size:12.5px;margin:0 0 14px}
+.kv dt{color:var(--tx-4);font-size:11.5px}
+.kv dd{margin:0;color:var(--tx-2)}
+
+/* E — capability */
+.cap{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 11px;background:var(--surface)}
+.cap h6{margin:0 0 3px;font-size:13.5px}
+.cap .from{font-size:11.5px;color:var(--tx-4);margin:0 0 10px}
+.cap .tools{display:flex;flex-wrap:wrap;gap:6px}
+.cap .tools code{font-size:11px;background:var(--surface-3);padding:3px 8px;border-radius:6px;color:var(--tx-2)}
+.cap .none{font-size:12px;color:var(--tx-4)}
+.verdict{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--tx-2);margin:14px 0 0}
+.verdict b{color:var(--tx)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna">
+        <defs>
+          <linearGradient id="mgGB-top" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-top" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-top)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="wm">Magna<span>VERSE</span></div>
+    </div>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#a">A · Shelf</a>
+      <a href="#b">B · Rail</a>
+      <a href="#c">C · Ledger</a>
+      <a href="#d">D · Split</a>
+      <a href="#e">E · Capability</a>
+      <a href="#pick">Which to build</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="system" aria-pressed="true">Auto</button>
+      <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+    </div>
+    <button type="button" class="menub" id="menub" aria-expanded="false" aria-controls="drawer" aria-label="Open section menu">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" aria-label="Sections" aria-hidden="true">
+  <p class="drawer-h">On this page</p>
+  <a href="#a">A · The Shelf</a>
+  <a href="#b">B · Rail and grid</a>
+  <a href="#c">C · The Ledger</a>
+  <a href="#d">D · Split detail</a>
+  <a href="#e">E · Capability-first</a>
+  <a href="#pick">Which one to build</a>
+  <button type="button" class="closeb" data-close-drawer>Close</button>
+</nav>
+
+<main id="main">
+
+<div class="hero" style="border:0;border-radius:0;background:none;padding:0">
+  <div class="wrap" style="padding-top:44px;padding-bottom:28px;border-bottom:1px solid var(--line)">
+    <p class="eyebrow">Marketplace · five directions</p>
+    <h1>Five ways to shop for a plugin.</h1>
+    <p class="lede">Every mockup below is built from the <strong>nine plugins actually installed right now</strong> — real names, real versions, real scopes, real states. No placeholder copy, because a marketplace design that looks good on invented data is a design that has not been tested. The question each one answers differently is: <em>what is a person actually deciding here?</em></p>
+    <dl class="facts">
+      <div><dt>Plugins</dt><dd>9<small>all running</small></dd></div>
+      <div><dt>States</dt><dd>3<small>running · restart pending · available</small></dd></div>
+      <div><dt>Scopes</dt><dd>9 distinct<small>grants and refusals, per app</small></dd></div>
+      <div><dt>Agent tools</dt><dd>8<small>contributed by 2 of the 9</small></dd></div>
+    </dl>
+  </div>
+</div>
+
+<section id="a">
+  <div class="wrap">
+    <p class="sec-n">A</p>
+    <h2>The Shelf</h2>
+    <p class="sub">The App Store idiom: one editorial hero, then horizontal rows by category. Optimised for <em>discovery</em> — you came to browse, not to find something specific.</p>
+
+    <div class="mock">
+      <div class="mock-top"><i></i><i></i><i></i><span class="t">Marketplace — Shelf</span></div>
+      <div class="mock-in">
+        <div class="hero">
+          <p class="k">Editor's pick</p>
+          <h4>Trajectory</h4>
+          <p>See exactly what the agent did: every step, tool call, search and approval, with what it looked at and what came back. The counterweight to letting an agent retrieve for itself.</p>
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+            <button class="btn-s rm" type="button">Remove</button>
+            <span class="pill-s" data-s="running">running</span>
+            <span class="scope"><b>sessions:read</b> · refuses <u>sessions:write, net:egress</u></span>
+          </div>
+        </div>
+
+        <div class="shelf-h"><h5>Work with the agent</h5><span>3 apps</span></div>
+        <div class="shelf">
+          <div class="c"><div class="ic">◧</div><h6>Docs</h6><p class="pub">Magna · 0.1.0</p><p>Documents the agent can read, search and write.</p><button class="btn-s rm" type="button">Remove</button></div>
+          <div class="c"><div class="ic">▦</div><h6>Sheets</h6><p class="pub">Magna · 0.1.0</p><p>A spreadsheet the agent can read and write, cell by cell.</p><button class="btn-s rm" type="button">Remove</button></div>
+          <div class="c"><div class="ic">›_</div><h6>Terminal</h6><p class="pub">Magna · 0.1.0</p><p>Shell commands through the agent, gated by approvals.</p><button class="btn-s rm" type="button">Remove</button></div>
+        </div>
+
+        <div class="shelf-h"><h5>See what happened</h5><span>4 apps</span></div>
+        <div class="shelf">
+          <div class="c"><div class="ic">◈</div><h6>Brain</h6><p class="pub">Magna · 0.1.0</p><p>The session brain as a provenance graph.</p><button class="btn-s rm" type="button">Remove</button></div>
+          <div class="c"><div class="ic">☰</div><h6>Ledger</h6><p class="pub">Magna · 0.1.0</p><p>An audit trail of everything you and the agent did.</p><button class="btn-s rm" type="button">Remove</button></div>
+          <div class="c"><div class="ic">✓</div><h6>Approvals</h6><p class="pub">Magna · 0.1.0</p><p>Every approval asked for, and what you decided.</p><button class="btn-s rm" type="button">Remove</button></div>
+          <div class="c"><div class="ic">◉</div><h6>Trajectory</h6><p class="pub">Magna · 0.1.0</p><p>Every step the agent took, in order.</p><button class="btn-s rm" type="button">Remove</button></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body"><b>Strength.</b> Feels like a store. Categories give shape to a catalogue that will grow past the point where one grid is readable.</p>
+    <p class="body"><b>Weakness, and it is the important one.</b> Editorial framing implies a curated marketplace with many publishers. With nine first-party plugins it flatters the catalogue, and a hero slot has to be filled by somebody's judgement every week or it goes stale.</p>
+  </div>
+</section>
+
+<section id="b">
+  <div class="wrap">
+    <p class="sec-n">B</p>
+    <h2>Rail and grid</h2>
+    <p class="sub">The Play Store idiom: a category rail, filter chips, a dense responsive grid. Optimised for <em>scanning</em> — you know roughly what you want and you want to see everything at once.</p>
+
+    <div class="mock">
+      <div class="mock-top"><i></i><i></i><i></i><span class="t">Marketplace — Rail and grid</span></div>
+      <div class="mock-in">
+        <div class="rail-wrap">
+          <nav class="rail" aria-label="Categories">
+            <button type="button" aria-current="true">All · 9</button>
+            <button type="button">Apps · 3</button>
+            <button type="button">Observability · 4</button>
+            <button type="button">System · 2</button>
+            <button type="button">Skills · 2</button>
+            <button type="button">Models · 318</button>
+            <button type="button">Connectors · 0</button>
+          </nav>
+          <div>
+            <div class="chips">
+              <span data-on="1">Installed</span><span>Available</span><span>Grants shell</span><span>Grants write</span><span>Contributes tools</span>
+            </div>
+            <div class="pgrid">
+              <div class="c"><div class="r1"><span class="ic">◧</span><h6>Docs</h6></div><p>Documents the agent can read, search and write.</p><div style="display:flex;gap:7px;align-items:center;justify-content:space-between"><span class="pill-s" data-s="running">running</span><button class="btn-s rm" type="button">Remove</button></div></div>
+              <div class="c"><div class="r1"><span class="ic">▦</span><h6>Sheets</h6></div><p>A spreadsheet the agent can read and write, cell by cell.</p><div style="display:flex;gap:7px;align-items:center;justify-content:space-between"><span class="pill-s" data-s="running">running</span><button class="btn-s rm" type="button">Remove</button></div></div>
+              <div class="c"><div class="r1"><span class="ic">›_</span><h6>Terminal</h6></div><p>Shell commands through the agent, gated by approvals.</p><div style="display:flex;gap:7px;align-items:center;justify-content:space-between"><span class="pill-s" data-s="restart">restart</span><button class="btn-s rm" type="button">Remove</button></div></div>
+              <div class="c"><div class="r1"><span class="ic">◈</span><h6>Brain</h6></div><p>The session brain as a provenance graph.</p><div style="display:flex;gap:7px;align-items:center;justify-content:space-between"><span class="pill-s" data-s="running">running</span><button class="btn-s rm" type="button">Remove</button></div></div>
+              <div class="c"><div class="r1"><span class="ic">☰</span><h6>Ledger</h6></div><p>An audit trail of everything you and the agent did.</p><div style="display:flex;gap:7px;align-items:center;justify-content:space-between"><span class="pill-s" data-s="running">running</span><button class="btn-s rm" type="button">Remove</button></div></div>
+              <div class="c"><div class="r1"><span class="ic">⚙</span><h6>Models</h6></div><p>Add and remove model providers without touching YAML.</p><div style="display:flex;gap:7px;align-items:center;justify-content:space-between"><span class="pill-s" data-s="available">available</span><button class="btn-s go" type="button">Install</button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body"><b>Strength.</b> Highest information density of the five, and the filter chips answer the questions an administrator actually has — <em>which of these can run a shell? which contribute tools?</em></p>
+    <p class="body"><b>Weakness.</b> Scopes do not fit on the card, so the permission decision moves entirely into the confirm dialog. That is survivable, but it means the grid cannot be the place you audit from.</p>
+  </div>
+</section>
+
+<section id="c">
+  <div class="wrap">
+    <p class="sec-n">C</p>
+    <h2>The Ledger</h2>
+    <p class="sub">No cards at all. A sortable table where the scopes are the primary column, because in a sovereign deployment the question is rarely "what does this do" and almost always "what will this be allowed to touch".</p>
+
+    <div class="mock">
+      <div class="mock-top"><i></i><i></i><i></i><span class="t">Marketplace — Ledger</span></div>
+      <div class="mock-in">
+        <div class="tscroll" style="margin:0">
+          <table class="lt">
+            <thead><tr><th>App</th><th>Version</th><th>State</th><th>Grants</th><th>Refuses</th><th>Tools</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="n">Docs</td><td>0.1.0</td><td><span class="pill-s" data-s="running">running</span></td><td class="scope"><b>docs:read, docs:write</b></td><td class="scope"><u>fs:write, net:egress</u></td><td>5</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Sheets</td><td>0.1.0</td><td><span class="pill-s" data-s="running">running</span></td><td class="scope"><b>sheets:read, sheets:write</b></td><td class="scope"><u>fs:write, net:egress</u></td><td>3</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Terminal</td><td>0.1.0</td><td><span class="pill-s" data-s="running">running</span></td><td class="scope"><b>shell:execute</b></td><td class="scope"><u>shell:unattended</u></td><td>0</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Models</td><td>0.1.0</td><td><span class="pill-s" data-s="running">running</span></td><td class="scope"><b>settings:write, credentials:write</b></td><td class="scope"><u>net:egress</u></td><td>0</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Brain</td><td>0.1.0</td><td><span class="pill-s" data-s="running">running</span></td><td class="scope"><b>sessions:read, apps:read</b></td><td class="scope"><u>sessions:write, net:egress</u></td><td>0</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Trajectory</td><td>0.1.0</td><td><span class="pill-s" data-s="running">running</span></td><td class="scope"><b>sessions:read</b></td><td class="scope"><u>sessions:write, net:egress</u></td><td>0</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Ledger</td><td>0.1.0</td><td><span class="pill-s" data-s="restart">restart</span></td><td class="scope"><b>sessions:read</b></td><td class="scope"><u>sessions:write, net:egress</u></td><td>0</td><td><button class="btn-s rm" type="button">Remove</button></td></tr>
+              <tr><td class="n">Approvals</td><td>0.1.0</td><td><span class="pill-s" data-s="available">available</span></td><td class="scope"><b>sessions:read</b></td><td class="scope"><u>sessions:write, net:egress</u></td><td>0</td><td><button class="btn-s go" type="button">Install</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin:12px 0 0;font-size:12.5px;color:var(--tx-4)">Sorted by grant severity. <code>shell:execute</code> and <code>credentials:write</code> rank above read-only scopes, so the two apps worth arguing about sit near the top rather than wherever the alphabet put them.</p>
+      </div>
+    </div>
+
+    <p class="body"><b>Strength.</b> The only one of the five you could hand to a security reviewer. Every app, every scope, one screen, sortable — and sorting by grant severity puts the risky ones where they belong.</p>
+    <p class="body"><b>Weakness.</b> Charmless, and it does not scale to a browsable catalogue of hundreds. This is an admin console, not a store.</p>
+  </div>
+</section>
+
+<section id="d">
+  <div class="wrap">
+    <p class="sec-n">D</p>
+    <h2>Split detail</h2>
+    <p class="sub">Master–detail. The list stays put, the right pane carries everything: description, scopes, contributed tools, what it registers. <em>No modal</em> — the decision and the evidence share a screen.</p>
+
+    <div class="mock">
+      <div class="mock-top"><i></i><i></i><i></i><span class="t">Marketplace — Split</span></div>
+      <div class="mock-in">
+        <div class="split">
+          <div class="l">
+            <button type="button">Approvals</button>
+            <button type="button">Brain</button>
+            <button type="button" aria-current="true">Docs</button>
+            <button type="button">Ledger</button>
+            <button type="button">Marketplace</button>
+            <button type="button">Models</button>
+            <button type="button">Sheets</button>
+            <button type="button">Terminal</button>
+            <button type="button">Trajectory</button>
+          </div>
+          <div class="r">
+            <h5>Docs</h5>
+            <p class="sub">@magna/app-docs 0.1.0 · Magna</p>
+            <p style="font-size:13.5px;color:var(--tx-2);margin:0 0 14px">Documents that live in the harness rather than the browser, so a document the agent writes and one you type into are the same object.</p>
+            <dl class="kv">
+              <dt>State</dt><dd><span class="pill-s" data-s="running">running</span></dd>
+              <dt>Grants</dt><dd class="scope"><b>docs:read, docs:write</b></dd>
+              <dt>Refuses</dt><dd class="scope"><u>fs:write, net:egress</u></dd>
+              <dt>Commands</dt><dd>list · read · search · create · append · write · delete</dd>
+            </dl>
+            <p style="font-size:11.5px;letter-spacing:.05em;color:var(--tx-4);font-weight:650;margin:0 0 6px">GIVES THE AGENT</p>
+            <div class="cap" style="margin:0 0 14px;padding:11px 13px">
+              <div class="tools"><code>docs_list</code><code>docs_search</code><code>docs_create</code><code>docs_read</code><code>docs_append</code></div>
+            </div>
+            <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+              <button class="btn-s rm" type="button">Remove</button>
+              <span style="font-size:12px;color:var(--tx-4)">Removing takes the window, the assets and these five tools away together.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body"><b>Strength.</b> The only layout with room to show what an app <em>gives the agent</em> before you install it. That is the honest disclosure: a plugin's real blast radius is its tools, not its window.</p>
+    <p class="body"><b>Weakness.</b> Two clicks to compare two apps, and it wastes half the screen when all you wanted was to install one thing you already knew the name of.</p>
+  </div>
+</section>
+
+<section id="e">
+  <div class="wrap">
+    <p class="sec-n">E</p>
+    <h2>Capability-first</h2>
+    <p class="sub">Invert the noun. Do not list apps — list what your agent will be <em>able to do</em>, and note which plugin supplies it. In an agent OS, "what can it do for me" is closer to the real question than "what is installed".</p>
+
+    <div class="mock">
+      <div class="mock-top"><i></i><i></i><i></i><span class="t">Marketplace — Capability-first</span></div>
+      <div class="mock-in">
+        <p style="margin:0 0 14px;font-size:13px;color:var(--tx-3)">Your agent currently has <b style="color:var(--tx)">8 capabilities</b> from 2 apps. Seven more apps are installed that give it none — they are surfaces for you, not powers for it.</p>
+
+        <div class="cap">
+          <h6>Read and write documents</h6>
+          <p class="from">from <b>Docs</b> · installed</p>
+          <div class="tools"><code>docs_list</code><code>docs_search</code><code>docs_create</code><code>docs_read</code><code>docs_append</code></div>
+        </div>
+        <div class="cap">
+          <h6>Read and write a spreadsheet</h6>
+          <p class="from">from <b>Sheets</b> · installed</p>
+          <div class="tools"><code>sheets_read</code><code>sheets_find</code><code>sheets_set</code></div>
+        </div>
+        <div class="cap" style="border-style:dashed">
+          <h6>Read your mail</h6>
+          <p class="from">needs a connector · not available</p>
+          <p class="none">No mail plugin exists in this workspace yet. Mail needs an MCP server speaking IMAP or Graph; once one is mounted, its tools appear here and its messages become nodes in the Brain.</p>
+        </div>
+        <div class="cap">
+          <h6>Run shell commands</h6>
+          <p class="from">from <b>Terminal</b> · installed · every call approvable</p>
+          <p class="none">Contributes no tools of its own — it drives the harness's own <code>bash</code> tool, which is why each command is gated and logged.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="body"><b>Strength.</b> It is the only framing that makes the empty state useful. "Read your mail — needs a connector" tells you what to go and get; an app grid with no mail app just silently lacks one.</p>
+    <p class="body"><b>Weakness.</b> It buries install and remove, which are still the actions people came for, and seven of nine apps contribute no tools — so most of the catalogue has nowhere to appear.</p>
+  </div>
+</section>
+
+<section id="pick">
+  <div class="wrap">
+    <p class="sec-n">06</p>
+    <h2>Which one to build</h2>
+    <p class="sub">These are not equally good for what you actually have.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th style="width:16%">Direction</th><th style="width:26%">Best when</th><th style="width:26%">Breaks when</th><th style="width:32%">Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><b>A · Shelf</b></td><td>A curated catalogue with many publishers</td><td>Nine first-party plugins — the hero slot flatters and goes stale</td><td>Premature. Revisit when third parties publish.</td></tr>
+          <tr><td><b>B · Rail and grid</b></td><td>Dozens to hundreds of items, mixed kinds</td><td>Scopes will not fit on a card</td><td><b>Build this as the shell.</b> It already matches the five tabs you have.</td></tr>
+          <tr><td><b>C · Ledger</b></td><td>Auditing what is allowed to touch what</td><td>Browsing, discovery, anything charming</td><td><b>Build this as a view inside B</b>, not as the whole marketplace.</td></tr>
+          <tr><td><b>D · Split</b></td><td>Deciding on one app, carefully</td><td>Comparing, or installing something you already know</td><td><b>Build the detail pane</b> — it replaces the confirm dialog's job.</td></tr>
+          <tr><td><b>E · Capability</b></td><td>Answering "what can my agent do"</td><td>7 of 9 apps contribute no tools</td><td>Keep as a <b>second tab</b>. Its empty states are the best argument here.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note ok">
+      <p class="t">The recommendation is a composite, not one of the five</p>
+      <p><b>B as the frame, D as the detail, C as a toggle, E as a tab.</b> Rail and grid for browsing; clicking a card opens the split detail rather than a modal, because that is where scopes and contributed tools have room to be read before you agree to them; a density toggle turns the grid into the ledger table for anyone auditing; and a Capabilities tab answers the question the app list cannot.</p>
+      <p>A is the one to skip. It is the most familiar and the least honest — an editorial storefront implies a marketplace that does not exist yet.</p>
+    </div>
+
+    <div class="note warn">
+      <p class="t">One thing all five get wrong, and the current build gets wrong too</p>
+      <p>Every design above shows scopes as static text. But <code>docs:write</code> on an app that holds your documents and <code>shell:execute</code> on one that can run anything are not the same kind of claim, and nothing in these layouts says so. Ranking grants by severity — as C's sort does — is the smallest change that makes the permission real rather than decorative, and it should carry into whichever direction you choose.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fbrand">
+      <svg class="magna-mark" viewBox="0 0 640 440" role="img" aria-label="Magna" style="width:22px">
+        <defs>
+          <linearGradient id="mgGB-foot" x1="60" y1="386" x2="577" y2="33" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2FB44A"/><stop offset=".52" stop-color="#1F8F86"/><stop offset="1" stop-color="#1E50C8"/>
+          </linearGradient>
+          <linearGradient id="mgR-foot" x1="32" y1="35" x2="285" y2="213" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#DC3232"/><stop offset="1" stop-color="#A3241A"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 386 L577 33 L577 370" fill="none" stroke="url(#mgGB-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 380 L32 35 L285 213" fill="none" stroke="url(#mgR-foot)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:var(--tx-3); font-weight:600">Magna<span style="color:var(--tx-4)">VERSE</span></span>
+    </div>
+    <p>Five marketplace directions, 19 August 2026. Every app name, version, scope and state is read from the nine plugins installed in this workspace — <code>@magna/app-docs</code> through <code>@magna/app-trajectory</code>. States shown across the mockups (running, restart pending, available) are the three the marketplace actually reports.</p>
+    <p>Mockups are static. The working marketplace lives in <code>packages/app-market</code>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.documentElement;
+  var btns = Array.prototype.slice.call(document.querySelectorAll("[data-theme-set]"));
+  function readTheme(){ try{ return localStorage.getItem("mv-theme") || "system"; }catch(e){ return "system"; } }
+  function applyTheme(mode){
+    if(mode === "light" || mode === "dark"){ root.setAttribute("data-theme", mode); }
+    else{ root.removeAttribute("data-theme"); }
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-set") === mode)); });
+  }
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var m = b.getAttribute("data-theme-set");
+      applyTheme(m);
+      try{ localStorage.setItem("mv-theme", m); localStorage.setItem("mv.theme", m); }catch(e){}
+    });
+  });
+  applyTheme(readTheme());
+
+  var menub = document.getElementById("menub");
+  var drawer = document.getElementById("drawer");
+  var scrim = document.getElementById("scrim");
+  function openDrawer(){
+    scrim.hidden = false;
+    window.requestAnimationFrame(function(){ scrim.classList.add("on"); });
+    drawer.classList.add("on"); drawer.setAttribute("aria-hidden","false");
+    menub.setAttribute("aria-expanded","true");
+    document.addEventListener("keydown", onKey, true);
+  }
+  function closeDrawer(){
+    scrim.classList.remove("on"); drawer.classList.remove("on");
+    drawer.setAttribute("aria-hidden","true"); menub.setAttribute("aria-expanded","false");
+    document.removeEventListener("keydown", onKey, true);
+    window.setTimeout(function(){ if(!drawer.classList.contains("on")) scrim.hidden = true; }, 220);
+  }
+  function onKey(e){ if(e.key === "Escape"){ e.preventDefault(); closeDrawer(); } }
+  if(menub) menub.addEventListener("click", function(){ drawer.classList.contains("on") ? closeDrawer() : openDrawer(); });
+  if(scrim) scrim.addEventListener("click", closeDrawer);
+  Array.prototype.slice.call(drawer.querySelectorAll("a")).forEach(function(a){ a.addEventListener("click", closeDrawer); });
+  var cb = drawer.querySelector("[data-close-drawer]"); if(cb) cb.addEventListener("click", closeDrawer);
+
+  /* Mockups are illustrative: make that explicit rather than letting a dead
+     button feel like a bug. */
+  document.addEventListener("click", function(e){
+    var b = e.target.closest(".mock button");
+    if(!b) return;
+    e.preventDefault();
+    var was = b.textContent;
+    b.textContent = "Mockup only";
+    window.setTimeout(function(){ b.textContent = was; }, 1100);
+  });
+})();
+</script>
+</body>
+</html>

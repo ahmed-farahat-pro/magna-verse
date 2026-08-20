@@ -1,0 +1,40 @@
+{
+  "name": "@magna/app-sheets",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A spreadsheet the agent can read and write, cell by cell.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "sheets",
+    "title": "Sheets",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "sheets:read",
+        "sheets:write"
+      ],
+      "deny": [
+        "fs:write",
+        "net:egress"
+      ]
+    },
+    "category": "Work with the agent",
+    "tagline": "A spreadsheet the agent can read and write, cell by cell.",
+    "glyph": "\u25a6"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.7"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@magna/app-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Docs for the MagnaVERSE desktop - a layer-3 app plugin.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.7"
+  },
+  "magna": {
+    "appId": "docs",
+    "title": "Docs",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "docs:read",
+        "docs:write"
+      ],
+      "deny": [
+        "fs:write",
+        "net:egress"
+      ]
+    },
+    "category": "Work with the agent",
+    "tagline": "Documents the agent can read, search and write.",
+    "glyph": "\u25e7"
+  }
+}

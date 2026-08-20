@@ -1,0 +1,39 @@
+{
+  "name": "@magna/app-brain",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The session brain as a provenance graph: sessions, documents and tools, joined by what actually happened.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "brain",
+    "title": "Brain",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "sessions:read",
+        "apps:read"
+      ],
+      "deny": [
+        "sessions:write",
+        "net:egress"
+      ]
+    },
+    "category": "See what happened",
+    "tagline": "The session brain as a provenance graph.",
+    "glyph": "\u25c8"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

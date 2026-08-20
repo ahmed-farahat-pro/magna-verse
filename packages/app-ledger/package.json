@@ -1,0 +1,38 @@
+{
+  "name": "@magna/app-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An audit trail of everything the agent and you did, from the session log.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "ledger",
+    "title": "Ledger",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "sessions:read"
+      ],
+      "deny": [
+        "sessions:write",
+        "net:egress"
+      ]
+    },
+    "category": "See what happened",
+    "tagline": "An audit trail of everything you and the agent did.",
+    "glyph": "\u2630"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

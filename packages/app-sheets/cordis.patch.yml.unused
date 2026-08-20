@@ -1,0 +1,6 @@
+# @magna/app-sheets - a layer-3 app. Injects magnaOS, so the loader holds it
+# until the OS service exists regardless of composition order.
+- insert:
+    - id: magna-app-sheets
+      name: '@magna/app-sheets'
+      config: {}

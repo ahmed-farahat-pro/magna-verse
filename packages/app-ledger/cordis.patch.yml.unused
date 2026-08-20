@@ -1,0 +1,4 @@
+- insert:
+    - id: magna-app-ledger
+      name: '@magna/app-ledger'
+      config: {}

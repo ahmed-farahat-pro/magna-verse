@@ -1,0 +1,38 @@
+{
+  "name": "@magna/app-approvals",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Every approval the harness asked for, and what you decided.",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml"
+  ],
+  "magna": {
+    "appId": "approvals",
+    "title": "Approvals",
+    "publisher": "Magna",
+    "permissions": {
+      "grant": [
+        "sessions:read"
+      ],
+      "deny": [
+        "sessions:write",
+        "net:egress"
+      ]
+    },
+    "category": "See what happened",
+    "tagline": "Every approval the harness asked for, and what you decided.",
+    "glyph": "\u2713"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

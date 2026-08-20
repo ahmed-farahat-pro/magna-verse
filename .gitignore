@@ -5,3 +5,8 @@ node_modules/
 *.log
 .idea/
 .vscode/
+
+# Local harness state and build artefacts
+*.bak
+package-lock.json
+.dsh/
