@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Database and multi-tenancy — how to start</title>
+<meta name="description" content="The MagnaVERSE database: what to create, in what order, where every piece of user data lives, and how the desktop connects to it. Schema, RLS, storage, and the split of work between two developers.">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("mv-theme") || localStorage.getItem("mv.theme") || "system";
+    if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#F7F7F8; --surface:#FFFFFF; --surface-2:#F7F7F8; --surface-3:#EFEFF1;
+  --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.18);
+  --tx:#000000; --tx-2:#3A3A3D; --tx-3:#57585B; --tx-4:#8A8A90;
+  --accent:#D71920; --accent-dim:rgba(215,25,32,.08);
+  --signal:#2E0FE4; --signal-dim:rgba(46,15,228,.08);
+  --amber:#B45309; --amber-dim:rgba(180,83,9,.10);
+  --green:#15803D; --green-dim:rgba(21,128,61,.08);
+  --red:#B91C1C; --red-dim:rgba(185,28,28,.08);
+  --violet:#6D28D9; --violet-dim:rgba(109,40,217,.09);
+  --teal:#0F766E; --teal-dim:rgba(15,118,110,.09);
+  --shadow:0 10px 30px rgba(16,22,30,.10);
+  --r:10px; --r-lg:16px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#7C6BFF; --signal-dim:rgba(124,107,255,.16);
+  --amber:#F0A83C; --amber-dim:rgba(240,168,60,.16);
+  --green:#3FD07E; --green-dim:rgba(63,208,126,.15);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.15);
+  --violet:#A78BFA; --violet-dim:rgba(167,139,250,.16);
+  --teal:#2DD4BF; --teal-dim:rgba(45,212,191,.15);
+  --shadow:0 14px 40px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-2:#0C0C0E; --surface:#0C0C0E; --surface-2:#151518; --surface-3:#202024;
+  --line:rgba(255,255,255,.12); --line-2:rgba(255,255,255,.22);
+  --tx:#FFFFFF; --tx-2:#C7C7CC; --tx-3:#9A9AA2; --tx-4:#75757D;
+  --accent:#FF5A60; --accent-dim:rgba(255,90,96,.14);
+  --signal:#7C6BFF; --signal-dim:rgba(124,107,255,.16);
+  --amber:#F0A83C; --amber-dim:rgba(240,168,60,.16);
+  --green:#3FD07E; --green-dim:rgba(63,208,126,.15);
+  --red:#FF6B6B; --red-dim:rgba(255,107,107,.15);
+  --violet:#A78BFA; --violet-dim:rgba(167,139,250,.16);
+  --teal:#2DD4BF; --teal-dim:rgba(45,212,191,.15);
+  --shadow:0 14px 40px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:15px;
+  line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:44px 22px 110px}
+a{color:inherit}
+h1{font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-.025em;margin:0 0 14px;font-weight:660}
+h2{font-size:clamp(20px,2.5vw,27px);line-height:1.18;letter-spacing:-.018em;margin:64px 0 8px;font-weight:640}
+h3{font-size:16.5px;margin:30px 0 8px;font-weight:640}
+h4{font-size:14px;margin:20px 0 6px;font-weight:640;color:var(--tx-2)}
+p{margin:0 0 14px;color:var(--tx-2);max-width:78ch}
+.lede{font-size:17px;color:var(--tx-2);max-width:74ch}
+.sub{font-size:13.5px;color:var(--tx-3);max-width:78ch}
+code{font-family:var(--mono);font-size:.885em;background:var(--surface-3);padding:1px 5px;
+  border-radius:5px;word-break:break-word}
+pre{font-family:var(--mono);font-size:12.5px;line-height:1.6;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;overflow-x:auto;margin:12px 0;
+  color:var(--tx-2)}
+pre code{background:none;padding:0;font-size:inherit}
+.rule{height:1px;background:var(--line);margin:38px 0;border:0}
+.crumb{font-size:12.5px;color:var(--tx-4);margin-bottom:20px}
+.crumb a{color:var(--tx-3);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.stamp{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;
+  color:var(--tx-3);background:var(--surface-2);border:1px solid var(--line);padding:5px 11px;
+  border-radius:99px;margin-bottom:18px}
+.dot{width:7px;height:7px;border-radius:99px;background:var(--green);flex:none}
+figure{margin:20px 0 8px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:12.5px;color:var(--tx-4);margin-top:8px;line-height:1.55;max-width:78ch}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4);font-weight:640}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.card{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;margin:16px 0}
+.card h3{margin-top:0}
+.card.bad{border-color:var(--red);background:var(--red-dim)}
+.card.warn{border-color:var(--amber);background:var(--amber-dim)}
+.card.good{border-color:var(--green);background:var(--green-dim)}
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:5px;
+  border:1px solid var(--line-2);color:var(--tx-3);white-space:nowrap}
+.pill.a{color:var(--signal);border-color:var(--signal);background:var(--signal-dim)}
+.pill.b{color:var(--teal);border-color:var(--teal);background:var(--teal-dim)}
+.step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.step:last-child{border-bottom:0}
+.step .n{flex:none;width:27px;height:27px;border-radius:99px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:11.5px;font-weight:700;background:var(--surface-3);color:var(--tx-3)}
+.step .b{flex:1;min-width:0}
+.step .b b{display:block;font-size:15px;font-weight:640;margin-bottom:3px}
+.step .b p{margin:0;font-size:13.5px}
+.grid2{display:grid;gap:14px}
+@media(min-width:760px){ .grid2{grid-template-columns:1fr 1fr} }
+.toc{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;margin:22px 0}
+.toc ol{margin:0;padding-left:20px;columns:2;column-gap:28px}
+@media(max-width:640px){ .toc ol{columns:1} }
+.toc li{margin-bottom:4px;font-size:13.5px;color:var(--tx-2);break-inside:avoid}
+.toc a{text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{border-bottom-color:var(--line-2)}
+ul{margin:0 0 14px;padding-left:20px;color:var(--tx-2);max-width:78ch}
+li{margin-bottom:5px}
+.foot{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--tx-4)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="crumb"><a href="../index.html">← All deliverables</a> · <a href="system-status.html">Build status</a></div>
+  <div class="stamp"><span class="dot"></span> Forward plan · verified against the running build</div>
+
+  <h1>The database, and how to start</h1>
+  <p class="lede">MagnaVERSE today is one desktop, one machine, no login — and none of its data
+  survives a browser. This is what to build so that people sign up, keep several workspaces, and
+  find their own documents, settings and files waiting for them on any machine. It is written for
+  two developers working in parallel, with the seam between them specified before either starts.</p>
+
+  <div class="toc"><ol>
+    <li><a href="#split">Who builds what</a></li>
+    <li><a href="#lives">Where every piece of data lives</a></li>
+    <li><a href="#shape">The shape of the system</a></li>
+    <li><a href="#er">The schema</a></li>
+    <li><a href="#setup">Creating the database, step by step</a></li>
+    <li><a href="#rls">The wall: RLS</a></li>
+    <li><a href="#storage">Each user's files</a></li>
+    <li><a href="#connect">How the desktop connects</a></li>
+    <li><a href="#order">Order of work</a></li>
+    <li><a href="#traps">Four traps</a></li>
+  </ol></div>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="split">Who builds what</h2>
+
+  <figure>
+    <svg viewBox="0 0 1000 250" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Two tracks: you own identity, OS, apps and connectors; your colleague owns RAG, graph and reasoning. They meet at one contract.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g font-family="var(--sans)" font-size="13">
+        <rect x="10" y="20" width="400" height="120" rx="12" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.5"/>
+        <text x="30" y="46" font-size="14" font-weight="700" fill="var(--signal)">Track A — you</text>
+        <text x="30" y="70" fill="var(--tx-2)">Gateway · signup and login · per-user dsh</text>
+        <text x="30" y="90" fill="var(--tx-2)">The OS, the 13 apps, the connectors</text>
+        <text x="30" y="110" fill="var(--tx-2)">Schema: <tspan font-family="var(--mono)" font-size="12">app.*</tspan> — profiles, workspaces, settings, files</text>
+
+        <rect x="590" y="20" width="400" height="120" rx="12" fill="var(--teal-dim)" stroke="var(--teal)" stroke-width="1.5"/>
+        <text x="610" y="46" font-size="14" font-weight="700" fill="var(--teal)">Track B — your colleague</text>
+        <text x="610" y="70" fill="var(--tx-2)">Ingestion · embeddings · retrieval</text>
+        <text x="610" y="90" fill="var(--tx-2)">The knowledge graph and reasoning</text>
+        <text x="610" y="110" fill="var(--tx-2)">Schema: <tspan font-family="var(--mono)" font-size="12">rag.*</tspan> — documents, chunks, entities</text>
+
+        <rect x="330" y="165" width="340" height="70" rx="10" fill="var(--surface-3)" stroke="var(--line-2)" stroke-width="1.5"/>
+        <text x="500" y="190" text-anchor="middle" font-size="13" font-weight="700" fill="var(--tx)">The contract</text>
+        <text x="500" y="210" text-anchor="middle" font-size="11.5" fill="var(--tx-3)">workspace_id everywhere · RLS by membership</text>
+        <text x="500" y="226" text-anchor="middle" font-size="11.5" fill="var(--tx-3)">ctx.magnaTenant · the user's JWT, never the service key</text>
+
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.4" fill="none" marker-end="url(#ar)">
+          <path d="M210 142 L 380 163"/>
+          <path d="M790 142 L 620 163"/>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Neither track blocks the other after day one. The single real dependency is that the
+    RAG plugin needs <code>ctx.magnaTenant</code> to exist — ship it early as a stub returning a
+    hardcoded workspace and your colleague is unblocked for weeks.</figcaption>
+  </figure>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="lives">Where every piece of data lives</h2>
+  <p>Not everything belongs in Postgres. This split is what keeps the desktop fast and — more
+  importantly — keeps a stolen database backup from being a stolen credential set.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Store</th><th>Holds</th><th>Why there</th></tr></thead>
+    <tbody>
+      <tr><td><b>Postgres</b><br><span class="sub">Supabase</span></td>
+        <td>profiles, workspaces, memberships, <b>settings</b>, documents, sheets, file <i>metadata</i>,
+            mail metadata, workflows, activity journal, and the whole <code>rag</code> schema</td>
+        <td>Needs row-level security, needs to be queryable, and needs to follow the user to a
+            second machine</td></tr>
+      <tr><td><b>Supabase Storage</b></td>
+        <td>file <i>bytes</i> — the actual .docx, .xlsx, .pdf</td>
+        <td>Blobs do not belong in rows</td></tr>
+      <tr><td><b>Local <code>$DSH_HOME</code></b><br><span class="sub">per user, on the server</span></td>
+        <td><b>credentials</b>, dsh session transcripts, the agent's working directory, caches</td>
+        <td>See the box below</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="card good">
+    <h3>Credentials never enter Postgres</h3>
+    <p style="margin-bottom:0">Mail passwords, GitHub tokens and Microsoft refresh tokens stay in the
+    harness credential store inside that user's own directory. The database holds only a
+    <code>secret_ref</code> — the <i>name</i> of a token, never its value. This is already how
+    <code>app-connections</code> works and it must not change: it means a database backup that
+    leaks contains no live tokens at all. That is a property worth defending on purpose rather
+    than discovering you have lost.</p>
+  </div>
+
+  <h3>What has to move out of the browser</h3>
+  <p>Everything below is <code>localStorage</code> today and dies with a browser profile:</p>
+  <ul>
+    <li><b>25 <code>mv7.*</code> preference keys</b> — theme, wallpaper, dock contents and position,
+      window layout, icon coordinates, widgets per space, focus mode, notification style, wake word.
+      These become <code>app.user_settings</code>, which is what makes someone's desktop look like
+      <i>their</i> desktop on a second machine.</li>
+    <li><b><code>mv7.vfs</code></b> — the entire file system as one JSON blob, with no owner field and
+      folder ids hardcoded as the literals <code>"desktop"</code> and <code>"docs-folder"</code>.
+      Two users' trees would collide on those ids the moment they shared a store.</li>
+    <li><b>Nine app plugins have no durable storage at all</b> — Docs, Sheets, Brain, Ledger,
+      Approvals, Models, Trajectory, Terminal and Market are an in-memory <code>Map</code>, lost on
+      every restart. Docs and Sheets are precisely the apps whose per-workspace content you want.</li>
+  </ul>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="shape">The shape of the system</h2>
+
+  <figure>
+    <svg viewBox="0 0 1000 430" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Browser to gateway over TLS; gateway spawns one dsh per user on loopback; each dsh talks to Supabase with the user's JWT.">
+      <g font-family="var(--sans)" font-size="12.5">
+        <rect x="380" y="10" width="240" height="42" rx="9" fill="var(--surface-3)" stroke="var(--line-2)"/>
+        <text x="500" y="36" text-anchor="middle" font-weight="640" fill="var(--tx)">Browser</text>
+
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+          <path d="M500 54 L500 84"/>
+        </g>
+        <text x="512" y="74" font-size="11" fill="var(--tx-4)">HTTPS + httpOnly cookie</text>
+
+        <rect x="200" y="88" width="600" height="86" rx="11" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.5"/>
+        <text x="500" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="var(--signal)">MagnaVERSE Gateway</text>
+        <text x="500" y="133" text-anchor="middle" fill="var(--tx-2)">Supabase Auth · guards every route · issues the session cookie</text>
+        <text x="500" y="153" text-anchor="middle" fill="var(--tx-2)">spawns and routes to each user's own dsh process</text>
+
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+          <path d="M340 176 L250 208"/><path d="M660 176 L750 208"/>
+        </g>
+        <text x="500" y="196" text-anchor="middle" font-size="11" fill="var(--tx-4)">loopback only — never a published port</text>
+
+        <rect x="60" y="212" width="380" height="104" rx="11" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text x="80" y="236" font-weight="700" fill="var(--tx)">dsh — user A</text>
+        <text x="80" y="256" font-family="var(--mono)" font-size="11.5" fill="var(--tx-3)">DSH_HOME=/var/magna/users/A</text>
+        <text x="80" y="276" fill="var(--tx-2)">@magna/os · 13 apps · @magna/plugin-rag</text>
+        <text x="80" y="296" font-size="11.5" fill="var(--tx-4)">own sessions · own credentials · own settings</text>
+
+        <rect x="560" y="212" width="380" height="104" rx="11" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text x="580" y="236" font-weight="700" fill="var(--tx)">dsh — user B</text>
+        <text x="580" y="256" font-family="var(--mono)" font-size="11.5" fill="var(--tx-3)">DSH_HOME=/var/magna/users/B</text>
+        <text x="580" y="276" fill="var(--tx-2)">@magna/os · 13 apps · @magna/plugin-rag</text>
+        <text x="580" y="296" font-size="11.5" fill="var(--tx-4)">own sessions · own credentials · own settings</text>
+
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+          <path d="M250 318 L440 356"/><path d="M750 318 L560 356"/>
+        </g>
+        <text x="500" y="340" text-anchor="middle" font-size="11" fill="var(--tx-4)">each query carries that user's JWT</text>
+
+        <rect x="200" y="360" width="600" height="62" rx="11" fill="var(--teal-dim)" stroke="var(--teal)" stroke-width="1.5"/>
+        <text x="500" y="384" text-anchor="middle" font-size="14" font-weight="700" fill="var(--teal)">Supabase — Postgres + Auth + Storage</text>
+        <text x="500" y="405" text-anchor="middle" fill="var(--tx-2)">RLS on every table, by workspace membership</text>
+      </g>
+    </svg>
+    <figcaption><b>Why a gateway rather than adding auth to dsh:</b> the harness has no middleware
+    seam — its web server offers <code>register</code>, <code>registerUpgrade</code>,
+    <code>registerFallback</code> and <code>tapIndex</code>, and nothing else. There is no
+    <code>use()</code> and no per-request context, so authentication has to sit in front.
+    <b>Why one process per user:</b> dsh sessions are global to one <code>$DSH_HOME</code> —
+    <code>session.list</code> returns every session with no filter, so two customers sharing a
+    process would share the agent's memory.</figcaption>
+  </figure>
+
+  <div class="card bad">
+    <h3>dsh refuses to be a network service, and it is right to</h3>
+    <pre style="margin:8px 0 10px"><code>dsh-web-app/lib/startup.js:39
+  --host 0.0.0.0 is intentionally not supported yet for safety:
+  it would expose remote code execution to the network</code></pre>
+    <p style="margin-bottom:0">Behind that refusal: no auth package, no user, no account — zero
+    matches for <code>cookie</code> across the entire harness. Loopback <i>is</i> the authorisation
+    model; anything reaching a child's port has full privilege including <code>credentials.set</code>
+    and <code>host.openPath</code>. So the gateway is not a convenience, it is the whole security
+    boundary. Bind children to <code>127.0.0.1</code>, never publish those ports, and treat a
+    gateway auth bug as total compromise.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="er">The schema</h2>
+  <p>Three schemas. <code>auth</code> belongs to Supabase and you never write to it.
+  <code>app</code> is yours. <code>rag</code> is your colleague's.</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Entity relationship diagram: auth.users to profiles and memberships, workspaces at the centre, with content tables and the rag schema hanging off workspace_id.">
+      <g font-family="var(--mono)" font-size="11">
+        <rect x="20" y="20" width="180" height="76" rx="8" fill="var(--surface-3)" stroke="var(--line-2)" stroke-width="1.5"/>
+        <text x="32" y="40" font-size="12" font-weight="700" fill="var(--tx)" font-family="var(--sans)">auth.users</text>
+        <text x="32" y="58" fill="var(--tx-3)">id · email</text>
+        <text x="32" y="74" fill="var(--tx-3)">encrypted_password</text>
+        <text x="32" y="89" fill="var(--amber)" font-size="10">Supabase owns this</text>
+
+        <rect x="20" y="122" width="180" height="60" rx="8" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.3"/>
+        <text x="32" y="142" font-size="12" font-weight="700" fill="var(--signal)" font-family="var(--sans)">app.profiles</text>
+        <text x="32" y="160" fill="var(--tx-3)">id → auth.users</text>
+        <text x="32" y="175" fill="var(--tx-3)">display_name · locale</text>
+
+        <rect x="20" y="208" width="180" height="74" rx="8" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.3"/>
+        <text x="32" y="228" font-size="12" font-weight="700" fill="var(--signal)" font-family="var(--sans)">app.user_settings</text>
+        <text x="32" y="246" fill="var(--tx-3)">user_id · key · value</text>
+        <text x="32" y="262" fill="var(--tx-4)" font-size="10">theme, dock, wallpaper,</text>
+        <text x="32" y="275" fill="var(--tx-4)" font-size="10">layout, widgets…</text>
+
+        <rect x="270" y="122" width="180" height="60" rx="8" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.3"/>
+        <text x="282" y="142" font-size="12" font-weight="700" fill="var(--signal)" font-family="var(--sans)">app.memberships</text>
+        <text x="282" y="160" fill="var(--tx-3)">user_id · workspace_id</text>
+        <text x="282" y="175" fill="var(--tx-3)">role</text>
+
+        <rect x="400" y="230" width="200" height="66" rx="8" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="500" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent)" font-family="var(--sans)">app.workspaces</text>
+        <text x="500" y="271" text-anchor="middle" fill="var(--tx-2)">id · name · owner_id</text>
+        <text x="500" y="287" text-anchor="middle" fill="var(--tx-4)" font-size="10">every row below points here</text>
+
+        <g fill="var(--tx-2)">
+          <rect x="640" y="20" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="40">app.files</text>
+          <rect x="640" y="58" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="78">app.documents</text>
+          <rect x="640" y="96" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="116">app.sheets</text>
+          <rect x="640" y="134" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="154">app.mail_accounts</text>
+          <rect x="640" y="172" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="192">app.mail_messages</text>
+          <rect x="640" y="210" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="230">app.workflows</text>
+          <rect x="640" y="248" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="268">app.connections</text>
+          <rect x="640" y="286" width="160" height="30" rx="6" fill="var(--signal-dim)" stroke="var(--signal)" stroke-width="1.1"/>
+          <text x="652" y="306">app.activity</text>
+
+          <rect x="640" y="336" width="160" height="30" rx="6" fill="var(--teal-dim)" stroke="var(--teal)" stroke-width="1.1"/>
+          <text x="652" y="356">rag.documents</text>
+          <rect x="640" y="374" width="160" height="30" rx="6" fill="var(--teal-dim)" stroke="var(--teal)" stroke-width="1.1"/>
+          <text x="652" y="394">rag.chunks · vector</text>
+          <rect x="640" y="412" width="160" height="30" rx="6" fill="var(--teal-dim)" stroke="var(--teal)" stroke-width="1.1"/>
+          <text x="652" y="432">rag.entities · edges</text>
+        </g>
+
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.2" fill="none">
+          <path d="M110 96 L110 122" marker-end="url(#ar)"/>
+          <path d="M110 182 L110 208" marker-end="url(#ar)"/>
+          <path d="M200 152 L270 152" marker-end="url(#ar)"/>
+          <path d="M360 182 L440 228" marker-end="url(#ar)"/>
+          <path d="M600 260 C 620 200, 620 90, 638 60"/>
+          <path d="M600 260 C 620 240, 620 200, 638 188"/>
+          <path d="M600 263 L 638 263"/>
+          <path d="M600 268 C 620 300, 620 350, 638 390"/>
+        </g>
+        <text x="612" y="180" font-size="9.5" fill="var(--tx-4)" font-family="var(--sans)">workspace_id</text>
+      </g>
+    </svg>
+    <figcaption>Every table below <code>app.workspaces</code> carries
+    <code>workspace_id uuid not null</code> — including the ones that feel like they belong to a
+    user rather than a workspace. That single column is what every security policy keys on, and a
+    table that omits it is a table with no wall around it.</figcaption>
+  </figure>
+
+  <h3>The core tables</h3>
+<pre><code>create schema app;
+create extension if not exists vector;     -- your colleague needs this
+create extension if not exists pgcrypto;
+
+-- Mirror of auth.users. Never duplicate the password: auth.users.encrypted_password
+-- is GoTrue's bcrypt hash and we neither read it nor reimplement it.
+create table app.profiles (
+  id           uuid primary key references auth.users on delete cascade,
+  email        text not null,
+  display_name text,
+  locale       text default 'en',
+  created_at   timestamptz default now()
+);
+
+create table app.workspaces (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null,
+  slug       text unique,
+  owner_id   uuid not null references auth.users on delete cascade,
+  created_at timestamptz default now()
+);
+
+create table app.memberships (
+  user_id      uuid not null references auth.users on delete cascade,
+  workspace_id uuid not null references app.workspaces on delete cascade,
+  role         text not null default 'member'
+               check (role in ('owner','admin','member','viewer')),
+  primary key (user_id, workspace_id)
+);
+
+-- The desktop's own preferences: the 25 mv7.* keys that live in localStorage today.
+create table app.user_settings (
+  user_id uuid not null references auth.users on delete cascade,
+  key     text not null,
+  value   jsonb not null,
+  primary key (user_id, key)
+);
+
+-- File TREE and metadata. The bytes live in Supabase Storage; storage_path points at them.
+create table app.files (
+  id           uuid primary key default gen_random_uuid(),
+  workspace_id uuid not null references app.workspaces on delete cascade,
+  parent_id    uuid references app.files on delete cascade,
+  name         text not null,
+  kind         text not null check (kind in ('file','folder')),
+  ext          text default '',
+  size         bigint default 0,
+  storage_path text,                       -- null for folders
+  content_hash text,                       -- lets ingestion skip unchanged files
+  deleted_at   timestamptz,                -- soft delete, so Trash works
+  created_at   timestamptz default now(),
+  modified_at  timestamptz default now()
+);
+
+create index on app.files (workspace_id, parent_id) where deleted_at is null;</code></pre>
+
+  <div class="card">
+    <h3>Give every new user a workspace, in the same transaction</h3>
+    <p>A user with no workspace is a broken state — the first login lands on a desktop with nowhere
+    to put anything. Create it in the signup trigger, not in application code that might not run.</p>
+<pre style="margin-bottom:0"><code>create function app.handle_new_user() returns trigger
+  language plpgsql security definer as $$
+declare ws uuid;
+begin
+  insert into app.profiles (id, email, display_name)
+    values (new.id, new.email, split_part(new.email, '@', 1));
+
+  insert into app.workspaces (name, owner_id)
+    values ('Personal', new.id)
+    returning id into ws;
+
+  insert into app.memberships (user_id, workspace_id, role)
+    values (new.id, ws, 'owner');
+
+  return new;
+end $$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function app.handle_new_user();</code></pre>
+  </div>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="setup">Creating the database, step by step</h2>
+  <p>Migrations are numbered SQL files checked into the repo under
+  <code>supabase/migrations/</code> and applied in order. <b>Never a schema edited by hand in the
+  dashboard</b> — the next environment has to be reproducible from the repo alone, and a hand-edit
+  is a change nobody can review or replay.</p>
+
+  <div class="step"><div class="n">1</div><div class="b">
+    <b>Create the project</b>
+    <p>One Supabase project per environment — <code>magna-dev</code> and <code>magna-prod</code>,
+    never one shared. Pick the region closest to Riyadh that is offered. Save the database password
+    somewhere real; it is shown once.</p>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div class="b">
+    <b>Install the CLI and link it</b>
+<pre style="margin-top:8px"><code>npm install -g supabase
+supabase login
+supabase init                 # creates supabase/ in the repo
+supabase link --project-ref &lt;your-project-ref&gt;</code></pre>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div class="b">
+    <b>Write the migrations in this order</b>
+    <p>Split so that a failure is legible and a merge conflict is local to one concern. Your
+    colleague uses a separate number range so your files and his never collide.</p>
+    <div class="tw"><table style="margin-top:10px">
+      <tbody>
+        <tr><td><code>000_extensions.sql</code></td><td><code>vector</code>, <code>pgcrypto</code></td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>001_schemas.sql</code></td><td><code>app</code>, <code>rag</code>, and the <code>is_member</code> helper</td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>002_identity.sql</code></td><td>profiles, workspaces, memberships, the signup trigger</td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>003_settings.sql</code></td><td>user_settings, workspace_settings</td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>004_content.sql</code></td><td>files, documents, sheets</td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>005_apps.sql</code></td><td>mail, workflows, connections, activity</td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>006_rls.sql</code></td><td><b>enable RLS and add every policy</b></td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>007_storage.sql</code></td><td>the <code>workspace-files</code> bucket and its policies</td><td><span class="pill a">you</span></td></tr>
+        <tr><td><code>100_rag.sql</code></td><td>documents, chunks, entities, edges</td><td><span class="pill b">colleague</span></td></tr>
+      </tbody>
+    </table></div>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div class="b">
+    <b>Apply and verify</b>
+<pre style="margin-top:8px"><code>supabase db push                       # apply to the linked project
+supabase db reset                      # locally: replay every migration from zero</code></pre>
+    <p><code>db reset</code> is the one that matters. If a full replay from an empty database does
+    not produce a working schema, the migrations are already broken — you just cannot see it yet.</p>
+  </div></div>
+
+  <div class="step"><div class="n">5</div><div class="b">
+    <b>Configure Auth</b>
+    <p>Email + password on. Email confirmations on. Set the site URL and redirect URLs to the
+    gateway, not to <code>localhost:3080</code> — the desktop is behind the gateway now. Set the JWT
+    expiry short (an hour) and rely on refresh; the cookie carries both.</p>
+  </div></div>
+
+  <div class="step"><div class="n">6</div><div class="b">
+    <b>Wire the keys — in exactly one place</b>
+<pre style="margin-top:8px"><code># .env  (git-ignored)
+SUPABASE_URL=https://&lt;ref&gt;.supabase.co
+SUPABASE_ANON_KEY=eyJ...            # safe in the gateway and in plugins
+SUPABASE_SERVICE_ROLE_KEY=eyJ...    # GATEWAY ONLY — never in a plugin</code></pre>
+    <p>One config module reads these. No other file in the repo names a Supabase URL — that is what
+    keeps moving to a self-hosted Supabase inside your own DC a deployment change rather than a
+    rewrite.</p>
+  </div></div>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="rls">The wall: Row Level Security</h2>
+  <p>This is the part that actually keeps one company's documents away from another's. Application
+  code that says <code>where workspace_id = ?</code> is a filter that one forgotten line removes.
+  RLS is a wall the database enforces whether or not the application remembers.</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="A query carrying a user JWT passes through the RLS policy, which checks membership, and returns only that workspace's rows.">
+      <g font-family="var(--sans)" font-size="12.5">
+        <rect x="10" y="60" width="200" height="72" rx="10" fill="var(--surface-2)" stroke="var(--line-2)"/>
+        <text x="110" y="88" text-anchor="middle" font-weight="640" fill="var(--tx)">plugin-rag</text>
+        <text x="110" y="108" text-anchor="middle" font-size="11" fill="var(--tx-3)">query + user's JWT</text>
+
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+          <path d="M212 96 L 288 96"/>
+        </g>
+
+        <rect x="292" y="40" width="250" height="112" rx="10" fill="var(--red-dim)" stroke="var(--red)" stroke-width="2"/>
+        <text x="417" y="66" text-anchor="middle" font-weight="700" fill="var(--red)">RLS policy</text>
+        <text x="417" y="88" text-anchor="middle" font-size="11.5" font-family="var(--mono)" fill="var(--tx-2)">app.is_member(workspace_id)</text>
+        <text x="417" y="110" text-anchor="middle" font-size="11" fill="var(--tx-3)">reads auth.uid() from the JWT</text>
+        <text x="417" y="130" text-anchor="middle" font-size="11" fill="var(--tx-3)">checks app.memberships</text>
+
+        <g color="var(--green)" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+          <path d="M544 76 L 660 60"/>
+        </g>
+        <g color="var(--red)" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ar)" stroke-dasharray="4 3">
+          <path d="M544 118 L 660 140"/>
+        </g>
+
+        <rect x="666" y="34" width="320" height="52" rx="9" fill="var(--green-dim)" stroke="var(--green)" stroke-width="1.3"/>
+        <text x="686" y="56" font-weight="640" fill="var(--green)">rows from workspaces you belong to</text>
+        <text x="686" y="74" font-size="11" fill="var(--tx-3)">returned</text>
+
+        <rect x="666" y="116" width="320" height="52" rx="9" fill="var(--red-dim)" stroke="var(--red)" stroke-width="1.3"/>
+        <text x="686" y="138" font-weight="640" fill="var(--red)">every other workspace's rows</text>
+        <text x="686" y="156" font-size="11" fill="var(--tx-3)">invisible — not filtered, absent</text>
+      </g>
+    </svg>
+    <figcaption>The plugin never sees the rows it is not entitled to, so a missing
+    <code>where</code> clause cannot leak them. That is why the connection must carry the
+    <b>user's JWT</b>: the service-role key bypasses RLS entirely, and if it ever reaches a plugin,
+    multi-tenancy silently degrades to application-level filtering with nothing to warn you.</figcaption>
+  </figure>
+
+<pre><code>-- One helper, security definer, so policies never recurse (see the traps below).
+create function app.is_member(ws uuid) returns boolean
+  language sql security definer stable as $$
+  select exists (
+    select 1 from app.memberships
+    where workspace_id = ws and user_id = auth.uid()
+  );
+$$;
+
+-- Then every workspace-scoped table gets the same four lines.
+alter table app.documents enable row level security;
+
+create policy "read"   on app.documents for select using (app.is_member(workspace_id));
+create policy "write"  on app.documents for insert with check (app.is_member(workspace_id));
+create policy "update" on app.documents for update using (app.is_member(workspace_id));
+create policy "delete" on app.documents for delete using (app.is_member(workspace_id));
+
+-- Settings are per USER, not per workspace, so they key on auth.uid() directly.
+alter table app.user_settings enable row level security;
+create policy "own settings" on app.user_settings
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());</code></pre>
+
+  <div class="card warn">
+    <h3>Turn RLS on before the first row exists</h3>
+    <p style="margin-bottom:0">Retrofitting it onto a populated table is where tenancy bugs are
+    born, because every test you would write to catch the gap passes against data that was inserted
+    before the wall went up. A table created without RLS in the same migration that creates it is a
+    table that will be shipped without RLS.</p>
+  </div>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="storage">Each user's files</h2>
+  <p>You asked for every user to have their own storage — files and folders. There are two distinct
+  things wearing that name, and conflating them will cost you a week.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Their documents</h3>
+      <p><b>Metadata in <code>app.files</code>, bytes in Supabase Storage.</b> The tree, names,
+      folders and soft-deleted Trash live in Postgres so they are queryable and RLS'd. The bytes go
+      in a <code>workspace-files</code> bucket at <code>&lt;workspace_id&gt;/&lt;file_id&gt;</code>.</p>
+      <p style="margin-bottom:0">This is what the Files app shows, what Docs and Sheets write to,
+      and what ingestion reads. It follows the user to any machine.</p>
+    </div>
+    <div class="card">
+      <h3>The agent's working directory</h3>
+      <p><b>A real folder on the server, inside that user's <code>$DSH_HOME</code>.</b> When a
+      workflow runs a shell command or the <code>sys.write</code> node writes a file, it happens
+      here — on a real filesystem, because that is what a shell needs.</p>
+      <p style="margin-bottom:0">Not synced, not in Postgres, and isolated per user by the
+      <code>DSH_HOME</code> boundary that already exists.</p>
+    </div>
+  </div>
+
+<pre><code>-- The bucket, and a policy that mirrors the table's
+insert into storage.buckets (id, name, public) values ('workspace-files', 'workspace-files', false);
+
+create policy "members read files" on storage.objects for select
+  using (
+    bucket_id = 'workspace-files'
+    and app.is_member( (storage.foldername(name))[1]::uuid )   -- first path segment is the workspace
+  );</code></pre>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="connect">How the desktop connects</h2>
+  <p>One module in <code>@magna/os</code> knows the URL. Everything else asks it.</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 250" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Login produces a JWT, the gateway spawns the user's dsh, the OS loads settings and hands them to the Console.">
+      <g font-family="var(--sans)" font-size="12">
+        <g>
+          <rect x="8" y="40" width="150" height="58" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text x="83" y="64" text-anchor="middle" font-weight="640" fill="var(--tx)">1 · Sign in</text>
+          <text x="83" y="83" text-anchor="middle" font-size="11" fill="var(--tx-3)">email + password</text>
+
+          <rect x="180" y="40" width="150" height="58" rx="9" fill="var(--signal-dim)" stroke="var(--signal)"/>
+          <text x="255" y="64" text-anchor="middle" font-weight="640" fill="var(--signal)">2 · Gateway</text>
+          <text x="255" y="83" text-anchor="middle" font-size="11" fill="var(--tx-3)">JWT → httpOnly cookie</text>
+
+          <rect x="352" y="40" width="150" height="58" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text x="427" y="64" text-anchor="middle" font-weight="640" fill="var(--tx)">3 · Your dsh</text>
+          <text x="427" y="83" text-anchor="middle" font-size="11" fill="var(--tx-3)">spawned, own DSH_HOME</text>
+
+          <rect x="524" y="40" width="160" height="58" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text x="604" y="64" text-anchor="middle" font-weight="640" fill="var(--tx)">4 · magnaTenant</text>
+          <text x="604" y="83" text-anchor="middle" font-size="11" fill="var(--tx-3)">userId · workspaceId · jwt</text>
+
+          <rect x="706" y="40" width="150" height="58" rx="9" fill="var(--teal-dim)" stroke="var(--teal)"/>
+          <text x="781" y="64" text-anchor="middle" font-weight="640" fill="var(--teal)">5 · Load settings</text>
+          <text x="781" y="83" text-anchor="middle" font-size="11" fill="var(--tx-3)">app.user_settings</text>
+
+          <rect x="878" y="40" width="114" height="58" rx="9" fill="var(--surface-2)" stroke="var(--line-2)"/>
+          <text x="935" y="64" text-anchor="middle" font-weight="640" fill="var(--tx)">6 · Desktop</text>
+          <text x="935" y="83" text-anchor="middle" font-size="11" fill="var(--tx-3)">theirs, restored</text>
+        </g>
+        <g color="var(--tx-4)" stroke="currentColor" stroke-width="1.4" fill="none" marker-end="url(#ar)">
+          <path d="M160 69 L176 69"/><path d="M332 69 L348 69"/><path d="M504 69 L520 69"/>
+          <path d="M686 69 L702 69"/><path d="M858 69 L874 69"/>
+        </g>
+        <rect x="180" y="150" width="676" height="72" rx="10" fill="var(--surface-3)" stroke="var(--line)" stroke-dasharray="4 3"/>
+        <text x="518" y="176" text-anchor="middle" font-size="12.5" font-weight="640" fill="var(--tx-2)">Theme, wallpaper, dock, window layout, icon positions, widgets</text>
+        <text x="518" y="198" text-anchor="middle" font-size="11.5" fill="var(--tx-3)">25 localStorage keys today — one table tomorrow</text>
+        <text x="518" y="214" text-anchor="middle" font-size="11" fill="var(--tx-4)">which is what makes a second machine feel like the first</text>
+      </g>
+    </svg>
+  </figure>
+
+<pre><code>// packages/os/lib/supabase.js — the ONLY file that names the URL
+import { createClient } from "@supabase/supabase-js";
+
+export function clientFor(tenant) {
+  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+    // The user's own JWT, so every query is subject to RLS as that user.
+    // Never the service-role key: it bypasses RLS and nothing would tell you.
+    global: { headers: { Authorization: "Bearer " + tenant.jwt } },
+    auth: { persistSession: false },
+  });
+}</code></pre>
+
+  <p>Three small changes in <code>packages/os</code> unlock all of this, and the first is one line:</p>
+  <ul>
+    <li><code>registry.js:275</code> calls <code>handler(command, args)</code> — so the fourth
+      argument <code>invoke()</code> already accepts never reaches an app. Forward it and every app
+      becomes workspace-aware.</li>
+    <li><code>scopeFor(appId)</code> at <code>registry.js:127</code> is the choke point every app's
+      handle comes from. Add the workspace there and an app cannot read another's.</li>
+    <li><code>http.js:192</code> invokes with no context at all. The gateway injects a header; the
+      OS route reads it and passes <code>{ userId, workspaceId }</code> through.</li>
+  </ul>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="order">Order of work</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Step</th><th>Who</th><th>Blocked by</th></tr></thead>
+    <tbody>
+      <tr><td><b>0 · Agree the contract</b> — schema, <code>magnaTenant</code>, the JWT rule</td><td><span class="pill a">you</span> <span class="pill b">colleague</span></td><td>—</td></tr>
+      <tr><td>Migrations 000–007, RLS on from the start</td><td><span class="pill a">you</span></td><td>0</td></tr>
+      <tr><td>Gateway: signup, login, cookie, route guard</td><td><span class="pill a">you</span></td><td>0</td></tr>
+      <tr><td>Per-user dsh supervisor</td><td><span class="pill a">you</span></td><td>gateway</td></tr>
+      <tr><td><b><code>ctx.magnaTenant</code> — ship a stub early</b></td><td><span class="pill a">you</span></td><td>0</td></tr>
+      <tr><td>Move the 25 settings keys + the VFS into Postgres</td><td><span class="pill a">you</span></td><td>migrations, magnaTenant</td></tr>
+      <tr><td>Durable storage for Docs and Sheets</td><td><span class="pill a">you</span></td><td>migrations</td></tr>
+      <tr><td>Migration 100: rag schema + RLS</td><td><span class="pill b">colleague</span></td><td>0</td></tr>
+      <tr><td>Ingestion: extract, chunk, embed</td><td><span class="pill b">colleague</span></td><td>100</td></tr>
+      <tr><td><code>@magna/plugin-rag</code> with <code>rag_*</code> tools</td><td><span class="pill b">colleague</span></td><td>100, <b>magnaTenant</b></td></tr>
+      <tr><td>Login / signup / workspace switcher UI</td><td><span class="pill a">you</span></td><td>gateway</td></tr>
+      <tr><td>Graph + citations</td><td><span class="pill b">colleague</span></td><td>ingestion</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">The RAG plugin's tools register into the harness tool registry, and the Workflow
+  palette is generated from that registry — so your colleague's <code>rag_search</code> appears as a
+  workflow node with no work from you at all.</p>
+
+  <!-- ─────────────────────────────────────────────── -->
+  <h2 id="traps">Four traps</h2>
+
+  <div class="card bad">
+    <h3>1 · RLS on <code>memberships</code> recurses</h3>
+    <p style="margin-bottom:0">A policy on <code>app.memberships</code> that reads
+    <code>app.memberships</code> to decide access is infinite recursion, and Postgres reports it at
+    query time rather than at migration time — so it ships. Route every policy through the one
+    <code>security definer</code> helper above.</p>
+  </div>
+
+  <div class="card bad">
+    <h3>2 · The service-role key in a plugin</h3>
+    <p style="margin-bottom:0">It bypasses RLS completely and fails silently — everything works,
+    every test passes, and every workspace can read every other. Grep for it in CI: it must appear
+    nowhere under <code>packages/</code>.</p>
+  </div>
+
+  <div class="card bad">
+    <h3>3 · <code>workspace_id</code> taken from the request body</h3>
+    <p style="margin-bottom:0">It must be derived server-side from the session cookie. The OS
+    already learned this once: <code>scopeFor</code> stamps <code>appId</code> from the registration
+    rather than from the caller, precisely because attribution a caller can set is attribution a
+    plugin can forge.</p>
+  </div>
+
+  <div class="card warn">
+    <h3>4 · Process-per-user is the scaling ceiling</h3>
+    <p style="margin-bottom:0">Measure the memory of one idle dsh child in week one. If it is
+    150 MB, a 32 GB machine holds roughly 200 idle users and far fewer active ones. That number
+    decides whether this design survives a real customer list, and it is much cheaper to learn now
+    than after launch.</p>
+  </div>
+
+  <div class="foot">
+    Every file path and line number cited here was checked against the running build. The wider plan,
+    including the gateway and connector work, is in the repository plan file; what is real today is in
+    <a href="system-status.html">system-status.html</a>.
+  </div>
+
+</div>
+</body>
+</html>

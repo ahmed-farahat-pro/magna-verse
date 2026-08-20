@@ -5,6 +5,7 @@
 | | |
 |---|---|
 | [**system-status.html**](system-status.html) | **What is real and what is not** — generated from the running build, with the evidence beside each claim and the remaining work in priority order. Read this first. |
+| [**database-setup.html**](database-setup.html) | **How to start on the database** — the schema, row-level security, per-user storage, and the split of work between two developers. |
 | [plugin-architecture.html](plugin-architecture.html) | The three layers, and the install/removal flows that make an app removable. |
 | [deepseek-harness.html](deepseek-harness.html) | What the harness underneath actually provides, built from its own documentation. |
 
